@@ -1,0 +1,22 @@
+({:db/ident       :notes/id
+  :db/valueType   :db.type/uuid
+  :db/cardinality :db.cardinality/one
+  :db/unique      :db.unique/identity
+  :db/doc         "The external id of the note"}
+ {:db/ident       :notes/context
+  :db/valueType   :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc         "The relevant meeting/context"}
+ {:db/ident       :notes/body
+  :db/valueType   :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/fulltext    true
+  :db/doc         "The body of the note"}
+ {:db/ident       :notes/tags
+  :db/valueType   :db.type/keyword
+  :db/cardinality :db.cardinality/many
+  :db/doc         "Associated tags"}
+ {:db/ident       :notes/timestamp
+  :db/valueType   :db.type/instant
+  :db/cardinality :db.cardinality/one
+  :db/doc         "The time the note was recorded"})
