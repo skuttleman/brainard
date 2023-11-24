@@ -34,10 +34,13 @@
 
 (defmethod routes.common/handler [:patch :routes.api/note]
   [{:brainard/keys [apis input]}]
-  {:status 200
-   :body   {:data (notes/update! (:notes apis)
-                                 (:notes/id input)
-                                 input)}})
+  (if-let [note (notes/update! (:notes apis)
+                               (:notes/id input)
+                               input)]
+    {:status 200
+     :body   {:data note}}
+    {:status 404
+     :body   [:not :found]}))
 
 
 (defmethod routes.common/handler [:get :routes.api/tags]

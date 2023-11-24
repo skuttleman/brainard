@@ -11,7 +11,6 @@
       (derive :put :any)
       (derive :patch :any)
       (derive :delete :any)
-      (derive :routes.ui/home :routes/ui)
       (derive :routes.resources/js :routes.resources/asset)
       (derive :routes.resources/css :routes.resources/asset)))
 

@@ -1,4 +1,4 @@
-(ns brainard.infra.routes.table)
+(ns brainard.common.routing)
 
 (def ^:private uuid-regex #"(?i)[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}")
 
@@ -20,7 +20,7 @@
 
 (def ui-routes
   [""
-   [["/" :routes.ui/home]]])
+   [["/" :routes/ui]]])
 
 (def all
   [""

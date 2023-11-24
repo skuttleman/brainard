@@ -1,11 +1,12 @@
 (ns brainard.infra.routes.middleware
   (:require
     [bidi.bidi :as bidi]
+    [brainard.common.routing :as routing]
     [brainard.common.specs :as specs]
     [brainard.common.utils.edn :as edn]
+    [brainard.common.validations :as valid]
     [brainard.infra.routes.common :as routes.common]
     [brainard.infra.routes.errors :as err]
-    [brainard.infra.routes.table :as table]
     [ring.util.request :as ring.req]
     [taoensso.timbre :as log]))
 
@@ -18,7 +19,7 @@
 
 (defn with-routing [handler]
   (fn [req]
-    (let [route-info (bidi/match-route table/all (:uri req))]
+    (let [route-info (bidi/match-route routing/all (:uri req))]
       (handler (assoc req :brainard/route route-info)))))
 
 (defn with-edn [handler]
@@ -40,8 +41,8 @@
     (let [req (routes.common/coerce-input req)
           spec-key (routes.common/router req)
           input-spec (specs/input-specs spec-key)]
-      (err/validate! input-spec (:brainard/input req) ::err/input-validation)
+      (valid/validate! input-spec (:brainard/input req) ::valid/input-validation)
       (let [result (handler req)
             output-spec (specs/output-specs spec-key)]
-        (err/validate! output-spec (:body result) ::err/output-validation)
+        (valid/validate! output-spec (:body result) ::valid/output-validation)
         result))))

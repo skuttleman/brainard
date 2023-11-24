@@ -12,9 +12,10 @@
       (assoc :notes/id note-id)))
 
 (defn update! [{:keys [store]} note-id note]
-  (let [note (clean-note note note-id)]
-    (notes.proto/save! store note)
-    (notes.proto/get-note store note-id)))
+  (when (notes.proto/get-note store note-id)
+    (let [note (clean-note note note-id)]
+      (notes.proto/save! store note)
+      (notes.proto/get-note store note-id))))
 
 (defn create! [{:keys [store]} note]
   (let [note (-> note
