@@ -1,4 +1,4 @@
-(ns brainard.core.utils.edn
+(ns brainard.common.utils.edn
   (:refer-clojure :exclude [read read-string])
   (:require
     [clojure.edn :as edn]

@@ -1,6 +1,6 @@
 (ns brainard.infra.datomic
   (:require
-    [brainard.core.utils.edn :as edn]
+    [brainard.common.utils.edn :as edn]
     [clojure.java.io :as io]
     [datomic.client.api :as d]))
 
@@ -10,7 +10,7 @@
                        {::writer (io/writer (io/file file-name) :append true)
                         ::lock   (Object.)})))
 
-(defn- log! [{::keys [lock writer]} data]
+(defn ^:private log! [{::keys [lock writer]} data]
   (locking lock
     (.write writer (pr-str data))
     (.append writer \newline)

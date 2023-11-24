@@ -1,68 +1,70 @@
 (ns brainard.infra.stores.notes
   (:require
     [brainard.api.notes.proto :as notes.proto]
-    [brainard.infra.datomic :as datomic]
-    [clj-uuid :as uuid])
-  (:import
-    (java.util Date)))
+    [brainard.infra.datomic :as datomic]))
 
-(defn- save! [{:keys [datomic-conn]} note]
-  (datomic/transact! datomic-conn
-                     {:tx-data [(assoc note
-                                       :notes/id (uuid/v4)
-                                       :notes/timestamp (Date.))]}))
+(defn ^:private save! [{:keys [datomic-conn]} note]
+  (let [{note-id :notes/id retract-tags :notes.retract/tags} note]
+    (datomic/transact! datomic-conn
+                       {:tx-data (into [(dissoc note :notes.retract/tags)]
+                                       (map (partial conj [:db/retract [:notes/id note-id] :notes/tags]))
+                                       retract-tags)})))
 
-(defn- get-contexts [{:keys [datomic-conn]}]
+(defn ^:private get-contexts [{:keys [datomic-conn]}]
   (->> (datomic/query datomic-conn
                       '[:find ?context
                         :where [_ :notes/context ?context]])
        (map first)
        set))
 
-(defn- get-tags [{:keys [datomic-conn]}]
+(defn ^:private get-tags [{:keys [datomic-conn]}]
   (->> (datomic/query datomic-conn
                       '[:find ?tag
                         :where [_ :notes/tags ?tag]])
        (map first)
        set))
 
-(defn- notes-query [{:keys [context tag]}]
+(defn ^:private notes-query [{:notes/keys [context tags]}]
   (cond-> '[:find (pull ?e [:notes/id
                             :notes/context
                             :notes/body
                             :notes/tags
                             :notes/timestamp])
-            :in $]
+            :where]
+
+    (and (nil? context) (empty? tags))
+    (conj '[?e :notes/id])
 
     context
-    (conj '?context)
+    (conj ['?e :notes/context context])
 
-    tag
-    (conj '?tag)
+    (seq tags)
+    (conj (->> tags
+               (map (partial conj '[?e :notes/tags]))
+               (list* 'or)))))
 
-    :always
-    (conj :where)
-
-    (and (not context) (not tag))
-    (conj '[?e :notes/body])
-
-    context
-    (conj '[?e :notes/context ?context])
-
-    tag
-    (conj '[?e :notes/tags ?tag])))
-
-(defn- get-notes [{:keys [datomic-conn]} {:keys [context tag] :as params}]
+(defn ^:private get-notes [{:keys [datomic-conn]} params]
   (let [query (notes-query params)]
-    (->> [context tag]
-         (remove nil?)
-         (apply datomic/query datomic-conn query)
-         (map #(update (first %) :notes/tags set))
-         (sort-by :notes/timestamp))))
+    (->> (datomic/query datomic-conn query)
+         (map #(update (first %) :notes/tags set)))))
+
+(defn ^:private get-note [{:keys [datomic-conn]} note-id]
+  (-> (datomic/query datomic-conn
+                     '[:find (pull ?e [:notes/id
+                                       :notes/context
+                                       :notes/body
+                                       :notes/tags
+                                       :notes/timestamp])
+                       :in $ ?note-id
+                       :where [?e :notes/id ?note-id]]
+                     note-id)
+      ffirst
+      (update :notes/tags set)))
 
 (defn create-store [this]
   (with-meta this
              {`notes.proto/save!        #'save!
               `notes.proto/get-contexts #'get-contexts
+              `notes.proto/get-tags     #'get-tags
               `notes.proto/get-notes    #'get-notes
-              `notes.proto/get-tags     #'get-tags}))
+              `notes.proto/get-note     #'get-note}))

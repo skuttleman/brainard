@@ -7,7 +7,9 @@
     brainard.infra.routes.notes))
 
 (def handler (-> routes.common/handler
+                 mw/with-spec-validation
                  ring.kw-params/wrap-keyword-params
                  ring.params/wrap-params
                  mw/with-edn
-                 mw/with-routing))
+                 mw/with-routing
+                 mw/with-error-handling))
