@@ -15,8 +15,7 @@
 
 (def resource-routes
   [""
-   [["/health" :routes.resources/health]
-    ["/js" [[true :routes.resources/js]]]
+   [["/js" [[true :routes.resources/js]]]
     ["/css" [[true :routes.resources/css]]]]])
 
 (def ui-routes

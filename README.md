@@ -6,14 +6,15 @@ their thoughts now, so they can forget them later.
 ## Dependencies
 
 - Install [Clojure runtime](https://clojure.org/guides/getting_started)
+- Install [Foreman](http://blog.daviddollar.org/2011/05/06/introducing-foreman.html)
 
-## Run
+## Dev
 
 ```bash
-$ clj -m brainard.core
+$ foreman start
 ```
 
-## Dev: Run with a REPL
+### Run with a REPL
 
 ```bash
 $ clj -e "(require 'brainard.core)(in-ns 'brainard.core)(def system (sys/start! \"duct.edn\"))" -r

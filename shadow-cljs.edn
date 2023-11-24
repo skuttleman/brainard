@@ -1,0 +1,14 @@
+{:deps   true
+ :nrepl  {:port #shadow/env ["CLJS_NREPL_PORT" :as :int :default 7400]}
+ :builds {:dev
+          {:target     :browser
+           :output-dir "resources/public/js"
+           :compiler   {:optimizations :none}
+           :devtools   {:watch-dir "resources/public"}
+           :modules    {:main {:init-fn brainard.ui.core/init}}}
+
+          :ui
+          {:target     :browser
+           :output-dir "resources/public/js"
+           :compiler   {:optimizations :advanced}
+           :modules    {:main {:init-fn brainard.ui.core/init}}}}}

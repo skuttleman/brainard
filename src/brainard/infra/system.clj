@@ -5,7 +5,8 @@
     [duct.core :as duct]
     [brainard.infra.routes.core :as routes]
     [immutant.web :as web]
-    [integrant.core :as ig]))
+    [integrant.core :as ig]
+    [taoensso.timbre :as log]))
 
 (defmethod ig/init-key :brainard.datomic/client
   [_ params]
@@ -15,8 +16,7 @@
 (defmethod ig/init-key :brainard.datomic/conn
   [_ {:keys [client db-name schema-file]}]
   (doto (datomic/connect! client db-name)
-    (datomic/load-schema! schema-file)
-    datomic/load-log!))
+    (datomic/init! schema-file)))
 
 (defmethod ig/halt-key! :brainard.datomic/conn
   [_ conn]
@@ -28,12 +28,14 @@
 
 (defmethod ig/init-key :brainard/webserver
   [_ {:keys [apis server-port]}]
+  (log/info "starting webserver on port" server-port)
   (web/run (fn [req]
              (routes/handler (assoc req :brainard/apis apis)))
            {:port server-port :host "0.0.0.0"}))
 
 (defmethod ig/halt-key! :brainard/webserver
   [_ server]
+  (log/info "shutting down webserver")
   (web/stop server))
 
 (defn start! [config-file]

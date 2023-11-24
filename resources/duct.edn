@@ -27,7 +27,7 @@
 
                      ;; env
                      [:cfg/server-port :duct/const]
-                     #duct/env ["PORT" Int :or #duct/env ["SERVER_PORT" :or "1165"]]
+                     #duct/env ["SERVER_PORT" Int :or 1165]
 
                      [:cfg/datomic-db-name :duct/const]
                      #duct/env ["DATOMIC_DB_NAME" :or "brainard"]

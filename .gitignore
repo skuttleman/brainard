@@ -1,6 +1,8 @@
 .cpcache/
 .idea/
+.shadow-cljs/
 target/
+resources/public/js/
 *.iml
 *.log
 .nrepl-port
