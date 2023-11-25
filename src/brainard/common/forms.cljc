@@ -3,19 +3,22 @@
     [brainard.common.utils.maps :as maps]))
 
 (defn current [form]
-  (maps/nest (:current form)))
+  (when form
+    (maps/nest (:current form))))
 
 (defn errors [{:form/keys [validator] :as form}]
-  (validator (current form)))
+  (when form
+    (validator (current form))))
 
 (defn change [form path value]
-  (assoc-in form [:current path] value))
+  (when form
+    (assoc-in form [:current path] value)))
 
 (defn changed?
   ([{:keys [current init] :as form}]
-   (= current init))
+   (not= current init))
   ([{:keys [current init] :as form} path]
-   (= (get current path) (get init path))))
+   (not= (get current path) (get init path))))
 
 (defn touch
   ([form]
@@ -33,15 +36,12 @@
 (defn attempt [form]
   (assoc form :form/attempted true))
 
-(defn create
-  ([id data]
-   (create id data (constantly nil)))
-  ([id data validator]
-   (let [internal (maps/flatten data)]
-     {:form/id        id
-      :form/validator validator
-      :init           internal
-      :current        internal
-      :form/attempted false
-      :touched        #{}
-      :form/touched   false})))
+(defn create [id data validator]
+  (let [current (maps/flatten data)]
+    {:form/id        id
+     :form/validator validator
+     :init           current
+     :current        current
+     :form/attempted false
+     :touched        #{}
+     :form/touched   false}))

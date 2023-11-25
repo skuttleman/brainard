@@ -1,28 +1,24 @@
 (ns brainard.ui.store.events
   (:require
-    [brainard.ui.store.api :as store.api]))
+    [brainard.common.forms :as forms]))
 
-(defn fetch-tags [{:keys [db]} _]
-  {::store.api/request {:route      :routes.api/tags
-                        :method     :get
-                        :on-success [::store.api/success :tags]
-                        :on-error   [::store.api/error :tags]}
-   :db                 (assoc db :tags [:requesting])})
+(defn create-form [db [_ id data validator]]
+  (assoc-in db [::forms/form id] (forms/create id
+                                               data
+                                               (or validator (constantly nil)))))
 
-(defn fetch-contexts [{:keys [db]} _]
-  {::store.api/request {:route      :routes.api/contexts
-                        :method     :get
-                        :on-success [::store.api/success :contexts]
-                        :on-error   [::store.api/error :contexts]}
-   :db                 (assoc db :contexts [:requesting])})
+(defn destroy-form [db [_ id]]
+  (update db ::forms/form dissoc id))
 
-(defn create-note! [_ [_ note]]
-  {::store.api/request {:route  :routes.api/notes
-                        :method :post
-                        :body   note}})
+(defn change-form [db [_ id path value]]
+  (update-in db [::forms/form id]
+             (fn [form]
+               (-> form
+                   (forms/change path value)
+                   (forms/touch path)))))
 
-(defn update-note! [_ [_ note-id note]]
-  {::store.api/request {:route        :routes.api/note
-                        :route-params {:notes/id note-id}
-                        :method       :patch
-                        :body         note}})
+(defn touch-form [db [_ id path :as action]]
+  (let [form (get-in db [::forms/form id])]
+    (if (= 2 (count action))
+      (forms/touch form)
+      (forms/touch form path))))

@@ -8,12 +8,14 @@
   [:pre (with-out-str (pp/pprint data))])
 
 (defn root []
-  (let [sub:tags (store/subscribe [:core/tags])
-        sub:contexts (store/subscribe [:core/contexts])]
+  (let [sub:form (store/subscribe [:forms/value 123])
+        sub:errors (store/subscribe [:forms/errors 123])]
     (fn []
       [:div
-       [pprint {:tags     @sub:tags
-                :contexts @sub:contexts}]])))
+       [pprint
+        [@re-frame.db/app-db
+         {:form   @sub:form
+          :errors @sub:errors}]]])))
 
 (defn load []
   (rdom/render [root]
