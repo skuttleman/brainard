@@ -13,9 +13,3 @@ their thoughts now, so they can forget them later.
 ```bash
 $ foreman start
 ```
-
-### Run with a REPL
-
-```bash
-$ clj -e "(require 'brainard.core)(in-ns 'brainard.core)(def system (sys/start! \"duct.edn\"))" -r
-```
