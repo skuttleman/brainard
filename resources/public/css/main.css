@@ -30,3 +30,15 @@
 .layout--space-between > *:not(:first-child) {
     margin-left: 12px;
 }
+
+.form-field.errors .button-group,
+.form-field.errors .input,
+.form-field.errors .select,
+.form-field.errors .textarea,
+.form-field.errors .dropdown-trigger > .button {
+    border-color: red;
+}
+
+.error-list {
+    color: red;
+}

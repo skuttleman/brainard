@@ -28,11 +28,10 @@
         (->> (conj [component]))
         (into args))))
 
-(defn form-field [{:keys [attempted? errors form-field-class id label label-small?]} & body]
-  (let [errors (seq (remove nil? errors))
-        show-errors? (and errors attempted?)]
+(defn form-field [{:keys [errors form-field-class id label label-small? warnings]} & body]
+  (let [errors (seq (remove nil? errors))]
     [:div.form-field
-     {:class (into [(when show-errors? "errors")] form-field-class)}
+     {:class (into [(cond errors "errors" warnings "warnings")] form-field-class)}
      [:<>
       (when label
         [:label.label
@@ -41,12 +40,18 @@
                                        :font-size   "0.8em"}))
          label])
       (into [:div.form-field-control] body)]
-     (when show-errors?
+     (when errors
        [:ul.error-list
         (for [error errors]
           [:li.error
            {:key error}
-           error])])]))
+           error])])
+     (when warnings
+       [:ul.warning-list
+        (for [warning warnings]
+          [:li.warning
+           {:key warning}
+           warning])])]))
 
 (def ^{:arglists '([attrs options])} select
   (with-id
