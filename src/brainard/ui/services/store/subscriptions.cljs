@@ -1,4 +1,4 @@
-(ns brainard.ui.store.subscriptions
+(ns brainard.ui.services.store.subscriptions
   (:require
     [brainard.common.forms :as forms]))
 
@@ -8,9 +8,6 @@
 
 (defn form-value [db [_ id]]
   (forms/current (get-in db [::forms/form id])))
-
-(defn form-errors [db [_ id]]
-  (forms/errors (get-in db [::forms/form id])))
 
 (defn form-changed? [db [_ id path :as action]]
   (let [form (get-in db [::forms/form id])]

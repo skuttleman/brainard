@@ -1,10 +1,11 @@
 (ns brainard.ui.core
   (:require
     [brainard.common.views.pages.core :as pages]
-    [brainard.ui.navigation :as nav]
-    [brainard.ui.store.core :as store]
+    [brainard.common.stubs.re-frame :as rf]
+    [brainard.ui.services.navigation :as nav]
     [clojure.pprint :as pp]
-    [reagent.dom :as rdom]))
+    [reagent.dom :as rdom]
+    brainard.ui.services.store.core))
 
 (defn pprint [data]
   [:pre (with-out-str (pp/pprint data))])
@@ -26,7 +27,7 @@
          [:a.navbar-item {:href search} "Search"]]]]]]))
 
 (defn root []
-  (let [router (store/subscribe [:routing/route])]
+  (let [router (rf/subscribe [:routing/route])]
     (fn []
       (let [route @router]
         [:div
@@ -40,7 +41,7 @@
 
 (defn init []
   (enable-console-print!)
-  (store/dispatch-sync [:core/init])
-  (store/dispatch [:api.tags/fetch])
-  (store/dispatch [:api.contexts/fetch])
+  (rf/dispatch-sync [:core/init])
+  (rf/dispatch [:api.tags/fetch])
+  (rf/dispatch [:api.contexts/fetch])
   (load))

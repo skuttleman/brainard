@@ -1,0 +1,32 @@
+.loader {
+    &.large {
+        border-width: 8px;
+        height: 100px;
+        width: 100px;
+    }
+    &.medium {
+        border-width: 4px;
+        height: 40px;
+        width: 40px;
+    }
+}
+
+.layout--stack-between {
+    display: flex;
+    flex-direction: column;
+}
+
+.layout--stack-between > *:not(:first-child) {
+    margin-top: 12px;
+}
+
+.layout--space-between {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.layout--space-between > *:not(:first-child) {
+    margin-left: 12px;
+}

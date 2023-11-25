@@ -1,6 +1,7 @@
 (ns brainard.common.views.controls
   (:require
     [brainard.common.stubs.dom :as dom]
+    [brainard.common.stubs.re-frame :as rf]
     [brainard.common.views.common :as views.common]
     [clojure.string :as string]))
 
@@ -10,12 +11,17 @@
       (fn [attrs & args]
         (into [component (assoc attrs :id id)] args)))))
 
+(defn ^:private dispatch-on-change [on-change]
+  (fn [value]
+    (when on-change
+      (rf/dispatch-sync (conj on-change value)))))
+
 (defn ^:private with-trim-blur [component]
   (fn [attrs & args]
     (-> attrs
         (update :on-blur (fn [on-blur]
                            (fn [e]
-                             (when-let [on-change (:on-change attrs)]
+                             (when-let [on-change (some-> (:on-change attrs) dispatch-on-change)]
                                (on-change (some-> attrs :value string/trim not-empty)))
                              (when on-blur
                                (on-blur e)))))
@@ -54,7 +60,7 @@
          [:select.select
           (-> {:value     (str value)
                :disabled  disabled
-               :on-change (comp on-change
+               :on-change (comp (dispatch-on-change on-change)
                                 (into {} (map (juxt str identity) option-values))
                                 dom/target-value)}
               (merge (select-keys attrs #{:class :id :on-blur :ref})))
@@ -76,7 +82,7 @@
          [:textarea.textarea
           (-> {:value     value
                :disabled  disabled
-               :on-change (comp on-change dom/target-value)}
+               :on-change (comp (dispatch-on-change on-change) dom/target-value)}
               (merge (select-keys attrs #{:class :id :on-blur :ref})))]]))))
 
 (def ^{:arglists '([attrs])} input
@@ -88,7 +94,7 @@
          [:input.input
           (-> {:type      (or type :text)
                :disabled  disabled
-               :on-change (comp on-change dom/target-value)}
+               :on-change (comp (dispatch-on-change on-change) dom/target-value)}
               (merge (select-keys attrs #{:class :id :on-blur :ref :value :on-focus :auto-focus})))]]))))
 
 (def ^{:arglists '([attrs])} checkbox
@@ -100,15 +106,16 @@
         (-> {:checked   (boolean value)
              :type      :checkbox
              :disabled  disabled
-             :on-change #(on-change (not value))}
+             :on-change (fn [_]
+                          (rf/dispatch-sync (conj on-change (not value))))}
             (merge (select-keys attrs #{:class :id :on-blur :ref})))]])))
 
 (defn form [{:keys [ready? valid? buttons disabled on-submit] :as attrs} & fields]
   (let [disabled (or disabled (not ready?) (not valid?))]
-    (-> [:form.form
+    (-> [:form.form.layout--stack-between
          (merge {:on-submit (fn [e]
                               (dom/prevent-default! e)
-                              (on-submit))}
+                              (rf/dispatch on-submit))}
                 (select-keys attrs #{:class :style}))]
         (into fields)
         (conj (cond-> [:div.buttons

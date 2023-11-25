@@ -6,10 +6,6 @@
   (when form
     (maps/nest (:current form))))
 
-(defn errors [{:form/keys [validator] :as form}]
-  (when form
-    (validator (current form))))
-
 (defn change [form path value]
   (when form
     (assoc-in form [:current path] value)))
@@ -34,12 +30,14 @@
    (contains? (:touched form) path)))
 
 (defn attempt [form]
-  (assoc form :form/attempted true))
+  (assoc form :form/attempted true :attempting true))
 
-(defn create [id data validator]
+(defn fail [form errors]
+  (assoc form :attempting false :form/errors errors))
+
+(defn create [id data]
   (let [current (maps/flatten data)]
     {:form/id        id
-     :form/validator validator
      :init           current
      :current        current
      :form/attempted false

@@ -1,12 +1,12 @@
-(ns brainard.ui.navigation
+(ns brainard.ui.services.navigation
   (:require
     [bidi.bidi :as bidi]
     [brainard.common.routing :as routing]
-    [brainard.ui.store.core :as store]
+    [brainard.common.stubs.re-frame :as rf]
     [pushy.core :as pushy]))
 
 (defn ^:private dispatch [route]
-  (store/dispatch [:routing/navigate route]))
+  (rf/dispatch [:routing/navigate route]))
 
 (defn ^:private match [path]
   (bidi/match-route routing/all path))

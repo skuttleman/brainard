@@ -42,7 +42,9 @@
           spec-key (routes.common/router req)
           input-spec (specs/input-specs spec-key)]
       (valid/validate! input-spec (:brainard/input req) ::valid/input-validation)
-      (let [result (handler req)
-            output-spec (specs/output-specs spec-key)]
-        (valid/validate! output-spec (:body result) ::valid/output-validation)
-        result))))
+      (let [response (handler req)
+            output-spec (if (<= 200 (:status response) 299)
+                          (specs/output-specs spec-key)
+                          specs/errors)]
+        (valid/validate! output-spec (:body response) ::valid/output-validation)
+        response))))

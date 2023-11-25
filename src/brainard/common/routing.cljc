@@ -15,8 +15,8 @@
 
 (def resource-routes
   [""
-   [["/js" [[true :routes.resources/js]]]
-    ["/css" [[true :routes.resources/css]]]]])
+   [["/js/" [[true :routes.resources/js]]]
+    ["/css/" [[true :routes.resources/css]]]]])
 
 (def ui-routes
   [""

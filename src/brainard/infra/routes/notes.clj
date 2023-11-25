@@ -40,7 +40,8 @@
     {:status 200
      :body   {:data note}}
     {:status 404
-     :body   [:not :found]}))
+     :body   {:errors [{:message "Not found"
+                        :code    :UNKNOWN_RESOURCE}]}}))
 
 
 (defmethod routes.common/handler [:get :routes.api/tags]
