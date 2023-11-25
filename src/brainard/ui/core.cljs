@@ -8,8 +8,8 @@
   [:pre (with-out-str (pp/pprint data))])
 
 (defn root []
-  (let [sub:tags (store/subscribe [::store/tags])
-        sub:contexts (store/subscribe [::store/contexts])]
+  (let [sub:tags (store/subscribe [:core/tags])
+        sub:contexts (store/subscribe [:core/contexts])]
     (fn []
       [:div
        [pprint {:tags     @sub:tags
@@ -21,7 +21,7 @@
 
 (defn init []
   (enable-console-print!)
-  (store/dispatch-sync [::store/init])
-  (store/dispatch [::store/fetch-tags])
-  (store/dispatch [::store/fetch-contexts])
+  (store/dispatch-sync [:core/init])
+  (store/dispatch [:api.tags/fetch])
+  (store/dispatch [:api.contexts/fetch])
   (load))
