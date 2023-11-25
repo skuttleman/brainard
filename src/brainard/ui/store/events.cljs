@@ -2,6 +2,10 @@
   (:require
     [brainard.common.forms :as forms]))
 
+(defn assoc-path [path]
+  (fn [db [_ value]]
+    (assoc-in db path value)))
+
 (defn create-form [db [_ id data validator]]
   (assoc-in db [::forms/form id] (forms/create id
                                                data

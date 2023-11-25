@@ -7,7 +7,8 @@
 
 (def ^:private empty-store
   {:tags     [:init]
-   :contexts [:init]})
+   :contexts [:init]
+   :routing/route nil})
 
 (def ^{:arglists '([[type :as event]])} dispatch rf/dispatch)
 (def ^{:arglists '([[type :as event]])} dispatch-sync rf/dispatch-sync)
@@ -16,8 +17,13 @@
 
 ;; CORE
 (rf/reg-event-db :core/init (constantly empty-store))
-(rf/reg-sub :core/tags (store.subs/of [:tags]))
-(rf/reg-sub :core/contexts (store.subs/of [:contexts]))
+(rf/reg-sub :core/tags (store.subs/get-path [:tags]))
+(rf/reg-sub :core/contexts (store.subs/get-path [:contexts]))
+
+
+;; ROUTING
+(rf/reg-sub :routing/route (store.subs/get-path [:routing/route]))
+(rf/reg-event-db :routing/navigate (store.events/assoc-path [:routing/route]))
 
 
 ;; API

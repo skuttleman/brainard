@@ -12,7 +12,10 @@
       (derive :patch :any)
       (derive :delete :any)
       (derive :routes.resources/js :routes.resources/asset)
-      (derive :routes.resources/css :routes.resources/asset)))
+      (derive :routes.resources/css :routes.resources/asset)
+      (derive :routes.ui/home :routes/ui)
+      (derive :routes.ui/search :routes/ui)
+      (derive :routes.ui/not-found :routes/ui)))
 
 (defn router [{:keys [request-method] :brainard/keys [route]}]
   [request-method (:handler route)])

@@ -20,11 +20,12 @@
 
 (def ui-routes
   [""
-   [["/" :routes/ui]]])
+   [["/" :routes.ui/home]
+    ["/search" :routes.ui/search]
+    [true :routes.ui/not-found]]])
 
 (def all
   [""
    [api-routes
     resource-routes
-    ui-routes
-    [true :routes/not-found]]])
+    ui-routes]])

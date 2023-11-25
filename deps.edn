@@ -8,6 +8,7 @@
            danlentz/clj-uuid         {:mvn/version "0.1.9"}
            duct/core                 {:mvn/version "0.8.0"}
            hiccup/hiccup             {:mvn/version "1.0.5"}
+           kibu/pushy                {:mvn/version "0.3.8"}
            medley/medley             {:mvn/version "1.4.0"}
            metosin/jsonista          {:mvn/version "0.3.7"}
            metosin/malli             {:mvn/version "0.10.1"}

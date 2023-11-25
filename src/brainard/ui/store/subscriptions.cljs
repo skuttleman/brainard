@@ -2,7 +2,7 @@
   (:require
     [brainard.common.forms :as forms]))
 
-(defn of [path]
+(defn get-path [path]
   (fn [db _]
     (get-in db path)))
 
