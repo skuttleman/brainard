@@ -11,23 +11,22 @@
     [clojure.string :as string]
     [ring.util.request :as ring.req]))
 
-(defn ^:private log-req [now {:keys [status] :as res} {:keys [uri] :as req}]
-  (let [duration (str "[" (- (System/currentTimeMillis) now) "ms]:")
+(defn ^:private log-req [{:keys [ex result duration]} {:keys [uri] :as req}]
+  (let [status (:status result)
+        duration (str "[" duration "ms]:")
         method (string/upper-case (name (:request-method req)))]
-    (if (<= 200 status 399)
+    (if (and (nil? ex) (<= 200 status 399))
       (log/info method uri duration status)
-      (log/error method uri duration status))
-    res))
+      (log/error method uri duration status))))
 
 (defn with-logging
   ([handler]
    (with-logging handler nil))
   ([handler {:keys [xform] :or {xform identity}}]
-   (fn [req]
-     (let [logger (xform (partial log-req (System/currentTimeMillis)))
-           res (handler req)]
-       (logger res req)
-       res))))
+   (let [logger (xform log-req)]
+     (fn [req]
+       (log/with-duration [ctx (handler req)]
+         (logger ctx req))))))
 
 (defn with-error-handling [handler]
   (fn [req]

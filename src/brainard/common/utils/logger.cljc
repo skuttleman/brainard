@@ -33,6 +33,18 @@
 (defmacro report [& args]
   (log* &form :report args))
 
+(defmacro with-duration [[ctx-binding call] & body]
+  `(let [before# #?(:clj (System/currentTimeMillis) :default 0)
+         [result# ex#] (try
+                         [~call]
+                         (catch Throwable ex#
+                           [nil ex#]))
+         after# #?(:clj (System/currentTimeMillis)  :default 0)]
+     (let [~ctx-binding {:ex ex# :result result# :duration (- after# before#)}]
+       ~@body
+       (some-> ex# throw)
+       result#)))
+
 (defn ^:private filter-external-packages [{:keys [level ?ns-str] :as data}]
   (when (or (#{:warn :error :fatal :report} level)
             (some->> ?ns-str (re-matches #"^brainard.*")))

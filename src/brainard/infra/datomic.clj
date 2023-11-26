@@ -12,7 +12,7 @@
              {::writer (io/writer (io/file file-name) :append true)
               ::lock   (Object.)})))
 
-(defn ^:private log! [{::keys [lock writer]} data]
+(defn ^:private write! [{::keys [lock writer]} data]
   (locking lock
     (.write writer (pr-str data))
     (.append writer \newline)
@@ -43,21 +43,15 @@
       (.close writer))))
 
 (defn transact! [conn arg-map]
-  (let [before (System/currentTimeMillis)
-        result (do (log! (meta conn) arg-map)
-                   (d/transact (first conn) arg-map))
-        duration (- (System/currentTimeMillis) before)]
-    (log/debug "datomic transaction:" (str "[" duration "ms]"))
-    result))
+  (log/with-duration [{:keys [duration]} (do (write! (meta conn) arg-map)
+                                             (d/transact (first conn) arg-map))]
+    (log/debug "datomic transaction:" (str "[" duration "ms]"))))
 
 (defn query [conn query & args]
   (apply d/q query (d/db (first conn)) args))
 
 (defn init! [conn schema-file]
-  (let [before (System/currentTimeMillis)
-        result (doto conn
-                 (load-schema! schema-file)
-                 load-log!)
-        duration (- (System/currentTimeMillis) before)]
-    (log/debug "datomic initialization:" (str "[" duration "ms]"))
-    result))
+  (log/with-duration [{:keys [duration]} (doto conn
+                                           (load-schema! schema-file)
+                                           load-log!)]
+    (log/info "datomic initialization:" (str "[" duration "ms]"))))
