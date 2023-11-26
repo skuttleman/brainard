@@ -1,11 +1,10 @@
-(ns brainard.common.views.controls
+(ns brainard.common.views.controls.core
   (:require
-    [brainard.common.utils.fns :as fns]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.re-frame :as rf]
-    [brainard.common.stubs.reagent :as r]
+    [brainard.common.views.controls.type-ahead :as type-ahead]
+    [brainard.common.views.controls.tags-editor :as tags-editor]
     [brainard.common.views.common :as views.common]
-    [clojure.pprint :as pp]
     [clojure.string :as string]))
 
 (defn ^:private with-id [component]
@@ -105,85 +104,6 @@
                :on-change (comp (dispatch-on-change on-change) dom/target-value)}
               (merge (select-keys attrs #{:class :id :on-blur :ref :value :on-focus :auto-focus})))]]))))
 
-(defn ^:private filter-matches [value [status data]]
-  (when (= :success status)
-    (let [re (re-pattern (string/lower-case (str value)))]
-      (filter (comp (partial re-find re) string/lower-case)
-              data))))
-
-(defn ^:private type-ahead-trigger [{:keys [comp:state dd-active? matches on-change selected-idx]
-                                     :as     attrs}]
-  [:div.dropdown-trigger
-   [:input.input
-    (-> {:type          :text
-         :auto-complete :off
-         :on-change     (fn [e]
-                          (swap! comp:state assoc :selected? false)
-                          (on-change (dom/target-value e)))
-         :on-key-down   (fn [e]
-                          (when dd-active?
-                            (when-let [key (#{:key-codes/enter :key-codes/up :key-codes/down}
-                                            (dom/event->key e))]
-                              (dom/prevent-default! e)
-                              (dom/stop-propagation! e)
-                              (case key
-                                :key-codes/up (swap! comp:state assoc :selected-idx
-                                                     (max 0 (dec (or selected-idx 1))))
-                                :key-codes/down (swap! comp:state assoc :selected-idx
-                                                       (min (dec (count matches))
-                                                            (inc (or selected-idx -1))))
-                                :key-codes/enter (when selected-idx
-                                                   (swap! comp:state assoc
-                                                          :selected? true
-                                                          :selected-idx nil)
-                                                   (on-change (nth matches selected-idx)))))))}
-        (merge (select-keys attrs #{:class :disabled :id :ref :value :on-focus :on-blur :auto-focus}))
-        (update :on-focus fns/apply-all! (fn [_]
-                                           (swap! comp:state assoc :focussed? true)))
-        (update :on-blur fns/apply-all! (fn [_]
-                                          (swap! comp:state assoc :focussed? false))))]])
-
-(defn ^:private type-ahead-dd [{:keys [comp:state dd-active? matches on-change selected-idx]}]
-  [:div.dropdown {:class [(when dd-active? "is-active")]}
-   [:div.dropdown-menu {:class [(when dd-active? "is-active")]}
-    [:div.dropdown-content
-     (for [[idx match] (map-indexed vector matches)]
-       ^{:key match} [:a.dropdown-item {:href      "#"
-                                        :on-click  (fn [_]
-                                                     (swap! comp:state assoc
-                                                            :selected? true
-                                                            :selected-idx nil)
-                                                     (on-change match))
-                                        :class     [(when (= idx selected-idx) "is-active")]
-                                        :tab-index -1}
-                      match])]]])
-
-(def ^{:arglists '([attrs])} type-ahead
-  (with-id
-    (with-trim-blur
-      (fn [_attrs]
-        (let [comp:state (r/atom {:selected? false
-                                  :focussed? false
-                                  :selected-idx nil})]
-          (fn [{:keys [sub:items value] :as attrs}]
-            (let [state @comp:state
-                  matches (filter-matches value @sub:items)
-                  sub-attrs (-> attrs
-                                (assoc :comp:state comp:state
-                                       :matches matches
-                                       :dd-active? (and (not (:selected? state))
-                                                        (:focussed? state)
-                                                        (>= (count value) 2)
-                                                        (seq matches))
-                                       :selected-idx (when-let [idx (:selected-idx state)]
-                                                       (min idx (dec (count matches)))))
-                                (update :on-change dispatch-on-change))]
-              [form-field
-               attrs
-               [:div.control
-                [type-ahead-trigger sub-attrs]
-                [type-ahead-dd sub-attrs]]])))))))
-
 (def ^{:arglists '([attrs])} checkbox
   (with-id
     (fn [{:keys [disabled on-change value] :as attrs}]
@@ -196,6 +116,20 @@
              :on-change (fn [_]
                           (rf/dispatch-sync (conj on-change (not value))))}
             (merge (select-keys attrs #{:class :id :on-blur :ref})))]])))
+
+(def ^{:arglists '([attrs])} tags-editor
+  (with-id
+    (fn [attrs]
+      [form-field
+       attrs
+       [tags-editor/control (update attrs :on-change dispatch-on-change)]])))
+
+(def ^{:arglists '([attrs])} type-ahead
+  (with-id
+    (fn [attrs]
+      [form-field
+       attrs
+       [type-ahead/control (update attrs :on-change dispatch-on-change)]])))
 
 (defn form [{:keys [ready? valid? buttons disabled on-submit] :as attrs} & fields]
   (let [disabled (or disabled (not ready?) (not valid?))]

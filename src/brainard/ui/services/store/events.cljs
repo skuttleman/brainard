@@ -32,3 +32,13 @@
 
 (defn form-failed [db [_ form-id errors]]
   (update-in db [::forms/form form-id] forms/fail-remote errors))
+
+(defn add-tags [{[status] :tags :as db} [_ {:notes/keys [tags]}]]
+  (cond-> db
+    (= :success status)
+    (update-in [:tags 1] into tags)))
+
+(defn add-context [{[status] :tags :as db} [_ {:notes/keys [context]}]]
+  (cond-> db
+    (and context (= :success status))
+    (update-in [:contexts 1] conj context)))

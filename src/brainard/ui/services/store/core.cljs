@@ -14,6 +14,8 @@
 (rf*/reg-event-db :core/init (constantly empty-store))
 (rf*/reg-sub :core/tags (store.subs/get-path [:tags]))
 (rf*/reg-sub :core/contexts (store.subs/get-path [:contexts]))
+(rf*/reg-event-db :core/tags#add store.events/add-tags)
+(rf*/reg-event-db :core/contexts#add store.events/add-context)
 
 
 ;; ROUTING
@@ -29,12 +31,7 @@
 
 
 ;; FORM
-(rf*/reg-sub :forms/value store.subs/form-value)
-(rf*/reg-sub :forms/changed? store.subs/form-changed?)
-(rf*/reg-sub :forms/touched? store.subs/form-touched?)
-(rf*/reg-sub :forms/status store.subs/form-status)
-(rf*/reg-sub :forms/errors store.subs/form-errors)
-(rf*/reg-sub :forms/warnings store.subs/form-warnings)
+(rf*/reg-sub :forms/form store.subs/form)
 (rf*/reg-event-db :forms/create store.events/create-form)
 (rf*/reg-event-db :forms/destroy store.events/destroy-form)
 (rf*/reg-event-db :forms/change store.events/change-form)

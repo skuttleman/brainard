@@ -25,7 +25,9 @@
       (-> co-fx
           (update-in [::store.api/request :on-success-n]
                      (fnil conj [])
-                     success-handler)
+                     success-handler
+                     [:core/tags#add]
+                     [:core/contexts#add])
           (update-in [::store.api/request :on-error-n]
                      (fnil conj [])
                      [:forms/failed form-id])

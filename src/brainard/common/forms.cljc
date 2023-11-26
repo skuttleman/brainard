@@ -2,14 +2,14 @@
   (:require
     [brainard.common.utils.maps :as maps]))
 
-(defn current [form]
+(defn model [form]
   (when form
     (maps/nest (:form/current form))))
 
 (defn change [{:form/keys [validator] :as form} path value]
   (when form
     (cond-> (assoc-in form [:form/current path] value)
-      validator (as-> $form (assoc $form :form/errors (validator (current $form)))))))
+      validator (as-> $form (assoc $form :form/errors (validator (model $form)))))))
 
 (defn changed?
   ([{:form/keys [current init] :as form}]
