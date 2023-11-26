@@ -8,7 +8,7 @@
 (defn ^:private filter-matches [value [status data]]
   (when (= :success status)
     (let [re (re-pattern (string/lower-case (str value)))]
-      (filter (comp (partial re-find re) string/lower-case)
+      (filter (comp (partial re-find re) string/lower-case str)
               data))))
 
 (defn ^:private ->type-ahead-key-handler [{:keys [comp:state dd-active? matches on-change selected-idx]}]
@@ -59,7 +59,7 @@
                                               :selected? true
                                               :selected-idx nil)
                                        (on-change match))}
-        match])]]])
+        (str match)])]]])
 
 (defn control [_attrs]
   (let [comp:state (r/atom {:selected?    false

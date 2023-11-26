@@ -27,8 +27,7 @@
           [data status warnings errors] (map #(% form) [forms/model
                                                         forms/status
                                                         forms/warnings
-                                                        forms/errors])
-          [tags-status tag-options] @sub:tags]
+                                                        forms/errors])]
       [ctrls/form {:ready?    (#{:warning :modified :init :error} status)
                    :valid?    (#{:warning :waiting :modified} status)
                    :disabled  (#{:waiting} status)
@@ -50,8 +49,7 @@
                                    warnings
                                    errors)]
        [ctrls/tags-editor (with-attrs {:label "Tags"
-                                       :tags  (when (= :success tags-status)
-                                                tag-options)}
+                                       :sub:items  sub:tags}
                                       form-id
                                       [:notes/tags]
                                       data
