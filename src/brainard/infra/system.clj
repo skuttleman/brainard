@@ -1,12 +1,12 @@
 (ns brainard.infra.system
   (:require
+    [brainard.common.utils.logger :as log]
     [brainard.infra.datomic :as datomic]
     [brainard.infra.stores.notes :as stores.notes]
     [duct.core :as duct]
     [brainard.infra.routes.core :as routes]
     [immutant.web :as web]
-    [integrant.core :as ig]
-    [taoensso.timbre :as log]))
+    [integrant.core :as ig]))
 
 (defmethod ig/init-key :brainard.datomic/client
   [_ params]

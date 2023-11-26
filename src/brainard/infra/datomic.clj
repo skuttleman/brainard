@@ -1,6 +1,7 @@
 (ns brainard.infra.datomic
   (:require
     [brainard.common.utils.edn :as edn]
+    [brainard.common.utils.logger :as log]
     [clojure.java.io :as io]
     [datomic.client.api :as d]))
 
@@ -42,13 +43,21 @@
       (.close writer))))
 
 (defn transact! [conn arg-map]
-  (log! (meta conn) arg-map)
-  (d/transact (first conn) arg-map))
+  (let [before (System/currentTimeMillis)
+        result (do (log! (meta conn) arg-map)
+                   (d/transact (first conn) arg-map))
+        duration (- (System/currentTimeMillis) before)]
+    (log/debug "datomic transaction:" (str "[" duration "ms]"))
+    result))
 
 (defn query [conn query & args]
   (apply d/q query (d/db (first conn)) args))
 
 (defn init! [conn schema-file]
-  (doto conn
-    (load-schema! schema-file)
-    load-log!))
+  (let [before (System/currentTimeMillis)
+        result (doto conn
+                 (load-schema! schema-file)
+                 load-log!)
+        duration (- (System/currentTimeMillis) before)]
+    (log/debug "datomic initialization:" (str "[" duration "ms]"))
+    result))

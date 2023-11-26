@@ -1,10 +1,10 @@
 (ns brainard.core
   (:require
+    [brainard.common.utils.logger :as log]
     [brainard.infra.system :as sys]
     [duct.core :as duct]
     [integrant.core :as ig]
-    [nrepl.server :as nrepl]
-    [taoensso.timbre :as log]))
+    [nrepl.server :as nrepl]))
 
 (declare system)
 

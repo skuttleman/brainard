@@ -77,7 +77,7 @@
                 (merge (select-keys attrs #{:class :id :on-blur :ref})))
             (for [[option label attrs] (cond->> options
                                          (= ::empty value) (cons [::empty
-                                                                  "Choose…"
+                                                                  "Choose..."
                                                                   {:disabled true}]))
                   :let [str-option (str option)]]
               [:option
