@@ -1,7 +1,4 @@
-(ns brainard.common.views.pages.search
-  (:require
-    [brainard.common.views.pages.common :as pages.common]))
+(ns brainard.common.views.pages.search)
 
-(defmethod pages.common/page :routes.ui/search
-  [_]
+(defn root [_]
   [:div "search"])

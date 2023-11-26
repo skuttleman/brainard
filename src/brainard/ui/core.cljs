@@ -1,11 +1,20 @@
 (ns brainard.ui.core
   (:require
-    [brainard.common.views.pages.core :as pages]
     [brainard.common.stubs.re-frame :as rf]
+    [brainard.common.views.pages.home :as pages.home]
+    [brainard.common.views.pages.search :as pages.search]
     [brainard.ui.services.navigation :as nav]
     [clojure.pprint :as pp]
     [reagent.dom :as rdom]
     brainard.ui.services.store.core))
+
+(defn ^:private not-found [_]
+  [:div "Not found"])
+
+(def ^:private pages
+  {:routes.ui/home      pages.home/root
+   :routes.ui/search    pages.search/root
+   :routes.ui/not-found not-found})
 
 (defn pprint [data]
   [:pre (with-out-str (pp/pprint data))])
@@ -29,10 +38,11 @@
 (defn root []
   (let [router (rf/subscribe [:routing/route])]
     (fn []
-      (let [route @router]
+      (let [route @router
+            page (get pages (:handler route) not-found)]
         [:div
          [navbar route]
-         [pages/page route]
+         [page route]
          [pprint @re-frame.db/app-db]]))))
 
 (defn load []

@@ -28,7 +28,6 @@
   (update-in db [::forms/form form-id] forms/attempt validator))
 
 (defn form-invalid [db [_ form-id validator errors]]
-  (println [_ form-id validator errors])
   (update-in db [::forms/form form-id] forms/local-fail validator errors))
 
 (defn form-failed [db [_ form-id errors]]
