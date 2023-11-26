@@ -11,12 +11,11 @@
       (filter (comp (partial re-find re) string/lower-case str)
               data))))
 
-(defn ^:private ->type-ahead-key-handler [{:keys [comp:state dd-active? matches on-change selected-idx]}]
+(defn ^:private ->type-ahead-key-handler [{:keys [comp:state dd-active? matches on-change on-enter selected-idx]}]
   (fn [e]
-    (when dd-active?
-      (when-let [key (#{:key-codes/enter :key-codes/up :key-codes/down}
-                      (dom/event->key e))]
-        (dom/prevent-default! e)
+    (when-let [key (#{:key-codes/enter :key-codes/up :key-codes/down}
+                    (dom/event->key e))]
+      (when dd-active?
         (dom/stop-propagation! e)
         (case key
           :key-codes/up (swap! comp:state assoc :selected-idx
@@ -28,7 +27,12 @@
                              (swap! comp:state assoc
                                     :selected? true
                                     :selected-idx nil)
-                             (on-change (nth matches selected-idx))))))))
+                             (on-change (nth matches selected-idx))
+                             (on-enter e))))
+      (when (and on-enter (not dd-active?))
+        (when (= key :key-codes/enter)
+          (dom/stop-propagation! e)
+          (on-enter e))))))
 
 (defn ^:private type-ahead-trigger [{:keys [comp:state on-change] :as attrs}]
   [:div.dropdown-trigger
@@ -39,7 +43,7 @@
                           (swap! comp:state assoc :selected? false)
                           (on-change (dom/target-value e)))
          :on-key-down   (->type-ahead-key-handler attrs)}
-        (merge (select-keys attrs #{:class :disabled :id :ref :value :on-focus :on-blur :auto-focus}))
+        (merge (select-keys attrs #{:class :disabled :id :ref :on-key-down :value :on-focus :on-blur :auto-focus}))
         (update :on-focus fns/apply-all! (fn [_]
                                            (swap! comp:state assoc :focussed? true)))
         (update :on-blur fns/apply-all! (fn [_]

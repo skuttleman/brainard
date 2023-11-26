@@ -3,6 +3,7 @@
     [brainard.ui.services.store.effects :as store.effects]
     [brainard.ui.services.store.events :as store.events]
     [brainard.ui.services.store.subscriptions :as store.subs]
+    [brainard.ui.services.store.toasts :as store.toasts]
     [re-frame.core :as rf*]))
 
 (def ^:private empty-store
@@ -45,9 +46,9 @@
 
 ;; TOASTS
 (rf*/reg-sub :toasts/toasts store.subs/toasts)
-(rf*/reg-event-fx :toasts/success store.effects/toast-success)
-(rf*/reg-event-fx :toasts/failure store.effects/toast-failure)
-(rf*/reg-event-fx :toasts/create store.effects/create-toast)
-(rf*/reg-event-db :toasts/show store.events/show-toast)
-(rf*/reg-event-fx :toasts/hide store.effects/hide-toast)
-(rf*/reg-event-db :toasts/destroy store.events/destroy-toast)
+(rf*/reg-event-fx :toasts/success store.toasts/on-success)
+(rf*/reg-event-fx :toasts/failure store.toasts/on-failure)
+(rf*/reg-event-fx :toasts/create store.toasts/create)
+(rf*/reg-event-db :toasts/show store.toasts/show)
+(rf*/reg-event-fx :toasts/hide store.toasts/hide)
+(rf*/reg-event-db :toasts/destroy store.toasts/destroy)
