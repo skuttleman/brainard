@@ -147,7 +147,7 @@
                               (rf/dispatch on-submit))}
                 (select-keys attrs #{:class :style}))]
         (into fields)
-        (conj (cond-> [:div.buttons
+        (conj (cond-> [:div.button-row
                        [views.common/plain-button
                         {:class    ["is-primary" "submit"]
                          :type     :submit

@@ -77,6 +77,6 @@
                                                   (seq matches))
                                  :selected-idx (when-let [idx (:selected-idx state)]
                                                  (min idx (dec (count matches))))))]
-        [:div.control
+        [:div
          [type-ahead-trigger sub-attrs]
          [type-ahead-dd sub-attrs]]))))

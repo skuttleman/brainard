@@ -40,7 +40,7 @@
     (fn []
       (let [route @router
             page (get pages (:handler route) not-found)]
-        [:div
+        [:div.container
          [navbar route]
          [page route]
          [pprint @re-frame.db/app-db]]))))
