@@ -1,7 +1,11 @@
 (ns brainard.ui.services.store.effects
   (:require
     [brainard.common.specs :as specs]
-    [brainard.ui.services.store.api :as store.api]))
+    [brainard.common.stubs.re-frame :as rf]
+    [brainard.ui.services.store.api :as store.api]
+    [clojure.core.async :as async]
+    [clojure.string :as string]
+    [re-frame.core :as rf*]))
 
 (defn fetch-tags [{:keys [db]} _]
   {::store.api/request {:route        :routes.api/tags
@@ -45,7 +49,9 @@
       (nil? errors) (assoc ::store.api/request
                            {:route  :routes.api/notes
                             :method :post
-                            :body   data})
+                            :body   data
+                            :on-success-n [[:toasts/success {:message "note created"}]]
+                            :on-error-n [[:toasts/failure]]})
       form-id (with-form-submission (assoc params :errors errors :validator new-note-validator)))))
 
 (defn update-note! [_ [_ note-id {:keys [data form-id] :as params}]]
@@ -55,5 +61,46 @@
                            {:route        :routes.api/note
                             :route-params {:notes/id note-id}
                             :method       :patch
-                            :body         data})
+                            :body         data
+                            :on-success-n [[:toasts/success {:message "note updated"}]]
+                            :on-error-n [[:toasts/failure]]})
       form-id (with-form-submission (assoc params :errors errors :validator update-note-validator)))))
+
+(rf*/reg-fx
+  ::show-toast
+  (fn [{:keys [toast-id]}]
+    (async/go
+      (async/<! (async/timeout 2))
+      (rf/dispatch [:toasts/show toast-id]))))
+
+(rf*/reg-fx
+  ::destroy-toast
+  (fn [{:keys [toast-id]}]
+    (async/go
+      (async/<! (async/timeout 3333))
+      (rf/dispatch [:toasts/destroy toast-id]))))
+
+(defn create-toast [{:keys [db]} [_ level body]]
+  (let [toast-id (.getTime (js/Date.))]
+    {::show-toast {:toast-id toast-id}
+     :db          (assoc-in db [:toasts toast-id] {:state :init
+                                                   :level level
+                                                   :body  (delay
+                                                            (async/go
+                                                              (async/<! (async/timeout 5555))
+                                                              (rf/dispatch [:toasts/hide toast-id]))
+                                                            body)})}))
+
+(defn hide-toast [{:keys [db]} [_ toast-id]]
+  (cond-> {::destroy-toast {:toast-id toast-id}}
+    (get-in db [:toasts toast-id])
+    (assoc :db (assoc-in db [:toasts toast-id :state] :hidden))))
+
+(defn toast-success [_ [_ {:keys [message]}]]
+  {:dispatch [:toasts/create :success message]})
+
+(defn toast-failure [_ [_ errors]]
+  (let [msg (if (seq errors)
+              (string/join ", " (map :message errors))
+              "An unknown error occurred")]
+    {:dispatch [:toasts/create :error msg]}))

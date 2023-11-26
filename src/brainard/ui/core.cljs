@@ -4,6 +4,7 @@
     [brainard.common.views.pages.home :as pages.home]
     [brainard.common.views.pages.search :as pages.search]
     [brainard.ui.services.navigation :as nav]
+    [brainard.common.views.toasts :as toasts]
     [clojure.pprint :as pp]
     [reagent.dom :as rdom]
     brainard.ui.services.store.core))
@@ -43,7 +44,8 @@
         [:div.container
          [navbar route]
          [page route]
-         [pprint @re-frame.db/app-db]]))))
+         [pprint @re-frame.db/app-db]
+         [toasts/toasts]]))))
 
 (defn load []
   (rdom/render [root]

@@ -41,3 +41,13 @@
 (rf*/reg-event-db :forms/invalid store.events/form-invalid)
 (rf*/reg-event-db :forms/succeeded store.events/create-form)
 (rf*/reg-event-db :forms/failed store.events/form-failed)
+
+
+;; TOASTS
+(rf*/reg-sub :toasts/toasts store.subs/toasts)
+(rf*/reg-event-fx :toasts/success store.effects/toast-success)
+(rf*/reg-event-fx :toasts/failure store.effects/toast-failure)
+(rf*/reg-event-fx :toasts/create store.effects/create-toast)
+(rf*/reg-event-db :toasts/show store.events/show-toast)
+(rf*/reg-event-fx :toasts/hide store.effects/hide-toast)
+(rf*/reg-event-db :toasts/destroy store.events/destroy-toast)

@@ -42,3 +42,11 @@
   (cond-> db
     (and context (= :success status))
     (update-in [:contexts 1] conj context)))
+
+(defn show-toast [db [_ toast-id]]
+  (cond-> db
+    (get-in db [:toasts toast-id])
+    (assoc-in [:toasts toast-id :state] :visible)))
+
+(defn destroy-toast [db [_ toast-id]]
+  (update db :toasts dissoc toast-id))

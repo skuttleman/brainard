@@ -8,3 +8,10 @@
 
 (defn form [db [_ form-id]]
   (get-in db [::forms/form form-id]))
+
+(defn toasts [db _]
+  (->> (:toasts db)
+       (sort-by key)
+       (take 3)
+       (map (fn [[k v]]
+              [k (update v :body deref)]))))
