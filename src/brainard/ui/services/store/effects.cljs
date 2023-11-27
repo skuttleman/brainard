@@ -39,15 +39,23 @@
 (def ^:private update-note-validator
   (specs/->validator specs/update-note))
 
+(defn search-notes [{:keys [db]} [_ params]]
+  {::store.api/request {:route        :routes.api/notes
+                        :method       :get
+                        :query-params params
+                        :on-success-n [[::store.api/success [:notes]]]
+                        :on-error-n   [[::store.api/error [:notes]]]}
+   :db                 (assoc db :notes [:requesting])})
+
 (defn create-note! [_ [_ {:keys [data form-id] :as params}]]
   (let [errors (new-note-validator data)]
     (cond-> {}
       (nil? errors) (assoc ::store.api/request
-                           {:route  :routes.api/notes
-                            :method :post
-                            :body   data
+                           {:route        :routes.api/notes
+                            :method       :post
+                            :body         data
                             :on-success-n [[:toasts/success {:message "note created"}]]
-                            :on-error-n [[:toasts/failure]]})
+                            :on-error-n   [[:toasts/failure]]})
       form-id (with-form-submission (assoc params :errors errors :validator new-note-validator)))))
 
 (defn update-note! [_ [_ note-id {:keys [data form-id] :as params}]]
@@ -59,5 +67,5 @@
                             :method       :patch
                             :body         data
                             :on-success-n [[:toasts/success {:message "note updated"}]]
-                            :on-error-n [[:toasts/failure]]})
+                            :on-error-n   [[:toasts/failure]]})
       form-id (with-form-submission (assoc params :errors errors :validator update-note-validator)))))

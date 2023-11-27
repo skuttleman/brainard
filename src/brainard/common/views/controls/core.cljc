@@ -3,9 +3,10 @@
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.re-frame :as rf]
     [brainard.common.utils.fns :as fns]
-    [brainard.common.views.controls.type-ahead :as type-ahead]
+    [brainard.common.views.controls.dropdown :as dd]
     [brainard.common.views.controls.tags-editor :as tags-editor]
-    [brainard.common.views.common :as views.common]
+    [brainard.common.views.controls.type-ahead :as type-ahead]
+    [brainard.common.views.main :as views.main]
     [clojure.string :as string]))
 
 (defn ^:private dispatch-on-change [on-change]
@@ -104,11 +105,7 @@
         (fn [{:keys [disabled on-change type] :as attrs}]
           [form-field
            attrs
-           [:input.input
-            (-> {:type      (or type :text)
-                 :disabled  disabled
-                 :on-change (comp on-change dom/target-value)}
-                (merge (select-keys attrs #{:class :id :on-blur :ref :value :on-focus :auto-focus})))]])))))
+           [views.main/plain-input attrs]])))))
 
 (def ^{:arglists '([attrs])} checkbox
   (with-id
@@ -139,6 +136,22 @@
          attrs
          [type-ahead/control attrs]]))))
 
+(def ^{:arglists '([attrs])} multi-dropdown
+  (with-id
+    (with-dispatch-on-change
+      (fn [attrs]
+        [form-field
+         attrs
+         [dd/control attrs]]))))
+
+(def ^{:arglists '([attrs])} single-dropdown
+  (with-id
+    (with-dispatch-on-change
+      (fn [attrs]
+        [form-field
+         attrs
+         [dd/control (dd/singleable attrs)]]))))
+
 (defn form [{:keys [ready? valid? buttons disabled on-submit] :as attrs} & fields]
   (let [disabled (or disabled (not ready?) (not valid?))]
     (-> [:form.form.layout--stack-between
@@ -148,13 +161,13 @@
                 (select-keys attrs #{:class :style}))]
         (into fields)
         (conj (cond-> [:div.button-row
-                       [views.common/plain-button
+                       [views.main/plain-button
                         {:class    ["is-primary" "submit"]
                          :type     :submit
                          :disabled disabled}
                         (:submit/text attrs "Submit")]]
                 (not ready?)
-                (conj [:div {:style {:margin-bottom "8px"}} [views.common/spinner]])
+                (conj [:div {:style {:margin-bottom "8px"}} [views.main/spinner]])
 
                 buttons
                 (into buttons))))))

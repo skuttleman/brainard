@@ -24,7 +24,7 @@
        (map first)
        set))
 
-(defn ^:private notes-query [{:notes/keys [context tags]}]
+(defn ^:private notes-query [{:notes/keys [contexts tags] :as params}]
   (cond-> '[:find (pull ?e [:notes/id
                             :notes/context
                             :notes/body
@@ -32,11 +32,13 @@
                             :notes/timestamp])
             :where]
 
-    (and (nil? context) (empty? tags))
+    (and (empty? contexts) (empty? tags))
     (conj '[?e :notes/id])
 
-    context
-    (conj ['?e :notes/context context])
+    (seq contexts)
+    (conj (->> contexts
+               (map (partial conj '[?e :notes/context]))
+               (list* 'or)))
 
     (seq tags)
     (conj (->> tags

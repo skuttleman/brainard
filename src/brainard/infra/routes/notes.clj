@@ -8,11 +8,15 @@
   [{:keys [params]}]
   (let [{:keys [tag context]} params
         tags (cond
-               (coll? tag) tag
-               (nil? tag) []
-               :else [tag])]
-    (cond-> {:notes/tags (into #{} (map keyword) tags)}
-      context (assoc :notes/context context))))
+               (coll? tag) (into #{} (map keyword) tag)
+               (nil? tag) #{}
+               :else #{(keyword tag)})
+        contexts (cond
+                   (coll? context) (set context)
+                   (nil? context) #{}
+                   :else #{context})]
+    {:notes/tags     tags
+     :notes/contexts contexts}))
 
 (defmethod routes.common/handler [:get :routes.api/notes]
   [{:brainard/keys [apis input]}]

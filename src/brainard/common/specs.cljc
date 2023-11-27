@@ -33,7 +33,7 @@
 
 (def input-specs
   {[:get :routes.api/notes]  [:map
-                              [:notes/context {:optional true} string?]
+                              [:notes/contexts [:set string?]]
                               [:notes/tags [:set keyword?]]]
    [:post :routes.api/notes] new-note
    [:patch :routes.api/note] update-note})

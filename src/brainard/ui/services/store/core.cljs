@@ -7,14 +7,16 @@
     [re-frame.core :as rf*]))
 
 (def ^:private empty-store
-  {:tags     [:init]
-   :contexts [:init]
+  {:tags          [:init]
+   :contexts      [:init]
+   :notes         [:init]
    :routing/route nil})
 
 ;; CORE
 (rf*/reg-event-db :core/init (constantly empty-store))
 (rf*/reg-sub :core/tags (store.subs/get-path [:tags]))
 (rf*/reg-sub :core/contexts (store.subs/get-path [:contexts]))
+(rf*/reg-sub :core/notes (store.subs/get-path [:notes]))
 (rf*/reg-event-db :core/tags#add store.events/add-tags)
 (rf*/reg-event-db :core/contexts#add store.events/add-context)
 
@@ -27,6 +29,7 @@
 ;; API
 (rf*/reg-event-fx :api.tags/fetch store.effects/fetch-tags)
 (rf*/reg-event-fx :api.contexts/fetch store.effects/fetch-contexts)
+(rf*/reg-event-fx :api.notes/search store.effects/search-notes)
 (rf*/reg-event-fx :api.notes/create! store.effects/create-note!)
 (rf*/reg-event-fx :api.notes/update! store.effects/update-note!)
 

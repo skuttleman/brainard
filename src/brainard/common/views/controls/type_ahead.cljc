@@ -3,13 +3,13 @@
     [brainard.common.utils.fns :as fns]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
+    [brainard.common.views.main :as views.main]
     [clojure.string :as string]))
 
-(defn ^:private filter-matches [value [status data]]
-  (when (= :success status)
-    (let [re (re-pattern (string/lower-case (str value)))]
-      (filter (comp (partial re-find re) string/lower-case str)
-              data))))
+(defn ^:private filter-matches [value items]
+  (let [re (re-pattern (string/lower-case (str value)))]
+    (filter (comp (partial re-find re) string/lower-case str)
+            items)))
 
 (defn ^:private ->type-ahead-key-handler [{:keys [comp:state dd-active? matches on-change selected-idx]}]
   (fn [e]
@@ -24,11 +24,11 @@
           :key-codes/down (swap! comp:state assoc :selected-idx
                                  (min (dec (count matches))
                                       (inc (or selected-idx -1))))
-          :key-codes/enter (when selected-idx
-                             (swap! comp:state assoc
-                                    :selected? true
-                                    :selected-idx nil)
-                             (on-change (nth matches selected-idx))))))))
+          :key-codes/enter (do (swap! comp:state assoc
+                                      :selected? true
+                                      :selected-idx nil)
+                               (when selected-idx
+                                 (on-change (nth matches selected-idx)))))))))
 
 (defn ^:private type-ahead-trigger [{:keys [comp:state on-change] :as attrs}]
   [:div.dropdown-trigger
@@ -61,13 +61,13 @@
                                        (on-change match))}
         (str match)])]]])
 
-(defn control [_attrs]
+(defn ^:private control* [_attrs _items]
   (let [comp:state (r/atom {:selected?    false
                             :focussed?    false
                             :selected-idx nil})]
-    (fn [{:keys [sub:items value] :as attrs}]
+    (fn [{:keys [value] :as attrs} items]
       (let [state @comp:state
-            matches (filter-matches value @sub:items)
+            matches (filter-matches value items)
             sub-attrs (-> attrs
                           (assoc :comp:state comp:state
                                  :matches matches
@@ -80,3 +80,6 @@
         [:div
          [type-ahead-trigger sub-attrs]
          [type-ahead-dd sub-attrs]]))))
+
+(defn control [attrs]
+  [views.main/with-resource (:sub:items attrs) [control* attrs]])
