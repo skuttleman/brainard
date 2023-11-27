@@ -26,14 +26,15 @@
                 (when-let [input-val (some-> (:value form-data) string/trim not-empty)]
                   (when (re-matches kw-re input-val)
                     (on-change (conj value (keyword input-val)))
-                    (rf/dispatch-sync [:forms/change form-id [:value] nil]))))]
+                    (rf/dispatch-sync [:forms/change form-id [:value] nil]))))
+              (update-form [value]
+                (rf/dispatch-sync [:forms/change form-id [:value] (kw-str value)]))]
         [:div.tags-editor
          [:div.field.has-addons
           [type-ahead/control (assoc attrs
                                      :placeholder "Add tag..."
                                      :value (:value form-data)
-                                     :on-enter add-tag
-                                     :on-change #(rf/dispatch-sync [:forms/change form-id [:value] (kw-str %)]))]
+                                     :on-change update-form)]
           [:button.button.is-link {:on-click add-tag}
            "+"]]
          [:div.field.is-grouped.is-grouped-multiline.layout--space-between

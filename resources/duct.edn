@@ -17,6 +17,7 @@
                      :brainard.datomic/conn
                      {:client      #ig/ref :brainard.datomic/client
                       :db-name     #ig/ref :cfg/datomic-db-name
+                      :log-file    #duct/env ["DATOMIC_LOG_FILE" :or ".datomic.log"]
                       :schema-file #ig/ref :cfg/datomic-schema-file}
 
                      :brainard.datomic/client

@@ -9,6 +9,10 @@
 
 (def ^:private ^:const base-url "http://localhost:1165")
 
+(defn ^:private success? [status]
+  (and (integer? status)
+       (<= 200 status 299)))
+
 (rf*/reg-event-db
   ::success
   (fn [db [_ path data]]
@@ -33,6 +37,6 @@
                        :headers        {"content-type" "application/edn"}}
               response (async/<! (http/request request))
               {:keys [data errors]} (:body response)]
-          (if (<= 200 (:status response) 299)
+          (if (success? (:status response))
             (run! (comp rf/dispatch #(conj % data)) on-success-n)
             (run! (comp rf/dispatch #(conj % errors)) on-error-n)))))))

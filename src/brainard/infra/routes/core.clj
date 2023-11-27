@@ -7,6 +7,11 @@
     [ring.middleware.params :as ring.params]
     brainard.infra.routes.notes))
 
+(defn ^:private route-filter [{:keys [uri]}]
+  (or (string/starts-with? uri "/js")
+      (string/starts-with? uri "/css")
+      (string/starts-with? uri "/favicon.ico")))
+
 (def handler (-> routes.common/handler
                  mw/with-spec-validation
                  ring.kw-params/wrap-keyword-params
@@ -14,6 +19,4 @@
                  mw/with-edn
                  mw/with-routing
                  mw/with-error-handling
-                 (mw/with-logging {:xform (remove (comp (some-fn #(string/starts-with? % "/js")
-                                                                 #(string/starts-with? % "/css"))
-                                                        :uri))})))
+                 (mw/with-logging {:xform (remove route-filter)})))

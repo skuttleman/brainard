@@ -14,8 +14,8 @@
     (datomic/create-database (:db-name params))))
 
 (defmethod ig/init-key :brainard.datomic/conn
-  [_ {:keys [client db-name schema-file]}]
-  (doto (datomic/connect! client db-name)
+  [_ {:keys [client db-name log-file schema-file]}]
+  (doto (datomic/connect! client db-name log-file)
     (datomic/init! schema-file)))
 
 (defmethod ig/halt-key! :brainard.datomic/conn

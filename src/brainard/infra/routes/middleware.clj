@@ -11,11 +11,15 @@
     [clojure.string :as string]
     [ring.util.request :as ring.req]))
 
+(defn ^:private success? [status]
+  (and (integer? status)
+       (<= 200 status 399)))
+
 (defn ^:private log-req [{:keys [ex result duration]} {:keys [uri] :as req}]
   (let [status (:status result)
         duration (str "[" duration "ms]:")
         method (string/upper-case (name (:request-method req)))]
-    (if (and (nil? ex) (<= 200 status 399))
+    (if (and (nil? ex) (success? status))
       (log/info method uri duration status)
       (log/error method uri duration status))))
 
@@ -61,7 +65,7 @@
           input-spec (specs/input-specs spec-key)]
       (valid/validate! input-spec (:brainard/input req) ::valid/input-validation)
       (let [response (handler req)
-            output-spec (if (<= 200 (:status response) 299)
+            output-spec (if (success? (:status response))
                           (specs/output-specs spec-key)
                           specs/errors)]
         (valid/validate! output-spec (:body response) ::valid/output-validation)

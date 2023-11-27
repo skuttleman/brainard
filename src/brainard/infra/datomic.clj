@@ -5,12 +5,11 @@
     [clojure.java.io :as io]
     [datomic.client.api :as d]))
 
-(def ^:private ^:const log-file-name ".datomic.log")
-
 (def ^:private ^{:arglists '([file-name])} file-logger
   (memoize (fn [file-name]
              {::writer (io/writer (io/file file-name) :append true)
-              ::lock   (Object.)})))
+              ::lock   (Object.)
+              ::log-file file-name})))
 
 (defn ^:private write! [{::keys [lock writer]} data]
   (locking lock
@@ -22,10 +21,11 @@
   (d/transact (first conn) {:tx-data (edn/resource schema-file)}))
 
 (defn ^:private load-log! [conn]
-  (locking (::lock (meta conn))
-    (with-open [reader (io/reader (io/file log-file-name))]
-      (doseq [line (line-seq reader)]
-        (d/transact (first conn) (edn/read-string line))))))
+  (let [{::keys [lock log-file]} (meta conn)]
+    (locking lock
+      (with-open [reader (io/reader (io/file log-file))]
+        (doseq [line (line-seq reader)]
+          (d/transact (first conn) (edn/read-string line)))))))
 
 (defn create-client [params]
   (d/client params))
@@ -33,9 +33,9 @@
 (defn create-database [client db-name]
   (d/create-database client {:db-name db-name}))
 
-(defn connect! [client db-name]
+(defn connect! [client db-name log-file]
   (with-meta [(d/connect client {:db-name db-name})]
-             (file-logger log-file-name)))
+             (file-logger log-file)))
 
 (defn close! [conn]
   (let [{::keys [lock writer]} (meta conn)]
@@ -43,8 +43,9 @@
       (.close writer))))
 
 (defn transact! [conn arg-map]
-  (log/with-duration [{:keys [duration]} (do (write! (meta conn) arg-map)
-                                             (d/transact (first conn) arg-map))]
+  (log/with-duration [{:keys [duration]} (doto conn
+                                           (-> meta (write! arg-map))
+                                           (-> first (d/transact arg-map)))]
     (log/debug "datomic transaction:" (str "[" duration "ms]"))))
 
 (defn query [conn query & args]

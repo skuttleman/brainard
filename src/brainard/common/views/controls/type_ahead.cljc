@@ -11,11 +11,12 @@
       (filter (comp (partial re-find re) string/lower-case str)
               data))))
 
-(defn ^:private ->type-ahead-key-handler [{:keys [comp:state dd-active? matches on-change on-enter selected-idx]}]
+(defn ^:private ->type-ahead-key-handler [{:keys [comp:state dd-active? matches on-change selected-idx]}]
   (fn [e]
     (when-let [key (#{:key-codes/enter :key-codes/up :key-codes/down}
                     (dom/event->key e))]
       (when dd-active?
+        (dom/prevent-default! e)
         (dom/stop-propagation! e)
         (case key
           :key-codes/up (swap! comp:state assoc :selected-idx
@@ -27,12 +28,7 @@
                              (swap! comp:state assoc
                                     :selected? true
                                     :selected-idx nil)
-                             (on-change (nth matches selected-idx))
-                             (on-enter e))))
-      (when (and on-enter (not dd-active?))
-        (when (= key :key-codes/enter)
-          (dom/stop-propagation! e)
-          (on-enter e))))))
+                             (on-change (nth matches selected-idx))))))))
 
 (defn ^:private type-ahead-trigger [{:keys [comp:state on-change] :as attrs}]
   [:div.dropdown-trigger
@@ -40,10 +36,10 @@
     (-> {:type          :text
          :auto-complete :off
          :on-change     (fn [e]
-                          (swap! comp:state assoc :selected? false)
+                          (swap! comp:state assoc :selected? false :selected-idx nil)
                           (on-change (dom/target-value e)))
          :on-key-down   (->type-ahead-key-handler attrs)}
-        (merge (select-keys attrs #{:class :disabled :id :ref :on-key-down :value :on-focus :on-blur :auto-focus}))
+        (merge (select-keys attrs #{:class :disabled :id :ref :value :on-focus :on-blur :auto-focus}))
         (update :on-focus fns/apply-all! (fn [_]
                                            (swap! comp:state assoc :focussed? true)))
         (update :on-blur fns/apply-all! (fn [_]
