@@ -3,6 +3,13 @@
     [brainard.api.notes.proto :as notes.proto]
     [brainard.infra.datomic :as datomic]))
 
+(def ^:private ^:const select
+  '[:find (pull ?e [:notes/id
+                    :notes/context
+                    :notes/body
+                    :notes/tags
+                    :notes/timestamp])])
+
 (defn ^:private save! [{:keys [datomic-conn]} note]
   (let [{note-id :notes/id retract-tags :notes.retract/tags} note]
     (datomic/transact! datomic-conn
@@ -24,26 +31,13 @@
        (map first)
        set))
 
-(defn ^:private notes-query [{:notes/keys [contexts tags] :as params}]
-  (cond-> '[:find (pull ?e [:notes/id
-                            :notes/context
-                            :notes/body
-                            :notes/tags
-                            :notes/timestamp])
-            :where]
-
-    (and (empty? contexts) (empty? tags))
-    (conj '[?e :notes/id])
-
-    (seq contexts)
-    (conj (->> contexts
-               (map (partial conj '[?e :notes/context]))
-               (list* 'or)))
+(defn ^:private notes-query [{:notes/keys [context tags]}]
+  (cond-> (conj select :where)
+    (some? context)
+    (conj ['?e :notes/context context])
 
     (seq tags)
-    (conj (->> tags
-               (map (partial conj '[?e :notes/tags]))
-               (list* 'or)))))
+    (into (map (partial conj '[?e :notes/tags])) tags)))
 
 (defn ^:private get-notes [{:keys [datomic-conn]} params]
   (let [query (notes-query params)]
@@ -52,13 +46,8 @@
 
 (defn ^:private get-note [{:keys [datomic-conn]} note-id]
   (-> (datomic/query datomic-conn
-                     '[:find (pull ?e [:notes/id
-                                       :notes/context
-                                       :notes/body
-                                       :notes/tags
-                                       :notes/timestamp])
-                       :in $ ?note-id
-                       :where [?e :notes/id ?note-id]]
+                     (into select '[:in $ ?note-id
+                                    :where [?e :notes/id ?note-id]])
                      note-id)
       ffirst
       (update :notes/tags set)))

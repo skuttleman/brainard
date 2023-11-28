@@ -10,13 +10,9 @@
         tags (cond
                (coll? tag) (into #{} (map keyword) tag)
                (nil? tag) #{}
-               :else #{(keyword tag)})
-        contexts (cond
-                   (coll? context) (set context)
-                   (nil? context) #{}
-                   :else #{context})]
-    {:notes/tags     tags
-     :notes/contexts contexts}))
+               :else #{(keyword tag)})]
+    (cond-> {:notes/tags tags}
+      context (assoc :notes/context context))))
 
 (defmethod routes.common/handler [:get :routes.api/notes]
   [{:brainard/keys [apis input]}]

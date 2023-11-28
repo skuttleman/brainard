@@ -21,8 +21,6 @@
     (duct/await-daemons system)))
 
 (comment
-  (def system (sys/start! "duct.edn"))
-  (ig/halt! system)
   (alter-var-root #'system (fn [sys]
-                             (ig/halt! sys)
+                             (some-> sys ig/halt!)
                              (sys/start! "duct.edn"))))

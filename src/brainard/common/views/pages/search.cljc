@@ -14,13 +14,13 @@
   (r/with-let [options (map #(vector % %) contexts)
                options-by-id (into {} options)]
     [:div {:style {:flex-grow 1}}
-     [ctrls/multi-dropdown {:label         "Context filter"
-                            :options       options
-                            :options-by-id options-by-id
-                            :on-search     #(rf/dispatch [:forms/change form-id [:value] %])
-                            :value         (:context (forms/model form))
-                            :on-change     [:forms/change form-id [:context]]
-                            :item-control  item-control}]]))
+     [ctrls/single-dropdown {:label         "Context filter"
+                             :options       options
+                             :options-by-id options-by-id
+                             :on-search     #(rf/dispatch [:forms/change form-id [:value] %])
+                             :value         (:context (forms/model form))
+                             :on-change     [:forms/change form-id [:context]]
+                             :item-control  item-control}]]))
 
 (defn ^:private tag-filter [{:keys [form form-id]} tags]
   (r/with-let [options (map #(vector % (str %)) tags)
@@ -39,7 +39,7 @@
 
 (defn root [_]
   (r/with-let [form-id (doto (random-uuid)
-                         (as-> $id (rf/dispatch [:forms/create $id {:tag #{} :context #{}}])))
+                         (as-> $id (rf/dispatch [:forms/create $id {:tag #{} :context nil}])))
                sub:form (rf/subscribe [:forms/form form-id])
                sub:contexts (rf/subscribe [:core/contexts])
                sub:tags (rf/subscribe [:core/tags])

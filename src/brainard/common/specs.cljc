@@ -31,10 +31,18 @@
    [:notes/tags {:optional true} [:set keyword?]]
    [:notes.retract/tags {:optional true} [:set keyword?]]])
 
+(def notes-query
+  [:and
+   [:map
+    [:notes/context {:optional true} string?]
+    [:notes/tags {:optional true} [:set keyword?]]]
+   [:fn {:error/message
+         "must contain non-empty :notes/tags or :notes/context"}
+    (some-fn (comp seq :notes/tags)
+             (comp some? :notes/context))]])
+
 (def input-specs
-  {[:get :routes.api/notes]  [:map
-                              [:notes/contexts [:set string?]]
-                              [:notes/tags [:set keyword?]]]
+  {[:get :routes.api/notes]  notes-query
    [:post :routes.api/notes] new-note
    [:patch :routes.api/note] update-note})
 

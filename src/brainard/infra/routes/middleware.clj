@@ -36,7 +36,7 @@
   (fn [req]
     (try (handler req)
          (catch Throwable ex
-           (log/error ex (select-keys req #{:uri :request-method}))
+           (log/error ex (ex-message ex) (ex-data ex))
            (err/ex->response (ex-data ex))))))
 
 (defn with-routing [handler]

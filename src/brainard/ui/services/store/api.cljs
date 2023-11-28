@@ -18,9 +18,10 @@
 (defn ^:private ->query [query-params]
   (->> query-params
        (mapcat (fn [[k v]]
-                 (map (fn [v']
-                        (str (name k) "=" (cond-> v' (keyword? v') kw/kw-str)))
-                      (cond-> v (not (coll? v)) vector))))
+                 (when (some? v)
+                   (map (fn [v']
+                          (str (name k) "=" (cond-> v' (keyword? v') kw/kw-str)))
+                        (cond-> v (not (coll? v)) vector)))))
        (string/join "&")))
 
 (rf*/reg-event-db
