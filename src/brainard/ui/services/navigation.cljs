@@ -9,7 +9,9 @@
   (rf/dispatch [:routing/navigate route]))
 
 (defn ^:private match [path]
-  (bidi/match-route routing/all path))
+  (-> routing/all
+      (bidi/match-route path)
+      (update :handler keyword)))
 
 (defonce ^:private link
   (doto (pushy/pushy dispatch match)

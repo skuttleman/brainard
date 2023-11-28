@@ -7,13 +7,13 @@
     (assoc-in db path value)))
 
 (defn create-form [db [_ form-id data]]
-  (assoc-in db [::forms/form form-id] (forms/create form-id data)))
+  (assoc-in db [:forms/forms form-id] (forms/create form-id data)))
 
 (defn destroy-form [db [_ form-id]]
-  (update db ::forms/form dissoc form-id))
+  (update db :forms/forms dissoc form-id))
 
 (defn change-form [db [_ form-id path value]]
-  (update-in db [::forms/form form-id] forms/change path value))
+  (update-in db [:forms/forms form-id] forms/change path value))
 
 (defn add-tags [{[status] :api.tags/fetch :as db} [_ {:notes/keys [tags]}]]
   (cond-> db

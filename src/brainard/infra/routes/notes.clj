@@ -1,8 +1,7 @@
 (ns brainard.infra.routes.notes
   (:require
     [brainard.api.notes.core :as notes]
-    [brainard.infra.routes.common :as routes.common]
-    [clj-uuid :as uuid]))
+    [brainard.infra.routes.common :as routes.common]))
 
 (defmethod routes.common/coerce [:get :routes.api/notes]
   [{:keys [params]}]
@@ -30,7 +29,7 @@
 (defmethod routes.common/coerce [:patch :routes.api/note]
   [{:brainard/keys [route] :keys [body]}]
   (assoc body
-         :notes/id (-> route :route-params :notes/id uuid/as-uuid)))
+         :notes/id (-> route :route-params :notes/id)))
 
 (defmethod routes.common/handler [:patch :routes.api/note]
   [{:brainard/keys [apis input]}]

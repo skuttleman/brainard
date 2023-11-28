@@ -15,6 +15,7 @@
       (derive :routes.resources/css :routes.resources/asset)
       (derive :routes.ui/home :routes/ui)
       (derive :routes.ui/search :routes/ui)
+      (derive :routes.ui/note :routes/ui)
       (derive :routes.ui/not-found :routes/ui)))
 
 (defn router [{:keys [request-method] :brainard/keys [route]}]
@@ -31,12 +32,6 @@
   {:status 404
    :body   {:errors [{:message "Not found"
                       :code    :UNKNOWN_API}]}})
-
-(defmethod handler [:any :routes/not-found]
-  [_]
-  {:status  404
-   :headers {"content-type" "plain/text"}
-   :body    "Not found"})
 
 (defmethod handler [:get :routes/ui]
   [_]

@@ -1,7 +1,7 @@
 (ns brainard.api.notes.core
   (:require
     [brainard.api.notes.proto :as notes.proto]
-    [clj-uuid :as uuid])
+    [brainard.common.utils.uuids :as uuids])
   (:import
     (java.util Date)))
 
@@ -19,7 +19,7 @@
 
 (defn create! [{:keys [store]} note]
   (let [note (-> note
-                 (clean-note (uuid/squuid))
+                 (clean-note (uuids/random))
                  (assoc :notes/timestamp (Date.)))]
     (notes.proto/save! store note)
     note))

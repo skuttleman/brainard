@@ -39,9 +39,20 @@
            (log/error ex (ex-message ex) (ex-data ex))
            (err/ex->response (ex-data ex))))))
 
+(defn ^:private coerce-params [params handler]
+  (reduce (fn [params [k coercer]]
+            (cond-> params
+              (contains? params k)
+              (update k coercer)))
+          params
+          (meta handler)))
+
 (defn with-routing [handler]
   (fn [req]
-    (let [route-info (bidi/match-route routing/all (:uri req))]
+    (let [route-info (bidi/match-route routing/all (:uri req))
+          route-info (-> route-info
+                         (update :route-params coerce-params (:handler route-info))
+                         (update :handler keyword))]
       (handler (assoc req :brainard/route route-info)))))
 
 (defn with-edn [handler]
