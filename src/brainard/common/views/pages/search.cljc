@@ -18,7 +18,7 @@
                              :options       options
                              :options-by-id options-by-id
                              :on-search     #(rf/dispatch [:forms/change form-id [:value] %])
-                             :value         (:context (forms/model form))
+                             :value         (:context (forms/data form))
                              :on-change     [:forms/change form-id [:context]]
                              :item-control  item-control}]]))
 
@@ -30,7 +30,7 @@
                             :options       options
                             :options-by-id options-by-id
                             :on-search     #(rf/dispatch [:forms/change form-id [:value] %])
-                            :value         (:tag (forms/model form))
+                            :value         (:tag (forms/data form))
                             :on-change     [:forms/change form-id [:tag]]
                             :item-control  item-control}]]))
 
@@ -41,9 +41,9 @@
   (r/with-let [form-id (doto (random-uuid)
                          (as-> $id (rf/dispatch [:forms/create $id {:tag #{} :context nil}])))
                sub:form (rf/subscribe [:forms/form form-id])
-               sub:contexts (rf/subscribe [:core/contexts])
-               sub:tags (rf/subscribe [:core/tags])
-               sub:notes (rf/subscribe [:core/notes])]
+               sub:contexts (rf/subscribe [:resources/resource :api.contexts/fetch])
+               sub:tags (rf/subscribe [:resources/resource :api.tags/fetch])
+               sub:notes (rf/subscribe [:resources/resource [:api.notes/search form-id]])]
     (let [form @sub:form
           attrs {:form-id form-id
                  :form    form}]
@@ -54,11 +54,12 @@
         [:div {:style {:align-self    :end
                        :margin-bottom "16px"}}
          [views.main/plain-button {:on-click (fn [_]
-                                               (rf/dispatch [:api.notes/search (forms/model form)]))
+                                               (rf/dispatch [:api.notes/search form-id (forms/data form)]))
                                    :class    ["is-success"]}
           [views.main/icon :search]
           [:span {:style {:width "8px"}}]
           "Search"]]]
        [views.main/with-resource sub:notes [search-results {:hide-init? true}]]])
     (finally
+      (rf/dispatch [:resources/destroy [:api.notes/search form-id]])
       (rf/dispatch [:forms/destroy form-id]))))

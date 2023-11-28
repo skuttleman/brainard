@@ -1,71 +1,42 @@
 (ns brainard.ui.services.store.effects
   (:require
-    [brainard.common.specs :as specs]
     [brainard.ui.services.store.api :as store.api]))
 
-(defn fetch-tags [{:keys [db]} _]
+(defn fetch-tags [_ _]
   {::store.api/request {:route        :routes.api/tags
                         :method       :get
-                        :on-success-n [[::store.api/success [:tags]]]
-                        :on-error-n   [[::store.api/error [:tags]]]}
-   :db                 (assoc db :tags [:requesting])})
+                        :on-success-n [[:resources/succeeded :api.tags/fetch]]
+                        :on-error-n   [[:resources/failed :api.tags/fetch]]}
+   :dispatch           [:resources/submit! :api.tags/fetch]})
 
-(defn fetch-contexts [{:keys [db]} _]
+(defn fetch-contexts [_ _]
   {::store.api/request {:route        :routes.api/contexts
                         :method       :get
-                        :on-success-n [[::store.api/success [:contexts]]]
-                        :on-error-n   [[::store.api/error [:contexts]]]}
-   :db                 (assoc db :contexts [:requesting])})
+                        :on-success-n [[:resources/succeeded :api.contexts/fetch]]
+                        :on-error-n   [[:resources/failed :api.contexts/fetch]]}
+   :dispatch           [:resources/submit! :api.contexts/fetch]})
 
-(defn with-form-submission [co-fx {:keys [errors form-id reset-to validator] :as params}]
-  (let [success-handler (cond-> [:forms/succeeded form-id]
-                          (contains? params :reset-to) (conj reset-to))]
-    (if errors
-      (update co-fx :dispatch-n (fnil conj []) [:forms/invalid form-id validator errors])
-      (-> co-fx
-          (update-in [::store.api/request :on-success-n]
-                     (fnil conj [])
-                     success-handler
-                     [:core/tags#add]
-                     [:core/contexts#add])
-          (update-in [::store.api/request :on-error-n]
-                     (fnil conj [])
-                     [:forms/failed form-id])
-          (update :dispatch-n (fnil conj []) [:forms/submit form-id validator])))))
-
-(def ^:private new-note-validator
-  (specs/->validator specs/new-note))
-
-(def ^:private update-note-validator
-  (specs/->validator specs/update-note))
-
-(defn search-notes [{:keys [db]} [_ params]]
+(defn search-notes [_ [_ resource-id params]]
   {::store.api/request {:route        :routes.api/notes
                         :method       :get
                         :query-params params
-                        :on-success-n [[::store.api/success [:notes]]]
-                        :on-error-n   [[::store.api/error [:notes]]]}
-   :db                 (assoc db :notes [:requesting])})
+                        :on-success-n [[:resources/succeeded [:api.notes/search resource-id]]]
+                        :on-error-n   [[:resources/failed [:api.notes/search resource-id]]]}
+   :dispatch           [:resources/submit! [:api.notes/search resource-id]]})
 
-(defn create-note! [_ [_ {:keys [data form-id] :as params}]]
-  (let [errors (new-note-validator data)]
-    (cond-> {}
-      (nil? errors) (assoc ::store.api/request
-                           {:route        :routes.api/notes
-                            :method       :post
-                            :body         data
-                            :on-success-n [[:toasts/success {:message "note created"}]]
-                            :on-error-n   [[:toasts/failure]]})
-      form-id (with-form-submission (assoc params :errors errors :validator new-note-validator)))))
+(defn create-note! [_ [_ resource-id {:keys [data reset-to]}]]
+  {::store.api/request {:route        :routes.api/notes
+                        :method       :post
+                        :body         data
+                        :on-success-n (cond-> [[:toasts/success {:message "note created"}]
+                                               [:resources.tags/include-note]
+                                               [:resources.contexts/include-note]]
+                                        reset-to
+                                        (conj [:forms/create resource-id reset-to]
+                                              [:resources/destroy [:api.notes/create! resource-id]])
 
-(defn update-note! [_ [_ note-id {:keys [data form-id] :as params}]]
-  (let [errors (update-note-validator data)]
-    (cond-> {}
-      (nil? errors) (assoc ::store.api/request
-                           {:route        :routes.api/note
-                            :route-params {:notes/id note-id}
-                            :method       :patch
-                            :body         data
-                            :on-success-n [[:toasts/success {:message "note updated"}]]
-                            :on-error-n   [[:toasts/failure]]})
-      form-id (with-form-submission (assoc params :errors errors :validator update-note-validator)))))
+                                        (nil? reset-to)
+                                        (conj [:resources/succeeded [:api.notes/create! resource-id]]))
+                        :on-error-n   [[:toasts/failure]
+                                       [:resources/failed [:api.notes/create! resource-id]]]}
+   :dispatch           [:resources/submit! [:api.notes/create! resource-id]]})

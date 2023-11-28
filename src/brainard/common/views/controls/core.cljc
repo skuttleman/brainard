@@ -152,8 +152,12 @@
          attrs
          [dd/control (dd/singleable attrs)]]))))
 
-(defn form [{:keys [ready? valid? buttons disabled on-submit] :as attrs} & fields]
-  (let [disabled (or disabled (not ready?) (not valid?))]
+(defn form [{:keys [buttons disabled errors on-submit sub:res] :as attrs} & fields]
+  (let [[status] @sub:res
+        requesting? (= :requesting status)
+        disabled (or disabled
+                     requesting?
+                     (and errors (not= :init status)))]
     (-> [:form.form.layout--stack-between
          (merge {:on-submit (fn [e]
                               (dom/prevent-default! e)
@@ -166,7 +170,8 @@
                          :type     :submit
                          :disabled disabled}
                         (:submit/text attrs "Submit")]]
-                (not ready?)
+
+                requesting?
                 (conj [:div {:style {:margin-bottom "8px"}} [views.main/spinner]])
 
                 buttons

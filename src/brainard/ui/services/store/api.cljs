@@ -24,16 +24,6 @@
                         (cond-> v (not (coll? v)) vector)))))
        (string/join "&")))
 
-(rf*/reg-event-db
-  ::success
-  (fn [db [_ path data]]
-    (assoc-in db path [:success data])))
-
-(rf*/reg-event-db
-  ::error
-  (fn [db [_ path error]]
-    (assoc-in db path [:error error])))
-
 (rf*/reg-fx
   ::request
   (fn [{:keys [on-success-n on-error-n query-params] :as params}]

@@ -1,7 +1,8 @@
 (ns brainard.common.views.toasts
   (:require
     [brainard.common.stubs.re-frame :as rf]
-    [brainard.common.stubs.reagent :as r]))
+    [brainard.common.stubs.reagent :as r]
+    [clojure.core.async :as async]))
 
 (defn level->class [level]
   (case level
@@ -11,7 +12,11 @@
     "is-info"))
 
 (defn ^:private toast-message [toast-id toast]
-  (r/with-let [height (volatile! nil)]
+  (r/with-let [height (volatile! nil)
+               _ (rf/dispatch [:toasts/show toast-id])
+               _ (async/go
+                   (async/<! (async/timeout 5555))
+                   (rf/dispatch [:toasts/hide toast-id]))]
     (let [{:keys [body level state]} toast
           adding? (= state :init)
           removing? (= state :hidden)

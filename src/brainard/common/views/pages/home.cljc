@@ -4,57 +4,49 @@
     [brainard.common.specs :as specs]
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.stubs.re-frame :as rf]
-    [brainard.common.stubs.reagent :as r]))
+    [brainard.common.stubs.reagent :as r]
+    [clojure.pprint :as pp]))
 
 (def ^:private new-note
   {:notes/body    nil
    :notes/context nil
    :notes/tags    #{}})
 
-(defn ^:private with-attrs [attrs form-id path data warnings errors]
-  (assoc attrs
-         :value (get-in data path)
-         :warnings (get-in warnings path)
-         :errors (get-in errors path)
-         :on-change [:forms/change form-id path]))
+(def ^:private new-note-validator
+  (specs/->validator specs/new-note))
 
 (defn root [_]
   (r/with-let [form-id (doto (random-uuid)
                          (as-> $id (rf/dispatch [:forms/create $id new-note])))
                sub:form (rf/subscribe [:forms/form form-id])
-               sub:contexts (rf/subscribe [:core/contexts])
-               sub:tags (rf/subscribe [:core/tags])]
+               sub:contexts (rf/subscribe [:resources/resource :api.contexts/fetch])
+               sub:tags (rf/subscribe [:resources/resource :api.tags/fetch])
+               sub:res (rf/subscribe [:resources/resource [:api.notes/create! form-id]])]
     (let [form @sub:form
-          [data status warnings errors] (map #(% form) [forms/model
-                                                        forms/status
-                                                        forms/warnings
-                                                        forms/errors])]
-      [ctrls/form {:ready?    (#{:warning :modified :init :error} status)
-                   :valid?    (#{:warning :waiting :modified} status)
-                   :disabled  (#{:waiting} status)
-                   :on-submit [:api.notes/create! {:form-id  form-id
-                                                   :data     data
-                                                   :reset-to new-note}]}
+          data (forms/data form)
+          errors (new-note-validator data)]
+      [ctrls/form {:sub:res   sub:res
+                   :errors    errors
+                   :on-submit [:api.notes/create! form-id {:data     data
+                                                           :reset-to new-note}]}
        [:strong "Create a note"]
-       [ctrls/type-ahead (with-attrs {:label     "Context"
-                                      :sub:items sub:contexts}
-                                     form-id
-                                     [:notes/context]
-                                     data
-                                     warnings
-                                     errors)]
-       [ctrls/textarea (with-attrs {:label "Body"}
-                                   form-id
-                                   [:notes/body]
-                                   data
-                                   warnings
-                                   errors)]
-       [ctrls/tags-editor (with-attrs {:label "Tags"
-                                       :sub:items  sub:tags}
-                                      form-id
-                                      [:notes/tags]
-                                      data
-                                      warnings
-                                      errors)]])
+       [ctrls/type-ahead (-> {:label     "Context"
+                              :sub:items sub:contexts}
+                             (forms/with-attrs form
+                                               sub:res
+                                               [:notes/context]
+                                               new-note-validator))]
+       [ctrls/textarea (-> {:label "Body"}
+                           (forms/with-attrs form
+                                             sub:res
+                                             [:notes/body]
+                                             new-note-validator))]
+       [ctrls/tags-editor (-> {:label     "Tags"
+                               :sub:items sub:tags}
+                              (forms/with-attrs form
+                                                sub:res
+                                                [:notes/tags]
+                                                new-note-validator))]])
     (finally
+      (rf/dispatch [:resources/destroy [:api.notes/create! form-id]])
       (rf/dispatch [:forms/destroy form-id]))))

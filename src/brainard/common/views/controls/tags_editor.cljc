@@ -15,21 +15,24 @@
                          (as-> $id (rf/dispatch [:forms/create $id])))
                sub:form (rf/subscribe [:forms/form form-id])]
     (let [form @sub:form
-          form-data (forms/model form)]
+          form-data (forms/data form)]
       (letfn [(add-tag [e]
                 (dom/prevent-default! e)
                 (when-let [input-val (some-> (:value form-data) string/trim not-empty)]
                   (when (re-matches tag-re input-val)
                     (on-change (conj value (keyword input-val)))
                     (rf/dispatch-sync [:forms/change form-id [:value] nil]))))
-              (update-form [value]
-                (rf/dispatch-sync [:forms/change form-id [:value] (str (kw/kw-str value))]))]
+              (update-form [next-value]
+                (rf/dispatch-sync [:forms/change form-id [:value] (cond-> next-value
+                                                                    (keyword? next-value) kw/kw-str)]))]
         [:div.tags-editor
          [:div.field.has-addons
-          [type-ahead/control (assoc attrs
-                                     :placeholder "Add tag..."
-                                     :value (:value form-data)
-                                     :on-change update-form)]
+          [type-ahead/control (-> attrs
+                                  (forms/with-attrs form
+                                                    (:sub:items attrs)
+                                                    [:value])
+                                  (assoc :placeholder "Add tag..."
+                                         :on-change update-form))]
           [:button.button.is-link {:on-click add-tag}
            "+"]]
          [:div.field.is-grouped.is-grouped-multiline.layout--space-between

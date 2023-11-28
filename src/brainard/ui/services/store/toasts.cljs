@@ -6,17 +6,10 @@
     [re-frame.core :as rf*]))
 
 (rf*/reg-fx
-  ::show
-  (fn [{:keys [toast-id]}]
-    (async/go
-      (async/<! (async/timeout 2))
-      (rf/dispatch [:toasts/show toast-id]))))
-
-(rf*/reg-fx
   ::destroy
   (fn [{:keys [toast-id]}]
     (async/go
-      (async/<! (async/timeout 3333))
+      (async/<! (async/timeout 650))
       (rf/dispatch [:toasts/destroy toast-id]))))
 
 (defn show [db [_ toast-id]]
@@ -27,16 +20,11 @@
 (defn destroy [db [_ toast-id]]
   (update db :toasts dissoc toast-id))
 
-(defn create [{:keys [db]} [_ level body]]
-  (let [toast-id (.getTime (js/Date.))]
-    {::show {:toast-id toast-id}
-     :db    (assoc-in db [:toasts toast-id] {:state :init
-                                             :level level
-                                             :body  (delay
-                                                      (async/go
-                                                        (async/<! (async/timeout 5555))
-                                                        (rf/dispatch [:toasts/hide toast-id]))
-                                                      body)})}))
+(defn create [{:core/keys [now] :keys [db]} [_ level body]]
+  (let [toast-id (.getTime now)]
+    {:db (assoc-in db [:toasts toast-id] {:state :init
+                                          :level level
+                                          :body  body})}))
 
 (defn hide [{:keys [db]} [_ toast-id]]
   (cond-> {::destroy {:toast-id toast-id}}

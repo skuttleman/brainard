@@ -87,9 +87,9 @@
     (finally
       (run! dom/remove-listener listeners))))
 
-(defn with-resource [sub:resource comp]
+(defn with-resource [sub:res comp]
   (let [[_ opts :as comp] (cond-> comp (not (vector? comp)) vector)
-        [status data] @sub:resource]
+        [status data] @sub:res]
     (when (or (not= :init status) (not (:hide-init? opts)))
       (case status
         :success (conj comp data)

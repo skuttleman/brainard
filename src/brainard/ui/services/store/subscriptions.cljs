@@ -12,6 +12,7 @@
 (defn toasts [db _]
   (->> (:toasts db)
        (sort-by key)
-       (take 3)
-       (map (fn [[k v]]
-              [k (update v :body deref)]))))
+       (take 3)))
+
+(defn resource [db [_ handle]]
+  (get-in db [:resources/resources handle] [:init]))
