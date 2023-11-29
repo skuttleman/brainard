@@ -19,10 +19,11 @@
   (let [form @sub:form
         data (forms/data form)
         errors (new-note-validator data)]
-    [ctrls/form {:sub:res   sub:res
-                 :errors    errors
-                 :on-submit [:api.notes/create! form-id {:data     data
-                                                         :reset-to new-note}]}
+    [ctrls/form {:errors       errors
+                 :params       {:data     data
+                                :reset-to new-note}
+                 :resource-key [:api.notes/create! form-id]
+                 :sub:res      sub:res}
      [:strong "Create a note"]
      [ctrls/type-ahead (-> {:label     "Context"
                             :sub:items sub:contexts}

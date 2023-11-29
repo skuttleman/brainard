@@ -8,7 +8,7 @@
   (get-in db [:forms/forms form-id]))
 
 (defn toasts [db _]
-  (->> (:toasts db)
+  (->> (:toasts/toasts db)
        (sort-by key)
        (take 3)
        (map (fn [[toast-id toast]]

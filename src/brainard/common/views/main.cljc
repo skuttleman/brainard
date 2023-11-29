@@ -2,6 +2,7 @@
   (:require
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
+    [brainard.common.utils.colls :as colls]
     [brainard.common.utils.maps :as maps]
     [clojure.pprint :as pp]))
 
@@ -88,7 +89,7 @@
       (run! dom/remove-listener! listeners))))
 
 (defn with-resource [sub:res comp]
-  (let [[_ opts :as comp] (cond-> comp (not (vector? comp)) vector)
+  (let [[_ opts :as comp] (colls/wrap-vector comp)
         [status data] @sub:res]
     (when (or (not= :init status) (not (:hide-init? opts)))
       (case status

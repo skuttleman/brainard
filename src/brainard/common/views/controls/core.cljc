@@ -2,6 +2,7 @@
   (:require
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.re-frame :as rf]
+    [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.fns :as fns]
     [brainard.common.views.controls.dropdown :as dd]
     [brainard.common.views.controls.tags-editor :as tags-editor]
@@ -19,10 +20,9 @@
     (into [component (update attrs :on-change dispatch-on-change)] args)))
 
 (defn ^:private with-id [component]
-  (fn [_attrs & _args]
-    (let [id (gensym "form-field")]
-      (fn [attrs & args]
-        (into [component (assoc attrs :id id)] args)))))
+  (fn [attrs & args]
+    (r/with-let [id (gensym "form-field")]
+      (into [component (assoc attrs :id id)] args))))
 
 (defn ^:private with-trim-blur [component]
   (fn [attrs & args]
@@ -47,13 +47,13 @@
     [:ul {:class [(str (name type) "-list")]}
      (for [item items]
        [:li {:class [(name type)]}
-        {:key item}
+        ^{:key item}
         item])]))
 
 (defn ^:private form-field [{:keys [errors form-field-class warnings] :as attrs} & body]
   (let [errors (seq (remove nil? errors))]
     [:div.form-field
-     {:class (into [(cond errors "errors" warnings "warnings")] form-field-class)}
+     {:class (into [(when errors "errors") (when warnings "warnings")] form-field-class)}
      [:<>
       [form-field-label attrs]
       (into [:div.form-field-control] body)]
@@ -128,14 +128,16 @@
                   buttons
                   (into buttons)))
 
-(defn form [{:keys [errors on-submit sub:res] :as attrs} & fields]
+(defn form [{:keys [errors params resource-key sub:res] :as attrs} & fields]
   (let [[status] @sub:res
         requesting? (= :requesting status)
         init? (= :init status)]
     (-> [:form.form.layout--stack-between
          (merge {:on-submit (fn [e]
                               (dom/prevent-default! e)
-                              (rf/dispatch on-submit))}
+                              (if errors
+                                (rf/dispatch [:resources/failed resource-key :local errors])
+                                (rf/dispatch [:resources/submit! resource-key params])))}
                 (select-keys attrs #{:class :style}))]
         (into fields)
         (conj [form-button-row (-> attrs

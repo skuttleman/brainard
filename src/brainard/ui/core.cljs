@@ -12,6 +12,6 @@
 (defn init []
   (enable-console-print!)
   (rf/dispatch-sync [:core/init])
-  (rf/dispatch [:api.tags/fetch])
-  (rf/dispatch [:api.contexts/fetch])
+  (rf/dispatch [:resources/submit! :api.tags/fetch])
+  (rf/dispatch [:resources/submit! :api.contexts/fetch])
   (load))

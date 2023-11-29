@@ -15,28 +15,27 @@
 (defn change-form [db [_ form-id path value]]
   (update-in db [:forms/forms form-id] forms/change path value))
 
-(defn add-tags [{[status] :api.tags/fetch :as db} [_ {:notes/keys [tags]}]]
-  (cond-> db
-    (= :success status)
-    (update-in [:api.tags/fetch 1] into tags)))
+(defn add-tags [{:resources/keys [resources] :as db} [_ {:notes/keys [tags]}]]
+  (let [[status] (:api.tags/fetch resources)]
+    (cond-> db
+      (= :success status)
+      (update-in [:resources/resources :api.tags/fetch 1] into tags))))
 
-(defn add-context [{[status] :api.contexts/fetch :as db} [_ {:notes/keys [context]}]]
-  (cond-> db
-    (and context (= :success status))
-    (update-in [:api.contexts/fetch 1] conj context)))
-
-(defn submit-resource [db [_ resource-id]]
-  (assoc-in db [:resources/resources resource-id] [:requesting]))
+(defn add-context [{:resources/keys [resources] :as db} [_ {:notes/keys [context]}]]
+  (let [[status] (:api.contexts/fetch resources)]
+    (cond-> db
+      (and context (= :success status))
+      (update-in [:resources/resources :api.contexts/fetch 1] conj context))))
 
 (defn resource-succeeded [db [_ resource-id data]]
-  (let [existing (get-in db [:resources/resources resource-id])]
-    (cond-> db
-      existing (assoc-in [:resources/resources resource-id] [:success data]))))
+  (assoc-in db [:resources/resources resource-id] [:success data]))
 
-(defn resource-failed [db [_ resource-id errors]]
-  (let [existing (get-in db [:resources/resources resource-id])]
-    (cond-> db
-      existing (assoc-in [:resources/resources resource-id] [:error errors]))))
+(defn ^:private remote->warnings [warnings]
+  (transduce (map :details) (partial merge-with conj) nil warnings))
+
+(defn resource-failed [db [_ resource-id source errors]]
+  (let [errors (cond-> errors (= :remote source) remote->warnings)]
+    (assoc-in db [:resources/resources resource-id] [:error {source errors}])))
 
 (defn destroy-resource [db [_ resource-id]]
   (update db :resources/resources dissoc resource-id))

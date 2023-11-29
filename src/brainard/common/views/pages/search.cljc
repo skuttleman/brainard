@@ -35,17 +35,18 @@
   [views.main/pprint results])
 
 (defn ^:private root* [{:keys [form-id form sub:contexts sub:tags] :as attrs}]
-  [:div.flex.layout--space-between
-   [views.main/with-resource sub:contexts [context-filter attrs]]
-   [views.main/with-resource sub:tags [tag-filter attrs]]
-   [:div {:style {:align-self    :end
-                  :margin-bottom "16px"}}
-    [views.main/plain-button {:on-click (fn [_]
-                                          (rf/dispatch [:api.notes/search form-id (forms/data form)]))
-                              :class    ["is-success"]}
-     [views.main/icon :search]
-     [:span {:style {:width "8px"}}]
-     "Search"]]])
+  (let [search-event [:resources/submit! [:api.notes/search form-id] (forms/data form)]]
+    [:div.flex.layout--space-between
+     [views.main/with-resource sub:contexts [context-filter attrs]]
+     [views.main/with-resource sub:tags [tag-filter attrs]]
+     [:div {:style {:align-self    :end
+                    :margin-bottom "16px"}}
+      [views.main/plain-button {:on-click (fn [_]
+                                            (rf/dispatch search-event))
+                                :class    ["is-success"]}
+       [views.main/icon :search]
+       [:span {:style {:width "8px"}}]
+       "Search"]]]))
 
 (defn root [_]
   (r/with-let [form-id (doto (random-uuid)

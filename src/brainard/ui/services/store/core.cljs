@@ -14,6 +14,7 @@
 (let [id (volatile! (.getTime (js/Date.)))]
   (rf*/reg-cofx :generators/toast-id (fn [cofx _] (assoc cofx :toasts/id (vswap! id inc)))))
 
+
 ;; ROUTING
 (rf*/reg-sub :routing/route (store.subs/get-path [:routing/route]))
 (rf*/reg-event-db :routing/navigate (store.events/assoc-path [:routing/route]))
@@ -21,12 +22,13 @@
 
 ;; RESOURCE
 (rf*/reg-sub :resources/resource store.subs/resource)
-(rf*/reg-event-db :resources/submit! store.events/submit-resource)
+(rf*/reg-event-fx :resources/submit! store.effects/submit-resource)
 (rf*/reg-event-db :resources/succeeded store.events/resource-succeeded)
 (rf*/reg-event-db :resources/failed store.events/resource-failed)
 (rf*/reg-event-db :resources/destroy store.events/destroy-resource)
 (rf*/reg-event-db :resources.tags/from-note store.events/add-tags)
 (rf*/reg-event-db :resources.contexts/from-note store.events/add-context)
+
 
 ;; API
 (rf*/reg-event-fx :api.tags/fetch store.effects/fetch-tags)
@@ -49,6 +51,6 @@
 (rf*/reg-event-fx :toasts/create
                   [(rf*/inject-cofx :generators/toast-id)]
                   store.toasts/create)
-(rf*/reg-event-db :toasts/show store.toasts/show)
 (rf*/reg-event-fx :toasts/hide store.toasts/hide)
+(rf*/reg-event-db :toasts/show store.toasts/show)
 (rf*/reg-event-db :toasts/destroy store.toasts/destroy)

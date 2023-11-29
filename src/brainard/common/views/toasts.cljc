@@ -12,7 +12,8 @@
     "is-info"))
 
 (defn ^:private toast-message [{toast-id :id :as toast}]
-  (rf/dispatch [:toasts/show toast-id])
+  (when (= :init (:state toast))
+    (rf/dispatch [:toasts/show toast-id]))
   (async/go
     (async/<! (async/timeout 5555))
     (rf/dispatch [:toasts/hide toast-id]))

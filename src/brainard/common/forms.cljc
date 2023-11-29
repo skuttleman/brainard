@@ -30,7 +30,7 @@
      (assoc attrs
             :value (get-in data path)
             :warnings (when (= :error status)
-                        (get-in result path))
+                        (get-in (:remote result) path))
             :errors (when (not= :init status)
                       (get-in errors path))
             :on-change [:forms/change (:form/id form) path]))))

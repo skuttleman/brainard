@@ -14,21 +14,21 @@
 
 (defn show [db [_ toast-id]]
   (cond-> db
-    (get-in db [:toasts toast-id])
-    (assoc-in [:toasts toast-id :state] :visible)))
+    (get-in db [:toasts/toasts toast-id :state])
+    (assoc-in [:toasts/toasts toast-id :state] :visible)))
 
 (defn destroy [db [_ toast-id]]
-  (update db :toasts dissoc toast-id))
+  (update db :toasts/toasts dissoc toast-id))
 
 (defn create [{toast-id :toasts/id :keys [db]} [_ level body]]
-  {:db (assoc-in db [:toasts toast-id] {:state :init
+  {:db (assoc-in db [:toasts/toasts toast-id] {:state :init
                                         :level level
                                         :body  body})})
 
 (defn hide [{:keys [db]} [_ toast-id]]
   (cond-> {::destroy {:toast-id toast-id}}
-    (get-in db [:toasts toast-id])
-    (assoc :db (assoc-in db [:toasts toast-id :state] :hidden))))
+    (get-in db [:toasts/toasts toast-id])
+    (assoc :db (assoc-in db [:toasts/toasts toast-id :state] :hidden))))
 
 (defn on-success [_ [_ {:keys [message]}]]
   {:dispatch [:toasts/create :success message]})
