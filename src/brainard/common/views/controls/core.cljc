@@ -34,56 +34,31 @@
         (->> (conj [component]))
         (into args))))
 
-(defn form-field [{:keys [errors form-field-class id label label-small? warnings]} & body]
+(defn ^:private form-field-label [{:keys [id label label-small?]}]
+  (when label
+    [:label.label
+     (cond-> {:html-for id}
+       label-small? (assoc :style {:font-weight :normal
+                                   :font-size   "0.8em"}))
+     label]))
+
+(defn ^:private form-field-meta-list [type items]
+  (when (seq items)
+    [:ul {:class [(str (name type) "-list")]}
+     (for [item items]
+       [:li {:class [(name type)]}
+        {:key item}
+        item])]))
+
+(defn ^:private form-field [{:keys [errors form-field-class warnings] :as attrs} & body]
   (let [errors (seq (remove nil? errors))]
     [:div.form-field
      {:class (into [(cond errors "errors" warnings "warnings")] form-field-class)}
      [:<>
-      (when label
-        [:label.label
-         (cond-> {:html-for id}
-           label-small? (assoc :style {:font-weight :normal
-                                       :font-size   "0.8em"}))
-         label])
+      [form-field-label attrs]
       (into [:div.form-field-control] body)]
-     (when errors
-       [:ul.error-list
-        (for [error errors]
-          [:li.error
-           {:key error}
-           error])])
-     (when warnings
-       [:ul.warning-list
-        (for [warning warnings]
-          [:li.warning
-           {:key warning}
-           warning])])]))
-
-(def ^{:arglists '([attrs options])} select
-  (with-id
-    (with-dispatch-on-change
-      (fn [{:keys [disabled on-change value] :as attrs} options]
-        (let [option-values (set (map first options))
-              value (if (contains? option-values value)
-                      value
-                      ::empty)]
-          [form-field
-           attrs
-           [:select.select
-            (-> {:value     (str value)
-                 :disabled  disabled
-                 :on-change (comp on-change
-                                  (into {} (map (juxt str identity) option-values))
-                                  dom/target-value)}
-                (merge (select-keys attrs #{:class :id :on-blur :ref})))
-            (for [[option label attrs] (cond->> options
-                                         (= ::empty value) (cons [::empty
-                                                                  "Choose..."
-                                                                  {:disabled true}]))
-                  :let [str-option (str option)]]
-              [:option
-               (assoc attrs :value str-option :key str-option :selected (= option value))
-               label])]])))))
+     [form-field-meta-list :error errors]
+     [form-field-meta-list :warning warnings]]))
 
 (def ^{:arglists '([attrs])} textarea
   (with-id
@@ -102,23 +77,10 @@
   (with-id
     (with-dispatch-on-change
       (with-trim-blur
-        (fn [{:keys [disabled on-change type] :as attrs}]
+        (fn [attrs]
           [form-field
            attrs
            [views.main/plain-input attrs]])))))
-
-(def ^{:arglists '([attrs])} checkbox
-  (with-id
-    (fn [{:keys [disabled on-change value] :as attrs}]
-      [form-field
-       attrs
-       [:input.checkbox
-        (-> {:checked   (boolean value)
-             :type      :checkbox
-             :disabled  disabled
-             :on-change (fn [_]
-                          (rf/dispatch-sync (conj on-change (not value))))}
-            (merge (select-keys attrs #{:class :id :on-blur :ref})))]])))
 
 (def ^{:arglists '([attrs])} tags-editor
   (with-id
@@ -152,27 +114,32 @@
          attrs
          [dd/control (dd/singleable attrs)]]))))
 
-(defn form [{:keys [buttons disabled errors on-submit sub:res] :as attrs} & fields]
+(defn ^:private form-button-row [{:keys [buttons disabled requesting?] :as attrs}]
+  (cond-> [:div.button-row
+                         [views.main/plain-button
+                          {:class    ["is-primary" "submit"]
+                           :type     :submit
+                           :disabled disabled}
+                          (:submit/text attrs "Submit")]]
+
+                  requesting?
+                  (conj [:div {:style {:margin-bottom "8px"}} [views.main/spinner]])
+
+                  buttons
+                  (into buttons)))
+
+(defn form [{:keys [errors on-submit sub:res] :as attrs} & fields]
   (let [[status] @sub:res
         requesting? (= :requesting status)
-        disabled (or disabled
-                     requesting?
-                     (and errors (not= :init status)))]
+        init? (= :init status)]
     (-> [:form.form.layout--stack-between
          (merge {:on-submit (fn [e]
                               (dom/prevent-default! e)
                               (rf/dispatch on-submit))}
                 (select-keys attrs #{:class :style}))]
         (into fields)
-        (conj (cond-> [:div.button-row
-                       [views.main/plain-button
-                        {:class    ["is-primary" "submit"]
-                         :type     :submit
-                         :disabled disabled}
-                        (:submit/text attrs "Submit")]]
-
-                requesting?
-                (conj [:div {:style {:margin-bottom "8px"}} [views.main/spinner]])
-
-                buttons
-                (into buttons))))))
+        (conj [form-button-row (-> attrs
+                                   (update :disabled #(or %
+                                                          requesting?
+                                                          (and errors (not init?))))
+                                   (assoc :requesting? requesting?))]))))

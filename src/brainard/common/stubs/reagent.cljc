@@ -3,11 +3,12 @@
   #?(:cljs
      (:require-macros
        brainard.common.stubs.reagent))
-  (:require [reagent.core :as r*]))
+  (:require
+    [reagent.core :as r*]))
 
-(defn create-class [spec]
-  #?(:cljs    (r*/create-class spec)
-     :default (:reagent-render spec)))
+(def ^{:arglists '([spec])} create-class
+  #?(:cljs    r*/create-class
+     :default :reagent-render))
 
 (defn atom [value]
   #?(:cljs    (r*/atom value)

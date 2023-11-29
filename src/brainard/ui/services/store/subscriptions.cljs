@@ -10,7 +10,9 @@
 (defn toasts [db _]
   (->> (:toasts db)
        (sort-by key)
-       (take 3)))
+       (take 3)
+       (map (fn [[toast-id toast]]
+              (assoc toast :id toast-id)))))
 
 (defn resource [db [_ handle]]
   (get-in db [:resources/resources handle] [:init]))

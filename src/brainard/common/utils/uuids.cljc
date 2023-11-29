@@ -9,6 +9,6 @@
   #?(:clj     (uuid/squuid)
      :default (random-uuid)))
 
-(defn to-uuid [x]
+(defn ->uuid [x]
   #?(:clj  (uuid/as-uuid x)
-     :cljs (cond-> x (not (uuid? x)) uuid)))
+     :cljs (cond-> x (not (string? x)) uuid)))

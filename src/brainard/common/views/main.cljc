@@ -2,7 +2,11 @@
   (:require
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
-    [brainard.common.utils.maps :as maps]))
+    [brainard.common.utils.maps :as maps]
+    [clojure.pprint :as pp]))
+
+(defn pprint [data]
+  [:pre (with-out-str (pp/pprint data))])
 
 (defn spinner
   ([]
@@ -21,7 +25,8 @@
 (defn plain-input [attrs]
   [:input.input
    (-> attrs
-       (select-keys #{:type :on-change :class :disabled :id :on-blur :ref :value :on-focus :auto-focus})
+       (select-keys #{:type :on-change :class :disabled :ref
+                      :id :on-blur :value :on-focus :auto-focus})
        (update :on-change comp dom/target-value)
        (maps/assoc-defaults :type :text))])
 
@@ -51,9 +56,9 @@
 (defn ^:private opener-click [ref open?]
   (fn [e]
     (if (within-ref? (.-target e) @ref)
-      (some-> @ref dom/focus!)
+      (dom/focus! @ref)
       (do (reset! open? false)
-          (some-> @ref dom/blur!)))))
+          (dom/blur! @ref)))))
 
 (defn ^:private opener-keydown [open?]
   (fn [e]
@@ -64,13 +69,8 @@
 (defn openable [component & args]
   (r/with-let [open? (r/atom false)
                ref (volatile! nil)
-               listeners [(dom/add-listener js/window
-                                            :click
-                                            (opener-click ref open?))
-                          (dom/add-listener js/window
-                                            :keydown
-                                            (opener-keydown open?)
-                                            true)]
+               listeners [(dom/add-listener! js/window :click (opener-click ref open?))
+                          (dom/add-listener! js/window :keydown (opener-keydown open?) true)]
                on-toggle (fn [_]
                            (swap! open? not))
                ref-fn (fn [node]
@@ -78,14 +78,14 @@
                on-blur (fn [_]
                          (when-let [node @ref]
                            (when @open?
-                             (some-> node dom/focus!))))]
+                             (dom/focus! node))))]
     (into [component {:open?     @open?
                       :on-toggle on-toggle
                       :ref       ref-fn
                       :on-blur   on-blur}]
           args)
     (finally
-      (run! dom/remove-listener listeners))))
+      (run! dom/remove-listener! listeners))))
 
 (defn with-resource [sub:res comp]
   (let [[_ opts :as comp] (cond-> comp (not (vector? comp)) vector)

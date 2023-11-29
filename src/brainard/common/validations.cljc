@@ -3,9 +3,15 @@
     [malli.core :as m]
     [malli.error :as me]))
 
+(defn ->validator [spec]
+  (fn [data]
+    (when-let [errors (m/explain spec data)]
+      (me/humanize errors))))
+
 (defn validate! [spec data type]
-  (when-let [errors (some-> spec (m/explain data))]
-    (throw (ex-info "failed spec validation"
-                    {::type   type
-                     :data    data
-                     :details (me/humanize errors)}))))
+  (let [validator (->validator spec)]
+    (when-let [details (validator data)]
+      (throw (ex-info "failed spec validation"
+                      {::type   type
+                       :data    data
+                       :details details})))))

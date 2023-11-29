@@ -5,29 +5,27 @@
     [brainard.common.views.main :as views.main]
     [clojure.set :as set]))
 
-(defn option-list [{:keys [item-control on-change options value]}]
-  (r/with-let [[selected unselected] (reduce (fn [[sel unsel] [val :as option]]
-                                               (if (contains? value val)
-                                                 [(conj sel option) unsel]
-                                                 [sel (conj unsel option)]))
-                                             [[] []]
-                                             options)
-               options (concat selected unselected)]
-    [:ul.dropdown-items.lazy-list
+(defn ^:private split-selection [{:keys [options value]}]
+  (let [{selected true unselected false} (group-by (partial contains? value) options)]
+    (concat selected unselected)))
+
+(defn ^:private option-list [{:keys [item-control on-change value] :as attrs}]
+  (r/with-let [options (split-selection attrs)]
+    [:ul.dropdown-items
      (for [[id display] options
            :let [selected? (contains? value id)]]
        ^{:key id}
        [:li.dropdown-item.pointer
         {:class    [(when selected? "is-active")]
-         :on-click (comp (fn [_]
-                           (let [next-value (if (contains? value id)
-                                              (disj value id)
-                                              ((fnil conj #{}) value id))]
-                             (on-change next-value)))
-                         dom/stop-propagation!)}
+         :on-click (fn [e]
+                     (dom/stop-propagation! e)
+                     (let [next-value (if (contains? value id)
+                                        (disj value id)
+                                        ((fnil conj #{}) value id))]
+                       (on-change next-value)))}
         [item-control display]])]))
 
-(defn button [{:keys [attrs->content selected] :as attrs}]
+(defn ^:private button [{:keys [attrs->content selected] :as attrs}]
   (let [selected-count (count selected)
         content (if attrs->content
                   (attrs->content attrs)
@@ -42,10 +40,25 @@
       {:style {:margin-left "10px"}}
       [views.main/icon (if (:open? attrs) :chevron-up :chevron-down)]]]))
 
-(defn ^:private dropdown* [attrs]
-  (let [{:keys [button-control loading? list-control open? options options-by-id value]
-         :or   {list-control option-list button-control button}} attrs
-        selected (seq (map options-by-id value))]
+(defn ^:private dropdown-menu [{:keys [loading? list-control open? options]
+                                :or   {list-control option-list} :as attrs}]
+  (when open?
+    [:div.dropdown-menu
+     [:div.dropdown-content
+      [:div.dropdown-body
+       (cond
+         loading?
+         [views.main/spinner]
+
+         (seq options)
+         [list-control attrs]
+
+         :else
+         [views.main/alert :info "No results"])]]]))
+
+(defn ^:private dropdown* [{:keys [button-control open? options-by-id value]
+                            :or   {button-control button} :as attrs}]
+  (let [selected (seq (map options-by-id value))]
     [:div.dropdown
      {:class [(when open? "is-active")]}
      [:div.dropdown-trigger
@@ -55,19 +68,7 @@
            (cond->
              selected (assoc :selected selected)
              open? (update :class conj "is-focused")))]]
-     (when open?
-       [:div.dropdown-menu
-        [:div.dropdown-content
-         [:div.dropdown-body
-          (cond
-            loading?
-            [views.main/spinner]
-
-            (seq options)
-            [list-control attrs]
-
-            :else
-            [views.main/alert :info "No results"])]]])]))
+     [dropdown-menu attrs]]))
 
 (defn ^:private openable-dropdown [attrs attrs']
   [dropdown* (merge attrs attrs')])

@@ -20,11 +20,10 @@
 (defn destroy [db [_ toast-id]]
   (update db :toasts dissoc toast-id))
 
-(defn create [{:core/keys [now] :keys [db]} [_ level body]]
-  (let [toast-id (.getTime now)]
-    {:db (assoc-in db [:toasts toast-id] {:state :init
-                                          :level level
-                                          :body  body})}))
+(defn create [{toast-id :toasts/id :keys [db]} [_ level body]]
+  {:db (assoc-in db [:toasts toast-id] {:state :init
+                                        :level level
+                                        :body  body})})
 
 (defn hide [{:keys [db]} [_ toast-id]]
   (cond-> {::destroy {:toast-id toast-id}}

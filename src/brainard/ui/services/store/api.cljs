@@ -1,7 +1,6 @@
 (ns brainard.ui.services.store.api
   (:require
-    [bidi.bidi :as bidi]
-    [brainard.common.routing :as routing]
+    [brainard.common.navigation.core :as nav]
     [brainard.common.stubs.re-frame :as rf]
     [brainard.common.utils.keywords :as kw]
     [cljs-http.client :as http]
@@ -20,16 +19,15 @@
        (mapcat (fn [[k v]]
                  (when (some? v)
                    (map (fn [v']
-                          (str (name k) "=" (cond-> v' (keyword? v') kw/kw-str)))
+                          (str (name k) "=" (cond-> v' (keyword? v') kw/str)))
                         (cond-> v (not (coll? v)) vector)))))
        (string/join "&")))
 
 (rf*/reg-fx
   ::request
   (fn [{:keys [on-success-n on-error-n query-params] :as params}]
-    (let [path (bidi/path-for routing/api-routes
-                              (:route params)
-                              (:route-params params {}))
+    (let [path (nav/path-for (:route params)
+                             (:route-params params {}))
           query (->query query-params)
           url (cond-> (str base-url path)
                 (seq query-params) (str "?" query))]

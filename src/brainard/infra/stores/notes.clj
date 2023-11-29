@@ -1,6 +1,6 @@
 (ns brainard.infra.stores.notes
   (:require
-    [brainard.api.notes.proto :as notes.proto]
+    [brainard.api.notes.interfaces :as inotes]
     [brainard.infra.datomic :as datomic]))
 
 (def ^:private ^:const select
@@ -21,15 +21,13 @@
   (->> (datomic/query datomic-conn
                       '[:find ?context
                         :where [_ :notes/context ?context]])
-       (map first)
-       set))
+       (map first)))
 
 (defn ^:private get-tags [{:keys [datomic-conn]}]
   (->> (datomic/query datomic-conn
                       '[:find ?tag
                         :where [_ :notes/tags ?tag]])
-       (map first)
-       set))
+       (map first)))
 
 (defn ^:private notes-query [{:notes/keys [context tags]}]
   (cond-> (conj select :where)
@@ -42,20 +40,19 @@
 (defn ^:private get-notes [{:keys [datomic-conn]} params]
   (let [query (notes-query params)]
     (->> (datomic/query datomic-conn query)
-         (map #(update (first %) :notes/tags set)))))
+         (map first))))
 
 (defn ^:private get-note [{:keys [datomic-conn]} note-id]
   (-> (datomic/query datomic-conn
                      (into select '[:in $ ?note-id
                                     :where [?e :notes/id ?note-id]])
                      note-id)
-      ffirst
-      (update :notes/tags set)))
+      ffirst))
 
 (defn create-store [this]
   (with-meta this
-             {`notes.proto/save!        #'save!
-              `notes.proto/get-contexts #'get-contexts
-              `notes.proto/get-tags     #'get-tags
-              `notes.proto/get-notes    #'get-notes
-              `notes.proto/get-note     #'get-note}))
+             {`inotes/save!        #'save!
+              `inotes/get-contexts #'get-contexts
+              `inotes/get-tags     #'get-tags
+              `inotes/get-notes    #'get-notes
+              `inotes/get-note     #'get-note}))

@@ -2,5 +2,6 @@
 
 (defn apply-all! [& fns]
   (fn [& args]
-    (doseq [f fns :when f]
+    (doseq [f fns
+            :when f]
       (apply f args))))

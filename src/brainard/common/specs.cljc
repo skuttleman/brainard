@@ -52,8 +52,3 @@
    [:patch :routes.api/note]   [:map [:data full-note]]
    [:get :routes.api/tags]     [:map [:data [:set keyword?]]]
    [:get :routes.api/contexts] [:map [:data [:set string?]]]})
-
-(defn ->validator [spec]
-  (fn [data]
-    (when-let [errors (m/explain spec data)]
-      (me/humanize errors))))

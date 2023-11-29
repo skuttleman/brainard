@@ -1,13 +1,12 @@
 (ns brainard.infra.routes.middleware
   (:require
-    [bidi.bidi :as bidi]
-    [brainard.common.routing :as routing]
+    [brainard.common.navigation.core :as nav]
     [brainard.common.specs :as specs]
     [brainard.common.utils.edn :as edn]
     [brainard.common.utils.logger :as log]
     [brainard.common.validations :as valid]
-    [brainard.infra.routes.common :as routes.common]
     [brainard.infra.routes.errors :as err]
+    [brainard.infra.routes.interfaces :as iroutes]
     [clojure.string :as string]
     [ring.util.request :as ring.req]))
 
@@ -39,20 +38,11 @@
            (log/error ex (ex-message ex) (ex-data ex))
            (err/ex->response (ex-data ex))))))
 
-(defn ^:private coerce-params [params handler]
-  (reduce (fn [params [k coercer]]
-            (cond-> params
-              (contains? params k)
-              (update k coercer)))
-          params
-          (meta handler)))
+
 
 (defn with-routing [handler]
   (fn [req]
-    (let [route-info (bidi/match-route routing/all (:uri req))
-          route-info (-> route-info
-                         (update :route-params coerce-params (:handler route-info))
-                         (update :handler keyword))]
+    (let [route-info (nav/match (:uri req))]
       (handler (assoc req :brainard/route route-info)))))
 
 (defn with-edn [handler]
@@ -69,15 +59,19 @@
         (-> (assoc-in [:headers "content-type"] "application/edn")
             (update :body pr-str))))))
 
+(defn with-input [handler]
+  (fn [req]
+    (handler (assoc req :brainard/input (iroutes/req->input req)))))
+
 (defn with-spec-validation [handler]
   (fn [req]
-    (let [req (routes.common/coerce-input req)
-          spec-key (routes.common/router req)
+    (let [spec-key (iroutes/router req)
           input-spec (specs/input-specs spec-key)]
-      (valid/validate! input-spec (:brainard/input req) ::valid/input-validation)
+      (some-> input-spec (valid/validate! (:brainard/input req) ::valid/input-validation))
       (let [response (handler req)
             output-spec (if (success? (:status response))
                           (specs/output-specs spec-key)
                           specs/errors)]
-        (valid/validate! output-spec (:body response) ::valid/output-validation)
+        ;; TODO - dev only
+        (some-> output-spec (valid/validate! (:body response) ::valid/output-validation))
         response))))

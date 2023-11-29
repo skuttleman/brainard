@@ -16,22 +16,25 @@
                      ;; infra
                      :brainard.datomic/conn
                      {:client      #ig/ref :brainard.datomic/client
-                      :db-name     #ig/ref :cfg/datomic-db-name
-                      :log-file    #duct/env ["DATOMIC_LOG_FILE" :or ".datomic.log"]
-                      :schema-file #ig/ref :cfg/datomic-schema-file}
+                      :db-name     #ig/ref :cfg.datomic/db-name
+                      :log-file    #ig/ref :cfg.datomic/log-file
+                      :schema-file #ig/ref :cfg.datomic/schema-file}
 
                      :brainard.datomic/client
                      {:client  {:server-type :dev-local
                                 :storage-dir :mem
-                                :system      #ig/ref :cfg/datomic-db-name}
-                      :db-name #ig/ref :cfg/datomic-db-name}
+                                :system      #ig/ref :cfg.datomic/db-name}
+                      :db-name #ig/ref :cfg.datomic/db-name}
 
                      ;; env
                      [:cfg/server-port :duct/const]
                      #duct/env ["SERVER_PORT" Int :or 1165]
 
-                     [:cfg/datomic-db-name :duct/const]
+                     [:cfg.datomic/db-name :duct/const]
                      #duct/env ["DATOMIC_DB_NAME" :or "brainard"]
 
-                     [:cfg/datomic-schema-file :duct/const]
-                     #duct/env ["DATOMIC_SCHEMA_FILE" :or "schema.edn"]}}
+                     [:cfg.datomic/schema-file :duct/const]
+                     #duct/env ["DATOMIC_SCHEMA_FILE" :or "schema.edn"]
+
+                     [:cfg.datomic/log-file :duct/const]
+                     #duct/env ["DATOMIC_LOG_FILE" :or ".datomic.log"]}}

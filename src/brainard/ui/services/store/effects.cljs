@@ -29,8 +29,8 @@
                         :method       :post
                         :body         data
                         :on-success-n (cond-> [[:toasts/success {:message "note created"}]
-                                               [:resources.tags/include-note]
-                                               [:resources.contexts/include-note]]
+                                               [:resources.tags/from-note]
+                                               [:resources.contexts/from-note]]
                                         reset-to
                                         (conj [:forms/create resource-id reset-to]
                                               [:resources/destroy [:api.notes/create! resource-id]])

@@ -28,11 +28,6 @@
   #?(:cljs
      (some-> e .-target .-value)))
 
-(defn click! [node]
-  #?(:cljs
-     (doto node
-       (some-> .click))))
-
 (defn blur! [node]
   #?(:cljs
      (doto node
@@ -47,9 +42,9 @@
   #?(:cljs
      (some-> e .-keyCode code->key)))
 
-(defn add-listener
+(defn add-listener!
   ([node event cb]
-   (add-listener node event cb nil))
+   (add-listener! node event cb nil))
   ([node event cb options]
    #?(:cljs
       (let [key (gensym)
@@ -59,7 +54,7 @@
         (swap! listeners assoc key listener)
         key))))
 
-(defn remove-listener [key]
+(defn remove-listener! [key]
   #?(:cljs
      (when-let [{::keys [node event id]} (get @listeners key)]
        (swap! listeners dissoc key)

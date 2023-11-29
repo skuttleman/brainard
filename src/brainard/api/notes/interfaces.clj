@@ -1,4 +1,4 @@
-(ns brainard.api.notes.proto)
+(ns brainard.api.notes.interfaces)
 
 (defprotocol INotesStore
   :extend-via-metadata true

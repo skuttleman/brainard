@@ -11,12 +11,12 @@
     :warning "is-warning"
     "is-info"))
 
-(defn ^:private toast-message [toast-id toast]
-  (r/with-let [height (volatile! nil)
-               _ (rf/dispatch [:toasts/show toast-id])
-               _ (async/go
-                   (async/<! (async/timeout 5555))
-                   (rf/dispatch [:toasts/hide toast-id]))]
+(defn ^:private toast-message [{toast-id :id :as toast}]
+  (rf/dispatch [:toasts/show toast-id])
+  (async/go
+    (async/<! (async/timeout 5555))
+    (rf/dispatch [:toasts/hide toast-id]))
+  (r/with-let [height (volatile! nil)]
     (let [{:keys [body level state]} toast
           adding? (= state :init)
           removing? (= state :hidden)
@@ -38,11 +38,10 @@
         [:div.body-text body]]])))
 
 (defn toasts []
-  (let [sub:toasts (rf/subscribe [:toasts/toasts])]
-    (fn []
-      [:div.toast-container
-       [:ul.toast-messages
-        (for [[toast-id toast] @sub:toasts]
-          ^{:key toast-id}
-          [toast-message toast-id toast])]])))
+  (r/with-let [sub:toasts (rf/subscribe [:toasts/toasts])]
+    [:div.toast-container
+     [:ul.toast-messages
+      (for [toast @sub:toasts]
+        ^{:key (:id toast)}
+        [toast-message toast])]]))
 

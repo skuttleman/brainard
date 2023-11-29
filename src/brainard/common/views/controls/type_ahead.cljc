@@ -8,7 +8,8 @@
 
 (defn ^:private filter-matches [value items]
   (let [re (re-pattern (string/lower-case (str value)))]
-    (filter (comp (partial re-find re) string/lower-case str)
+    (filter (fn [item]
+              (re-find re (string/lower-case (str item))))
             items)))
 
 (defn ^:private ->type-ahead-key-handler [{:keys [comp:state dd-active? matches on-change selected-idx]}]
@@ -68,13 +69,14 @@
     (fn [{:keys [value] :as attrs} items]
       (let [state @comp:state
             matches (filter-matches value items)
+            dd-active? (and (not (:selected? state))
+                            (:focussed? state)
+                            (>= (count value) 2)
+                            (seq matches))
             sub-attrs (-> attrs
                           (assoc :comp:state comp:state
                                  :matches matches
-                                 :dd-active? (and (not (:selected? state))
-                                                  (:focussed? state)
-                                                  (>= (count value) 2)
-                                                  (seq matches))
+                                 :dd-active? dd-active?
                                  :selected-idx (when-let [idx (:selected-idx state)]
                                                  (min idx (dec (count matches))))))]
         [:div

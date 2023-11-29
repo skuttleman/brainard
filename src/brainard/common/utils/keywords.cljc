@@ -1,7 +1,8 @@
-(ns brainard.common.utils.keywords)
+(ns brainard.common.utils.keywords
+  (:refer-clojure :exclude [str]))
 
-(defn kw-str [kw]
+(defn str [kw]
   (when kw
     (let [ns (namespace kw)]
       (cond->> (name kw)
-        ns (str ns "/")))))
+        ns (clojure.core/str ns "/")))))

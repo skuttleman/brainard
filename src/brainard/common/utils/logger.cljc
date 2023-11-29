@@ -16,7 +16,7 @@
   (log* &form :trace args))
 
 (defmacro debug [& args]
-  (log* &form (if (:ns &env) :info :debug) args))
+  (log* &form :debug args))
 
 (defmacro info [& args]
   (log* &form :info args))
@@ -35,15 +35,15 @@
 
 (defmacro with-duration [[ctx-binding call] & body]
   `(let [before# #?(:clj (System/currentTimeMillis) :default 0)
-         [result# ex#] (try
-                         [~call]
-                         (catch Throwable ex#
-                           [nil ex#]))
-         after# #?(:clj (System/currentTimeMillis)  :default 0)]
-     (let [~ctx-binding {:ex ex# :result result# :duration (- after# before#)}]
+         ctx# (try
+                {:result ~call}
+                (catch Throwable ex#
+                  {:ex ex#}))
+         after# #?(:clj (System/currentTimeMillis) :default 0)]
+     (let [~ctx-binding (assoc ctx# :duration (- after# before#))]
        ~@body
-       (some-> ex# throw)
-       result#)))
+       (some-> (:ex ctx#) throw)
+       (:result ctx#))))
 
 (defn ^:private filter-external-packages [{:keys [level ?ns-str] :as data}]
   (when (or (#{:warn :error :fatal :report} level)
