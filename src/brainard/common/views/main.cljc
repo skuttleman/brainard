@@ -70,8 +70,8 @@
 (defn openable [component & args]
   (r/with-let [open? (r/atom false)
                ref (volatile! nil)
-               listeners [(dom/add-listener! js/window :click (opener-click ref open?))
-                          (dom/add-listener! js/window :keydown (opener-keydown open?) true)]
+               listeners [(dom/add-listener! dom/window :click (opener-click ref open?))
+                          (dom/add-listener! dom/window :keydown (opener-keydown open?) true)]
                on-toggle (fn [_]
                            (swap! open? not))
                ref-fn (fn [node]
@@ -94,5 +94,6 @@
     (when (or (not= :init status) (not (:hide-init? opts)))
       (case status
         :success (conj comp data)
-        :error [:div.error [alert :error "An error occurred."]]
+        :error (when-not (:local data)
+                 [:div.error [alert :error "An error occurred."]])
         [spinner {:size (:spinner/size opts)}]))))

@@ -1,4 +1,7 @@
 (ns brainard.common.utils.maps
+  #?(:cljs
+     (:require-macros
+       brainard.common.utils.maps))
   (:refer-clojure :exclude [flatten]))
 
 (defn ^:private flatten* [m path]
@@ -25,3 +28,11 @@
         (comp (partition-all 2)
               (remove (comp some? (partial get m) first)))
         kvs))
+
+(defmacro m [& forms]
+  (loop [m {}
+         [form :as forms] forms]
+    (cond
+      (empty? forms) m
+      (symbol? form) (recur (assoc m (keyword form) form) (next forms))
+      :else (recur (conj m form) (next forms)))))

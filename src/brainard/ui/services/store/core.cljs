@@ -12,7 +12,8 @@
 ;; CORE
 (rf*/reg-event-db :core/init (constantly empty-store))
 (let [id (volatile! (.getTime (js/Date.)))]
-  (rf*/reg-cofx :generators/toast-id (fn [cofx _] (assoc cofx :toasts/id (vswap! id inc)))))
+  (rf*/reg-cofx :generators/toast-id (fn [cofx _]
+                                       (assoc cofx :toasts/id (vswap! id inc)))))
 
 
 ;; ROUTING

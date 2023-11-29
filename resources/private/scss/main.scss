@@ -37,6 +37,19 @@
     color: $yellow !important;
 }
 
+.form {
+    &.errors {
+        .error-list {
+            color: $red;
+        }
+
+        .button.submit {
+            background-color: $orange;
+            border-color: $orange;
+        }
+    }
+}
+
 .form-field {
     &.errors {
         .button-group, .input, .select, .textarea, .dropdown-trigger > .button {

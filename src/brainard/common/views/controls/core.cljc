@@ -46,8 +46,8 @@
   (when (seq items)
     [:ul {:class [(str (name type) "-list")]}
      (for [item items]
+       ^{:key item}
        [:li {:class [(name type)]}
-        ^{:key item}
         item])]))
 
 (defn ^:private form-field [{:keys [errors form-field-class warnings] :as attrs} & body]
@@ -114,34 +114,35 @@
          attrs
          [dd/control (dd/singleable attrs)]]))))
 
-(defn ^:private form-button-row [{:keys [buttons disabled requesting?] :as attrs}]
+(defn ^:private form-button-row [{:keys [disabled requesting?] :as attrs}]
   (cond-> [:div.button-row
-                         [views.main/plain-button
-                          {:class    ["is-primary" "submit"]
-                           :type     :submit
-                           :disabled disabled}
-                          (:submit/text attrs "Submit")]]
+           [views.main/plain-button
+            {:class    ["is-primary" "submit"]
+             :type     :submit
+             :disabled disabled}
+            (:submit/body attrs "Submit")]]
 
-                  requesting?
-                  (conj [:div {:style {:margin-bottom "8px"}} [views.main/spinner]])
-
-                  buttons
-                  (into buttons)))
+    requesting?
+    (conj [:div {:style {:margin-bottom "8px"}} [views.main/spinner]])))
 
 (defn form [{:keys [errors params resource-key sub:res] :as attrs} & fields]
-  (let [[status] @sub:res
+  (let [form-errors (when (vector? errors) errors)
+        [status] @sub:res
         requesting? (= :requesting status)
-        init? (= :init status)]
+        init? (= :init status)
+        any-errors? (and errors (not init?))]
     (-> [:form.form.layout--stack-between
-         (merge {:on-submit (fn [e]
-                              (dom/prevent-default! e)
-                              (if errors
-                                (rf/dispatch [:resources/failed resource-key :local errors])
-                                (rf/dispatch [:resources/submit! resource-key params])))}
-                (select-keys attrs #{:class :style}))]
+         (-> {:on-submit (fn [e]
+                           (dom/prevent-default! e)
+                           (if errors
+                             (rf/dispatch [:resources/failed resource-key :local errors])
+                             (rf/dispatch [:resources/submit! resource-key params])))}
+             (merge (select-keys attrs #{:class :style}))
+             (cond-> any-errors? (update :class conj "errors")))]
         (into fields)
+        (cond->
+          (and form-errors (not init?))
+          (conj [form-field-meta-list :error errors]))
         (conj [form-button-row (-> attrs
-                                   (update :disabled #(or %
-                                                          requesting?
-                                                          (and errors (not init?))))
+                                   (update :disabled fns/or requesting? any-errors?)
                                    (assoc :requesting? requesting?))]))))

@@ -4,6 +4,9 @@
 
 (defonce ^:private listeners (atom {}))
 
+(def ^:const window
+  #?(:cljs js/window :default nil))
+
 (def ^:private key->code
   {:key-codes/tab   9
    :key-codes/esc   27
@@ -15,27 +18,28 @@
   (set/map-invert key->code))
 
 (defn prevent-default! [e]
-  #?(:cljs
-     (doto e
+  (doto e
+    #?(:cljs
        (some-> .preventDefault))))
 
 (defn stop-propagation! [e]
-  #?(:cljs
-     (doto e
+  (doto e
+    #?(:cljs
        (some-> .stopPropagation))))
 
 (defn target-value [e]
   #?(:cljs
-     (some-> e .-target .-value)))
+     (some-> e
+             .-target .-value)))
 
 (defn blur! [node]
-  #?(:cljs
-     (doto node
+  (doto node
+    #?(:cljs
        (some-> .blur))))
 
 (defn focus! [node]
-  #?(:cljs
-     (doto node
+  (doto node
+    #?(:cljs
        (some-> .focus))))
 
 (defn event->key [e]

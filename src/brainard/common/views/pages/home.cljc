@@ -30,18 +30,18 @@
                            (forms/with-attrs form
                                              sub:res
                                              [:notes/context]
-                                             new-note-validator))]
+                                             errors))]
      [ctrls/textarea (-> {:label "Body"}
                          (forms/with-attrs form
                                            sub:res
                                            [:notes/body]
-                                           new-note-validator))]
+                                           errors))]
      [ctrls/tags-editor (-> {:label     "Tags"
                              :sub:items sub:tags}
                             (forms/with-attrs form
                                               sub:res
                                               [:notes/tags]
-                                              new-note-validator))]]))
+                                              errors))]]))
 
 (defn root [_]
   (r/with-let [form-id (doto (random-uuid)

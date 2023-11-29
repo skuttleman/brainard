@@ -34,7 +34,9 @@
 (defn ^:private type-ahead-trigger [{:keys [*:state on-change] :as attrs}]
   [:div.dropdown-trigger
    [:input.input
-    (-> {:type          :text
+    (-> {:ref           (fn [node]
+                          (some->> node (swap! *:state assoc :ref)))
+         :type          :text
          :auto-complete :off
          :on-change     (fn [e]
                           (swap! *:state assoc :selected? false :selected-idx nil)
@@ -52,14 +54,19 @@
     [:div.dropdown-content
      (for [[idx match] (map-indexed vector matches)]
        ^{:key match}
-       [:a.dropdown-item {:href      "#"
-                          :class     [(when (= idx selected-idx) "is-active")]
-                          :tab-index -1
-                          :on-click  (fn [_]
-                                       (swap! *:state assoc
-                                              :selected? true
-                                              :selected-idx nil)
-                                       (on-change match))}
+       [:span.dropdown-item.pointer
+        {:class         [(when (= idx selected-idx) "is-active")]
+         :tab-index     -1
+         :on-mouse-down (fn [_]
+                          (swap! *:state assoc :clicking? true))
+         :on-mouse-up   (fn [_]
+                          (swap! *:state assoc :clicking? false))
+         :on-click      (fn [_]
+                          (swap! *:state assoc
+                                 :selected? true
+                                 :selected-idx nil)
+                          (on-change match)
+                          (dom/focus! (:ref @*:state)))}
         (str match)])]]])
 
 (defn ^:private control* [{:keys [value] :as attrs} items]
@@ -68,10 +75,11 @@
                                 :selected-idx nil})]
     (let [state @*:state
           matches (filter-matches value items)
-          dd-active? (and (not (:selected? state))
-                          (:focussed? state)
-                          (>= (count value) 2)
-                          (seq matches))
+          dd-active? (or (:clicking? state)
+                         (and (not (:selected? state))
+                              (:focussed? state)
+                              (>= (count value) 2)
+                              (seq matches)))
           sub-attrs (-> attrs
                         (assoc :*:state *:state
                                :matches matches

@@ -6,8 +6,8 @@
   (fn [db [_ value]]
     (assoc-in db path value)))
 
-(defn create-form [db [_ form-id data]]
-  (assoc-in db [:forms/forms form-id] (forms/create form-id data)))
+(defn create-form [db [_ form-id data opts]]
+  (assoc-in db [:forms/forms form-id] (forms/create form-id data opts)))
 
 (defn destroy-form [db [_ form-id]]
   (update db :forms/forms dissoc form-id))

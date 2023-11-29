@@ -5,11 +5,11 @@
 
 (defmethod iroutes/req->input [:get :routes.api/notes]
   [{:keys [params]}]
-  (let [{:keys [tag context]} params
+  (let [{:keys [tags context]} params
         tags (cond
-               (coll? tag) (into #{} (map keyword) tag)
-               (nil? tag) #{}
-               :else #{(keyword tag)})]
+               (coll? tags) (into #{} (map keyword) tags)
+               (nil? tags) #{}
+               :else #{(keyword tags)})]
     (cond-> {:notes/tags tags}
       context (assoc :notes/context context))))
 

@@ -2,30 +2,27 @@
   (:require
     [brainard.common.utils.maps :as maps]))
 
-(def ^:private validate
-  (memoize (fn [validator data]
-             (validator data))))
-
 (defn data [form]
   (when form
     (maps/nest (:form/current form))))
 
 (defn change [form path value]
   (when form
-    (assoc-in form [:form/current path] value)))
+    (if (and (nil? value) (-> form :form/opts :remove-nil?))
+      (update form :form/current dissoc path)
+      (assoc-in form [:form/current path] value))))
 
-(defn create [id data]
+(defn create [id data opts]
   (let [current (maps/flatten data)]
     {:form/id      id
-     :form/init    current
-     :form/current current}))
+     :form/current current
+     :form/opts    opts}))
 
 (defn with-attrs
   ([attrs form sub:res path]
-   (with-attrs attrs form sub:res path (constantly nil)))
-  ([attrs form sub:res path validator]
+   (with-attrs attrs form sub:res path nil))
+  ([attrs form sub:res path errors]
    (let [data (data form)
-         errors (validate validator data)
          [status result] @sub:res]
      (assoc attrs
             :value (get-in data path)
