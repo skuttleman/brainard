@@ -37,3 +37,6 @@
   (->> (inotes/get-notes store params)
        (map tag-set)
        (sort-by :notes/timestamp)))
+
+(defn get-note [{:keys [store]} note-id]
+  (tag-set (inotes/get-note store note-id)))

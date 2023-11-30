@@ -43,10 +43,12 @@
 (def input-specs
   {[:get :routes.api/notes]  notes-query
    [:post :routes.api/notes] new-note
+   [:get :routes.api/note]   [:map [:notes/id uuid?]]
    [:patch :routes.api/note] update-note})
 
 (def output-specs
   {[:get :routes.api/notes]    [:map [:data [:sequential full-note]]]
+   [:get :routes.api/note]     [:map [:data full-note]]
    [:post :routes.api/notes]   [:map [:data full-note]]
    [:patch :routes.api/note]   [:map [:data full-note]]
    [:get :routes.api/tags]     [:map [:data [:set keyword?]]]

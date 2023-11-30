@@ -11,4 +11,4 @@
 
 (defn ->uuid [x]
   #?(:clj  (uuid/as-uuid x)
-     :cljs (cond-> x (not (string? x)) uuid)))
+     :cljs (cond-> x (string? x) uuid)))

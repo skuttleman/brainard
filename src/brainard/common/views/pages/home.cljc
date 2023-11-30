@@ -47,8 +47,8 @@
   (r/with-let [form-id (doto (random-uuid)
                          (as-> $id (rf/dispatch [:forms/create $id new-note])))
                sub:form (rf/subscribe [:forms/form form-id])
-               sub:contexts (rf/subscribe [:resources/resource :api.contexts/fetch])
-               sub:tags (rf/subscribe [:resources/resource :api.tags/fetch])
+               sub:contexts (rf/subscribe [:resources/resource :api.contexts/select])
+               sub:tags (rf/subscribe [:resources/resource :api.tags/select])
                sub:res (rf/subscribe [:resources/resource [:api.notes/create! form-id]])]
     [root* {:form-id      form-id
             :sub:contexts sub:contexts

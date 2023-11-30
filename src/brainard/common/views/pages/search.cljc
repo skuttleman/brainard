@@ -1,6 +1,7 @@
 (ns brainard.common.views.pages.search
   (:require
     [brainard.common.forms :as forms]
+    [brainard.common.navigation.core :as nav]
     [brainard.common.specs :as specs]
     [brainard.common.stubs.re-frame :as rf]
     [brainard.common.stubs.reagent :as r]
@@ -43,8 +44,21 @@
                                                  [:notes/tags]
                                                  errors))]]))
 
-(defn ^:private search-results [_ results]
-  [views.main/pprint results])
+(defn ^:private search-results [_ notes]
+  [:ul.search-results
+   (for [note notes
+         :when (:notes/id note)]
+     ^{:key (:notes/id note)}
+     [:li
+      [:div
+       [:span (:notes/context note)]
+       [:span (subs (:notes/body note) 0 (min (dec (count (:notes/body note)))
+                                              100))]]
+      [ctrls/tag-list {:value (concat (take 8 (:notes/tags note))
+                                      (when (< 8 (count (:notes/tags note)))
+                                        ["..."]))}]
+      [:a.link {:href (nav/path-for :routes.ui/note note)}
+       "view"]])])
 
 (defn ^:private root* [{:keys [form-id form sub:contexts sub:notes sub:tags] :as attrs}]
   (let [form-data (forms/data form)
@@ -52,7 +66,7 @@
         attrs (assoc attrs :errors errors)]
     [ctrls/form {:errors       errors
                  :params       form-data
-                 :resource-key [:api.notes/search form-id]
+                 :resource-key [:api.notes/select form-id]
                  :sub:res      sub:notes
                  :submit/body  [:<>
                                 [views.main/icon :search]
@@ -66,9 +80,9 @@
   (r/with-let [form-id (doto (random-uuid)
                          (as-> $id (rf/dispatch [:forms/create $id empty-form {:remove-nil? true}])))
                sub:form (rf/subscribe [:forms/form form-id])
-               sub:contexts (rf/subscribe [:resources/resource :api.contexts/fetch])
-               sub:tags (rf/subscribe [:resources/resource :api.tags/fetch])
-               sub:notes (rf/subscribe [:resources/resource [:api.notes/search form-id]])]
+               sub:contexts (rf/subscribe [:resources/resource :api.contexts/select])
+               sub:tags (rf/subscribe [:resources/resource :api.tags/select])
+               sub:notes (rf/subscribe [:resources/resource [:api.notes/select form-id]])]
     (let [form @sub:form]
       [:div.layout--stack-between
        [root* {:form-id      form-id
@@ -78,5 +92,5 @@
                :sub:notes    sub:notes}]
        [views.main/with-resource sub:notes [search-results {:hide-init? true}]]])
     (finally
-      (rf/dispatch [:resources/destroy [:api.notes/search form-id]])
+      (rf/dispatch [:resources/destroy [:api.notes/select form-id]])
       (rf/dispatch [:forms/destroy form-id]))))

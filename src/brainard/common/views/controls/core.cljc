@@ -82,6 +82,8 @@
            attrs
            [views.main/plain-input attrs]])))))
 
+(def ^{:arglists '([attrs])} tag-list tags-editor/tag-list)
+
 (def ^{:arglists '([attrs])} tags-editor
   (with-id
     (with-dispatch-on-change

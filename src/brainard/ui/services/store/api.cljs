@@ -27,7 +27,7 @@
   ::request
   (fn [{:keys [on-success-n on-error-n query-params] :as params}]
     (let [path (nav/path-for (:route params)
-                             (:route-params params {}))
+                             (:route-params params))
           query (->query query-params)
           url (cond-> (str base-url path)
                 (seq query-params) (str "?" query))]

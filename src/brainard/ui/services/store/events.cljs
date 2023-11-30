@@ -16,16 +16,16 @@
   (update-in db [:forms/forms form-id] forms/change path value))
 
 (defn add-tags [{:resources/keys [resources] :as db} [_ {:notes/keys [tags]}]]
-  (let [[status] (:api.tags/fetch resources)]
+  (let [[status] (:api.tags/select resources)]
     (cond-> db
       (= :success status)
-      (update-in [:resources/resources :api.tags/fetch 1] into tags))))
+      (update-in [:resources/resources :api.tags/select 1] into tags))))
 
 (defn add-context [{:resources/keys [resources] :as db} [_ {:notes/keys [context]}]]
-  (let [[status] (:api.contexts/fetch resources)]
+  (let [[status] (:api.contexts/select resources)]
     (cond-> db
       (and context (= :success status))
-      (update-in [:resources/resources :api.contexts/fetch 1] conj context))))
+      (update-in [:resources/resources :api.contexts/select 1] conj context))))
 
 (defn resource-succeeded [db [_ resource-id data]]
   (assoc-in db [:resources/resources resource-id] [:success data]))

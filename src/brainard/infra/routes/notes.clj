@@ -26,6 +26,20 @@
    :body   {:data (notes/create! (:notes apis) input)}})
 
 
+(defmethod iroutes/req->input [:get :routes.api/note]
+  [{:brainard/keys [route]}]
+  (:route-params route))
+
+(defmethod iroutes/handler [:get :routes.api/note]
+  [{:brainard/keys [apis input]}]
+  (if-let [note (notes/get-note (:notes apis) (:notes/id input))]
+    {:status 200
+     :body   {:data note}}
+    {:status 404
+     :body   {:errors [{:message "Not found"
+                        :code    :UNKNOWN_RESOURCE}]}}))
+
+
 (defmethod iroutes/req->input [:patch :routes.api/note]
   [{:brainard/keys [route] :keys [body]}]
   (assoc body :notes/id (-> route :route-params :notes/id)))

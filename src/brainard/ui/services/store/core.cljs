@@ -32,9 +32,10 @@
 
 
 ;; API
-(rf*/reg-event-fx :api.tags/fetch store.effects/fetch-tags)
-(rf*/reg-event-fx :api.contexts/fetch store.effects/fetch-contexts)
-(rf*/reg-event-fx :api.notes/search store.effects/search-notes)
+(rf*/reg-event-fx :api.tags/select store.effects/fetch-tags)
+(rf*/reg-event-fx :api.contexts/select store.effects/fetch-contexts)
+(rf*/reg-event-fx :api.notes/select store.effects/search-notes)
+(rf*/reg-event-fx :api.notes/find store.effects/fetch-note)
 (rf*/reg-event-fx :api.notes/create! store.effects/create-note!)
 
 

@@ -5,6 +5,7 @@
     [brainard.common.views.main :as views.main]
     [brainard.common.views.pages.home :as pages.home]
     [brainard.common.views.pages.search :as pages.search]
+    [brainard.common.views.pages.notes :as pages.notes]
     [brainard.common.views.toasts :as toasts]))
 
 (defn ^:private not-found [_]
@@ -13,6 +14,7 @@
 (def ^:private pages
   {:routes.ui/home      pages.home/root
    :routes.ui/search    pages.search/root
+   :routes.ui/note      pages.notes/root
    :routes.ui/not-found not-found})
 
 (defn ^:private navbar [{:keys [handler]}]

@@ -3,11 +3,10 @@
     #?(:cljs [pushy.core :as pushy])
     [bidi.bidi :as bidi]
     [brainard.common.navigation.routing :as routing]
-    [brainard.common.stubs.re-frame :as rf]
-    [brainard.common.utils.uuids :as uuids]))
+    [brainard.common.stubs.re-frame :as rf]))
 
-(def ^:private ->coercers
-  {:routes.api/note {:notes/id uuids/->uuid}})
+(defn ^:private nav-dispatch [route]
+  (rf/dispatch [:routing/navigate route]))
 
 (defn ^:private coerce-params [params coercers]
   (reduce (fn [params [k coercer]]
@@ -19,11 +18,8 @@
 
 (defn match [path]
   (let [route-info (bidi/match-route routing/all path)
-        coercers (->coercers (:handler route-info))]
+        coercers (routing/handler->coercers (:handler route-info))]
     (update route-info :route-params coerce-params coercers)))
-
-(defn ^:private nav-dispatch [route]
-  (rf/dispatch [:routing/navigate route]))
 
 (defonce ^:private link
   #?(:cljs    (doto (pushy/pushy nav-dispatch match)
@@ -34,7 +30,7 @@
   ([handle]
    (path-for handle nil))
   ([handle params]
-   (bidi/path-for routing/all handle (or params {}))))
+   (apply bidi/path-for routing/all handle (flatten (seq (or params {}))))))
 
 (defn goto! [uri]
   #?(:cljs
@@ -45,4 +41,3 @@
    (navigate! handle nil))
   ([handle params]
    (goto! (path-for handle params))))
-

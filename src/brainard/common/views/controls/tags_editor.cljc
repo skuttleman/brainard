@@ -26,16 +26,17 @@
       (rf/dispatch-sync [:forms/change form-id [:value] next-value])
       (rf/dispatch-sync [:forms/change form-id [:invalid?] false]))))
 
-(defn ^:private tag-list [{:keys [on-change value]}]
-  [:div.field.is-grouped.is-grouped-multiline.layout--space-between
+(defn tag-list [{:keys [on-change value]}]
+  [:div.tag-list.field.is-grouped.is-grouped-multiline.layout--space-between
    (for [tag value]
      ^{:key tag}
      [:div.tags.has-addons
       [:span.tag.is-info.is-light (str tag)]
-      [:a.tag.is-delete.link {:href     "#"
-                              :on-click (fn [e]
-                                          (dom/prevent-default! e)
-                                          (on-change (disj value tag)))}]])])
+      (when on-change
+        [:a.tag.is-delete.link {:href     "#"
+                                :on-click (fn [e]
+                                            (dom/prevent-default! e)
+                                            (on-change (disj value tag)))}])])])
 
 (defn control [attrs]
   (r/with-let [form-id (doto (random-uuid)

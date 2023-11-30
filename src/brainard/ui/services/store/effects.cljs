@@ -6,21 +6,28 @@
 (defn fetch-tags [_ _]
   {::store.api/request {:route        :routes.api/tags
                         :method       :get
-                        :on-success-n [[:resources/succeeded :api.tags/fetch]]
-                        :on-error-n   [[:resources/failed :api.tags/fetch :remote]]}})
+                        :on-success-n [[:resources/succeeded :api.tags/select]]
+                        :on-error-n   [[:resources/failed :api.tags/select :remote]]}})
 
 (defn fetch-contexts [_ _]
   {::store.api/request {:route        :routes.api/contexts
                         :method       :get
-                        :on-success-n [[:resources/succeeded :api.contexts/fetch]]
-                        :on-error-n   [[:resources/failed :api.contexts/fetch :remote]]}})
+                        :on-success-n [[:resources/succeeded :api.contexts/select]]
+                        :on-error-n   [[:resources/failed :api.contexts/select :remote]]}})
+
+(defn fetch-note [_ [_ note-id]]
+  {::store.api/request {:route        :routes.api/note
+                        :route-params {:notes/id note-id}
+                        :method       :get
+                        :on-success-n [[:resources/succeeded [:api.notes/find note-id]]]
+                        :on-error-n   [[:resources/failed [:api.notes/find note-id] :remote]]}})
 
 (defn search-notes [_ [_ resource-id params]]
   {::store.api/request {:route        :routes.api/notes
                         :method       :get
                         :query-params params
-                        :on-success-n [[:resources/succeeded [:api.notes/search resource-id]]]
-                        :on-error-n   [[:resources/failed [:api.notes/search resource-id] :remote]]}})
+                        :on-success-n [[:resources/succeeded [:api.notes/select resource-id]]]
+                        :on-error-n   [[:resources/failed [:api.notes/select resource-id] :remote]]}})
 
 (defn create-note! [_ [_ resource-id {:keys [data reset-to]}]]
   {::store.api/request {:route        :routes.api/notes
