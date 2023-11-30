@@ -15,7 +15,7 @@
   [_]
   {:status  200
    :headers {"content-type" "text/html"}
-   :body    (html/render "html.edn")})
+   :body    (html/render "index.edn")})
 
 (defmethod iroutes/handler [:get :routes.resources/asset]
   [{:keys [uri] :as req}]
