@@ -97,3 +97,19 @@
         :error (when-not (:local data)
                  [:div.error [alert :error "An error occurred."]])
         [spinner {:size (:spinner/size opts)}]))))
+
+(defn with-resources [resources comp]
+  (let [[_ opts :as comp] (colls/wrap-vector comp)
+        [status data] (loop [[sub:res :as resources] resources
+                             successes []]
+                        (let [[status data] (some-> sub:res deref)]
+                          (cond
+                            (empty? resources) [:success successes]
+                            (= :success status) (recur (next resources) (conj successes data))
+                            :else [status data])))]
+    (when (or (not= :init status) (not (:hide-init? opts)))
+      (case status
+        :success (conj comp data)
+        :error (when-not (:local data)
+                 [:div.error [alert :error "An error occurred."]])
+        [spinner {:size (:spinner/size opts)}]))))

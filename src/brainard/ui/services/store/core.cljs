@@ -19,7 +19,7 @@
 ;; ROUTING
 (rf*/reg-sub :routing/route (store.subs/get-path [:routing/route]))
 (rf*/reg-event-db :routing/navigate (store.events/assoc-path [:routing/route]))
-
+(rf*/reg-event-fx :routing/set-qp! store.effects/set-qp!)
 
 ;; RESOURCE
 (rf*/reg-sub :resources/resource store.subs/resource)

@@ -5,13 +5,17 @@
     [brainard.common.specs :as specs]
     [brainard.common.stubs.re-frame :as rf]
     [brainard.common.stubs.reagent :as r]
+    [brainard.common.utils.colls :as colls]
     [brainard.common.validations :as valid]
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.utils.strings :as strings]
     [brainard.common.views.main :as views.main]))
 
-(def ^:private empty-form
-  {:notes/tags #{}})
+(defn ^:private ->empty-form [{:keys [context] :as query-params} contexts tags]
+  (cond-> {:notes/tags (into #{}
+                             (comp (map keyword) (filter tags))
+                             (colls/wrap-set (:tags query-params)))}
+    (contains? contexts context) (assoc :notes/context context)))
 
 (def ^:private search-validator
   (valid/->validator specs/notes-query))
@@ -64,37 +68,39 @@
          (when (< 8 (count tags))
            [:em {:style {:margin-left "8px"}} "more..."])]])]))
 
-(defn ^:private root* [{:keys [form-id form sub:contexts sub:notes sub:tags] :as attrs}]
-  (let [form-data (forms/data form)
-        errors (search-validator form-data)
-        attrs (assoc attrs :errors errors)]
-    [ctrls/form {:errors       errors
-                 :params       form-data
-                 :resource-key [:api.notes/select form-id]
-                 :sub:res      sub:notes
-                 :submit/body  [:<>
-                                [views.main/icon :search]
-                                [:span {:style {:margin-left "8px"}}
-                                 "Search"]]}
-     [:div.flex.layout--space-between
-      [views.main/with-resource sub:contexts [context-filter attrs]]
-      [views.main/with-resource sub:tags [tag-filter attrs]]]]))
+(defn ^:private root* [{:keys [form-id query-params sub:notes] :as attrs} [contexts tags]]
+  (r/with-let [_ (rf/dispatch [:forms/create form-id (->empty-form query-params contexts tags) {:remove-nil? true}])
+               sub:form (doto (rf/subscribe [:forms/form form-id])
+                          (add-watch ::watcher (fn [_ _ old new]
+                                                 (when (not= old new)
+                                                   (rf/dispatch [:routing/set-qp! (forms/data new)])))))]
+    (let [form @sub:form
+          form-data (forms/data form)
+          errors (search-validator form-data)
+          attrs (assoc attrs :form form :errors errors)]
+      [ctrls/form {:errors       errors
+                   :params       form-data
+                   :resource-key [:api.notes/select form-id]
+                   :sub:res      sub:notes
+                   :submit/body  [:<>
+                                  [views.main/icon :search]
+                                  [:span {:style {:margin-left "8px"}}
+                                   "Search"]]}
+       [:div.flex.layout--space-between
+        [context-filter attrs contexts]
+        [tag-filter attrs tags]]])))
 
-(defn root [_]
-  (r/with-let [form-id (doto (random-uuid)
-                         (as-> $id (rf/dispatch [:forms/create $id empty-form {:remove-nil? true}])))
-               sub:form (rf/subscribe [:forms/form form-id])
+(defn root [{:keys [query-params]}]
+  (r/with-let [form-id (random-uuid)
                sub:contexts (rf/subscribe [:resources/resource :api.contexts/select])
                sub:tags (rf/subscribe [:resources/resource :api.tags/select])
                sub:notes (rf/subscribe [:resources/resource [:api.notes/select form-id]])]
-    (let [form @sub:form]
-      [:div.layout--stack-between
-       [root* {:form-id      form-id
-               :form         form
-               :sub:contexts sub:contexts
-               :sub:tags     sub:tags
-               :sub:notes    sub:notes}]
-       [views.main/with-resource sub:notes [search-results {:hide-init? true}]]])
+    [:div.layout--stack-between
+     [views.main/pprint @(rf/subscribe [:routing/route])]
+     [views.main/with-resources [sub:contexts sub:tags] [root* {:form-id      form-id
+                                                                :query-params query-params
+                                                                :sub:notes    sub:notes}]]
+     [views.main/with-resource sub:notes [search-results {:hide-init? true}]]]
     (finally
       (rf/dispatch [:resources/destroy [:api.notes/select form-id]])
       (rf/dispatch [:forms/destroy form-id]))))

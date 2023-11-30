@@ -1,7 +1,9 @@
 (ns brainard.ui.services.store.effects
   (:require
+    [brainard.common.navigation.core :as nav]
     [brainard.common.utils.colls :as colls]
-    [brainard.ui.services.store.api :as store.api]))
+    [brainard.ui.services.store.api :as store.api]
+    [re-frame.core :as rf*]))
 
 (defn fetch-tags [_ _]
   {::store.api/request {:route        :routes.api/tags
@@ -69,3 +71,13 @@
   (let [resource (colls/wrap-vector resource-id)]
     {:dispatch (cond-> resource params (conj params))
      :db       (assoc-in db [:resources/resources resource-id] [:requesting])}))
+
+(rf*/reg-fx
+  ::set-qp!
+  (fn [{:keys [query-params routing]}]
+    (let [params (assoc (:route-params routing) :query-params query-params)]
+      (nav/update! (:handler routing) params))))
+
+(defn set-qp! [{:keys [db]} [_ qp]]
+  {::set-qp! {:query-params qp
+              :routing (:routing/route db)}})

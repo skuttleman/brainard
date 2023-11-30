@@ -2,10 +2,8 @@
   (:require
     [brainard.common.navigation.core :as nav]
     [brainard.common.stubs.re-frame :as rf]
-    [brainard.common.utils.keywords :as kw]
     [cljs-http.client :as http]
     [clojure.core.async :as async]
-    [clojure.string :as string]
     [re-frame.core :as rf*]))
 
 (def ^:private ^:const base-url "http://localhost:1165")
@@ -14,23 +12,14 @@
   (and (integer? status)
        (<= 200 status 299)))
 
-(defn ^:private ->query [query-params]
-  (->> query-params
-       (mapcat (fn [[k v]]
-                 (when (some? v)
-                   (map (fn [v']
-                          (str (name k) "=" (cond-> v' (keyword? v') kw/str)))
-                        (cond-> v (not (coll? v)) vector)))))
-       (string/join "&")))
-
 (rf*/reg-fx
   ::request
   (fn [{:keys [on-success-n on-error-n query-params] :as params}]
     (let [path (nav/path-for (:route params)
                              (:route-params params))
-          query (->query query-params)
+          query (nav/->query-string query-params)
           url (cond-> (str base-url path)
-                (seq query-params) (str "?" query))]
+                query (str "?" query))]
       (async/go
         (let [request {:request-method (:method params)
                        :url            url
