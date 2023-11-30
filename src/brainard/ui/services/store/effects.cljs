@@ -45,6 +45,26 @@
                         :on-error-n   [[:toasts/failure]
                                        [:resources/failed [:api.notes/create! resource-id] :remote]]}})
 
+(defn update-note! [_ [_ resource-id {:keys [note-id data fetch? reset-to]}]]
+  {::store.api/request {:route        :routes.api/note
+                        :route-params {:notes/id note-id}
+                        :method       :patch
+                        :body         data
+                        :on-success-n (cond-> [[:toasts/success {:message "note updated"}]
+                                               [:resources.tags/from-note]
+                                               [:resources.contexts/from-note]]
+                                        reset-to
+                                        (conj [:forms/create resource-id reset-to]
+                                              [:resources/destroy [:api.notes/update! resource-id]])
+
+                                        (nil? reset-to)
+                                        (conj [:resources/succeeded [:api.notes/update! resource-id]])
+
+                                        fetch?
+                                        (conj [:resources/submit! [:api.notes/find note-id]]))
+                        :on-error-n   [[:toasts/failure]
+                                       [:resources/failed [:api.notes/update! resource-id] :remote]]}})
+
 (defn submit-resource [{:keys [db]} [_ resource-id params]]
   (let [resource (colls/wrap-vector resource-id)]
     {:dispatch (cond-> resource params (conj params))

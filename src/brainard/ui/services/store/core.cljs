@@ -37,6 +37,7 @@
 (rf*/reg-event-fx :api.notes/select store.effects/search-notes)
 (rf*/reg-event-fx :api.notes/find store.effects/fetch-note)
 (rf*/reg-event-fx :api.notes/create! store.effects/create-note!)
+(rf*/reg-event-fx :api.notes/update! store.effects/update-note!)
 
 
 ;; FORM

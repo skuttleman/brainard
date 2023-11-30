@@ -7,6 +7,7 @@
     [brainard.common.stubs.reagent :as r]
     [brainard.common.validations :as valid]
     [brainard.common.views.controls.core :as ctrls]
+    [brainard.common.utils.strings :as strings]
     [brainard.common.views.main :as views.main]))
 
 (def ^:private empty-form
@@ -45,20 +46,23 @@
                                                  errors))]]))
 
 (defn ^:private search-results [_ notes]
-  [:ul.search-results
-   (for [note notes
-         :when (:notes/id note)]
-     ^{:key (:notes/id note)}
-     [:li
-      [:div
-       [:span (:notes/context note)]
-       [:span (subs (:notes/body note) 0 (min (dec (count (:notes/body note)))
-                                              100))]]
-      [ctrls/tag-list {:value (concat (take 8 (:notes/tags note))
-                                      (when (< 8 (count (:notes/tags note)))
-                                        ["..."]))}]
-      [:a.link {:href (nav/path-for :routes.ui/note note)}
-       "view"]])])
+  (if-not (seq notes)
+    [:span.search-results
+     [views.main/alert :info "No search results"]]
+    [:ul.search-results
+     (for [{:notes/keys [id context body tags]} notes]
+       ^{:key id}
+       [:li
+        [:div.flex.row
+         [:strong context]
+         [:span {:style {:margin-left "8px"}} (strings/truncate-to body 100)]
+         [:a.link {:href  (nav/path-for :routes.ui/note {:notes/id id})
+                   :style {:margin-left "8px"}}
+          "view"]]
+        [:div.flex
+         [ctrls/tag-list {:value (take 8 tags)}]
+         (when (< 8 (count tags))
+           [:em {:style {:margin-left "8px"}} "more..."])]])]))
 
 (defn ^:private root* [{:keys [form-id form sub:contexts sub:notes sub:tags] :as attrs}]
   (let [form-data (forms/data form)
