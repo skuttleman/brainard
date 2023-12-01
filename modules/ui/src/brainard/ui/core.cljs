@@ -1,9 +1,9 @@
 (ns brainard.ui.core
   (:require
-    [brainard.common.stubs.re-frame :as rf]
+    [brainard.common.services.store.core :as store]
     [brainard.common.views.pages.core :as pages]
     [reagent.dom :as rdom]
-    brainard.ui.services.store.core))
+    brainard.common.services.store.registration))
 
 (defn load []
   (rdom/render [pages/root]
@@ -11,7 +11,7 @@
 
 (defn init []
   (enable-console-print!)
-  (rf/dispatch-sync [:core/init])
-  (rf/dispatch [:resources/submit! :api.tags/select])
-  (rf/dispatch [:resources/submit! :api.contexts/select])
+  (store/dispatch-sync [:core/init])
+  (store/dispatch [:resources/submit! :api.tags/select])
+  (store/dispatch [:resources/submit! :api.contexts/select])
   (load))

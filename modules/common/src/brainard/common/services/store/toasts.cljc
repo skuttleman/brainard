@@ -1,11 +1,10 @@
-(ns brainard.ui.services.store.toasts
+(ns brainard.common.services.store.toasts
   (:require
-    [brainard.common.stubs.re-frame :as rf]
     [clojure.core.async :as async]
     [clojure.string :as string]
-    [re-frame.core :as rf*]))
+    [re-frame.core :as rf]))
 
-(rf*/reg-fx
+(rf/reg-fx
   ::destroy
   (fn [{:keys [toast-id]}]
     (async/go
@@ -22,8 +21,8 @@
 
 (defn create [{toast-id :toasts/id :keys [db]} [_ level body]]
   {:db (assoc-in db [:toasts/toasts toast-id] {:state :init
-                                        :level level
-                                        :body  body})})
+                                               :level level
+                                               :body  body})})
 
 (defn hide [{:keys [db]} [_ toast-id]]
   (cond-> {::destroy {:toast-id toast-id}}

@@ -1,7 +1,7 @@
-(ns brainard.infra.system
+(ns brainard.infra.services.system
   (:require
     [brainard.common.utils.logger :as log]
-    [brainard.infra.datomic :as datomic]
+    [brainard.infra.services.datomic :as datomic]
     [brainard.infra.stores.notes :as stores.notes]
     [duct.core :as duct]
     [brainard.infra.routes.core :as routes]

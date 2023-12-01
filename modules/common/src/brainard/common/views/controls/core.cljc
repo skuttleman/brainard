@@ -1,20 +1,24 @@
 (ns brainard.common.views.controls.core
+  "All controls in this namespace take a store event vector as on-change. The changed value
+   will be conj'ed onto the event.
+
+   [input {:on-change [:my-event]}] ;; (dispatch [:my-event target-value])"
   (:require
-    [brainard.common.forms :as forms]
+    [brainard.common.forms.core :as forms]
+    [brainard.common.services.store.core :as store]
     [brainard.common.stubs.dom :as dom]
-    [brainard.common.stubs.re-frame :as rf]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.fns :as fns]
+    [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.dropdown :as dd]
     [brainard.common.views.controls.tags-editor :as tags-editor]
     [brainard.common.views.controls.type-ahead :as type-ahead]
-    [brainard.common.views.main :as views.main]
     [clojure.string :as string]))
 
 (defn ^:private dispatch-on-change [on-change]
   (fn [value]
     (when on-change
-      (rf/dispatch-sync (conj on-change value)))))
+      (store/dispatch-sync (conj on-change value)))))
 
 (defn ^:private with-dispatch-on-change [component]
   (fn [attrs & args]
@@ -81,9 +85,7 @@
         (fn [attrs]
           [form-field
            attrs
-           [views.main/plain-input attrs]])))))
-
-(def ^{:arglists '([attrs])} tag-list tags-editor/tag-list)
+           [comp/plain-input attrs]])))))
 
 (def ^{:arglists '([attrs])} tags-editor
   (with-id
@@ -119,14 +121,14 @@
 
 (defn ^:private form-button-row [{:keys [buttons disabled requesting?] :as attrs}]
   (cond-> [:div.button-row
-           [views.main/plain-button
+           [comp/plain-button
             {:class    ["is-primary" "submit"]
              :type     :submit
              :disabled disabled}
             (:submit/body attrs "Submit")]]
 
     requesting?
-    (conj [:div {:style {:margin-bottom "8px"}} [views.main/spinner]])
+    (conj [:div {:style {:margin-bottom "8px"}} [comp/spinner]])
 
     buttons
     (into buttons)))
@@ -142,8 +144,8 @@
                            (dom/prevent-default! e)
                            (when (or init? (forms/changed? form))
                              (if errors
-                               (rf/dispatch [:resources/failed resource-key :local errors])
-                               (rf/dispatch [:resources/submit! resource-key params]))))}
+                               (store/dispatch [:resources/failed resource-key :local errors])
+                               (store/dispatch [:resources/submit! resource-key params]))))}
              (merge (select-keys attrs #{:class :style}))
              (cond-> any-errors? (update :class conj "errors")))]
         (into fields)

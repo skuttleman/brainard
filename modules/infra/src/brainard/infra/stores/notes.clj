@@ -1,7 +1,7 @@
 (ns brainard.infra.stores.notes
   (:require
     [brainard.api.notes.interfaces :as inotes]
-    [brainard.infra.datomic :as datomic]))
+    [brainard.infra.services.datomic :as datomic]))
 
 (def ^:private ^:const select
   '[:find (pull ?e [:notes/id

@@ -5,7 +5,7 @@
     [clojure.string :as string]
     [ring.middleware.keyword-params :as ring.kw-params]
     [ring.middleware.params :as ring.params]
-    brainard.infra.routes.main
+    brainard.infra.routes.base
     brainard.infra.routes.notes))
 
 (defn ^:private route-filter [{:keys [uri]}]

@@ -1,8 +1,6 @@
 (ns brainard.common.stubs.reagent
+  #?(:cljs (:require-macros brainard.common.stubs.reagent))
   (:refer-clojure :exclude [atom])
-  #?(:cljs
-     (:require-macros
-       brainard.common.stubs.reagent))
   (:require
     [reagent.core :as r*]))
 

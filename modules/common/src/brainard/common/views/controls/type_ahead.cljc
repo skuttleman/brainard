@@ -3,7 +3,7 @@
     [brainard.common.utils.fns :as fns]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
-    [brainard.common.views.main :as views.main]
+    [brainard.common.views.components.core :as comp]
     [clojure.string :as string]))
 
 (defn ^:private filter-matches [value items]
@@ -91,4 +91,4 @@
        [type-ahead-dd sub-attrs]])))
 
 (defn control [attrs]
-  [views.main/with-resource (:sub:items attrs) [control* attrs]])
+  [comp/with-resource (:sub:items attrs) [control* attrs]])

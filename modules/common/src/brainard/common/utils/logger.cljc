@@ -1,7 +1,5 @@
 (ns brainard.common.utils.logger
-  #?(:cljs
-     (:require-macros
-       brainard.common.utils.logger))
+  #?(:cljs (:require-macros brainard.common.utils.logger))
   (:require
     [clojure.string :as string]
     [taoensso.timbre :as log*]))

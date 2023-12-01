@@ -1,6 +1,6 @@
-(ns brainard.ui.services.store.events
+(ns brainard.common.services.store.events
   (:require
-    [brainard.common.forms :as forms]))
+    [brainard.common.forms.core :as forms]))
 
 (defn assoc-path [path]
   (fn [db [_ value]]

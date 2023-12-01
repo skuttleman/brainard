@@ -1,9 +1,10 @@
-(ns brainard.common.views.main
+(ns brainard.common.views.components.core
   (:require
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.colls :as colls]
     [brainard.common.utils.maps :as maps]
+    [brainard.common.views.components.toasts :as comp.toasts]
     [clojure.pprint :as pp]))
 
 (defn pprint [data]
@@ -96,7 +97,7 @@
         :success (conj comp data)
         :error (when-not (:local data)
                  [:div.error [alert :error "An error occurred."]])
-        [spinner {:size (:spinner/size opts)}]))))
+        [spinner opts]))))
 
 (defn with-resources [resources comp]
   (let [[_ opts :as comp] (colls/wrap-vector comp)
@@ -112,4 +113,18 @@
         :success (conj comp data)
         :error (when-not (:local data)
                  [:div.error [alert :error "An error occurred."]])
-        [spinner {:size (:spinner/size opts)}]))))
+        [spinner opts]))))
+
+(defn tag-list [{:keys [on-change value]}]
+  [:div.tag-list.field.is-grouped.is-grouped-multiline.layout--space-between
+   (for [tag value]
+     ^{:key tag}
+     [:div.tags.has-addons
+      [:span.tag.is-info.is-light (str tag)]
+      (when on-change
+        [:a.tag.is-delete.link {:href     "#"
+                                :on-click (fn [e]
+                                            (dom/prevent-default! e)
+                                            (on-change (disj value tag)))}])])])
+
+(def ^{:arglists '([])} toasts comp.toasts/toasts)

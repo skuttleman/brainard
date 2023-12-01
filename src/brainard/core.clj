@@ -1,7 +1,7 @@
 (ns brainard.core
   (:require
     [brainard.common.utils.logger :as log]
-    [brainard.infra.system :as sys]
+    [brainard.infra.services.system :as sys]
     [duct.core :as duct]
     [integrant.core :as ig]
     [nrepl.server :as nrepl]))

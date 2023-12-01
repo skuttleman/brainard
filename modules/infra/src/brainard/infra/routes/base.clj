@@ -1,6 +1,6 @@
-(ns brainard.infra.routes.main
+(ns brainard.infra.routes.base
   (:require
-    [brainard.infra.routes.html :as html]
+    [brainard.infra.routes.html :as routes.html]
     [brainard.infra.routes.interfaces :as iroutes]
     [ring.middleware.resource :as ring.res]
     [clojure.string :as string]))
@@ -15,7 +15,7 @@
   [_]
   {:status  200
    :headers {"content-type" "text/html"}
-   :body    (html/render "index.edn")})
+   :body    (routes.html/render "index.edn")})
 
 (defmethod iroutes/handler [:get :routes.resources/asset]
   [{:keys [uri] :as req}]

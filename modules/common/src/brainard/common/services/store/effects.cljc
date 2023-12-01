@@ -1,11 +1,11 @@
-(ns brainard.ui.services.store.effects
+(ns brainard.common.services.store.effects
   (:require
-    [brainard.common.navigation.core :as nav]
+    [brainard.common.services.navigation.core :as nav]
     [brainard.common.utils.colls :as colls]
-    [brainard.ui.services.store.api :as store.api]
-    [re-frame.core :as rf*]))
+    [brainard.common.services.store.api :as store.api]
+    [re-frame.core :as rf]))
 
-(rf*/reg-fx
+(rf/reg-fx
   ::navigate!
   (fn [{:keys [handler route-params query-params]}]
     (nav/navigate! handler (assoc route-params :query-params query-params))))

@@ -1,4 +1,4 @@
-(ns brainard.infra.datomic
+(ns brainard.infra.services.datomic
   (:require
     [brainard.common.utils.edn :as edn]
     [brainard.common.utils.logger :as log]

@@ -1,10 +1,9 @@
 (ns brainard.common.views.pages.home
   (:require
-    [brainard.common.forms :as forms]
-    [brainard.common.specs :as specs]
-    [brainard.common.validations :as valid]
+    [brainard.common.forms.core :as forms]
+    [brainard.common.services.store.core :as store]
+    [brainard.common.services.validations.core :as valid]
     [brainard.common.views.controls.core :as ctrls]
-    [brainard.common.stubs.re-frame :as rf]
     [brainard.common.stubs.reagent :as r]))
 
 (def ^:private new-note
@@ -13,7 +12,7 @@
    :notes/tags    #{}})
 
 (def ^:private new-note-validator
-  (valid/->validator specs/new-note))
+  (valid/->validator valid/new-note))
 
 (defn ^:private root* [{:keys [form-id sub:contexts sub:form sub:res sub:tags]}]
   (let [form @sub:form
@@ -46,16 +45,16 @@
 
 (defn root [_]
   (r/with-let [form-id (doto (random-uuid)
-                         (as-> $id (rf/dispatch [:forms/create $id new-note])))
-               sub:form (rf/subscribe [:forms/form form-id])
-               sub:contexts (rf/subscribe [:resources/resource :api.contexts/select])
-               sub:tags (rf/subscribe [:resources/resource :api.tags/select])
-               sub:res (rf/subscribe [:resources/resource [:api.notes/create! form-id]])]
+                         (as-> $id (store/dispatch [:forms/create $id new-note])))
+               sub:form (store/subscribe [:forms/form form-id])
+               sub:contexts (store/subscribe [:resources/resource :api.contexts/select])
+               sub:tags (store/subscribe [:resources/resource :api.tags/select])
+               sub:res (store/subscribe [:resources/resource [:api.notes/create! form-id]])]
     [root* {:form-id      form-id
             :sub:contexts sub:contexts
             :sub:form     sub:form
             :sub:res      sub:res
             :sub:tags     sub:tags}]
     (finally
-      (rf/dispatch [:resources/destroy [:api.notes/create! form-id]])
-      (rf/dispatch [:forms/destroy form-id]))))
+      (store/dispatch [:resources/destroy [:api.notes/create! form-id]])
+      (store/dispatch [:forms/destroy form-id]))))

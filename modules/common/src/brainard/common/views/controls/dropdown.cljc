@@ -2,7 +2,7 @@
   (:require
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
-    [brainard.common.views.main :as views.main]
+    [brainard.common.views.components.core :as comp]
     [clojure.set :as set]))
 
 (defn ^:private split-selection [{:keys [options value]}]
@@ -35,12 +35,12 @@
                     0 "Select…"
                     1 "1 Item Selected"
                     (str selected-count " Items Selected")))]
-    [views.main/plain-button
+    [comp/plain-button
      (select-keys attrs #{:class :disabled :on-blur :on-click :ref})
      content
      [:span
       {:style {:margin-left "10px"}}
-      [views.main/icon (if (:open? attrs) :chevron-up :chevron-down)]]]))
+      [comp/icon (if (:open? attrs) :chevron-up :chevron-down)]]]))
 
 (defn ^:private dropdown-menu [{:keys [loading? list-control open? options]
                                 :or   {list-control option-list} :as attrs}]
@@ -50,13 +50,13 @@
       [:div.dropdown-body
        (cond
          loading?
-         [views.main/spinner]
+         [comp/spinner]
 
          (seq options)
          [list-control attrs]
 
          :else
-         [views.main/alert :info "No results"])]]]))
+         [comp/alert :info "No results"])]]]))
 
 (defn ^:private dropdown* [{:keys [button-control open? options-by-id value]
                             :or   {button-control button} :as attrs}]
@@ -77,7 +77,7 @@
 
 (defn control [{:keys [options] :as attrs}]
   (let [options-by-id (or (:options-by-id attrs) (into {} options))]
-    [views.main/openable openable-dropdown (assoc attrs :options-by-id options-by-id)]))
+    [comp/openable openable-dropdown (assoc attrs :options-by-id options-by-id)]))
 
 (defn singleable [{:keys [value] :as attrs}]
   (let [value (if (nil? value) #{} #{value})]

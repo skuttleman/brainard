@@ -1,8 +1,6 @@
 (ns brainard.common.utils.fns
-  (:refer-clojure :exclude [and or])
-  #?(:cljs
-     (:require-macros
-       brainard.common.utils.fns)))
+  #?(:cljs (:require-macros brainard.common.utils.fns))
+  (:refer-clojure :exclude [and or]))
 
 (defn apply-all! [& fns]
   (fn [& args]

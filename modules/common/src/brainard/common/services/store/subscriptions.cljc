@@ -1,4 +1,4 @@
-(ns brainard.ui.services.store.subscriptions)
+(ns brainard.common.services.store.subscriptions)
 
 (defn get-path [path]
   (fn [db _]

@@ -1,4 +1,4 @@
-(ns brainard.common.navigation.routing
+(ns brainard.common.services.navigation.routing
   (:require
     [brainard.common.utils.uuids :as uuids]))
 

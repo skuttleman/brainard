@@ -29,8 +29,7 @@
 
 (defn target-value [e]
   #?(:cljs
-     (some-> e
-             .-target .-value)))
+     (some-> e .-target .-value)))
 
 (defn blur! [node]
   (doto node

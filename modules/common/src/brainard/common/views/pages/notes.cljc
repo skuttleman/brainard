@@ -1,11 +1,11 @@
 (ns brainard.common.views.pages.notes
   (:require
-    [brainard.common.forms :as forms]
+    [brainard.common.forms.core :as forms]
+    [brainard.common.services.store.core :as store]
     [brainard.common.stubs.dom :as dom]
-    [brainard.common.stubs.re-frame :as rf]
     [brainard.common.stubs.reagent :as r]
+    [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.core :as ctrls]
-    [brainard.common.views.main :as views.main]
     [clojure.set :as set]))
 
 (defn ^:private diff-tags [old new]
@@ -28,7 +28,7 @@
                  :buttons      [[:button.button.is-cancel
                                  {:on-click (fn [e]
                                               (dom/prevent-default! e)
-                                              (rf/dispatch cancel-event))}
+                                              (store/dispatch cancel-event))}
                                  "Cancel"]]}
      [ctrls/tags-editor (-> {:label     "Tags"
                              :sub:items sub:tags}
@@ -39,19 +39,19 @@
 (defn ^:private tag-list [{:keys [form-id]} note]
   [:div.layout--space-between
    (if-let [tags (not-empty (:notes/tags note))]
-     [ctrls/tag-list {:value tags}]
+     [comp/tag-list {:value tags}]
      [:em "no tags"])
    [:button.button {:on-click (fn [_]
-                                (rf/dispatch [:forms/change form-id [::editing?] true]))}
+                                (store/dispatch [:forms/change form-id [::editing?] true]))}
     "edit tags"]])
 
 (defn ^:private root* [note]
   (r/with-let [form-id (doto (random-uuid)
-                         (as-> $id (rf/dispatch [:forms/create $id {:notes/tags (:notes/tags note)
-                                                                    ::editing?  false}])))
-               sub:form (rf/subscribe [:forms/form form-id])
-               sub:res (rf/subscribe [:resources/resource [:api.notes/update! form-id]])
-               sub:tags (rf/subscribe [:resources/resource :api.tags/select])]
+                         (as-> $id (store/dispatch [:forms/create $id {:notes/tags (:notes/tags note)
+                                                                    ::editing?     false}])))
+               sub:form (store/subscribe [:forms/form form-id])
+               sub:res (store/subscribe [:resources/resource [:api.notes/update! form-id]])
+               sub:tags (store/subscribe [:resources/resource :api.tags/select])]
     (let [form @sub:form
           attrs {:form-id  form-id
                  :form     form
@@ -64,11 +64,11 @@
          [tag-editor attrs note]
          [tag-list attrs note])])
     (finally
-      (rf/dispatch [:forms/destroy form-id]))))
+      (store/dispatch [:forms/destroy form-id]))))
 
 (defn root [{:keys [route-params]}]
-  (r/with-let [sub:note (do (rf/dispatch [:resources/submit! [:api.notes/find (:notes/id route-params)]])
-                            (rf/subscribe [:resources/resource [:api.notes/find (:notes/id route-params)]]))]
-    [views.main/with-resource sub:note [root*]]
+  (r/with-let [sub:note (do (store/dispatch [:resources/submit! [:api.notes/find (:notes/id route-params)]])
+                            (store/subscribe [:resources/resource [:api.notes/find (:notes/id route-params)]]))]
+    [comp/with-resource sub:note [root*]]
     (finally
-      (rf/dispatch [:resources/destroy [:api.notes/find (:notes/id route-params)]]))))
+      (store/dispatch [:resources/destroy [:api.notes/find (:notes/id route-params)]]))))

@@ -1,7 +1,5 @@
 (ns brainard.common.utils.maps
-  #?(:cljs
-     (:require-macros
-       brainard.common.utils.maps))
+  #?(:cljs (:require-macros brainard.common.utils.maps))
   (:refer-clojure :exclude [flatten]))
 
 (defn ^:private flatten* [m path]

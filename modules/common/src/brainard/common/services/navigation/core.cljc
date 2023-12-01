@@ -1,15 +1,15 @@
-(ns brainard.common.navigation.core
+(ns brainard.common.services.navigation.core
   (:require
     #?(:cljs [pushy.core :as pushy])
     [bidi.bidi :as bidi]
-    [brainard.common.navigation.routing :as routing]
-    [brainard.common.stubs.re-frame :as rf]
+    [brainard.common.services.navigation.routing :as nav.route]
     [brainard.common.utils.colls :as colls]
     [brainard.common.utils.keywords :as kw]
+    [brainard.common.services.store.core :as store]
     [clojure.string :as string]))
 
 (defn ^:private nav-dispatch [route]
-  (rf/dispatch [:routing/navigate route]))
+  (store/dispatch [:routing/navigate route]))
 
 (defn ^:private coerce-params [params coercers]
   (reduce (fn [params [k coercer]]
@@ -43,8 +43,8 @@
 
 (defn match [path]
   (let [[path query-string] (string/split path #"\?")
-        route-info (bidi/match-route routing/all path)
-        coercers (routing/handler->coercers (:handler route-info))]
+        route-info (bidi/match-route nav.route/all path)
+        coercers (nav.route/handler->coercers (:handler route-info))]
     (-> route-info
         (update :route-params coerce-params coercers)
         (assoc :query-params (->query-params query-string)))))
@@ -63,7 +63,7 @@
   ([handle]
    (path-for handle nil))
   ([handle params]
-   (apply bidi/path-for routing/all handle (flatten (seq params)))))
+   (apply bidi/path-for nav.route/all handle (flatten (seq params)))))
 
 (defn goto! [uri]
   #?(:cljs

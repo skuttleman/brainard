@@ -1,12 +1,11 @@
 (ns brainard.common.views.pages.core
   (:require
-    [brainard.common.navigation.core :as nav]
-    [brainard.common.stubs.re-frame :as rf]
-    [brainard.common.views.main :as views.main]
+    [brainard.common.services.navigation.core :as nav]
+    [brainard.common.services.store.core :as store]
+    [brainard.common.views.components.core :as comp]
     [brainard.common.views.pages.home :as pages.home]
     [brainard.common.views.pages.search :as pages.search]
-    [brainard.common.views.pages.notes :as pages.notes]
-    [brainard.common.views.toasts :as toasts]))
+    [brainard.common.views.pages.notes :as pages.notes]))
 
 (defn ^:private not-found [_]
   [:div "Not found"])
@@ -34,12 +33,12 @@
          [:a.navbar-item {:href search} "Search"]]]]]]))
 
 (defn root []
-  (let [router (rf/subscribe [:routing/route])]
+  (let [router (store/subscribe [:routing/route])]
     (fn []
       (let [route @router
             page (get pages (:handler route) not-found)]
         [:div.container
          [navbar route]
          [page route]
-         [views.main/pprint @re-frame.db/app-db]
-         [toasts/toasts]]))))
+         [comp/pprint @re-frame.db/app-db]
+         [comp/toasts]]))))
