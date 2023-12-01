@@ -1,4 +1,5 @@
 (ns brainard.common.utils.logger
+  "Logger wrapper."
   #?(:cljs (:require-macros brainard.common.utils.logger))
   (:require
     [clojure.string :as string]
@@ -31,7 +32,16 @@
 (defmacro report [& args]
   (log* &form :report args))
 
-(defmacro with-duration [[ctx-binding call] & body]
+(defmacro with-duration
+  "Handles a call and binds the `result` (if successful), `ex` (if exceptional),
+   and `duration` of the run time in milliseconds to `ctx-binding` and executives
+   a `body` of expressions. Throws if either the `call`, or `body` throw.
+
+   (with-duration [{:keys [result ex duration]} (some-call! id)]
+     (some-> ex handle-ex!)
+     (some->> result (cache-result! id))
+     (info (format \"Can you believe it took %d ms!?\" duration)))"
+  [[ctx-binding call] & body]
   `(let [before# #?(:clj (System/currentTimeMillis) :default 0)
          ctx# (try
                 {:result ~call}

@@ -1,4 +1,5 @@
 (ns brainard.core
+  "https://disney.fandom.com/wiki/Professor_Brainard"
   (:require
     [brainard.common.utils.logger :as log]
     [brainard.infra.services.system :as sys]
@@ -8,7 +9,10 @@
 
 (declare system)
 
-(defn -main [& _]
+(defn -main
+  "Entry point for building/running the `brainard` web application from the command line.
+   Runs an nREPL server because of course it does."
+  [& _]
   (let [nrepl-port (Long/parseLong (or (System/getenv "NREPL_PORT") "7300"))
         nrepl-server (do (log/info "starting nREPL server on port" nrepl-port)
                          (nrepl/start-server :bind "0.0.0.0" :port nrepl-port))]

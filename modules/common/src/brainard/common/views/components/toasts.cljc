@@ -11,12 +11,15 @@
     :warning "is-warning"
     "is-info"))
 
-(defn ^:private toast-message [{toast-id :id :as toast}]
+(defn ^:private open-toast! [{toast-id :id :as toast}]
   (when (= :init (:state toast))
     (store/dispatch [:toasts/show toast-id]))
   (async/go
     (async/<! (async/timeout 5555))
     (store/dispatch [:toasts/hide toast-id]))
+  toast)
+
+(defn ^:private toast-message [{toast-id :id :as toast}]
   (r/with-let [height (volatile! nil)]
     (let [{:keys [body level state]} toast
           adding? (= state :init)
@@ -44,5 +47,4 @@
      [:ul.toast-messages
       (for [toast @sub:toasts]
         ^{:key (:id toast)}
-        [toast-message toast])]]))
-
+        [toast-message (open-toast! toast)])]]))

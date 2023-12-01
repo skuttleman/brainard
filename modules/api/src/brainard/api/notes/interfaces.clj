@@ -1,9 +1,15 @@
 (ns brainard.api.notes.interfaces)
 
 (defprotocol INotesStore
+  "Saves/retrieves notes from a store."
   :extend-via-metadata true
-  (save! [this note])
-  (get-tags [this])
-  (get-contexts [this])
-  (get-note [this note-id])
-  (get-notes [this params]))
+  (save! [this note]
+    "Saves a note to the store.")
+  (get-tags [this]
+    "Returns all tags from the store.")
+  (get-contexts [this]
+    "Returns all contexts from the store.")
+  (get-note [this note-id]
+    "Returns a note with the primary key or nil.")
+  (get-notes [this filters]
+    "Returns a sequence of notes that match the filters."))

@@ -19,7 +19,12 @@
           params
           coercers))
 
-(defn ->query-string [params]
+(defn ->query-string
+  "Converts a map of query-params into a query-string.
+
+  (->query-string {:a 1 :b [:foo :bar]})
+  ;; => \"a=1&b=foo&b=bar\""
+  [params]
   (some->> params
            (mapcat (fn [[k v]]
                      (when (some? v)
@@ -29,7 +34,12 @@
            seq
            (string/join "&")))
 
-(defn ->query-params [query]
+(defn ->query-params
+  "Parses a query-string into a map of params. Param values will be a string or set of strings.
+
+  (->query-params \"a=1&b=foo&b=bar\")
+  ;; => {:a \"1\" :b #{\"foo\" \"bar\"}}"
+  [query]
   (when (seq query)
     (reduce (fn [params pair]
               (let [[k v] (string/split pair #"=")
@@ -41,7 +51,9 @@
             {}
             (string/split query #"&"))))
 
-(defn match [path]
+(defn match
+  "Matches a route uri and parses route info."
+  [path]
   (let [[path query-string] (string/split path #"\?")
         route-info (bidi/match-route nav.route/all path)
         coercers (nav.route/handler->coercers (:handler route-info))]
@@ -54,33 +66,40 @@
                 pushy/start!)
      :default nil))
 
-(defn with-qp [uri query-params]
+(defn ^:private with-qp [uri query-params]
   (let [query (->query-string query-params)]
     (cond-> uri
       query (str "?" query))))
 
 (defn path-for
+  "Produces a path from a route handle and optional params."
   ([handle]
    (path-for handle nil))
   ([handle params]
    (apply bidi/path-for nav.route/all handle (flatten (seq params)))))
 
-(defn goto! [uri]
+(defn navigate-uri!
+  "Navigates to a new uri with history."
+  [uri]
   #?(:cljs
      (pushy/set-token! link uri)))
 
-(defn replace! [uri]
-  #?(:cljs
-     (pushy/replace-token! link uri)))
-
 (defn navigate!
+  "Generates a routing uri and navigates via [[navigate-uri!]]."
   ([handle]
    (navigate! handle nil))
   ([handle params]
-   (goto! (with-qp (path-for handle params) (:query-params params)))))
+   (navigate-uri! (with-qp (path-for handle params) (:query-params params)))))
 
-(defn update!
+(defn replace-uri!
+  "Replaces the current route with a new uri, removing the current route from browser history."
+  [uri]
+  #?(:cljs
+     (pushy/replace-token! link uri)))
+
+(defn replace!
+  "Generates a routing uri and navigates via [[replace-uri!]]."
   ([handle]
-   (update! handle nil))
+   (replace! handle nil))
   ([handle params]
-   (replace! (with-qp (path-for handle params) (:query-params params)))))
+   (replace-uri! (with-qp (path-for handle params) (:query-params params)))))

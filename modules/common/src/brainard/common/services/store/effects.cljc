@@ -2,13 +2,10 @@
   (:require
     [brainard.common.services.navigation.core :as nav]
     [brainard.common.utils.colls :as colls]
-    [brainard.common.services.store.api :as store.api]
-    [re-frame.core :as rf]))
+    [brainard.common.services.store.api :as store.api]))
 
-(rf/reg-fx
-  ::navigate!
-  (fn [{:keys [handler route-params query-params]}]
-    (nav/navigate! handler (assoc route-params :query-params query-params))))
+(defn navigate! [{:keys [handler route-params query-params]}]
+  (nav/navigate! handler (assoc route-params :query-params query-params)))
 
 (defn fetch-tags [_ _]
   {::store.api/request {:route        :routes.api/tags

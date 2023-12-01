@@ -1,10 +1,11 @@
 (ns brainard.common.services.validations.core
+  "Specs for data that flows through the system."
   (:require
     [malli.core :as m]
     [malli.error :as me]
     [malli.util :as mu]))
 
-(def errors
+(def api-errors
   [:map
    [:errors
     [:sequential
@@ -29,7 +30,7 @@
    [:notes/context {:optional true} string?]
    [:notes/body {:optional true} string?]
    [:notes/tags {:optional true} [:set keyword?]]
-   [:notes.retract/tags {:optional true} [:set keyword?]]])
+   [:notes/tags#removed {:optional true} [:set keyword?]]])
 
 (def notes-query
   [:and
@@ -57,12 +58,26 @@
 (defn ^:private throw! [type params]
   (throw (ex-info "failed spec validation" (assoc params ::type type))))
 
-(defn ->validator [spec]
+(defn ->validator
+  "Creates function that validates a value against a spec.
+
+   (def malli-spec
+     [:map
+      [:first-name string?]
+      [:last-name string?]])
+
+   (def validator (->validator malli-spec))
+
+   (validator {:first-name 3})
+   ;; => {:first-name [\"must be a string\"] :last-name [\"missing\"]}"
+  [spec]
   (fn [data]
     (when-let [errors (m/explain spec data)]
       (me/humanize errors))))
 
-(defn validate! [spec data type]
+(defn validate!
+  "Validates a value against a spec and throws an exception of ::type `type`."
+  [spec data type]
   (let [validator (->validator spec)]
     (when-let [details (validator data)]
       (throw! type {:data data :details details}))))

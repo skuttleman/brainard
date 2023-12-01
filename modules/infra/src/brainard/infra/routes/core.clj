@@ -13,12 +13,19 @@
       (string/starts-with? uri "/css")
       (string/starts-with? uri "/favicon.ico")))
 
-(def handler (-> iroutes/handler
-                 mw/with-spec-validation
-                 mw/with-input
-                 ring.kw-params/wrap-keyword-params
-                 ring.params/wrap-params
-                 mw/with-edn
-                 mw/with-routing
-                 mw/with-error-handling
-                 (mw/with-logging {:xform (remove route-filter)})))
+(def handler
+  "Handles all HTTP requests through the webserver."
+  (-> iroutes/handler
+      mw/with-spec-validation
+      mw/with-input
+      ring.kw-params/wrap-keyword-params
+      ring.params/wrap-params
+      mw/with-edn
+      mw/with-routing
+      mw/with-error-handling
+      (mw/with-logging {:xform (remove route-filter)})))
+
+(defn req->input
+  "Extracts request input from (potentially multiple places in) the HTTP request."
+  [req]
+  (iroutes/req->input req))

@@ -1,4 +1,5 @@
 (ns brainard.common.views.controls.dropdown
+  "A single/multi select dropdown component."
   (:require
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]

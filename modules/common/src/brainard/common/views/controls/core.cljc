@@ -1,8 +1,8 @@
 (ns brainard.common.views.controls.core
   "All controls in this namespace take a store event vector as on-change. The changed value
-   will be conj'ed onto the event.
+   will be [[conj]]'d onto the event. The following will call (dispatch [:my-event target-value])
 
-   [input {:on-change [:my-event]}] ;; (dispatch [:my-event target-value])"
+   [input {:on-change [:my-event]}]"
   (:require
     [brainard.common.forms.core :as forms]
     [brainard.common.services.store.core :as store]

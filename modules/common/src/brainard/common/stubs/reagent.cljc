@@ -1,4 +1,5 @@
 (ns brainard.common.stubs.reagent
+  "Stubs the cljs react wrapper, reagent, for cljc compatibility."
   #?(:cljs (:require-macros brainard.common.stubs.reagent))
   (:refer-clojure :exclude [atom])
   (:require

@@ -1,4 +1,5 @@
 (ns brainard.common.views.pages.home
+  "The home page with note creation form."
   (:require
     [brainard.common.forms.core :as forms]
     [brainard.common.services.store.core :as store]

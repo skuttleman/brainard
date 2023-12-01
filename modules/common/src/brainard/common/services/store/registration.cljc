@@ -1,5 +1,6 @@
 (ns brainard.common.services.store.registration
   (:require
+    [brainard.common.services.store.api :as store.api]
     [brainard.common.services.store.effects :as store.effects]
     [brainard.common.services.store.events :as store.events]
     [brainard.common.services.store.subscriptions :as store.subs]
@@ -11,7 +12,7 @@
 
 ;; CORE
 (rf/reg-event-db :core/init (constantly empty-store))
-(let [id (volatile! #?(:cljs (.getTime (js/Date.)) :default 0))]
+(let [id (volatile! 0)]
   (rf/reg-cofx :generators/toast-id (fn [cofx _]
                                       (assoc cofx :toasts/id (vswap! id inc)))))
 
@@ -57,3 +58,9 @@
 (rf/reg-event-fx :toasts/hide store.toasts/hide)
 (rf/reg-event-db :toasts/show store.toasts/show)
 (rf/reg-event-db :toasts/destroy store.toasts/destroy)
+
+
+;; INTERNAL
+(rf/reg-fx ::store.api/request store.api/request-fx)
+(rf/reg-fx ::store.effects/navigate! store.effects/navigate!)
+(rf/reg-fx ::store.toasts/destroy store.toasts/destroy-fx)

@@ -1,4 +1,5 @@
 (ns brainard.common.views.controls.tags-editor
+  "A tags editor reagent component."
   (:require
     [brainard.common.forms.core :as forms]
     [brainard.common.services.store.core :as store]

@@ -1,4 +1,5 @@
 (ns brainard.infra.services.datomic
+  "This uses an in-memory datomic client which writes transactions to a file to survive refreshes."
   (:require
     [brainard.common.utils.edn :as edn]
     [brainard.common.utils.logger :as log]
@@ -27,31 +28,45 @@
         (doseq [line (line-seq reader)]
           (d/transact (first conn) (edn/read-string line)))))))
 
-(defn create-client [params]
+(defn create-client
+  "Creates datomic client."
+  [params]
   (d/client params))
 
-(defn create-database [client db-name]
+(defn create-database
+  "Idempotently creates datomic database."
+  [client db-name]
   (d/create-database client {:db-name db-name}))
 
-(defn connect! [client db-name log-file]
+(defn connect!
+  "Connects a client to a database."
+  [client db-name log-file]
   (with-meta [(d/connect client {:db-name db-name})]
              (file-logger log-file)))
 
-(defn close! [conn]
+(defn close!
+  "Closes a client's connection to a database."
+  [conn]
   (let [{::keys [lock writer]} (meta conn)]
     (locking lock
       (.close writer))))
 
-(defn transact! [conn arg-map]
+(defn transact!
+  "Transacts an arg-map to datomic."
+  [conn arg-map]
   (log/with-duration [{:keys [duration]} (doto conn
                                            (-> meta (write! arg-map))
                                            (-> first (d/transact arg-map)))]
     (log/debug "datomic transaction:" (str "[" duration "ms]"))))
 
-(defn query [conn query & args]
+(defn query
+  "Executes a datalog query on the current database value."
+  [conn query & args]
   (apply d/q query (d/db (first conn)) args))
 
-(defn init! [conn schema-file]
+(defn init!
+  "Initializes the in-memory datomic store with previously transacted data."
+  [conn schema-file]
   (log/with-duration [{:keys [duration]} (doto conn
                                            (load-schema! schema-file)
                                            load-log!)]

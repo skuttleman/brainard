@@ -1,4 +1,5 @@
 (ns brainard.common.utils.keywords
+  "Utilities for operating on keywords."
   (:refer-clojure :exclude [str]))
 
 (defn str [kw]

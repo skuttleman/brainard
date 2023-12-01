@@ -18,13 +18,13 @@
   [request-method (:handler route)])
 
 (defmulti handler
-          "Defines an HTTP route handler"
+          "Defines an HTTP route handler. Dispatch value is a tuple of `[request-method handler-token]`."
           router
           :hierarchy
           #'routing-hierarchy)
 
 (defmulti req->input
-          "Defines an HTTP route coercer which gathers relevant data under :brainard/input"
+          "Defines an HTTP route coercer which gathers relevant data for the request. Defaults to the request :body."
           router
           :hierarchy
           #'routing-hierarchy)

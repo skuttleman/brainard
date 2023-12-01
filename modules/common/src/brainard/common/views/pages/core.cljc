@@ -1,11 +1,12 @@
 (ns brainard.common.views.pages.core
+  "The core of the UI reagent layout components."
   (:require
     [brainard.common.services.navigation.core :as nav]
     [brainard.common.services.store.core :as store]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.pages.home :as pages.home]
-    [brainard.common.views.pages.search :as pages.search]
-    [brainard.common.views.pages.notes :as pages.notes]))
+    [brainard.common.views.pages.notes :as pages.notes]
+    [brainard.common.views.pages.search :as pages.search]))
 
 (defn ^:private not-found [_]
   [:div "Not found"])

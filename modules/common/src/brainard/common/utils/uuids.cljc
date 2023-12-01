@@ -1,4 +1,5 @@
 (ns brainard.common.utils.uuids
+  "Utilities for generating uuids."
   #?(:clj
      (:require
        [clj-uuid :as uuid])))

@@ -1,4 +1,5 @@
 (ns brainard.common.utils.edn
+  "Utilities for reading EDN."
   (:refer-clojure :exclude [read read-string])
   #?(:clj
      (:require

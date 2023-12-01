@@ -1,4 +1,5 @@
 (ns brainard.common.utils.maps
+  "Utilities for operating on maps."
   #?(:cljs (:require-macros brainard.common.utils.maps))
   (:refer-clojure :exclude [flatten]))
 
@@ -11,23 +12,35 @@
           m))
 
 (defn flatten [m]
-  "Given a map m with potentially nested maps, flatten into a top level map where all the
-   keys are vectors representing the path into the original map"
+  "Flattens nested maps into a map of \"paths\".
+
+   (flatten {:a {:b 1 :c {:d [{:x :y}]}}})
+   ;; =>  {[:a :b] 1 [:a :c :d] [{:x :y}]}"
   (into {} (flatten* m [])))
 
 (defn nest [m]
-  "Given a map where all of its keys represent a path into a nested data structure,
-   generated the representational data structure"
+  "Given a map of vector \"paths\" -> values, creates nested maps.
+
+   (nest {[:a :b] 1 [:a :c :d] [{:x :y}]})
+   ;; =>  {:a {:b 1 :c {:d [{:x :y}]}}}"
   (reduce-kv assoc-in {} m))
 
 (defn assoc-defaults [m & kvs]
-  "Assoc values onto a map when the existing value is missing or nil"
+  "Assoc values onto a map when the existing value is missing or nil."
   (into (or m {})
         (comp (partition-all 2)
               (remove (comp some? (partial get m) first)))
         kvs))
 
-(defmacro m [& forms]
+(defmacro m
+  "Generates a map literal by keying symbols off a keyword representation. At runtime,
+   the symbols will be evaluated as normal.
+   All other `forms` are [[conj]]'d onto the map before returning.
+
+   (let [a 1 b 2 c 3]
+     (m a [:b b] c {:d 4 :e 5}))
+   ;; => {:a 1 :b 2 :c 3 :d 4 :e 5"
+  [& forms]
   (loop [m {}
          [form :as forms] forms]
     (cond

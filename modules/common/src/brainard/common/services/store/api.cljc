@@ -9,21 +9,23 @@
   (and (integer? status)
        (<= 200 status 299)))
 
-(rf/reg-fx
-  ::request
-  (fn [{:keys [on-success-n on-error-n query-params] :as params}]
-    (let [path (nav/path-for (:route params)
-                               (:route-params params))
-            query (nav/->query-string query-params)
-            url (cond-> path
-                  query (str "?" query))]
-       (async/go
-         (let [request {:request-method (:method params)
-                        :url            url
-                        :body           (some-> (:body params) pr-str)
-                        :headers        {"content-type" "application/edn"}}
-               response #?(:cljs (async/<! (http/request request)) :default nil)
-               {:keys [data errors]} (:body response)]
-           (if (success? (:status response))
-             (run! (comp rf/dispatch #(conj % data)) on-success-n)
-             (run! (comp rf/dispatch #(conj % errors)) on-error-n)))))))
+(defn request-fx
+  "Sends HTTP request and returns a core.async channel which dispatches
+   `on-success-n` or `on-error-n` events with the corresponding result or errors."
+  [{:keys [on-success-n on-error-n query-params] :as params}]
+  (let [path (nav/path-for (:route params)
+                           (:route-params params))
+        query (nav/->query-string query-params)
+        url (cond-> path
+              query (str "?" query))]
+    (async/go
+      (let [request {:request-method (:method params)
+                     :url            url
+                     :body           (some-> (:body params) pr-str)
+                     :headers        {"content-type" "application/edn"}}
+            response #?(:cljs (async/<! (http/request request)) :default nil)
+            {:keys [data errors]} (:body response)]
+        (if (success? (:status response))
+          (run! (comp rf/dispatch #(conj % data)) on-success-n)
+          (run! (comp rf/dispatch #(conj % errors)) on-error-n))
+        nil))))

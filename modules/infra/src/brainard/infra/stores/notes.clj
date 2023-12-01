@@ -11,9 +11,9 @@
                     :notes/timestamp])])
 
 (defn ^:private save! [{:keys [datomic-conn]} note]
-  (let [{note-id :notes/id retract-tags :notes.retract/tags} note]
+  (let [{note-id :notes/id retract-tags :notes/tags#removed} note]
     (datomic/transact! datomic-conn
-                       {:tx-data (into [(dissoc note :notes.retract/tags)]
+                       {:tx-data (into [(dissoc note :notes/tags#removed)]
                                        (map (partial conj [:db/retract [:notes/id note-id] :notes/tags]))
                                        retract-tags)})))
 
@@ -49,7 +49,9 @@
                      note-id)
       ffirst))
 
-(defn create-store [this]
+(defn create-store
+  "Creates a notes store which implements [[inotes/INotesStore]]."
+  [this]
   (with-meta this
              {`inotes/save!        #'save!
               `inotes/get-contexts #'get-contexts

@@ -1,4 +1,5 @@
 (ns brainard.common.views.pages.notes
+  "The page for viewing a note and editing its tags."
   (:require
     [brainard.common.forms.core :as forms]
     [brainard.common.services.store.core :as store]
@@ -10,7 +11,7 @@
 
 (defn ^:private diff-tags [old new]
   (let [removals (set/difference old new)]
-    {:notes.retract/tags removals
+    {:notes/tags#removed removals
      :notes/tags         new}))
 
 (defn ^:private tag-editor [{:keys [form-id form sub:res sub:tags]} note]

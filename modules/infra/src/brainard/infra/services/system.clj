@@ -38,7 +38,9 @@
   (log/info "shutting down webserver")
   (web/stop server))
 
-(defn start! [config-file]
+(defn start!
+  "Starts a duct component system from a configuration expressed in an `edn` file."
+  [config-file]
   (duct/load-hierarchy)
   (-> config-file
       duct/resource

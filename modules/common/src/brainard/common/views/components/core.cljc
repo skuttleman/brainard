@@ -1,4 +1,5 @@
 (ns brainard.common.views.components.core
+  "Reusable reagent components."
   (:require
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]

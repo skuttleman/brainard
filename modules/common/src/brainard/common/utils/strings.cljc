@@ -1,4 +1,5 @@
-(ns brainard.common.utils.strings)
+(ns brainard.common.utils.strings
+  "Utilities for operating on strings.")
 
 (defn truncate-to [s max-len]
   (let [last-idx (dec (count s))

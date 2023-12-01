@@ -1,4 +1,5 @@
 (ns brainard.common.views.pages.search
+  "The search page."
   (:require
     [brainard.common.forms.core :as forms]
     [brainard.common.services.navigation.core :as nav]
