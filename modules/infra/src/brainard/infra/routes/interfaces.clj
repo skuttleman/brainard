@@ -9,6 +9,7 @@
       (derive :delete :any)
       (derive :routes.resources/js :routes.resources/asset)
       (derive :routes.resources/css :routes.resources/asset)
+      (derive :routes.resources/img :routes.resources/asset)
       (derive :routes.ui/home :routes/ui)
       (derive :routes.ui/search :routes/ui)
       (derive :routes.ui/note :routes/ui)

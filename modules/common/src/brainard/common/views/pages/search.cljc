@@ -9,7 +9,8 @@
     [brainard.common.utils.colls :as colls]
     [brainard.common.utils.strings :as strings]
     [brainard.common.views.components.core :as comp]
-    [brainard.common.views.controls.core :as ctrls]))
+    [brainard.common.views.controls.core :as ctrls]
+    [brainard.common.views.pages.interfaces :as ipages]))
 
 (defn ^:private ->empty-form [{:keys [context] :as query-params} contexts tags]
   (cond-> {:notes/tags (into #{}
@@ -72,8 +73,8 @@
      (for [{:notes/keys [id context body tags]} notes]
        ^{:key id}
        [:li
-        [:div.flex.row.layout--space-between
-         [:div.flex.row
+        [:div.layout--space-between
+         [:div.layout--row
           [:strong context]
           [:span {:style {:margin-left "8px"}} (strings/truncate-to body 100)]]
          [:a.link {:href  (nav/path-for :routes.ui/note {:notes/id id})
@@ -101,13 +102,14 @@
                                   [comp/icon :search]
                                   [:span {:style {:margin-left "8px"}}
                                    "Search"]]}
-       [:div.flex.layout--space-between
+       [:div.layout--space-between
         [context-filter attrs contexts]
         [tag-filter attrs tags]]])
     (finally
       (remove-watch sub:route ::qp-sync))))
 
-(defn root [{:keys [query-params]}]
+(defmethod ipages/page :routes.ui/search
+  [{:keys [query-params]}]
   (r/with-let [form-id (random-uuid)
                sub:contexts (store/subscribe [:resources/resource :api.contexts/select])
                sub:tags (store/subscribe [:resources/resource :api.tags/select])

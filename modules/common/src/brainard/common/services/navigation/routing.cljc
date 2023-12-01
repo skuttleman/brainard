@@ -1,5 +1,5 @@
 (ns brainard.common.services.navigation.routing
-  "tokenized HTTP routing table for use with [[bidi.bidi]]"
+  "Tokenized HTTP routing table for use with [[bidi.bidi]]"
   (:require
     [brainard.common.utils.uuids :as uuids]))
 
@@ -12,7 +12,8 @@
 
 (def ^:private resource-routes
   ["" [["/js/" [[true :routes.resources/js]]]
-       ["/css/" [[true :routes.resources/css]]]]])
+       ["/css/" [[true :routes.resources/css]]]
+       ["/img/" [[true :routes.resources/img]]]]])
 
 (def ^:private ui-routes
   ["" [["/" :routes.ui/home]

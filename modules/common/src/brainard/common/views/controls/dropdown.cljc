@@ -38,10 +38,8 @@
                     (str selected-count " Items Selected")))]
     [comp/plain-button
      (select-keys attrs #{:class :disabled :on-blur :on-click :ref})
-     content
-     [:span
-      {:style {:margin-left "10px"}}
-      [comp/icon (if (:open? attrs) :chevron-up :chevron-down)]]]))
+     [:span.layout--space-after content]
+     [comp/icon (if (:open? attrs) :chevron-up :chevron-down)]]))
 
 (defn ^:private dropdown-menu [{:keys [loading? list-control open? options]
                                 :or   {list-control option-list} :as attrs}]

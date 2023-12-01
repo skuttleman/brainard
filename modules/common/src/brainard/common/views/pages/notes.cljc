@@ -7,6 +7,7 @@
     [brainard.common.stubs.reagent :as r]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.core :as ctrls]
+    [brainard.common.views.pages.interfaces :as ipages]
     [clojure.set :as set]))
 
 (defn ^:private diff-tags [old new]
@@ -67,7 +68,8 @@
     (finally
       (store/dispatch [:forms/destroy form-id]))))
 
-(defn root [{:keys [route-params]}]
+(defmethod ipages/page :routes.ui/note
+  [{:keys [route-params]}]
   (r/with-let [sub:note (do (store/dispatch [:resources/submit! [:api.notes/find (:notes/id route-params)]])
                             (store/subscribe [:resources/resource [:api.notes/find (:notes/id route-params)]]))]
     [comp/with-resource sub:note [root*]]

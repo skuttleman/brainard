@@ -4,8 +4,9 @@
     [brainard.common.forms.core :as forms]
     [brainard.common.services.store.core :as store]
     [brainard.common.services.validations.core :as valid]
+    [brainard.common.stubs.reagent :as r]
     [brainard.common.views.controls.core :as ctrls]
-    [brainard.common.stubs.reagent :as r]))
+    [brainard.common.views.pages.interfaces :as ipages]))
 
 (def ^:private new-note
   {:notes/body    nil
@@ -44,7 +45,8 @@
                                               [:notes/tags]
                                               errors))]]))
 
-(defn root [_]
+(defmethod ipages/page :routes.ui/home
+  [_]
   (r/with-let [form-id (doto (random-uuid)
                          (as-> $id (store/dispatch [:forms/create $id new-note])))
                sub:form (store/subscribe [:forms/form form-id])

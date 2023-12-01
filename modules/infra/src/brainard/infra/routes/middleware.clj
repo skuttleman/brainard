@@ -65,9 +65,9 @@
 
 (defn with-input
   "Includes route input as :brainard/input via [[iroutes/req->input]]"
-  [handler]
+  [handler {:keys [req->input]}]
   (fn [req]
-    (handler (assoc req :brainard/input (iroutes/req->input req)))))
+    (handler (assoc req :brainard/input (req->input req)))))
 
 (defn with-spec-validation
   "Handles input/output spec validation for spec'd routes."

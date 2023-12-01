@@ -1,5 +1,5 @@
 (ns brainard.core
-  "https://disney.fandom.com/wiki/Professor_Brainard"
+  "brainard: 'cause absent-minded people need help 'membering junk"
   (:require
     [brainard.common.utils.logger :as log]
     [brainard.infra.services.system :as sys]

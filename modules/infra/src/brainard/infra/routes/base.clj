@@ -4,7 +4,7 @@
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.infra.routes.response :as routes.res]
     [ring.middleware.resource :as ring.res]
-    [clojure.string :as string]))
+    [ring.util.mime-type :as ring.mime]))
 
 (defmethod iroutes/req->input :default
   [req]
@@ -23,11 +23,9 @@
   (routes.res/->response 200 (routes.html/render "index.edn") {"content-type" "text/html"}))
 
 (defmethod iroutes/handler [:get :routes.resources/asset]
-  [{:keys [uri] :as req}]
-  (let [content-type (cond
-                       (string/ends-with? uri ".js") "application/javascript"
-                       (string/ends-with? uri ".css") "text/css"
-                       :else "text/plain")]
+  [req]
+  (let [content-type (or (ring.mime/ext-mime-type (:uri req))
+                         "text/plain")]
     (some-> req
             (ring.res/resource-request "public")
             (assoc-in [:headers "content-type"] content-type))))
