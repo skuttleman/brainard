@@ -6,8 +6,6 @@
     [clojure.core.async :as async]
     [re-frame.core :as rf*]))
 
-(def ^:private ^:const base-url "http://localhost:1165")
-
 (defn ^:private success? [status]
   (and (integer? status)
        (<= 200 status 299)))
@@ -18,7 +16,7 @@
     (let [path (nav/path-for (:route params)
                              (:route-params params))
           query (nav/->query-string query-params)
-          url (cond-> (str base-url path)
+          url (cond-> path
                 query (str "?" query))]
       (async/go
         (let [request {:request-method (:method params)

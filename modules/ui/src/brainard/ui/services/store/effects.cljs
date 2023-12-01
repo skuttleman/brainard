@@ -5,6 +5,11 @@
     [brainard.ui.services.store.api :as store.api]
     [re-frame.core :as rf*]))
 
+(rf*/reg-fx
+  ::navigate!
+  (fn [{:keys [handler route-params query-params]}]
+    (nav/navigate! handler (assoc route-params :query-params query-params))))
+
 (defn fetch-tags [_ _]
   {::store.api/request {:route        :routes.api/tags
                         :method       :get
@@ -68,15 +73,9 @@
                                        [:resources/failed [:api.notes/update! resource-id] :remote]]}})
 
 (defn submit-resource [{:keys [db]} [_ resource-id params]]
-  (let [resource (colls/wrap-vector resource-id)]
-    {:dispatch (cond-> resource params (conj params))
-     :db       (assoc-in db [:resources/resources resource-id] [:requesting])}))
-
-(rf*/reg-fx
-  ::navigate!
-  (fn [{:keys [handler route-params query-params]}]
-    (nav/navigate! handler (assoc route-params :query-params query-params))))
-
-(defn with-qp-sync [{:keys [db]} [_ resource-key params & more]]
-  {::navigate! (assoc (:routing/route db) :query-params params)
-   :dispatch   (apply conj (colls/wrap-vector resource-key) params more)})
+  (let [resource (colls/wrap-vector resource-id)
+        mixins (meta resource)]
+    (cond-> {:dispatch (cond-> resource params (conj params))
+             :db       (assoc-in db [:resources/resources resource-id] [:requesting])}
+      (:with-qp-sync? mixins)
+      (assoc ::navigate! (assoc (:routing/route db) :query-params params)))))

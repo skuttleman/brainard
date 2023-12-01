@@ -1,6 +1,7 @@
 (ns brainard.common.views.pages.notes
   (:require
     [brainard.common.forms :as forms]
+    [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.re-frame :as rf]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.views.controls.core :as ctrls]
@@ -13,7 +14,9 @@
      :notes/tags         new}))
 
 (defn ^:private tag-editor [{:keys [form-id form sub:res sub:tags]} note]
-  (let [data (forms/data form)]
+  (let [data (forms/data form)
+        cancel-event [:forms/create form-id {:notes/tags (:notes/tags note)
+                                             ::editing?  false}]]
     [ctrls/form {:params       {:note-id  (:notes/id note)
                                 :old      note
                                 :data     (diff-tags (:notes/tags note) (:notes/tags data))
@@ -21,7 +24,12 @@
                                 :reset-to (assoc data ::editing? false)}
                  :resource-key [:api.notes/update! form-id]
                  :sub:res      sub:res
-                 :submit/body  "Save"}
+                 :submit/body  "Save"
+                 :buttons      [[:button.button.is-cancel
+                                 {:on-click (fn [e]
+                                              (dom/prevent-default! e)
+                                              (rf/dispatch cancel-event))}
+                                 "Cancel"]]}
      [ctrls/tags-editor (-> {:label     "Tags"
                              :sub:items sub:tags}
                             (forms/with-attrs form
@@ -30,7 +38,9 @@
 
 (defn ^:private tag-list [{:keys [form-id]} note]
   [:div.layout--space-between
-   [ctrls/tag-list {:value (:notes/tags note)}]
+   (if-let [tags (not-empty (:notes/tags note))]
+     [ctrls/tag-list {:value tags}]
+     [:em "no tags"])
    [:button.button {:on-click (fn [_]
                                 (rf/dispatch [:forms/change form-id [::editing?] true]))}
     "edit tags"]])

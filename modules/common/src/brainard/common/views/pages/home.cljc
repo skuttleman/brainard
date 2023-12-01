@@ -19,7 +19,8 @@
   (let [form @sub:form
         data (forms/data form)
         errors (new-note-validator data)]
-    [ctrls/form {:errors       errors
+    [ctrls/form {:form         form
+                 :errors       errors
                  :params       {:data     data
                                 :reset-to new-note}
                  :resource-key [:api.notes/create! form-id]

@@ -29,7 +29,6 @@
 (rf*/reg-event-db :resources/destroy store.events/destroy-resource)
 (rf*/reg-event-db :resources.tags/from-note store.events/add-tags)
 (rf*/reg-event-db :resources.contexts/from-note store.events/add-context)
-(rf*/reg-event-fx :resources/with-qp-sync store.effects/with-qp-sync)
 
 
 ;; API

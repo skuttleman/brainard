@@ -4,19 +4,23 @@
 
 (defn data [form]
   (when form
-    (maps/nest (:form/current form))))
+    (maps/nest (::current form))))
 
 (defn change [form path value]
   (when form
-    (if (and (nil? value) (-> form :form/opts :remove-nil?))
-      (update form :form/current dissoc path)
-      (assoc-in form [:form/current path] value))))
+    (if (and (nil? value) (-> form ::opts :remove-nil?))
+      (update form ::current dissoc path)
+      (assoc-in form [::current path] value))))
+
+(defn changed? [{::keys [current init]}]
+  (not= current init))
 
 (defn create [id data opts]
-  (let [current (maps/flatten data)]
-    {:form/id      id
-     :form/current current
-     :form/opts    opts}))
+  (let [internal-data (maps/flatten data)]
+    {::id      id
+     ::init    internal-data
+     ::current internal-data
+     ::opts    opts}))
 
 (defn with-attrs
   ([attrs form sub:res path]
@@ -30,4 +34,4 @@
                         (get-in (:remote result) path))
             :errors (when (not= :init status)
                       (get-in errors path))
-            :on-change [:forms/change (:form/id form) path]))))
+            :on-change [:forms/change (::id form) path]))))

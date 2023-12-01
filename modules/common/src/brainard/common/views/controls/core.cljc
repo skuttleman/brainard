@@ -1,5 +1,6 @@
 (ns brainard.common.views.controls.core
   (:require
+    [brainard.common.forms :as forms]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.re-frame :as rf]
     [brainard.common.stubs.reagent :as r]
@@ -116,7 +117,7 @@
          attrs
          [dd/control (dd/singleable attrs)]]))))
 
-(defn ^:private form-button-row [{:keys [disabled requesting?] :as attrs}]
+(defn ^:private form-button-row [{:keys [buttons disabled requesting?] :as attrs}]
   (cond-> [:div.button-row
            [views.main/plain-button
             {:class    ["is-primary" "submit"]
@@ -125,9 +126,12 @@
             (:submit/body attrs "Submit")]]
 
     requesting?
-    (conj [:div {:style {:margin-bottom "8px"}} [views.main/spinner]])))
+    (conj [:div {:style {:margin-bottom "8px"}} [views.main/spinner]])
 
-(defn form [{:keys [errors params resource-key sub:res] :as attrs} & fields]
+    buttons
+    (into buttons)))
+
+(defn form [{:keys [errors form params resource-key sub:res] :as attrs} & fields]
   (let [form-errors (when (vector? errors) errors)
         [status] @sub:res
         requesting? (= :requesting status)
@@ -136,9 +140,10 @@
     (-> [:form.form.layout--stack-between
          (-> {:on-submit (fn [e]
                            (dom/prevent-default! e)
-                           (if errors
-                             (rf/dispatch [:resources/failed resource-key :local errors])
-                             (rf/dispatch [:resources/submit! resource-key params])))}
+                           (when (or init? (forms/changed? form))
+                             (if errors
+                               (rf/dispatch [:resources/failed resource-key :local errors])
+                               (rf/dispatch [:resources/submit! resource-key params]))))}
              (merge (select-keys attrs #{:class :style}))
              (cond-> any-errors? (update :class conj "errors")))]
         (into fields)

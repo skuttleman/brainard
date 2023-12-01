@@ -6,9 +6,9 @@
     [brainard.common.stubs.re-frame :as rf]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.colls :as colls]
+    [brainard.common.utils.strings :as strings]
     [brainard.common.validations :as valid]
     [brainard.common.views.controls.core :as ctrls]
-    [brainard.common.utils.strings :as strings]
     [brainard.common.views.main :as views.main]))
 
 (defn ^:private ->empty-form [{:keys [context] :as query-params} contexts tags]
@@ -24,7 +24,7 @@
   (let [data (->empty-form query-params contexts tags)]
     (rf/dispatch [:forms/create form-id data {:remove-nil? true}])
     (when (nil? (search-validator data))
-      (rf/dispatch [:resources/submit! [:resources/with-qp-sync [:api.notes/select form-id]] data]))
+      (rf/dispatch [:resources/submit! ^:with-qp-sync? [:api.notes/select form-id] data]))
     (rf/subscribe [:forms/form form-id])))
 
 (defn ^:private qp-syncer [{:keys [form-id]} contexts tags]
@@ -92,9 +92,10 @@
           form-data (forms/data form)
           errors (search-validator form-data)
           attrs (assoc attrs :form form :errors errors)]
-      [ctrls/form {:errors       errors
+      [ctrls/form {:form         form
+                   :errors       errors
                    :params       form-data
-                   :resource-key [:resources/with-qp-sync [:api.notes/select form-id]]
+                   :resource-key ^:with-qp-sync? [:api.notes/select form-id]
                    :sub:res      sub:notes
                    :submit/body  [:<>
                                   [views.main/icon :search]
@@ -112,7 +113,6 @@
                sub:tags (rf/subscribe [:resources/resource :api.tags/select])
                sub:notes (rf/subscribe [:resources/resource [:api.notes/select form-id]])]
     [:div.layout--stack-between
-     [views.main/pprint @(rf/subscribe [:routing/route])]
      [views.main/with-resources [sub:contexts sub:tags] [root* {:form-id      form-id
                                                                 :query-params query-params
                                                                 :sub:notes    sub:notes}]]

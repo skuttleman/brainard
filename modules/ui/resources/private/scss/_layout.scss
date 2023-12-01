@@ -80,8 +80,11 @@
     font-size: 0.75em;
 }
 
-.buttons {
+.button-row {
     padding: 8px 0;
+    & > *:not(:first-child) {
+        margin-left: 16px;
+    }
 }
 
 .flex {
