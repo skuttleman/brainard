@@ -1,0 +1,11 @@
+{:paths ["src"]
+ :deps  {bidi/bidi                 {:mvn/version "2.1.6"
+                                    :exclusions  [ring/ring-core]}
+         com.fzakaria/slf4j-timbre {:mvn/version "0.3.21"}
+         com.taoensso/timbre       {:mvn/version "6.0.4"}
+         danlentz/clj-uuid         {:mvn/version "0.1.9"}
+         medley/medley             {:mvn/version "1.4.0"}
+         metosin/jsonista          {:mvn/version "0.3.7"}
+         metosin/malli             {:mvn/version "0.10.1"}
+         org.clojure/core.async    {:mvn/version "1.6.673"}
+         org.clojure/core.match    {:mvn/version "1.0.1"}}}

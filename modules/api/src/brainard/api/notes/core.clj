@@ -1,7 +1,8 @@
 (ns brainard.api.notes.core
   (:require
     [brainard.api.notes.interfaces :as inotes]
-    [brainard.common.utils.uuids :as uuids])
+    [brainard.common.utils.uuids :as uuids]
+    [brainard.common.validations :as valid])
   (:import
     (java.util Date)))
 
@@ -21,6 +22,8 @@
       (tag-set (inotes/get-note store note-id)))))
 
 (defn create! [{:keys [store]} note]
+  (when (= "fail" (:notes/context note))
+    (valid/throw! ::valid/input-validation {:details {:notes/context ["cannot = fail"]}}))
   (let [note (-> note
                  (clean-note (uuids/random))
                  (assoc :notes/timestamp (Date.)))]
