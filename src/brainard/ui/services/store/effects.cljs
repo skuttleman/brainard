@@ -73,11 +73,10 @@
      :db       (assoc-in db [:resources/resources resource-id] [:requesting])}))
 
 (rf*/reg-fx
-  ::set-qp!
-  (fn [{:keys [query-params routing]}]
-    (let [params (assoc (:route-params routing) :query-params query-params)]
-      (nav/update! (:handler routing) params))))
+  ::navigate!
+  (fn [{:keys [handler route-params query-params]}]
+    (nav/navigate! handler (assoc route-params :query-params query-params))))
 
-(defn set-qp! [{:keys [db]} [_ qp]]
-  {::set-qp! {:query-params qp
-              :routing (:routing/route db)}})
+(defn with-qp-sync [{:keys [db]} [_ resource-key params & more]]
+  {::navigate! (assoc (:routing/route db) :query-params params)
+   :dispatch   (apply conj (colls/wrap-vector resource-key) params more)})

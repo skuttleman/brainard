@@ -19,7 +19,7 @@
 ;; ROUTING
 (rf*/reg-sub :routing/route (store.subs/get-path [:routing/route]))
 (rf*/reg-event-db :routing/navigate (store.events/assoc-path [:routing/route]))
-(rf*/reg-event-fx :routing/set-qp! store.effects/set-qp!)
+
 
 ;; RESOURCE
 (rf*/reg-sub :resources/resource store.subs/resource)
@@ -29,6 +29,7 @@
 (rf*/reg-event-db :resources/destroy store.events/destroy-resource)
 (rf*/reg-event-db :resources.tags/from-note store.events/add-tags)
 (rf*/reg-event-db :resources.contexts/from-note store.events/add-context)
+(rf*/reg-event-fx :resources/with-qp-sync store.effects/with-qp-sync)
 
 
 ;; API

@@ -24,11 +24,16 @@
   (let [data (->empty-form query-params contexts tags)]
     (rf/dispatch [:forms/create form-id data {:remove-nil? true}])
     (when (nil? (search-validator data))
-      (rf/dispatch [:resources/submit! [:api.notes/select form-id] data]))
-    (doto (rf/subscribe [:forms/form form-id])
-      (add-watch ::watcher (fn [_ _ old new]
-                             (when (not= old new)
-                               (rf/dispatch [:routing/set-qp! (forms/data new)])))))))
+      (rf/dispatch [:resources/submit! [:resources/with-qp-sync [:api.notes/select form-id]] data]))
+    (rf/subscribe [:forms/form form-id])))
+
+(defn ^:private qp-syncer [{:keys [form-id]} contexts tags]
+  (fn [_ _ _ route]
+    (let [data (->empty-form (:query-params route) contexts tags)]
+      (rf/dispatch [:forms/create form-id data {:remove-nil? true}])
+      (if (nil? (search-validator data))
+        (rf/dispatch [:resources/submit! [:api.notes/select form-id] data])
+        (rf/dispatch [:resources/destroy [:api.notes/select form-id]])))))
 
 (defn ^:private item-control [item]
   [:span item])
@@ -80,14 +85,16 @@
            [:em {:style {:margin-left "8px"}} "more..."])]])]))
 
 (defn ^:private root* [{:keys [form-id sub:notes] :as attrs} [contexts tags]]
-  (r/with-let [sub:form (init-search-form! attrs contexts tags)]
+  (r/with-let [sub:route (doto (rf/subscribe [:routing/route])
+                           (add-watch ::qp-sync (qp-syncer attrs contexts tags)))
+               sub:form (init-search-form! attrs contexts tags)]
     (let [form @sub:form
           form-data (forms/data form)
           errors (search-validator form-data)
           attrs (assoc attrs :form form :errors errors)]
       [ctrls/form {:errors       errors
                    :params       form-data
-                   :resource-key [:api.notes/select form-id]
+                   :resource-key [:resources/with-qp-sync [:api.notes/select form-id]]
                    :sub:res      sub:notes
                    :submit/body  [:<>
                                   [views.main/icon :search]
@@ -95,7 +102,9 @@
                                    "Search"]]}
        [:div.flex.layout--space-between
         [context-filter attrs contexts]
-        [tag-filter attrs tags]]])))
+        [tag-filter attrs tags]]])
+    (finally
+      (remove-watch sub:route ::qp-sync))))
 
 (defn root [{:keys [query-params]}]
   (r/with-let [form-id (random-uuid)

@@ -20,7 +20,8 @@
                                 :fetch?   true
                                 :reset-to (assoc data ::editing? false)}
                  :resource-key [:api.notes/update! form-id]
-                 :sub:res      sub:res}
+                 :sub:res      sub:res
+                 :submit/body  "Save"}
      [ctrls/tags-editor (-> {:label     "Tags"
                              :sub:items sub:tags}
                             (forms/with-attrs form
