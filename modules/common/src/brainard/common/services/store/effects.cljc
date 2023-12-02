@@ -72,10 +72,10 @@
                         :on-error-n   [[:toasts/failure]
                                        [:resources/failed [:api.notes/update! resource-id] :remote]]}})
 
-(defn submit-resource [{:keys [db]} [_ resource-id params]]
+(defn submit-resource [{routing [:routing/route] :keys [db]} [_ resource-id params]]
   (let [resource (colls/wrap-vector resource-id)
         mixins (meta resource)]
     (cond-> {:dispatch (cond-> resource params (conj params))
              :db       (assoc-in db [:resources/resources resource-id] [:requesting])}
       (:with-qp-sync? mixins)
-      (assoc ::navigate! (assoc (:routing/route db) :query-params params)))))
+      (assoc ::navigate! (assoc routing :query-params params)))))

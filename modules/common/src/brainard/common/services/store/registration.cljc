@@ -10,6 +10,17 @@
 (def ^:private empty-store
   {:routing/route nil})
 
+(defn ^:private with-sub
+  ([query db->val]
+   (with-sub query db->val (constantly nil)))
+  ([query db->val event->args]
+   (rf/->interceptor
+     :before (fn [ctx]
+               (let [{:keys [event db]} (:coeffects ctx)
+                     query (into query (event->args event))]
+                 (assoc-in ctx [:coeffects query] (db->val db)))))))
+
+
 ;; CORE
 (rf/reg-event-db :core/init (constantly empty-store))
 (let [id (volatile! 0)]
@@ -18,18 +29,22 @@
 
 
 ;; ROUTING
-(rf/reg-sub :routing/route (store.subs/get-path [:routing/route]))
-(rf/reg-event-db :routing/navigate (store.events/assoc-path [:routing/route]))
+(def ^:private route-sub (store.subs/get-path [:routing/info]))
+(def ^:private route-update (store.events/assoc-path [:routing/info]))
+(rf/reg-sub :routing/route route-sub)
+(rf/reg-event-db :routing/navigate route-update)
+(def ^:private with-routing
+  (with-sub [:routing/route] route-sub))
 
 
 ;; RESOURCE
 (rf/reg-sub :resources/resource store.subs/resource)
-(rf/reg-event-fx :resources/submit! store.effects/submit-resource)
 (rf/reg-event-db :resources/succeeded store.events/resource-succeeded)
 (rf/reg-event-db :resources/failed store.events/resource-failed)
 (rf/reg-event-db :resources/destroy store.events/destroy-resource)
 (rf/reg-event-db :resources.tags/from-note store.events/add-tags)
 (rf/reg-event-db :resources.contexts/from-note store.events/add-context)
+(rf/reg-event-fx :resources/submit! [with-routing] store.effects/submit-resource)
 
 
 ;; API
@@ -50,14 +65,14 @@
 
 ;; TOASTS
 (rf/reg-sub :toasts/toasts store.subs/toasts)
+(rf/reg-event-db :toasts/show store.toasts/show)
+(rf/reg-event-db :toasts/destroy store.toasts/destroy)
 (rf/reg-event-fx :toasts/success store.toasts/on-success)
 (rf/reg-event-fx :toasts/failure store.toasts/on-failure)
+(rf/reg-event-fx :toasts/hide store.toasts/hide)
 (rf/reg-event-fx :toasts/create
                  [(rf/inject-cofx :generators/toast-id)]
                  store.toasts/create)
-(rf/reg-event-fx :toasts/hide store.toasts/hide)
-(rf/reg-event-db :toasts/show store.toasts/show)
-(rf/reg-event-db :toasts/destroy store.toasts/destroy)
 
 
 ;; INTERNAL
