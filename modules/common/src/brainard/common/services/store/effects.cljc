@@ -1,24 +1,26 @@
 (ns brainard.common.services.store.effects
   (:require
+    #?(:cljs [brainard.ui.services.navigation.core :as nav])
     [brainard.common.utils.colls :as colls]
-    [brainard.common.services.store.api :as store.api]
-    [brainard.ui.services.navigation.core :as nav]))
+    [brainard.common.services.store.api :as store.api]))
 
 (defn navigate! [{:keys [handler route-params query-params]}]
   #?(:cljs
      (nav/navigate! handler (assoc route-params :query-params query-params))))
 
-(defn fetch-tags [_ _]
-  {::store.api/request {:route        :routes.api/tags
-                        :method       :get
-                        :on-success-n [[:resources/succeeded :api.tags/select]]
-                        :on-error-n   [[:resources/failed :api.tags/select :remote]]}})
+(def fetch-tags
+  (constantly
+    {::store.api/request {:route        :routes.api/tags
+                          :method       :get
+                          :on-success-n [[:resources/succeeded :api.tags/select]]
+                          :on-error-n   [[:resources/failed :api.tags/select :remote]]}}))
 
-(defn fetch-contexts [_ _]
-  {::store.api/request {:route        :routes.api/contexts
-                        :method       :get
-                        :on-success-n [[:resources/succeeded :api.contexts/select]]
-                        :on-error-n   [[:resources/failed :api.contexts/select :remote]]}})
+(def fetch-contexts
+  (constantly
+    {::store.api/request {:route        :routes.api/contexts
+                          :method       :get
+                          :on-success-n [[:resources/succeeded :api.contexts/select]]
+                          :on-error-n   [[:resources/failed :api.contexts/select :remote]]}}))
 
 (defn fetch-note [_ [_ note-id]]
   {::store.api/request {:route        :routes.api/note

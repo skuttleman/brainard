@@ -21,20 +21,21 @@
 (def ^:private search-validator
   (valid/->validator valid/notes-query))
 
-(defn ^:private init-search-form! [{:keys [form-id query-params]} contexts tags]
+(defn ^:private init* [form-id query-params contexts tags]
   (let [data (->empty-form query-params contexts tags)]
     (store/dispatch [:forms/create form-id data {:remove-nil? true}])
     (when (nil? (search-validator data))
-      (store/dispatch [:resources/submit! ^:with-qp-sync? [:api.notes/select form-id] data]))
-    (store/subscribe [:forms/form form-id])))
+      (store/dispatch [:resources/submit! ^:with-qp-sync? [:api.notes/select form-id] data])
+      true)))
+
+(defn ^:private init-search-form! [{:keys [form-id query-params]} contexts tags]
+  (init* form-id query-params contexts tags)
+  (store/subscribe [:forms/form form-id]))
 
 (defn ^:private qp-syncer [{:keys [form-id]} contexts tags]
   (fn [_ _ _ route]
-    (let [data (->empty-form (:query-params route) contexts tags)]
-      (store/dispatch [:forms/create form-id data {:remove-nil? true}])
-      (if (nil? (search-validator data))
-        (store/dispatch [:resources/submit! [:api.notes/select form-id] data])
-        (store/dispatch [:resources/destroy [:api.notes/select form-id]])))))
+    (or (init* form-id (:query-params route) contexts tags)
+        (store/dispatch [:resources/destroy [:api.notes/select form-id]]))))
 
 (defn ^:private item-control [item]
   [:span item])

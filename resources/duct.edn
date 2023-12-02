@@ -1,40 +1,6 @@
-{:duct.profile/base {[:brainard/application :duct/daemon :duct/const]
-                     #ig/ref :brainard/webserver
-
-                     :brainard/webserver
-                     {:apis        {:notes #ig/ref :brainard.api/notes}
-                      :server-port #ig/ref :cfg/server-port}
-
-                     ;; apis
-                     [:brainard.api/notes :duct/const]
-                     {:store #ig/ref :brainard.store/notes}
-
-                     ;; stores
-                     :brainard.store/notes
-                     {:datomic-conn #ig/ref :brainard.datomic/conn}
-
-                     ;; infra
-                     :brainard.datomic/conn
-                     {:client      #ig/ref :brainard.datomic/client
-                      :db-name     #ig/ref :cfg.datomic/db-name
-                      :log-file    #ig/ref :cfg.datomic/log-file
-                      :schema-file #ig/ref :cfg.datomic/schema-file}
-
-                     :brainard.datomic/client
-                     {:client  {:server-type :dev-local
-                                :storage-dir :mem
-                                :system      #ig/ref :cfg.datomic/db-name}
-                      :db-name #ig/ref :cfg.datomic/db-name}
-
-                     ;; env
-                     [:cfg/server-port :duct/const]
-                     #duct/env ["SERVER_PORT" Int :or 1165]
+{:duct.profile/base #duct/include "duct/base.edn"
+ :duct.profile/prod {[:brainard.datomic/file-logger :brainard.datomic/logger]
+                     {:db-name #ig/ref :cfg.datomic/db-name}
 
                      [:cfg.datomic/db-name :duct/const]
-                     #duct/env ["DATOMIC_DB_NAME" :or "brainard"]
-
-                     [:cfg.datomic/schema-file :duct/const]
-                     #duct/env ["DATOMIC_SCHEMA_FILE" :or "schema.edn"]
-
-                     [:cfg.datomic/log-file :duct/const]
-                     #duct/env ["DATOMIC_LOG_FILE" :or ".datomic.log"]}}
+                     #duct/env ["DATOMIC_DB_NAME" :or "brainard"]}}

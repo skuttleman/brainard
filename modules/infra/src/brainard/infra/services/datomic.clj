@@ -6,11 +6,13 @@
     [clojure.java.io :as io]
     [datomic.client.api :as d]))
 
-(def ^:private ^{:arglists '([file-name])} file-logger
-  (memoize (fn [file-name]
-             {::writer (io/writer (io/file file-name) :append true)
-              ::lock   (Object.)
-              ::log-file file-name})))
+(def ^{:arglists '([db-name])} file-logger
+  (memoize (fn [db-name]
+             (let [file-name (format ".datomic.%s.log" db-name)]
+               {::db-name db-name
+                ::writer   (io/writer (io/file file-name) :append true)
+                ::lock     (Object.)
+                ::log-file file-name}))))
 
 (defn ^:private write! [{::keys [lock writer]} data]
   (locking lock
@@ -40,9 +42,9 @@
 
 (defn connect!
   "Connects a client to a database."
-  [client db-name log-file]
+  [client db-name logger]
   (with-meta [(d/connect client {:db-name db-name})]
-             (file-logger log-file)))
+             logger))
 
 (defn close!
   "Closes a client's connection to a database."

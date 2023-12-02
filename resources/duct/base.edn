@@ -1,0 +1,36 @@
+{[:brainard/application :duct/daemon :duct/const]
+ #ig/ref :brainard/webserver
+
+ :brainard/webserver
+ {:apis        #ig/ref :brainard/apis
+  :server-port #ig/ref :cfg/server-port}
+
+ ;; apis
+ [:brainard/apis :duct/const]
+ {:notes #ig/ref :brainard.api/notes}
+
+ [:brainard.api/notes :duct/const :brainard/notes-api]
+ {:store #ig/ref :brainard.store/notes}
+
+ ;; stores
+ [:brainard.store/notes :brainard/notes-store]
+ {:datomic-conn #ig/ref :brainard.datomic/conn}
+
+ ;; infra
+ [:brainard.datomic/conn :brainard/datomic-conn]
+ {:client      #ig/ref :brainard.datomic/client
+  :db-name     #ig/ref :cfg.datomic/db-name
+  :logger      #ig/ref :brainard.datomic/logger
+  :schema-file #ig/ref :cfg.datomic/schema-file}
+
+ :brainard.datomic/client
+ {:client  {:server-type :dev-local
+            :storage-dir :mem}
+  :db-name #ig/ref :cfg.datomic/db-name}
+
+ ;; env
+ [:cfg/server-port :duct/const]
+ #duct/env ["SERVER_PORT" Int :or 1165]
+
+ [:cfg.datomic/schema-file :duct/const]
+ #duct/env ["DATOMIC_SCHEMA_FILE" :or "schema.edn"]}

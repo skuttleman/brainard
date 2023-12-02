@@ -5,6 +5,10 @@
     [clojure.core.async :as async]
     [re-frame.core :as rf]))
 
+(def ^:dynamic *request-fn*
+  #?(:cljs    http/request
+     :default (constantly (async/chan))))
+
 (defn ^:private success? [status]
   (and (integer? status)
        (<= 200 status 299)))
@@ -23,7 +27,7 @@
                      :url            url
                      :body           (some-> (:body params) pr-str)
                      :headers        {"content-type" "application/edn"}}
-            response #?(:cljs (async/<! (http/request request)) :default nil)
+            response (async/<! (*request-fn* request))
             {:keys [data errors]} (:body response)]
         (if (success? (:status response))
           (run! (comp rf/dispatch #(conj % data)) on-success-n)

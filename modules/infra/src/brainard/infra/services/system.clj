@@ -8,14 +8,18 @@
     [immutant.web :as web]
     [integrant.core :as ig]))
 
-(defmethod ig/init-key :brainard.datomic/client
+(defmethod ig/init-key :brainard.datomic/file-logger
   [_ params]
-  (doto (datomic/create-client (:client params))
-    (datomic/create-database (:db-name params))))
+  (datomic/file-logger (:db-name params)))
+
+(defmethod ig/init-key :brainard.datomic/client
+  [_ {:keys [client db-name]}]
+  (doto (datomic/create-client (assoc client :system db-name))
+    (datomic/create-database db-name)))
 
 (defmethod ig/init-key :brainard.datomic/conn
-  [_ {:keys [client db-name log-file schema-file]}]
-  (doto (datomic/connect! client db-name log-file)
+  [_ {:keys [client db-name logger schema-file]}]
+  (doto (datomic/connect! client db-name logger)
     (datomic/init! schema-file)))
 
 (defmethod ig/halt-key! :brainard.datomic/conn

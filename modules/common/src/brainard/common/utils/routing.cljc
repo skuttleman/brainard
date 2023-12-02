@@ -60,14 +60,6 @@
     (cond-> uri
       query (str "?" query))))
 
-(defn path-for
-  "Produces a path from a route handle and optional params."
-  ([handle]
-   (path-for handle nil))
-  ([handle params]
-   (let [route-info (apply bidi/path-for all-routes handle (flatten (seq params)))]
-     (with-qp route-info (:query-params params)))))
-
 (defn ->query-params
   "Parses a query-string into a map of params. Param values will be a string or set of strings.
 
@@ -84,6 +76,14 @@
                   (assoc params k v))))
             {}
             (string/split query #"&"))))
+
+(defn path-for
+  "Produces a path from a route handle and optional params."
+  ([handle]
+   (path-for handle nil))
+  ([handle params]
+   (let [route-info (apply bidi/path-for all-routes handle (flatten (seq params)))]
+     (with-qp route-info (:query-params params)))))
 
 (defn match
   "Matches a route uri and parses route info."
