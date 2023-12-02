@@ -1,5 +1,6 @@
 (ns brainard.infra.routes.base
   (:require
+    [brainard.common.views.pages.core :as pages]
     [brainard.infra.routes.html :as routes.html]
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.infra.routes.response :as routes.res]
@@ -19,8 +20,10 @@
   (routes.res/->response 404 (routes.res/errors "Not found" :UNKNOWN_API)))
 
 (defmethod iroutes/handler [:get :routes/ui]
-  [_]
-  (routes.res/->response 200 (routes.html/render "index.edn") {"content-type" "text/html"}))
+  [{:brainard/keys [route]}]
+  (routes.res/->response 200
+                         (routes.html/render [pages/page route])
+                         {"content-type" "text/html"}))
 
 (defmethod iroutes/handler [:get :routes.resources/asset]
   [req]

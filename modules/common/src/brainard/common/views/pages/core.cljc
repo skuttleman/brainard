@@ -2,9 +2,11 @@
   "The core of the UI reagent layout components."
   (:require
     [brainard.common.services.store.core :as store]
+    [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.routing :as rte]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.pages.interfaces :as ipages]
+    brainard.common.services.store.registration
     brainard.common.views.pages.home
     brainard.common.views.pages.notes
     brainard.common.views.pages.search))
@@ -38,14 +40,12 @@
          [:a.navbar-item {:href search} "Search"]]]]]]))
 
 (defn page [route-info]
-  [ipages/page route-info])
+  [:div.container
+   [header]
+   [navbar route-info]
+   [ipages/page route-info]
+   [comp/toasts]])
 
 (defn root []
-  (let [router (store/subscribe [:routing/route])]
-    (fn []
-      (let [route @router]
-        [:div.container
-         [header]
-         [navbar route]
-         [page route]
-         [comp/toasts]]))))
+  (r/with-let [router (store/subscribe [:routing/route])]
+    [page @router]))
