@@ -2,11 +2,11 @@
   "The search page."
   (:require
     [brainard.common.forms.core :as forms]
-    [brainard.common.services.navigation.core :as nav]
     [brainard.common.services.store.core :as store]
     [brainard.common.services.validations.core :as valid]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.colls :as colls]
+    [brainard.common.utils.routing :as rte]
     [brainard.common.utils.strings :as strings]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.core :as ctrls]
@@ -77,7 +77,7 @@
          [:div.layout--row
           [:strong context]
           [:span {:style {:margin-left "8px"}} (strings/truncate-to body 100)]]
-         [:a.link {:href  (nav/path-for :routes.ui/note {:notes/id id})
+         [:a.link {:href  (rte/path-for :routes.ui/note {:notes/id id})
                    :style {:margin-left "8px"}}
           "view"]]
         [:div.flex

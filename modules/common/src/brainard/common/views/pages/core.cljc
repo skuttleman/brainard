@@ -1,8 +1,8 @@
 (ns brainard.common.views.pages.core
   "The core of the UI reagent layout components."
   (:require
-    [brainard.common.services.navigation.core :as nav]
     [brainard.common.services.store.core :as store]
+    [brainard.common.utils.routing :as rte]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.pages.interfaces :as ipages]
     brainard.common.views.pages.home
@@ -22,8 +22,8 @@
     [:em "'cause absent-minded people need help 'membering junk"]]])
 
 (defn ^:private navbar [{:keys [handler]}]
-  (let [home (nav/path-for :routes.ui/home)
-        search (nav/path-for :routes.ui/search)]
+  (let [home (rte/path-for :routes.ui/home)
+        search (rte/path-for :routes.ui/search)]
     [:nav.navbar
      {:role "navigation" :aria-label "main navigation"}
      [:div.navbar-start

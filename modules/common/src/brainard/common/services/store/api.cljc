@@ -1,7 +1,7 @@
 (ns brainard.common.services.store.api
   (:require
     #?(:cljs [cljs-http.client :as http])
-    [brainard.common.services.navigation.core :as nav]
+    [brainard.common.utils.routing :as rte]
     [clojure.core.async :as async]
     [re-frame.core :as rf]))
 
@@ -13,9 +13,9 @@
   "Sends HTTP request and returns a core.async channel which dispatches
    `on-success-n` or `on-error-n` events with the corresponding result or errors."
   [{:keys [on-success-n on-error-n query-params] :as params}]
-  (let [path (nav/path-for (:route params)
+  (let [path (rte/path-for (:route params)
                            (:route-params params))
-        query (nav/->query-string query-params)
+        query (rte/->query-string query-params)
         url (cond-> path
               query (str "?" query))]
     (async/go

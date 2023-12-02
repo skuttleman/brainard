@@ -1,15 +1,36 @@
-(ns brainard.common.services.navigation.core
+(ns brainard.common.utils.routing
+  "Tokenized HTTP routing table for use with [[bidi.bidi]]"
   (:require
-    #?(:cljs [pushy.core :as pushy])
     [bidi.bidi :as bidi]
-    [brainard.common.services.navigation.routing :as nav.route]
     [brainard.common.utils.colls :as colls]
     [brainard.common.utils.keywords :as kw]
-    [brainard.common.services.store.core :as store]
+    [brainard.common.utils.uuids :as uuids]
     [clojure.string :as string]))
 
-(defn ^:private nav-dispatch [route]
-  (store/dispatch [:routing/navigate route]))
+(def ^:private api-routes
+  ["/api" [["/notes" [["" :routes.api/notes]
+                      [["/" [uuids/regex :notes/id]] :routes.api/note]]]
+           ["/tags" :routes.api/tags]
+           ["/contexts" :routes.api/contexts]
+           [true :routes.api/not-found]]])
+
+(def ^:private resource-routes
+  ["" [["/js/" [[true :routes.resources/js]]]
+       ["/css/" [[true :routes.resources/css]]]
+       ["/img/" [[true :routes.resources/img]]]]])
+
+(def ^:private ui-routes
+  ["" [["/" :routes.ui/home]
+       ["/search" :routes.ui/search]
+       [["/notes/" [uuids/regex :notes/id]] :routes.ui/note]
+       [true :routes.ui/not-found]]])
+
+(def ^:private all-routes
+  ["" [api-routes resource-routes ui-routes]])
+
+(def ^:private handler->coercers
+  {:routes.api/note {:notes/id uuids/->uuid}
+   :routes.ui/note  {:notes/id uuids/->uuid}})
 
 (defn ^:private coerce-params [params coercers]
   (reduce (fn [params [k coercer]]
@@ -34,6 +55,19 @@
            seq
            (string/join "&")))
 
+(defn ^:private with-qp [uri query-params]
+  (let [query (->query-string query-params)]
+    (cond-> uri
+      query (str "?" query))))
+
+(defn path-for
+  "Produces a path from a route handle and optional params."
+  ([handle]
+   (path-for handle nil))
+  ([handle params]
+   (let [route-info (apply bidi/path-for all-routes handle (flatten (seq params)))]
+     (with-qp route-info (:query-params params)))))
+
 (defn ->query-params
   "Parses a query-string into a map of params. Param values will be a string or set of strings.
 
@@ -55,51 +89,8 @@
   "Matches a route uri and parses route info."
   [path]
   (let [[path query-string] (string/split path #"\?")
-        route-info (bidi/match-route nav.route/all path)
-        coercers (nav.route/handler->coercers (:handler route-info))]
+        route-info (bidi/match-route all-routes path)
+        coercers (handler->coercers (:handler route-info))]
     (-> route-info
         (update :route-params coerce-params coercers)
         (assoc :query-params (->query-params query-string)))))
-
-(defonce ^:private link
-  #?(:cljs    (doto (pushy/pushy nav-dispatch match)
-                pushy/start!)
-     :default nil))
-
-(defn ^:private with-qp [uri query-params]
-  (let [query (->query-string query-params)]
-    (cond-> uri
-      query (str "?" query))))
-
-(defn path-for
-  "Produces a path from a route handle and optional params."
-  ([handle]
-   (path-for handle nil))
-  ([handle params]
-   (apply bidi/path-for nav.route/all handle (flatten (seq params)))))
-
-(defn navigate-uri!
-  "Navigates to a new uri with history."
-  [uri]
-  #?(:cljs
-     (pushy/set-token! link uri)))
-
-(defn navigate!
-  "Generates a routing uri and navigates via [[navigate-uri!]]."
-  ([handle]
-   (navigate! handle nil))
-  ([handle params]
-   (navigate-uri! (with-qp (path-for handle params) (:query-params params)))))
-
-(defn replace-uri!
-  "Replaces the current route with a new uri, removing the current route from browser history."
-  [uri]
-  #?(:cljs
-     (pushy/replace-token! link uri)))
-
-(defn replace!
-  "Generates a routing uri and navigates via [[replace-uri!]]."
-  ([handle]
-   (replace! handle nil))
-  ([handle params]
-   (replace-uri! (with-qp (path-for handle params) (:query-params params)))))

@@ -1,9 +1,9 @@
 (ns brainard.infra.routes.middleware
   (:require
-    [brainard.common.services.navigation.core :as nav]
     [brainard.common.services.validations.core :as valid]
     [brainard.common.utils.edn :as edn]
     [brainard.common.utils.logger :as log]
+    [brainard.common.utils.routing :as rte]
     [brainard.infra.routes.errors :as routes.err]
     [brainard.infra.routes.interfaces :as iroutes]
     [clojure.string :as string]
@@ -44,7 +44,7 @@
   "Includes routing data on the request."
   [handler]
   (fn [req]
-    (let [route-info (nav/match (:uri req))]
+    (let [route-info (rte/match (:uri req))]
       (handler (assoc req :brainard/route route-info)))))
 
 (defn with-edn
