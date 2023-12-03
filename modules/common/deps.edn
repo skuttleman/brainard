@@ -1,6 +1,7 @@
 {:paths ["src"]
  :deps  {bidi/bidi                 {:mvn/version "2.1.6"
                                     :exclusions  [ring/ring-core]}
+         com.ben-allred/yast       {:local/root "../../../yast"}
          com.fzakaria/slf4j-timbre {:mvn/version "0.3.21"}
          com.taoensso/timbre       {:mvn/version "6.0.4"}
          danlentz/clj-uuid         {:mvn/version "0.1.9"}

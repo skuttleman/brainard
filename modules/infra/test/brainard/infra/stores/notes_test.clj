@@ -40,7 +40,7 @@
         (testing "and when updating and retracting tags"
           (inotes/save! notes-store {:notes/id           note-id
                                      :notes/context      "different context"
-                                     :notes/tags#removed #{:one :two}
+                                     :notes/tags!remove #{:one :two}
                                      :notes/tags         #{:four :five :six}})
           (testing "updates the note in datomic"
             (let [note (-> datomic-conn

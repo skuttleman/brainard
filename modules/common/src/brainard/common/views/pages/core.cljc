@@ -1,12 +1,11 @@
 (ns brainard.common.views.pages.core
   "The core of the UI reagent layout components."
   (:require
-    [brainard.common.services.store.core :as store]
+    [brainard.common.store.core :as store]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.routing :as rte]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.pages.interfaces :as ipages]
-    brainard.common.services.store.registration
     brainard.common.views.pages.home
     brainard.common.views.pages.notes
     brainard.common.views.pages.search))
@@ -39,13 +38,13 @@
          {:class [(when (= :routes.ui/search handler) "is-active")]}
          [:a.navbar-item {:href search} "Search"]]]]]]))
 
-(defn page [route-info]
+(defn page [*:store route-info]
   [:div.container
    [header]
    [navbar route-info]
-   [ipages/page route-info]
-   [comp/toasts]])
+   [ipages/page (assoc route-info :*:store *:store)]
+   [comp/toasts *:store]])
 
-(defn root []
-  (r/with-let [router (store/subscribe [:routing/route])]
-    [page @router]))
+(defn root [*:store]
+  (r/with-let [router (store/subscribe *:store [:routing/route])]
+    [page *:store @router]))

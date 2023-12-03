@@ -1,6 +1,6 @@
 (ns brainard.common.views.components.toasts
   (:require
-    [brainard.common.services.store.core :as store]
+    [brainard.common.store.core :as store]
     [brainard.common.stubs.reagent :as r]
     [clojure.core.async :as async]))
 
@@ -11,15 +11,15 @@
     :warning "is-warning"
     "is-info"))
 
-(defn ^:private open-toast! [{toast-id :id :as toast}]
+(defn ^:private open-toast! [*:store {toast-id :id :as toast}]
   (when (= :init (:state toast))
-    (store/dispatch [:toasts/show toast-id]))
+    (store/dispatch! *:store [:toasts/show toast-id]))
   (async/go
     (async/<! (async/timeout 5555))
-    (store/dispatch [:toasts/hide toast-id]))
+    (store/dispatch! *:store [:toasts/hide toast-id]))
   toast)
 
-(defn ^:private toast-message [{toast-id :id :as toast}]
+(defn ^:private toast-message [*:store {toast-id :id :as toast}]
   (r/with-let [height (volatile! nil)]
     (let [{:keys [body level state]} toast
           adding? (= state :init)
@@ -37,14 +37,14 @@
          (and removing? height-val) (update :style assoc :margin-top (str "-" height-val "px")))
        [:div.message-body
         {:on-click (fn [_]
-                     (store/dispatch [:toasts/hide toast-id]))
+                     (store/dispatch! *:store [:toasts/hide toast-id]))
          :style    {:cursor :pointer}}
         [:div.body-text body]]])))
 
-(defn toasts []
-  (r/with-let [sub:toasts (store/subscribe [:toasts/toasts])]
+(defn toasts [*:store]
+  (r/with-let [sub:toasts (store/subscribe *:store [:toasts/toasts])]
     [:div.toast-container
      [:ul.toast-messages
-      (for [toast @sub:toasts]
-        ^{:key (:id toast)}
-        [toast-message (open-toast! toast)])]]))
+      (doall (for [toast @sub:toasts]
+               ^{:key (:id toast)}
+               [toast-message *:store (open-toast! *:store toast)]))]]))

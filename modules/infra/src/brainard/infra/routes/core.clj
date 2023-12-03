@@ -4,6 +4,9 @@
     [brainard.infra.routes.middleware :as mw]
     [ring.middleware.keyword-params :as ring.kw-params]
     [ring.middleware.params :as ring.params]
+    brainard.common.store.commands
+    brainard.common.store.events
+    brainard.common.store.queries
     brainard.infra.routes.base
     brainard.infra.routes.notes))
 

@@ -1,5 +1,6 @@
 (ns brainard.infra.routes.base
   (:require
+    [brainard.common.store.core :as store]
     [brainard.common.views.pages.core :as pages]
     [brainard.infra.routes.html :as routes.html]
     [brainard.infra.routes.interfaces :as iroutes]
@@ -22,7 +23,7 @@
 (defmethod iroutes/handler [:get :routes/ui]
   [{:brainard/keys [route]}]
   (routes.res/->response 200
-                         (routes.html/render [pages/page route])
+                         (routes.html/render [pages/page (store/create) route])
                          {"content-type" "text/html"}))
 
 (defmethod iroutes/handler [:get :routes.resources/asset]

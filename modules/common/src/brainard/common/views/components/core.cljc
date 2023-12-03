@@ -128,4 +128,4 @@
                                             (dom/prevent-default! e)
                                             (on-change (disj value tag)))}])])])
 
-(def ^{:arglists '([])} toasts comp.toasts/toasts)
+(def ^{:arglists '([*:store])} toasts comp.toasts/toasts)

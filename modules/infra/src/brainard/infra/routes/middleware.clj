@@ -1,6 +1,6 @@
 (ns brainard.infra.routes.middleware
   (:require
-    [brainard.common.services.validations.core :as valid]
+    [brainard.common.validations.core :as valid]
     [brainard.common.utils.edn :as edn]
     [brainard.common.utils.logger :as log]
     [brainard.common.utils.routing :as rte]

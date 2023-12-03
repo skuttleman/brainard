@@ -1,4 +1,4 @@
-(ns brainard.common.services.validations.core
+(ns brainard.common.validations.core
   "Specs for data that flows through the system."
   (:require
     [malli.core :as m]
@@ -30,7 +30,7 @@
    [:notes/context {:optional true} string?]
    [:notes/body {:optional true} string?]
    [:notes/tags {:optional true} [:set keyword?]]
-   [:notes/tags#removed {:optional true} [:set keyword?]]])
+   [:notes/tags!remove {:optional true} [:set keyword?]]])
 
 (def notes-query
   [:and

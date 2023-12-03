@@ -1,9 +1,9 @@
-(ns brainard.common.services.store.api
+(ns brainard.common.store.api
   (:require
     #?(:cljs [cljs-http.client :as http])
     [brainard.common.utils.routing :as rte]
-    [clojure.core.async :as async]
-    [re-frame.core :as rf]))
+    [brainard.common.store.core :as store]
+    [clojure.core.async :as async]))
 
 (def ^:dynamic *request-fn*
   #?(:cljs    http/request
@@ -13,15 +13,11 @@
   (and (integer? status)
        (<= 200 status 299)))
 
-(defn request-fx
+(defn request!
   "Sends HTTP request and returns a core.async channel which dispatches
    `on-success-n` or `on-error-n` events with the corresponding result or errors."
-  [{:keys [on-success-n on-error-n query-params] :as params}]
-  (let [path (rte/path-for (:route params)
-                           (:route-params params))
-        query (rte/->query-string query-params)
-        url (cond-> path
-              query (str "?" query))]
+  [store {:keys [on-success-n on-error-n] :as params}]
+  (let [url (rte/path-for (:route params) (:params params))]
     (async/go
       (let [request {:request-method (:method params)
                      :url            url
@@ -30,6 +26,6 @@
             response (async/<! (*request-fn* request))
             {:keys [data errors]} (:body response)]
         (if (success? (:status response))
-          (run! (comp rf/dispatch #(conj % data)) on-success-n)
-          (run! (comp rf/dispatch #(conj % errors)) on-error-n))
+          (run! (comp (partial store/dispatch! store) #(conj % data)) on-success-n)
+          (run! (comp (partial store/dispatch! store) #(conj % errors)) on-error-n))
         nil))))

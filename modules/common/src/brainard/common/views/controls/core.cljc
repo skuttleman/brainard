@@ -5,7 +5,7 @@
    [input {:on-change [:my-event]}]"
   (:require
     [brainard.common.forms.core :as forms]
-    [brainard.common.services.store.core :as store]
+    [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.fns :as fns]
@@ -15,14 +15,14 @@
     [brainard.common.views.controls.type-ahead :as type-ahead]
     [clojure.string :as string]))
 
-(defn ^:private dispatch-on-change [on-change]
+(defn ^:private dispatch-on-change [on-change *:store]
   (fn [value]
     (when on-change
-      (store/dispatch-sync (conj on-change value)))))
+      (store/dispatch! *:store (conj on-change value)))))
 
 (defn ^:private with-dispatch-on-change [component]
-  (fn [attrs & args]
-    (into [component (update attrs :on-change dispatch-on-change)] args)))
+  (fn [{:keys [*:store] :as attrs} & args]
+    (into [component (update attrs :on-change dispatch-on-change *:store)] args)))
 
 (defn ^:private with-id [component]
   (fn [attrs & args]
@@ -78,15 +78,6 @@
                  :on-change (comp on-change dom/target-value)}
                 (merge (select-keys attrs #{:class :id :on-blur :ref})))]])))))
 
-(def ^{:arglists '([attrs])} input
-  (with-id
-    (with-dispatch-on-change
-      (with-trim-blur
-        (fn [attrs]
-          [form-field
-           attrs
-           [comp/plain-input attrs]])))))
-
 (def ^{:arglists '([attrs])} tags-editor
   (with-id
     (with-dispatch-on-change
@@ -133,7 +124,7 @@
     buttons
     (into buttons)))
 
-(defn form [{:keys [errors form params resource-key sub:res] :as attrs} & fields]
+(defn form [{:keys [*:store errors form params resource-key sub:res] :as attrs} & fields]
   (let [form-errors (when (vector? errors) errors)
         [status] @sub:res
         requesting? (= :requesting status)
@@ -144,8 +135,8 @@
                            (dom/prevent-default! e)
                            (when (or init? (forms/changed? form))
                              (if errors
-                               (store/dispatch [:resources/failed resource-key :local errors])
-                               (store/dispatch [:resources/submit! resource-key params]))))}
+                               (store/dispatch! *:store [:resources/failed resource-key :local errors])
+                               (store/dispatch! *:store [:resources/submit! resource-key params]))))}
              (merge (select-keys attrs #{:class :style}))
              (cond-> any-errors? (update :class conj "errors")))]
         (into fields)

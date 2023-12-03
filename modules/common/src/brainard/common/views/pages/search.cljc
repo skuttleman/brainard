@@ -2,8 +2,8 @@
   "The search page."
   (:require
     [brainard.common.forms.core :as forms]
-    [brainard.common.services.store.core :as store]
-    [brainard.common.services.validations.core :as valid]
+    [brainard.common.store.core :as store]
+    [brainard.common.validations.core :as valid]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.colls :as colls]
     [brainard.common.utils.routing :as rte]
@@ -21,30 +21,31 @@
 (def ^:private search-validator
   (valid/->validator valid/notes-query))
 
-(defn ^:private init* [form-id query-params contexts tags]
+(defn ^:private init* [*:store form-id query-params contexts tags]
   (let [data (->empty-form query-params contexts tags)]
-    (store/dispatch [:forms/create form-id data {:remove-nil? true}])
+    (store/dispatch! *:store [:forms/create form-id data {:remove-nil? true}])
     (when (nil? (search-validator data))
-      (store/dispatch [:resources/submit! ^:with-qp-sync? [:api.notes/select form-id] data])
+      (store/dispatch! *:store [:resources/submit! ^:with-qp-sync? [:api.notes/select form-id] data])
       true)))
 
-(defn ^:private init-search-form! [{:keys [form-id query-params]} contexts tags]
-  (init* form-id query-params contexts tags)
-  (store/subscribe [:forms/form form-id]))
+(defn ^:private init-search-form! [{:keys [*:store form-id query-params]} contexts tags]
+  (init* *:store form-id query-params contexts tags)
+  (store/subscribe *:store [:forms/form form-id]))
 
-(defn ^:private qp-syncer [{:keys [form-id]} contexts tags]
+(defn ^:private qp-syncer [{:keys [*:store form-id]} contexts tags]
   (fn [_ _ _ route]
-    (or (init* form-id (:query-params route) contexts tags)
-        (store/dispatch [:resources/destroy [:api.notes/select form-id]]))))
+    (or (init* *:store form-id (:query-params route) contexts tags)
+        (store/dispatch! *:store [:resources/destroy [:api.notes/select form-id]]))))
 
 (defn ^:private item-control [item]
   [:span item])
 
-(defn ^:private context-filter [{:keys [errors form sub:notes]} contexts]
+(defn ^:private context-filter [{:keys [*:store errors form sub:notes]} contexts]
   (r/with-let [options (map #(vector % %) contexts)
                options-by-id (into {} options)]
     [:div {:style {:flex-basis "49%"}}
-     [ctrls/single-dropdown (-> {:label         "Context filter"
+     [ctrls/single-dropdown (-> {:*:store       *:store
+                                 :label         "Context filter"
                                  :options       options
                                  :options-by-id options-by-id
                                  :item-control  item-control}
@@ -53,11 +54,12 @@
                                                   [:notes/context]
                                                   errors))]]))
 
-(defn ^:private tag-filter [{:keys [errors form sub:notes]} tags]
+(defn ^:private tag-filter [{:keys [*:store errors form sub:notes]} tags]
   (r/with-let [options (map #(vector % (str %)) tags)
                options-by-id (into {} options)]
     [:div {:style {:flex-basis "49%"}}
-     [ctrls/multi-dropdown (-> {:label         "Tag Filer"
+     [ctrls/multi-dropdown (-> {:*:store       *:store
+                                :label         "Tag Filer"
                                 :options       options
                                 :options-by-id options-by-id
                                 :item-control  item-control}
@@ -86,15 +88,16 @@
          (when (< 8 (count tags))
            [:em {:style {:margin-left "8px"}} "more..."])]])]))
 
-(defn ^:private root* [{:keys [form-id sub:notes] :as attrs} [contexts tags]]
-  (r/with-let [sub:route (doto (store/subscribe [:routing/route])
+(defn ^:private root* [{:keys [*:store form-id sub:notes] :as attrs} [contexts tags]]
+  (r/with-let [sub:route (doto (store/subscribe *:store [:routing/route])
                            (add-watch ::qp-sync (qp-syncer attrs contexts tags)))
                sub:form (init-search-form! attrs contexts tags)]
     (let [form @sub:form
           form-data (forms/data form)
           errors (search-validator form-data)
           attrs (assoc attrs :form form :errors errors)]
-      [ctrls/form {:form         form
+      [ctrls/form {:*:store      *:store
+                   :form         form
                    :errors       errors
                    :params       form-data
                    :resource-key ^:with-qp-sync? [:api.notes/select form-id]
@@ -110,16 +113,17 @@
       (remove-watch sub:route ::qp-sync))))
 
 (defmethod ipages/page :routes.ui/search
-  [{:keys [query-params]}]
+  [{:keys [*:store query-params]}]
   (r/with-let [form-id (random-uuid)
-               sub:contexts (store/subscribe [:resources/resource :api.contexts/select])
-               sub:tags (store/subscribe [:resources/resource :api.tags/select])
-               sub:notes (store/subscribe [:resources/resource [:api.notes/select form-id]])]
+               sub:contexts (store/subscribe *:store [:resources/resource :api.contexts/select])
+               sub:tags (store/subscribe *:store [:resources/resource :api.tags/select])
+               sub:notes (store/subscribe *:store [:resources/resource [:api.notes/select form-id]])]
     [:div.layout--stack-between
-     [comp/with-resources [sub:contexts sub:tags] [root* {:form-id      form-id
+     [comp/with-resources [sub:contexts sub:tags] [root* {:*:store      *:store
+                                                          :form-id      form-id
                                                           :query-params query-params
                                                           :sub:notes    sub:notes}]]
      [comp/with-resource sub:notes [search-results {:hide-init? true}]]]
     (finally
-      (store/dispatch [:resources/destroy [:api.notes/select form-id]])
-      (store/dispatch [:forms/destroy form-id]))))
+      (store/dispatch! *:store [:resources/destroy [:api.notes/select form-id]])
+      (store/dispatch! *:store [:forms/destroy form-id]))))

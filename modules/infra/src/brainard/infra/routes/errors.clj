@@ -1,6 +1,6 @@
 (ns brainard.infra.routes.errors
   (:require
-    [brainard.common.services.validations.core :as valid]
+    [brainard.common.validations.core :as valid]
     [brainard.infra.routes.response :as routes.res]))
 
 (defn ^:private ->err-response [status body]
