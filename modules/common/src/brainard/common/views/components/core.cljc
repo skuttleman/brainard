@@ -123,9 +123,8 @@
      [:div.tags.has-addons
       [:span.tag.is-info.is-light (str tag)]
       (when on-change
-        [:a.tag.is-delete.link {:href     "#"
-                                :on-click (fn [e]
-                                            (dom/prevent-default! e)
-                                            (on-change (disj value tag)))}])])])
+        [:button.button.tag.is-delete {:on-click (fn [e]
+                                                   (dom/prevent-default! e)
+                                                   (on-change (disj value tag)))}])])])
 
 (def ^{:arglists '([*:store])} toasts comp.toasts/toasts)

@@ -23,19 +23,19 @@
 
 (defn ^:private init* [*:store form-id query-params contexts tags]
   (let [data (->empty-form query-params contexts tags)]
-    (store/dispatch! *:store [:forms/create form-id data {:remove-nil? true}])
+    (store/dispatch! *:store [:forms/created form-id data {:remove-nil? true}])
     (when (nil? (search-validator data))
-      (store/dispatch! *:store [:resources/submit! ^:with-qp-sync? [:api.notes/select form-id] data])
+      (store/dispatch! *:store [:resources/submit! ^:with-qp-sync? [:api.notes/select! form-id] data])
       true)))
 
 (defn ^:private init-search-form! [{:keys [*:store form-id query-params]} contexts tags]
   (init* *:store form-id query-params contexts tags)
-  (store/subscribe *:store [:forms/form form-id]))
+  (store/subscribe *:store [:forms/?form form-id]))
 
 (defn ^:private qp-syncer [{:keys [*:store form-id]} contexts tags]
   (fn [_ _ _ route]
     (or (init* *:store form-id (:query-params route) contexts tags)
-        (store/dispatch! *:store [:resources/destroy [:api.notes/select form-id]]))))
+        (store/dispatch! *:store [:resources/destroyed [:api.notes/select! form-id]]))))
 
 (defn ^:private item-control [item]
   [:span item])
@@ -89,7 +89,7 @@
            [:em {:style {:margin-left "8px"}} "more..."])]])]))
 
 (defn ^:private root* [{:keys [*:store form-id sub:notes] :as attrs} [contexts tags]]
-  (r/with-let [sub:route (doto (store/subscribe *:store [:routing/route])
+  (r/with-let [sub:route (doto (store/subscribe *:store [:routing/?route])
                            (add-watch ::qp-sync (qp-syncer attrs contexts tags)))
                sub:form (init-search-form! attrs contexts tags)]
     (let [form @sub:form
@@ -100,7 +100,7 @@
                    :form         form
                    :errors       errors
                    :params       form-data
-                   :resource-key ^:with-qp-sync? [:api.notes/select form-id]
+                   :resource-key ^:with-qp-sync? [:api.notes/select! form-id]
                    :sub:res      sub:notes
                    :submit/body  [:<>
                                   [comp/icon :search]
@@ -115,9 +115,9 @@
 (defmethod ipages/page :routes.ui/search
   [{:keys [*:store query-params]}]
   (r/with-let [form-id (random-uuid)
-               sub:contexts (store/subscribe *:store [:resources/resource :api.contexts/select])
-               sub:tags (store/subscribe *:store [:resources/resource :api.tags/select])
-               sub:notes (store/subscribe *:store [:resources/resource [:api.notes/select form-id]])]
+               sub:contexts (store/subscribe *:store [:resources/?resource :api.contexts/select!])
+               sub:tags (store/subscribe *:store [:resources/?resource :api.tags/select!])
+               sub:notes (store/subscribe *:store [:resources/?resource [:api.notes/select! form-id]])]
     [:div.layout--stack-between
      [comp/with-resources [sub:contexts sub:tags] [root* {:*:store      *:store
                                                           :form-id      form-id
@@ -125,5 +125,5 @@
                                                           :sub:notes    sub:notes}]]
      [comp/with-resource sub:notes [search-results {:hide-init? true}]]]
     (finally
-      (store/dispatch! *:store [:resources/destroy [:api.notes/select form-id]])
-      (store/dispatch! *:store [:forms/destroy form-id]))))
+      (store/dispatch! *:store [:resources/destroyed [:api.notes/select! form-id]])
+      (store/dispatch! *:store [:forms/destroyed form-id]))))

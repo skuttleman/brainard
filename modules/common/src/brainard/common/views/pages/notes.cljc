@@ -13,13 +13,13 @@
 (defn ^:private diff-tags [old new]
   (let [removals (set/difference old new)]
     {:notes/tags!remove removals
-     :notes/tags         new}))
+     :notes/tags        new}))
 
 (defn ^:private tag-editor [{:keys [*:store form-id form sub:res sub:tags]} note]
   (let [data (forms/data form)
-        cancel-event [:forms/create form-id {:notes/tags (:notes/tags note)
-                                             ::editing?  false}]]
-    [ctrls/form {:*:store       *:store
+        cancel-event [:forms/created form-id {:notes/tags (:notes/tags note)
+                                              ::editing?  false}]]
+    [ctrls/form {:*:store      *:store
                  :form         form
                  :params       {:note-id  (:notes/id note)
                                 :old      note
@@ -47,17 +47,17 @@
      [comp/tag-list {:value tags}]
      [:em "no tags"])
    [:button.button {:on-click (fn [_]
-                                (store/dispatch! *:store [:forms/change form-id [::editing?] true]))}
+                                (store/dispatch! *:store [:forms/changed form-id [::editing?] true]))}
     "edit tags"]])
 
 (defn ^:private root* [*:store note]
   (r/with-let [form-id (doto (random-uuid)
                          (as-> $id (store/dispatch! *:store
-                                                    [:forms/create $id {:notes/tags (:notes/tags note)
-                                                                        ::editing?  false}])))
-               sub:form (store/subscribe *:store [:forms/form form-id])
-               sub:res (store/subscribe *:store [:resources/resource [:api.notes/update! form-id]])
-               sub:tags (store/subscribe *:store [:resources/resource :api.tags/select])]
+                                                    [:forms/created $id {:notes/tags (:notes/tags note)
+                                                                         ::editing?  false}])))
+               sub:form (store/subscribe *:store [:forms/?form form-id])
+               sub:res (store/subscribe *:store [:resources/?resource [:api.notes/update! form-id]])
+               sub:tags (store/subscribe *:store [:resources/?resource :api.tags/select!])]
     (let [form @sub:form
           attrs {:*:store  *:store
                  :form-id  form-id
@@ -71,13 +71,13 @@
          [tag-editor attrs note]
          [tag-list attrs note])])
     (finally
-      (store/dispatch! *:store [:forms/destroy form-id]))))
+      (store/dispatch! *:store [:forms/destroyed form-id]))))
 
 (defmethod ipages/page :routes.ui/note
   [{:keys [route-params *:store]}]
-  (r/with-let [sub:note (do (store/dispatch! *:store [:resources/submit! [:api.notes/find (:notes/id route-params)]])
-                            (store/subscribe *:store [:resources/resource [:api.notes/find (:notes/id route-params)]]))]
+  (r/with-let [sub:note (do (store/dispatch! *:store [:resources/submit! [:api.notes/find! (:notes/id route-params)]])
+                            (store/subscribe *:store [:resources/?resource [:api.notes/find! (:notes/id route-params)]]))]
     [comp/with-resource sub:note [root* *:store]]
     (finally
       (store/dispatch! *:store
-                       [:resources/destroy [:api.notes/find (:notes/id route-params)]]))))
+                       [:resources/destroyed [:api.notes/find! (:notes/id route-params)]]))))

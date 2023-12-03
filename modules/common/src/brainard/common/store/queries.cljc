@@ -2,19 +2,19 @@
   (:require
     [yast.core :as yast]))
 
-(defmethod yast/query :routing/route
+(defmethod yast/query :routing/?route
   [db _]
   (:routing/info db))
 
-(defmethod yast/query :resources/resource
+(defmethod yast/query :resources/?resource
   [db [_ handle]]
   (get-in db [:resources/resources handle] [:init]))
 
-(defmethod yast/query :forms/form
+(defmethod yast/query :forms/?form
   [db [_ form-id]]
   (get-in db [:forms/forms form-id]))
 
-(defmethod yast/query :toasts/toasts
+(defmethod yast/query :toasts/?toasts
   [db _]
   (->> (:toasts/toasts db)
        (sort-by key)

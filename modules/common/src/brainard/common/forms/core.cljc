@@ -52,4 +52,4 @@
                         (get-in (:remote result) path))
             :errors (when (not= :init status)
                       (get-in errors path))
-            :on-change [:forms/change (::id form) path]))))
+            :on-change [:forms/changed (::id form) path]))))

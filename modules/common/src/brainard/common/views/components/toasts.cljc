@@ -13,10 +13,10 @@
 
 (defn ^:private open-toast! [*:store {toast-id :id :as toast}]
   (when (= :init (:state toast))
-    (store/dispatch! *:store [:toasts/show toast-id]))
+    (store/dispatch! *:store [:toasts/shown toast-id]))
   (async/go
     (async/<! (async/timeout 5555))
-    (store/dispatch! *:store [:toasts/hide toast-id]))
+    (store/dispatch! *:store [:toasts/hide! toast-id]))
   toast)
 
 (defn ^:private toast-message [*:store {toast-id :id :as toast}]
@@ -37,12 +37,12 @@
          (and removing? height-val) (update :style assoc :margin-top (str "-" height-val "px")))
        [:div.message-body
         {:on-click (fn [_]
-                     (store/dispatch! *:store [:toasts/hide toast-id]))
+                     (store/dispatch! *:store [:toasts/hide! toast-id]))
          :style    {:cursor :pointer}}
         [:div.body-text body]]])))
 
 (defn toasts [*:store]
-  (r/with-let [sub:toasts (store/subscribe *:store [:toasts/toasts])]
+  (r/with-let [sub:toasts (store/subscribe *:store [:toasts/?toasts])]
     [:div.toast-container
      [:ul.toast-messages
       (doall (for [toast @sub:toasts]

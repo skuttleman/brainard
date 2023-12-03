@@ -20,7 +20,7 @@
   (let [form @sub:form
         data (forms/data form)
         errors (new-note-validator data)]
-    [ctrls/form {:*:store       *:store
+    [ctrls/form {:*:store      *:store
                  :form         form
                  :errors       errors
                  :params       {:data     data
@@ -52,11 +52,11 @@
 (defmethod ipages/page :routes.ui/home
   [{:keys [*:store]}]
   (r/with-let [form-id (doto (random-uuid)
-                         (as-> $id (store/dispatch! *:store [:forms/create $id new-note])))
-               sub:form (store/subscribe *:store [:forms/form form-id])
-               sub:contexts (store/subscribe *:store [:resources/resource :api.contexts/select])
-               sub:tags (store/subscribe *:store [:resources/resource :api.tags/select])
-               sub:res (store/subscribe *:store [:resources/resource [:api.notes/create! form-id]])]
+                         (as-> $id (store/dispatch! *:store [:forms/created $id new-note])))
+               sub:form (store/subscribe *:store [:forms/?form form-id])
+               sub:contexts (store/subscribe *:store [:resources/?resource :api.contexts/select!])
+               sub:tags (store/subscribe *:store [:resources/?resource :api.tags/select!])
+               sub:res (store/subscribe *:store [:resources/?resource [:api.notes/create! form-id]])]
     [root* {:*:store      *:store
             :form-id      form-id
             :sub:contexts sub:contexts
@@ -64,5 +64,5 @@
             :sub:res      sub:res
             :sub:tags     sub:tags}]
     (finally
-      (store/dispatch! *:store [:resources/destroy [:api.notes/create! form-id]])
-      (store/dispatch! *:store [:forms/destroy form-id]))))
+      (store/dispatch! *:store [:resources/destroyed [:api.notes/create! form-id]])
+      (store/dispatch! *:store [:forms/destroyed form-id]))))

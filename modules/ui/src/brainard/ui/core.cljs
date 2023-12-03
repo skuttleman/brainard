@@ -13,8 +13,8 @@
 
 (defonce ^:private store
   (doto (store/create)
-    (store/dispatch! [:resources/submit! :api.tags/select])
-    (store/dispatch! [:resources/submit! :api.contexts/select])))
+    (store/dispatch! [:resources/submit! :api.tags/select!])
+    (store/dispatch! [:resources/submit! :api.contexts/select!])))
 
 (defn load!
   "Called when new code is compiled in the browser."
@@ -27,7 +27,7 @@
   []
   (enable-console-print!)
   (set! nav/pushy-link (letfn [(dispatch [route]
-                                 (store/dispatch! store [:routing/navigate route]))]
+                                 (store/dispatch! store [:routing/navigated route]))]
                          (doto (pushy/pushy dispatch rte/match)
                            pushy/start!)))
   (load!))
