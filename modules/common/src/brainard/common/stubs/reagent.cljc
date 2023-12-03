@@ -16,4 +16,8 @@
 (defmacro with-let [bindings & body]
   (if (:ns &env)
     `(r*/with-let ~bindings ~@body)
-    `(let ~bindings (try ~@body))))
+    (let [form (last body)
+          body (cond-> body
+                 (and (list? form) (= 'finally (first form)))
+                 butlast)]
+      `(let ~bindings (try ~@body)))))

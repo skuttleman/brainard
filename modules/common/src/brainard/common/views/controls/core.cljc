@@ -15,6 +15,9 @@
     [brainard.common.views.controls.type-ahead :as type-ahead]
     [clojure.string :as string]))
 
+(defn ^:private disabled-compat [disabled]
+  #?(:clj true :default disabled))
+
 (defn ^:private dispatch-on-change [on-change *:store]
   (fn [value]
     (when on-change
@@ -74,7 +77,7 @@
            attrs
            [:textarea.textarea
             (-> {:value     value
-                 :disabled  disabled
+                 :disabled  (disabled-compat disabled)
                  :on-change (comp on-change dom/target-value)}
                 (merge (select-keys attrs #{:class :id :on-blur :ref})))]])))))
 
@@ -83,7 +86,7 @@
     (with-dispatch-on-change
       (fn [attrs]
         [form-field
-         attrs
+         (update attrs :disabled disabled-compat)
          [tags-editor/control attrs]]))))
 
 (def ^{:arglists '([attrs])} type-ahead
@@ -91,7 +94,7 @@
     (with-dispatch-on-change
       (fn [attrs]
         [form-field
-         attrs
+         (update attrs :disabled disabled-compat)
          [type-ahead/control attrs]]))))
 
 (def ^{:arglists '([attrs])} multi-dropdown
@@ -99,7 +102,7 @@
     (with-dispatch-on-change
       (fn [attrs]
         [form-field
-         attrs
+         (update attrs :disabled disabled-compat)
          [dd/control attrs]]))))
 
 (def ^{:arglists '([attrs])} single-dropdown
@@ -107,7 +110,7 @@
     (with-dispatch-on-change
       (fn [attrs]
         [form-field
-         attrs
+         (update attrs :disabled disabled-compat)
          [dd/control (dd/singleable attrs)]]))))
 
 (defn ^:private form-button-row [{:keys [buttons disabled requesting?] :as attrs}]
@@ -115,7 +118,7 @@
            [comp/plain-button
             {:class    ["is-primary" "submit"]
              :type     :submit
-             :disabled disabled}
+             :disabled (disabled-compat disabled)}
             (:submit/body attrs "Submit")]]
 
     requesting?
@@ -144,5 +147,5 @@
           (and form-errors (not init?))
           (conj [form-field-meta-list :error errors]))
         (conj [form-button-row (-> attrs
-                                   (update :disabled fns/or requesting? any-errors?)
+                                   (update :disabled (comp disabled-compat fns/or) requesting? any-errors?)
                                    (assoc :requesting? requesting?))]))))

@@ -1,14 +1,14 @@
 (ns brainard.common.store.core
   (:require
-    [yast.core :as yast]
+    [defacto.core :as defacto]
     [clojure.pprint :as pp]))
 
-(defmethod yast/query ::spy
+(defmethod defacto/query ::spy
   [db _]
   (select-keys db #{}))
 
 (defn ^:private add-dev-logger! [store]
-  (add-watch (yast/subscribe store [::spy])
+  (add-watch (defacto/subscribe store [::spy])
              (gensym)
              (fn [_ _ _ db]
                (when (seq db)
@@ -18,15 +18,16 @@
 (defn create
   ([]
    (create nil))
-  ([db-value]
-   (let [store (doto (yast/create db-value)
+  ([ctx]
+   (create ctx nil))
+  ([ctx db-value]
+   (let [store (doto (defacto/create ctx db-value)
                  add-dev-logger!)]
 
      store)))
 
 (defn dispatch! [store command]
-  #_(println "EMITTING!" command)
-  (yast/dispatch! store command))
+  (defacto/dispatch! store command))
 
 (defn subscribe [store query]
-  (yast/subscribe store query))
+  (defacto/subscribe store query))

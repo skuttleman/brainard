@@ -5,7 +5,7 @@
     [brainard.test.utils.spies :as spies]
     [clojure.core.async :as async]
     [clojure.test :refer [deftest is testing]]
-    [yast.core :as yast]))
+    [defacto.core :as defacto]))
 
 (deftest do-request-test
   (testing "when making a request"
@@ -18,18 +18,18 @@
                       :route        :routes.api/notes}
               calls (atom [])
               store (reify
-                      yast/IStore
+                      defacto/IStore
                       (-dispatch! [_ command]
                         (swap! calls conj command)))]
           (testing "and when the request succeeds"
-            (binding [store.api/*request-fn* (spies/on
-                                               (constantly
-                                                 (async/go
-                                                   {:status 200
-                                                    :body   {:data {:some :data}}})))]
-              (async/<! (store.api/request! store (assoc params :body {:ok? true})))
+            (let [request-fn (spies/on
+                               (constantly
+                                 (async/go
+                                   {:status 200
+                                    :body   {:data {:some :data}}})))]
+              (async/<! (store.api/request! store request-fn (assoc params :body {:ok? true})))
               (testing "makes an HTTP call"
-                (let [request (ffirst (spies/calls store.api/*request-fn*))]
+                (let [request (ffirst (spies/calls request-fn))]
                   (is (= {:request-method :post
                           :url            "/api/notes?some=param"
                           :body           "{:ok? true}"
@@ -43,15 +43,15 @@
                 (is (empty? more-events)))))
 
           (testing "and when the request fails"
-            (binding [store.api/*request-fn* (spies/on
-                                               (constantly (async/go
-                                                             {:status 400
-                                                              :body   {:errors [{:message "bad"
-                                                                                 :code    :BAD}]}})))]
+            (let [request-fn (spies/on
+                               (constantly (async/go
+                                             {:status 400
+                                              :body   {:errors [{:message "bad"
+                                                                 :code    :BAD}]}})))]
               (reset! calls [])
-              (async/<! (store.api/request! store (assoc params :body {:ok? false})))
+              (async/<! (store.api/request! store request-fn (assoc params :body {:ok? false})))
               (testing "makes an HTTP call"
-                (let [request (ffirst (spies/calls store.api/*request-fn*))]
+                (let [request (ffirst (spies/calls request-fn))]
                   (is (= {:request-method :post
                           :url            "/api/notes?some=param"
                           :body           "{:ok? false}"

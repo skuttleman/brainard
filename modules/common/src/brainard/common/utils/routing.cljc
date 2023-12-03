@@ -17,7 +17,8 @@
 (def ^:private resource-routes
   ["" [["/js/" [[true :routes.resources/js]]]
        ["/css/" [[true :routes.resources/css]]]
-       ["/img/" [[true :routes.resources/img]]]]])
+       ["/img/" [[true :routes.resources/img]]]
+       ["/favicon.ico" :routes.resources/not-found]]])
 
 (def ^:private ui-routes
   ["" [["/" :routes.ui/home]

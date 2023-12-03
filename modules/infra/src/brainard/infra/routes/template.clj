@@ -1,11 +1,11 @@
-(ns brainard.infra.routes.html
+(ns brainard.infra.routes.template
   (:require
     [clojure.string :as string]
-    [clojure.walk :as walk]
-    [hiccup.core :as hiccup])
-  (:import (clojure.lang MultiFn)))
+    [clojure.walk :as walk])
+  (:import
+    (clojure.lang MultiFn)))
 
-(defn ^:private into-template [tree]
+(defn ^:private into-template [store tree]
   [:html {:lang "en"}
    [:head
     [:meta {:charset "UTF-8"}]
@@ -21,6 +21,8 @@
             :type "text/css"}]
     [:link {:rel "stylesheet" :href "/css/main.css"}]
     [:title "Brainard"]
+    [:script {:type "application/javascript"}
+     "window.BRAINARD_INITIAL_DB = " (pr-str (pr-str @store))]
     [:script {:src "/js/main.js" :type "application/javascript" :defer true}]]
    [:body
     [:div#root
@@ -65,13 +67,15 @@
   (or (fn? node)
       (instance? MultiFn node)))
 
-(defn ^:private expand-tree [[node & args :as tree]]
-  (when-let [[node & args] (if (component? node)
+(defn expand-tree
+  "Recursively expands a tree of reagent components into a hiccup tree."
+  [[node & args :as tree]]
+  (when-let [[node & args] (if-not (component? node)
+                             tree
                              (loop [node (apply node args)]
                                (if (component? node)
                                  (recur (apply node args))
-                                 (expand-tree node)))
-                             tree)]
+                                 (expand-tree node))))]
     (into [node]
           (comp (map (partial expand* expand-tree))
                 (remove nil?))
@@ -79,9 +83,7 @@
 
 (defn render
   "Renders an HTML template"
-  [tree]
+  [store tree]
   (->> tree
        expand-tree
-       into-template
-       hiccup/html
-       (str "<!doctype html>")))
+       (into-template store)))

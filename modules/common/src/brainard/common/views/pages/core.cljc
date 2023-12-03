@@ -7,7 +7,7 @@
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.pages.interfaces :as ipages]
     brainard.common.views.pages.home
-    brainard.common.views.pages.notes
+    brainard.common.views.pages.note
     brainard.common.views.pages.search))
 
 (defmethod ipages/page :default

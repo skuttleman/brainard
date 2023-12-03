@@ -45,6 +45,6 @@
   (r/with-let [sub:toasts (store/subscribe *:store [:toasts/?toasts])]
     [:div.toast-container
      [:ul.toast-messages
-      (doall (for [toast @sub:toasts]
-               ^{:key (:id toast)}
-               [toast-message *:store (open-toast! *:store toast)]))]]))
+      (for [toast @sub:toasts]
+        ^{:key (:id toast)}
+        [toast-message *:store (open-toast! *:store toast)])]]))

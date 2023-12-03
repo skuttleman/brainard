@@ -17,13 +17,13 @@
   ([{:keys [size]}]
    [(keyword (str "div.loader." (name (or size :small))))]))
 
-(defn plain-button [{:keys [disabled] :as attrs} & content]
-  (-> attrs
-      (maps/assoc-defaults :type :button)
-      (assoc :disabled disabled)
-      (cond-> disabled (update :class (fnil conj []) "is-disabled"))
-      (->> (conj [:button.button]))
-      (into content)))
+(defn plain-button [attrs & content]
+  (let [disabled #?(:clj true :default (:disabled attrs))]
+    (-> attrs
+        (maps/assoc-defaults :type :button)
+        (cond-> disabled (update :class (fnil conj []) "is-disabled"))
+        (->> (conj [:button.button]))
+        (into content))))
 
 (defn plain-input [attrs]
   [:input.input

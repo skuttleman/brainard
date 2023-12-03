@@ -1,11 +1,12 @@
 (ns brainard.common.views.controls.tags-editor
-  "A tags editor reagent component."
+  "A tags-editor reagent component."
   (:require
     [brainard.common.forms.core :as forms]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.keywords :as kw]
+    [brainard.common.utils.uuids :as uuids]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.type-ahead :as type-ahead]
     [clojure.string :as string]))
@@ -29,7 +30,7 @@
       (store/dispatch! *:store [:forms/changed form-id [:invalid?] false]))))
 
 (defn control [{:keys [*:store] :as attrs}]
-  (r/with-let [form-id (doto (random-uuid)
+  (r/with-let [form-id (doto (uuids/random)
                          (as-> $id (store/dispatch! *:store [:forms/created $id])))
                sub:form (store/subscribe *:store [:forms/?form form-id])
                on-change (->update-form *:store form-id)]
@@ -43,7 +44,8 @@
                                                   [:value])
                                 (assoc :placeholder "Add tag..."
                                        :on-change on-change))]
-        [:button.button.is-link {:on-click (->add-tag attrs form-id form-data)}
+        [:button.button.is-link {:on-click (->add-tag attrs form-id form-data)
+                                 :disabled #?@(:clj true :default false)}
          "+"]]
        (when (:invalid? form-data)
          [:span "invalid tag"])

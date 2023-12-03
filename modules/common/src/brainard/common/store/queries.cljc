@@ -1,20 +1,20 @@
 (ns brainard.common.store.queries
   (:require
-    [yast.core :as yast]))
+    [defacto.core :as defacto]))
 
-(defmethod yast/query :routing/?route
+(defmethod defacto/query :routing/?route
   [db _]
   (:routing/info db))
 
-(defmethod yast/query :resources/?resource
+(defmethod defacto/query :resources/?resource
   [db [_ handle]]
   (get-in db [:resources/resources handle] [:init]))
 
-(defmethod yast/query :forms/?form
+(defmethod defacto/query :forms/?form
   [db [_ form-id]]
   (get-in db [:forms/forms form-id]))
 
-(defmethod yast/query :toasts/?toasts
+(defmethod defacto/query :toasts/?toasts
   [db _]
   (->> (:toasts/toasts db)
        (sort-by key)

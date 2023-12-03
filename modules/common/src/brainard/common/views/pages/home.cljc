@@ -51,8 +51,8 @@
 
 (defmethod ipages/page :routes.ui/home
   [{:keys [*:store]}]
-  (r/with-let [form-id (doto (random-uuid)
-                         (as-> $id (store/dispatch! *:store [:forms/created $id new-note])))
+  (r/with-let [form-id (doto ::forms/new-note
+                         (as-> $id (store/dispatch! *:store [:forms/ensure! $id new-note])))
                sub:form (store/subscribe *:store [:forms/?form form-id])
                sub:contexts (store/subscribe *:store [:resources/?resource :api.contexts/select!])
                sub:tags (store/subscribe *:store [:resources/?resource :api.tags/select!])

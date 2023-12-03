@@ -1,9 +1,11 @@
 (ns brainard.ui.core
   (:require
     [brainard.common.store.core :as store]
+    [brainard.common.stubs.dom :as dom]
     [brainard.common.utils.routing :as rte]
     [brainard.common.views.pages.core :as pages]
     [brainard.ui.services.navigation.core :as nav]
+    [cljs-http.client :as http]
     [pushy.core :as pushy]
     [reagent.dom :as rdom]
     brainard.common.store.queries
@@ -12,9 +14,7 @@
     brainard.common.store.queries))
 
 (defonce ^:private store
-  (doto (store/create)
-    (store/dispatch! [:resources/submit! :api.tags/select!])
-    (store/dispatch! [:resources/submit! :api.contexts/select!])))
+  (store/create {:services/http http/request} (:init-db dom/env)))
 
 (defn load!
   "Called when new code is compiled in the browser."

@@ -77,9 +77,7 @@
           input-spec (valid/input-specs spec-key)]
       (some-> input-spec (valid/validate! (:brainard/input req) ::valid/input-validation))
       (let [response (handler req)
-            output-spec (if (success? (:status response))
-                          (valid/output-specs spec-key)
-                          valid/api-errors)]
-        ;; TODO - dev only
+            output-spec (valid/output-specs spec-key)]
+        ;; TODO - only dev
         (some-> output-spec (valid/validate! (:body response) ::valid/output-validation))
         response))))

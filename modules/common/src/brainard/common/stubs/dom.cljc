@@ -1,12 +1,17 @@
 (ns brainard.common.stubs.dom
   "Some cljc-compatible wrappers for DOM inter-op."
   (:require
+    [brainard.common.utils.edn :as edn]
     [clojure.set :as set]))
-
-(defonce ^:private listeners (atom {}))
 
 (def ^:const window
   #?(:cljs js/window :default nil))
+
+(def ^:const env
+  #?(:cljs    {:init-db (-> window .-BRAINARD_INITIAL_DB edn/read-string)}
+     :default {}))
+
+(defonce ^:private listeners (atom {}))
 
 (def ^:private key->code
   {:key-codes/tab   9

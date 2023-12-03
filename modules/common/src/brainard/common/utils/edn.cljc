@@ -1,11 +1,10 @@
 (ns brainard.common.utils.edn
   "Utilities for reading EDN."
   (:refer-clojure :exclude [read read-string])
-  #?(:clj
-     (:require
-       [clojure.java.io :as io]
-       [clojure.edn :as edn*]
-       [clojure.string :as string]))
+  (:require
+    #?(:clj [clojure.java.io :as io])
+    [clojure.edn :as edn*]
+    [clojure.string :as string])
   #?(:clj
      (:import
        (java.io PushbackReader))))
@@ -20,10 +19,9 @@
          (.unread reader byte)
          (edn*/read reader)))))
 
-#?(:clj
-   (defn read-string [s]
-     (when-not (string/blank? s)
-       (edn*/read-string s))))
+(defn read-string [s]
+  (when-not (string/blank? s)
+    (edn*/read-string s)))
 
 #?(:clj
    (defn resource [resource-name]
