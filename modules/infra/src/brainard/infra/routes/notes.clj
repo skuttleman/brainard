@@ -4,8 +4,8 @@
     [brainard.infra.routes.interfaces :as iroutes]))
 
 (defmethod iroutes/req->input [:get :routes.api/notes]
-  [{:keys [params]}]
-  (let [{:keys [tags context]} params
+  [{:brainard/keys [route]}]
+  (let [{:keys [tags context]} (:query-params route)
         tags (cond
                (coll? tags) (into #{} (map keyword) tags)
                (nil? tags) #{}

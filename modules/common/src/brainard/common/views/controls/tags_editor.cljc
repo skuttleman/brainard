@@ -45,7 +45,7 @@
                                 (assoc :placeholder "Add tag..."
                                        :on-change on-change))]
         [:button.button.is-link {:on-click (->add-tag attrs form-id form-data)
-                                 :disabled #?@(:clj true :default false)}
+                                 :disabled #?(:clj true :default false)}
          "+"]]
        (when (:invalid? form-data)
          [:span "invalid tag"])

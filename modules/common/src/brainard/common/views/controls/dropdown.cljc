@@ -33,7 +33,7 @@
         content (if attrs->content
                   (attrs->content attrs)
                   (case selected-count
-                    0 "Select…"
+                    0 "Select..."
                     1 "1 Item Selected"
                     (str selected-count " Items Selected")))]
     [comp/plain-button

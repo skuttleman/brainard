@@ -17,14 +17,14 @@
   (emit action))
 
 (defmethod defacto/command-handler :forms/ensure!
-  [{::defacto/keys [store]} [_ form-id & args] emit]
+  [{::defacto/keys [store]} [_ form-id & more] emit]
   (when-not (get-in @store [:forms/forms form-id])
-    (emit (into [:forms/created form-id] args))))
+    (emit (into [:forms/created form-id] more))))
 
 (defmethod defacto/command-handler :resources/ensure!
-  [{::defacto/keys [store]} [_ resource-id] _]
+  [{::defacto/keys [store]} [_ resource-id & more] _]
   (when-not (get-in @store [:resources/resources resource-id])
-    (store/dispatch! store [:resources/submit! resource-id])))
+    (store/dispatch! store (into [:resources/submit! resource-id] more))))
 
 (defmethod defacto/command-handler :resources/submit!
   [{::defacto/keys [store]} [_ resource-id params] emit]

@@ -48,7 +48,7 @@
   "Resolves \"requests\" made from the ui store during HTML hydration"
   (-> iroutes/handler
       mw/with-spec-validation
-      (mw/with-input {:req->input iroutes/req->input})
+      mw/with-input
       mw/with-routing))
 
 (defn ^:private hydrate [{:brainard/keys [apis route]}]
@@ -58,8 +58,8 @@
                                                  (-> req
                                                      (assoc :brainard/apis apis)
                                                      handler))})
-                (defacto/dispatch! [:resources/ensure! :api.tags/select!])
-                (defacto/dispatch! [:resources/ensure! :api.contexts/select!]))]
+                (defacto/dispatch! [:resources/submit! :api.tags/select!])
+                (defacto/dispatch! [:resources/submit! :api.contexts/select!]))]
     (->> (routes.tmpl/render store [pages/page store route])
          hiccup/html
          (str "<!doctype html>"))))

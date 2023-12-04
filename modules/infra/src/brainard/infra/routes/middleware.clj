@@ -38,13 +38,15 @@
     (try (handler req)
          (catch Throwable ex
            (log/error ex (ex-message ex) (ex-data ex))
+           (clojure.pprint/pprint ex)
            (routes.err/ex->response (ex-data ex))))))
 
 (defn with-routing
   "Includes routing data on the request."
   [handler]
   (fn [req]
-    (let [route-info (rte/match (:uri req))]
+    (let [route-info (rte/match (cond-> (:uri req)
+                                  (:query-string req) (str "?" (:query-string req))))]
       (handler (assoc req :brainard/route route-info)))))
 
 (defn with-edn
@@ -65,9 +67,9 @@
 
 (defn with-input
   "Includes route input as :brainard/input via [[iroutes/req->input]]"
-  [handler {:keys [req->input]}]
+  [handler]
   (fn [req]
-    (handler (assoc req :brainard/input (req->input req)))))
+    (handler (assoc req :brainard/input (iroutes/req->input req)))))
 
 (defn with-spec-validation
   "Handles input/output spec validation for spec'd routes."
