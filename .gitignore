@@ -1,6 +1,7 @@
 .cpcache/
 .idea/
 .shadow-cljs/
+classes/
 node_modules/
 resources/public/js/
 resources/public/css/

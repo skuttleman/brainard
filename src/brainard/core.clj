@@ -1,5 +1,6 @@
 (ns brainard.core
   "brainard: 'cause absent-minded people need help 'membering junk"
+  (:gen-class)
   (:require
     [brainard.common.utils.logger :as log]
     [brainard.infra.services.system :as sys]

@@ -4,10 +4,12 @@
            nrepl/nrepl               {:mvn/version "1.0.0"}
            org.clojure/clojure       {:mvn/version "1.11.1"}
            org.clojure/clojurescript {:mvn/version "1.10.844"}}
- :aliases {:dev {:extra-paths ["dev/resources"
-                               "dev/src"
-                               "modules/infra/test"
-                               "modules/api/test"
-                               "modules/common/test"
-                               "modules/ui/test"]
-                 :extra-deps  {thheller/shadow-cljs {:mvn/version "2.12.5"}}}}}
+ :aliases {:dev     {:extra-paths ["dev/resources"
+                                   "dev/src"
+                                   "modules/infra/test"
+                                   "modules/api/test"
+                                   "modules/common/test"
+                                   "modules/ui/test"]}
+           :shadow  {:extra-deps {thheller/shadow-cljs {:mvn/version "2.12.5"}}}
+           :uberjar {:extra-deps  {uberdeps/uberdeps {:mvn/version "1.0.4"}}
+                     :extra-paths ["classes"]}}}

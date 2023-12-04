@@ -1,5 +1,6 @@
 (ns brainard.common.store.core
   (:require
+    [brainard.common.stubs.reagent :as r]
     [defacto.core :as defacto]
     [clojure.pprint :as pp]))
 
@@ -21,10 +22,8 @@
   ([ctx]
    (create ctx nil))
   ([ctx db-value]
-   (let [store (doto (defacto/create ctx db-value)
-                 add-dev-logger!)]
-
-     store)))
+   (doto (defacto/create ctx db-value r/atom)
+     add-dev-logger!)))
 
 (defn dispatch! [store command]
   (defacto/dispatch! store command))
