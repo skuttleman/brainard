@@ -4,7 +4,7 @@
     [defacto.core :as defacto]
     [clojure.pprint :as pp]))
 
-(defmethod defacto/query ::?spy
+(defmethod defacto/query-handler ::all
   [db _]
   (select-keys db #{}))
 
@@ -13,7 +13,7 @@
   (emit-cb (into event more)))
 
 (defn ^:private add-dev-logger! [store]
-  (add-watch (defacto/subscribe store [::?spy])
+  (add-watch (defacto/subscribe store [::all])
              (gensym)
              (fn [_ _ _ db]
                (when (seq db)

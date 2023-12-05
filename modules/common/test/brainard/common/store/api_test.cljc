@@ -7,15 +7,14 @@
     [clojure.test :refer [deftest is testing]]
     [defacto.core :as defacto]))
 
-(deftest do-request-test
+(deftest do-request-test #_request!-test
   (testing "when making a request"
     (tu/async done
       (async/go
-        (let [params {:on-success-n [[:event-1] [:event-2 {:some :details}]]
-                      :on-error-n   [[:error-event]]
-                      :params       {:query-params {:some :param}}
-                      :method       :post
-                      :route        :routes.api/notes}
+        (let [params {::store.api/spec :api.notes/select!
+                      :params          {:query-params {:some :param}}
+                      :on-success-n    [[:event-1] [:event-2 {:some :details}]]
+                      :on-error-n      [[:error-event]]}
               calls (atom [])
               store (reify
                       defacto/IStore
@@ -24,43 +23,42 @@
           (testing "and when the request succeeds"
             (let [request-fn (spies/on
                                (constantly
-                                 (async/go
-                                   {:status 200
-                                    :body   {:data {:some :data}}})))]
-              (async/<! (store.api/request! store request-fn (assoc params :body {:ok? true})))
+                                 {:status 200
+                                  :body   {:data {:some :data}}}))]
+              (#?(:cljs async/<! :default do) (store.api/request! store request-fn params))
               (testing "makes an HTTP call"
                 (let [request (ffirst (spies/calls request-fn))]
-                  (is (= {:request-method :post
+                  (is (= {:request-method :get
                           :url            "/api/notes?some=param"
-                          :body           "{:ok? true}"
+                          :body           nil
                           :headers        {"content-type" "application/edn"}}
                          request)))))
 
             (testing "dispatches success event"
-              (let [[event-1 event-2 & more-events] @calls]
-                (is (= event-1 [:event-1 {:some :data}]))
-                (is (= event-2 [:event-2 {:some :details} {:some :data}]))
-                (is (empty? more-events)))))
+              (let [events (into {} (map (juxt first identity)) @calls)]
+                (is (= (:event-1 events) [:event-1 {:some :data}]))
+                (is (= (:event-2 events) [:event-2 {:some :details} {:some :data}]))
+                (is (not (contains? events :error-event))))))
 
           (testing "and when the request fails"
             (let [request-fn (spies/on
-                               (constantly (async/go
-                                             {:status 400
-                                              :body   {:errors [{:message "bad"
-                                                                 :code    :BAD}]}})))]
+                               (constantly {:status 400
+                                            :body   {:errors [{:message "bad"
+                                                               :code    :BAD}]}}))]
               (reset! calls [])
-              (async/<! (store.api/request! store request-fn (assoc params :body {:ok? false})))
+              (#?(:cljs async/<! :default do) (store.api/request! store request-fn params))
               (testing "makes an HTTP call"
                 (let [request (ffirst (spies/calls request-fn))]
-                  (is (= {:request-method :post
+                  (is (= {:request-method :get
                           :url            "/api/notes?some=param"
-                          :body           "{:ok? false}"
+                          :body           nil
                           :headers        {"content-type" "application/edn"}}
                          request)))))
 
             (testing "dispatches error event"
-              (let [[event & more-events] @calls]
-                (is (= event [:error-event [{:message "bad"
-                                             :code    :BAD}]]))
-                (is (empty? more-events))))))
+              (let [events (into {} (map (juxt first identity)) @calls)]
+                (is (= (:error-event events) [:error-event [{:message "bad"
+                                                             :code    :BAD}]]))
+                (is (not (contains? events :event-1)))
+                (is (not (contains? events :event-2)))))))
         (done)))))

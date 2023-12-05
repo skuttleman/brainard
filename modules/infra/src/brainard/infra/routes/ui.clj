@@ -9,8 +9,7 @@
     [brainard.infra.routes.response :as routes.res]
     [clojure.set :as set]
     [defacto.core :as defacto]
-    [hiccup.core :as hiccup])
-  (:import (clojure.lang IDeref IRef)))
+    [hiccup.core :as hiccup]))
 
 (defn ^:private cljs-http->ring [handler]
   (fn [req]
@@ -24,26 +23,6 @@
       (catch Throwable ex
         (routes.err/ex->response (ex-data ex))))))
 
-(deftype UIStore [db ctx]
-  IDeref
-  (deref [_] @db)
-
-  defacto/IStore
-  (-dispatch! [this command]
-    (defacto/command-handler (assoc ctx ::defacto/store this)
-                             command
-                             (fn [event]
-                               (vswap! db defacto/event-handler event)
-                               nil)))
-  (-subscribe [_ query]
-    (reify
-      IDeref
-      (deref [_] (defacto/query @db query))
-
-      IRef
-      (addWatch [this _ _] this)
-      (removeWatch [this _] this))))
-
 (def ^:private ui-handler
   "Resolves \"requests\" made from the ui store during HTML hydration"
   (-> iroutes/handler
@@ -53,11 +32,11 @@
 
 (defn ^:private hydrate [{:brainard/keys [apis route]}]
   (let [handler (cljs-http->ring ui-handler)
-        store (doto (->UIStore (volatile! nil)
-                               {:services/http (fn [req]
-                                                 (-> req
-                                                     (assoc :brainard/apis apis)
-                                                     handler))})
+        ctx {:services/http (fn [req]
+                              (-> req
+                                  (assoc :brainard/apis apis)
+                                  handler))}
+        store (doto (defacto/->WatchableStore ctx (atom nil))
                 (defacto/dispatch! [:resources/submit! :api.tags/select!])
                 (defacto/dispatch! [:resources/submit! :api.contexts/select!]))]
     (->> (routes.tmpl/render store [pages/page store route])

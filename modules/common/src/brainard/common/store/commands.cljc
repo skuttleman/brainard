@@ -25,7 +25,7 @@
   [{::defacto/keys [store]} [_ resource-id params] emit-cb]
   (let [resource (colls/wrap-vector resource-id)
         mixins (meta resource)
-        {:keys [handler route-params]} (defacto/query @store [:routing/?route])]
+        {:keys [handler route-params]} (defacto/query-handler @store [:routing/?route])]
     (emit-cb [:resources/submitted resource-id])
     (store/dispatch! store (conj resource params))
     (when (:with-qp-sync? mixins)
@@ -56,15 +56,16 @@
 
 (defmethod defacto/command-handler :api.notes/create!
   [{::defacto/keys [store] :services/keys [http]} [_ resource-id {:keys [data reset-to]}] _]
-  (store.api/request! store
-                      http
-                      {::store.api/spec :api.notes/create!
-                       :resource/id     resource-id
-                       :body            data
-                       :on-success-n    (if reset-to
-                                          [[::store/emit! [:forms/created resource-id reset-to]]
-                                           [::store/emit! [:resources/destroyed [:api.notes/create! resource-id]]]]
-                                          [[::store/emit! [:resources/succeeded [:api.notes/create! resource-id]]]])}))
+  (let [on-success-n (if reset-to
+                       [[::store/emit! [:forms/created resource-id reset-to]]
+                        [::store/emit! [:resources/destroyed [:api.notes/create! resource-id]]]]
+                       [[::store/emit! [:resources/succeeded [:api.notes/create! resource-id]]]])]
+    (store.api/request! store
+                        http
+                        {::store.api/spec :api.notes/create!
+                         :resource/id     resource-id
+                         :body            data
+                         :on-success-n    on-success-n})))
 
 (defmethod defacto/command-handler :api.notes/update!
   [{::defacto/keys [store] :services/keys [http]} [_ resource-id {:keys [note-id data fetch? reset-to]}] _]
