@@ -2,7 +2,7 @@
  :deps  {bidi/bidi                 {:mvn/version "2.1.6"
                                     :exclusions  [ring/ring-core]}
          com.ben-allred/defacto    {:git/url "https://github.com/skuttleman/defacto"
-                                    :sha     "2f12bc5881ebcde1d6fd8552af93b68b4349bcbf"}
+                                    :sha     "3f8255485be31efc3b7277e5404d19935a07d9a4"}
          com.fzakaria/slf4j-timbre {:mvn/version "0.3.21"}
          com.taoensso/timbre       {:mvn/version "6.0.4"}
          danlentz/clj-uuid         {:mvn/version "0.1.9"}
