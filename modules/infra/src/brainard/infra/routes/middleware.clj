@@ -1,9 +1,9 @@
 (ns brainard.infra.routes.middleware
   (:require
-    [brainard.common.validations.core :as valid]
     [brainard.common.utils.edn :as edn]
     [brainard.common.utils.logger :as log]
     [brainard.common.utils.routing :as rte]
+    [brainard.common.validations.core :as valid]
     [brainard.infra.routes.errors :as routes.err]
     [brainard.infra.routes.interfaces :as iroutes]
     [clojure.string :as string]

@@ -11,15 +11,10 @@
      (:import
        (java.util Date))))
 
-;; TODO - no
-(defmethod defacto/command-handler :default
-  [_ action emit]
-  (emit action))
-
 (defmethod defacto/command-handler :forms/ensure!
-  [{::defacto/keys [store]} [_ form-id & more] emit]
+  [{::defacto/keys [store]} [_ form-id & more] emit-cb]
   (when-not (get-in @store [:forms/forms form-id])
-    (emit (into [:forms/created form-id] more))))
+    (emit-cb (into [:forms/created form-id] more))))
 
 (defmethod defacto/command-handler :resources/ensure!
   [{::defacto/keys [store]} [_ resource-id & more] _]
@@ -27,11 +22,11 @@
     (store/dispatch! store (into [:resources/submit! resource-id] more))))
 
 (defmethod defacto/command-handler :resources/submit!
-  [{::defacto/keys [store]} [_ resource-id params] emit]
+  [{::defacto/keys [store]} [_ resource-id params] emit-cb]
   (let [resource (colls/wrap-vector resource-id)
         mixins (meta resource)
         {:keys [handler route-params]} (defacto/query @store [:routing/?route])]
-    (emit [:resources/submitted resource-id])
+    (emit-cb [:resources/submitted resource-id])
     (store/dispatch! store (conj resource params))
     (when (:with-qp-sync? mixins)
       #?(:cljs
@@ -43,8 +38,8 @@
                       http
                       {:route        :routes.api/tags
                        :method       :get
-                       :on-success-n [[:resources/succeeded :api.tags/select!]]
-                       :on-error-n   [[:resources/failed :api.tags/select! :remote]]}))
+                       :on-success-n [[::store/emit! [:resources/succeeded :api.tags/select!]]]
+                       :on-error-n   [[::store/emit! [:resources/failed :api.tags/select! :remote]]]}))
 
 (defmethod defacto/command-handler :api.contexts/select!
   [{::defacto/keys [store] :services/keys [http]} _ _]
@@ -52,8 +47,8 @@
                       http
                       {:route        :routes.api/contexts
                        :method       :get
-                       :on-success-n [[:resources/succeeded :api.contexts/select!]]
-                       :on-error-n   [[:resources/failed :api.contexts/select! :remote]]}))
+                       :on-success-n [[::store/emit! [:resources/succeeded :api.contexts/select!]]]
+                       :on-error-n   [[::store/emit! [:resources/failed :api.contexts/select! :remote]]]}))
 
 (defmethod defacto/command-handler :api.notes/select!
   [{::defacto/keys [store] :services/keys [http]} [_ resource-id params] _]
@@ -62,8 +57,8 @@
                       {:route        :routes.api/notes
                        :method       :get
                        :params       {:query-params params}
-                       :on-success-n [[:resources/succeeded [:api.notes/select! resource-id]]]
-                       :on-error-n   [[:resources/failed [:api.notes/select! resource-id] :remote]]}))
+                       :on-success-n [[::store/emit! [:resources/succeeded [:api.notes/select! resource-id]]]]
+                       :on-error-n   [[::store/emit! [:resources/failed [:api.notes/select! resource-id] :remote]]]}))
 
 (defmethod defacto/command-handler :api.notes/find!
   [{::defacto/keys [store] :services/keys [http]} [_ resource-id] _]
@@ -72,8 +67,8 @@
                       {:route        :routes.api/note
                        :method       :get
                        :params       {:notes/id resource-id}
-                       :on-success-n [[:resources/succeeded [:api.notes/find! resource-id]]]
-                       :on-error-n   [[:resources/failed [:api.notes/find! resource-id] :remote]]}))
+                       :on-success-n [[::store/emit! [:resources/succeeded [:api.notes/find! resource-id]]]]
+                       :on-error-n   [[::store/emit! [:resources/failed [:api.notes/find! resource-id] :remote]]]}))
 
 (defmethod defacto/command-handler :api.notes/create!
   [{::defacto/keys [store] :services/keys [http]} [_ resource-id {:keys [data reset-to]}] _]
@@ -83,37 +78,37 @@
                        :method       :post
                        :body         data
                        :on-success-n (cond-> [[:toasts/succeed! {:message "note created"}]
-                                              [:resources/note-saved]]
+                                              [::store/emit! [:resources/note-saved]]]
                                        reset-to
-                                       (conj [:forms/created resource-id reset-to]
-                                             [:resources/destroyed [:api.notes/create! resource-id]])
+                                       (conj [::store/emit! [:forms/created resource-id reset-to]]
+                                             [::store/emit! [:resources/destroyed [:api.notes/create! resource-id]]])
 
                                        (nil? reset-to)
-                                       (conj [:resources/succeeded [:api.notes/create! resource-id]]))
+                                       (conj [::store/emit! [:resources/succeeded [:api.notes/create! resource-id]]]))
                        :on-error-n   [[:toasts/fail!]
-                                      [:resources/failed [:api.notes/create! resource-id] :remote]]}))
+                                      [::store/emit! [:resources/failed [:api.notes/create! resource-id] :remote]]]}))
 
 (defmethod defacto/command-handler :api.notes/update!
   [{::defacto/keys [store] :services/keys [http]} [_ resource-id {:keys [note-id data fetch? reset-to]}] _]
   (store.api/request! store
                       http
                       {:route        :routes.api/note
-                       :params {:notes/id note-id}
+                       :params       {:notes/id note-id}
                        :method       :patch
                        :body         data
                        :on-success-n (cond-> [[:toasts/succeed! {:message "note updated"}]
-                                              [:resources/note-saved]]
+                                              [::store/emit! [:resources/note-saved]]]
                                        reset-to
-                                       (conj [:forms/created resource-id reset-to]
-                                             [:resources/destroyed [:api.notes/update! resource-id]])
+                                       (conj [::store/emit! [:forms/created resource-id reset-to]]
+                                             [::store/emit! [:resources/destroyed [:api.notes/update! resource-id]]])
 
                                        (nil? reset-to)
-                                       (conj [:resources/succeeded [:api.notes/update! resource-id]])
+                                       (conj [::store/emit! [:resources/succeeded [:api.notes/update! resource-id]]])
 
                                        fetch?
                                        (conj [:resources/submit! [:api.notes/find! note-id]]))
                        :on-error-n   [[:toasts/fail!]
-                                      [:resources/failed [:api.notes/update! resource-id] :remote]]}))
+                                      [::store/emit! [:resources/failed [:api.notes/update! resource-id] :remote]]]}))
 
 (defmethod defacto/command-handler :toasts/succeed!
   [{::defacto/keys [store]} [_ {:keys [message]}] _]
@@ -127,15 +122,15 @@
     (store/dispatch! store [:toasts/create! :error msg])))
 
 (defmethod defacto/command-handler :toasts/hide!
-  [{::defacto/keys [store]} [_ toast-id] emit]
-  (emit [:toasts/hidden toast-id])
+  [_ [_ toast-id] emit-cb]
+  (emit-cb [:toasts/hidden toast-id])
   (async/go
     (async/<! (async/timeout 650))
-    (store/dispatch! store [:toasts/destroyed toast-id])))
+    (emit-cb [:toasts/destroyed toast-id])))
 
 (defmethod defacto/command-handler :toasts/create!
-  [_ [_ level body] emit]
+  [_ [_ level body] emit-cb]
   (let [toast-id #?(:cljs (.getTime (js/Date.)) :default (.getTime (Date.)))]
-    (emit [:toasts/created toast-id {:state :init
-                                    :level level
-                                    :body  body}])))
+    (emit-cb [:toasts/created toast-id {:state :init
+                                        :level level
+                                        :body  body}])))

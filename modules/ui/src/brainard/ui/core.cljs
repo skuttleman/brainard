@@ -27,7 +27,7 @@
   []
   (enable-console-print!)
   (set! nav/pushy-link (letfn [(dispatch [route]
-                                 (store/dispatch! store [:routing/navigated route]))]
+                                 (store/dispatch! store [::store/emit! [:routing/navigated route]]))]
                          (doto (pushy/pushy dispatch rte/match)
                            pushy/start!)))
   (load!))

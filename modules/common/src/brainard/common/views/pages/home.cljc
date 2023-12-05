@@ -31,20 +31,20 @@
      [ctrls/type-ahead (-> {:*:store   *:store
                             :label     "Context"
                             :sub:items sub:contexts}
-                           (forms/with-attrs form
+                           (ctrls/with-attrs form
                                              sub:res
                                              [:notes/context]
                                              errors))]
      [ctrls/textarea (-> {:label   "Body"
                           :*:store *:store}
-                         (forms/with-attrs form
+                         (ctrls/with-attrs form
                                            sub:res
                                            [:notes/body]
                                            errors))]
      [ctrls/tags-editor (-> {:*:store   *:store
                              :label     "Tags"
                              :sub:items sub:tags}
-                            (forms/with-attrs form
+                            (ctrls/with-attrs form
                                               sub:res
                                               [:notes/tags]
                                               errors))]]))
@@ -64,5 +64,5 @@
             :sub:res      sub:res
             :sub:tags     sub:tags}]
     (finally
-      (store/dispatch! *:store [:resources/destroyed [:api.notes/create! form-id]])
-      (store/dispatch! *:store [:forms/destroyed form-id]))))
+      (store/dispatch! *:store [::store/emit! [:resources/destroyed [:api.notes/create! form-id]]])
+      (store/dispatch! *:store [::store/emit! [:forms/destroyed form-id]]))))

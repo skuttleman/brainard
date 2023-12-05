@@ -24,4 +24,5 @@
       mw/with-edn
       mw/with-routing
       mw/with-error-handling
-      (mw/with-logging {:xform (remove asset?)})))
+      (mw/with-logging {:xform (remove asset?)})
+      (ring.rel/wrap-reload {:dirs ["src" "modules/infra/src" "modules/common/src" "modules/infra/api"]})))

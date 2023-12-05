@@ -17,8 +17,8 @@
 
 (defn ^:private tag-editor [{:keys [*:store form-id form sub:res sub:tags]} note]
   (let [data (forms/data form)
-        cancel-event [:forms/created form-id {:notes/tags (:notes/tags note)
-                                              ::editing?  false}]]
+        cancel-event [::store/emit! [:forms/created form-id {:notes/tags (:notes/tags note)
+                                                             ::editing?  false}]]]
     [ctrls/form {:*:store      *:store
                  :form         form
                  :params       {:note-id  (:notes/id note)
@@ -37,7 +37,7 @@
      [ctrls/tags-editor (-> {:*:store   *:store
                              :label     "Tags"
                              :sub:items sub:tags}
-                            (forms/with-attrs form
+                            (ctrls/with-attrs form
                                               sub:res
                                               [:notes/tags]))]]))
 
@@ -48,7 +48,7 @@
      [:em "no tags"])
    [:button.button {:disabled #?(:clj true :default false)
                     :on-click (fn [_]
-                                (store/dispatch! *:store [:forms/changed form-id [::editing?] true]))}
+                                (store/dispatch! *:store [::store/emit! [:forms/changed form-id [::editing?] true]]))}
     "edit tags"]])
 
 (defn ^:private root* [*:store note]
@@ -72,7 +72,7 @@
          [tag-editor attrs note]
          [tag-list attrs note])])
     (finally
-      (store/dispatch! *:store [:forms/destroyed form-id]))))
+      (store/dispatch! *:store [::store/emit! [:forms/destroyed form-id]]))))
 
 (defmethod ipages/page :routes.ui/note
   [{:keys [route-params *:store]}]
@@ -81,4 +81,4 @@
     [comp/with-resource sub:note [root* *:store]]
     (finally
       (store/dispatch! *:store
-                       [:resources/destroyed [:api.notes/find! (:notes/id route-params)]]))))
+                       [::store/emit! [:resources/destroyed [:api.notes/find! (:notes/id route-params)]]]))))

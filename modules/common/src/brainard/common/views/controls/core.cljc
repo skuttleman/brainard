@@ -5,6 +5,7 @@
    [input {:on-change [:my-event]}]"
   (:require
     [brainard.common.forms.core :as forms]
+    [brainard.common.views.controls.shared :as shared]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
@@ -138,7 +139,7 @@
                            (dom/prevent-default! e)
                            (when (or init? (forms/changed? form))
                              (if errors
-                               (store/dispatch! *:store [:resources/failed resource-key :local errors])
+                               (store/dispatch! *:store [::store/emit! [:resources/failed resource-key :local errors]])
                                (store/dispatch! *:store [:resources/submit! resource-key params]))))}
              (merge (select-keys attrs #{:class :style}))
              (cond-> any-errors? (update :class conj "errors")))]
@@ -149,3 +150,7 @@
         (conj [form-button-row (-> attrs
                                    (update :disabled (comp disabled-compat fns/or) requesting? any-errors?)
                                    (assoc :requesting? requesting?))]))))
+
+(def ^{:arglists '([attrs form sub:res path] [attrs form sub:res path errors])} with-attrs
+  "Prepares common form attributes used by controls in [[brainard.common.views.controls.core]]. "
+  shared/with-attrs)
