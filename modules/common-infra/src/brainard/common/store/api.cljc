@@ -1,6 +1,5 @@
 (ns brainard.common.store.api
   (:require
-    #?(:cljs [cljs-http.client :as http])
     [brainard.common.utils.routing :as rte]
     [brainard.common.store.core :as store]
     [clojure.core.async :as async]))

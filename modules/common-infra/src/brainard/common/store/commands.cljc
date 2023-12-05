@@ -1,9 +1,9 @@
 (ns brainard.common.store.commands
   (:require
-    #?(:cljs [brainard.ui.services.navigation.core :as nav])
-    [brainard.common.store.core :as store]
-    [brainard.common.utils.colls :as colls]
     [brainard.common.store.api :as store.api]
+    [brainard.common.store.core :as store]
+    [brainard.common.stubs.nav :as nav]
+    [brainard.common.utils.colls :as colls]
     [clojure.core.async :as async]
     [clojure.string :as string]
     [defacto.core :as defacto])
@@ -29,8 +29,7 @@
     (emit-cb [:resources/submitted resource-id])
     (store/dispatch! store (conj resource params))
     (when (:with-qp-sync? mixins)
-      #?(:cljs
-         (nav/navigate! handler (assoc route-params :query-params params))))))
+      (nav/navigate! handler (assoc route-params :query-params params)))))
 
 (defmethod defacto/command-handler :api.tags/select!
   [{::defacto/keys [store] :services/keys [http]} _ _]
@@ -72,18 +71,18 @@
   (store.api/request! store
                       http
                       {::store.api/spec :api.notes/update!
-                       :params       {:notes/id note-id}
-                       :body         data
-                       :on-success-n (cond-> []
-                                       reset-to
-                                       (conj [::store/emit! [:forms/created resource-id reset-to]]
-                                             [::store/emit! [:resources/destroyed [:api.notes/update! resource-id]]])
+                       :params          {:notes/id note-id}
+                       :body            data
+                       :on-success-n    (cond-> []
+                                          reset-to
+                                          (conj [::store/emit! [:forms/created resource-id reset-to]]
+                                                [::store/emit! [:resources/destroyed [:api.notes/update! resource-id]]])
 
-                                       (nil? reset-to)
-                                       (conj [::store/emit! [:resources/succeeded [:api.notes/update! resource-id]]])
+                                          (nil? reset-to)
+                                          (conj [::store/emit! [:resources/succeeded [:api.notes/update! resource-id]]])
 
-                                       fetch?
-                                       (conj [:resources/submit! [:api.notes/find! note-id]]))}))
+                                          fetch?
+                                          (conj [:resources/submit! [:api.notes/find! note-id]]))}))
 
 (defmethod defacto/command-handler :toasts/succeed!
   [{::defacto/keys [store]} [_ {:keys [message]}] _]

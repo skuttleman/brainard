@@ -1,0 +1,4 @@
+{:paths ["src"]
+ :deps  {skuttleman/defacto {:git/url "https://github.com/skuttleman/defacto"
+                             :sha     "480b4cfde665d0ae4b3b2e23a29047867292e936"}
+         kibu/pushy         {:mvn/version "0.3.8"}}}

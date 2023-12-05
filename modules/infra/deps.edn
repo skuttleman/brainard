@@ -1,6 +1,7 @@
 {:paths ["src"]
  :deps  {brainard/api          {:local/root "../api"}
-         brainard/common       {:local/root "../common"}
+         brainard/common-core  {:local/root "../common-core"}
+         brainard/common-infra {:local/root "../common-infra"}
          com.datomic/local     {:mvn/version "1.0.267"}
          duct/core             {:mvn/version "0.8.0"}
          hiccup/hiccup         {:mvn/version "1.0.5"}

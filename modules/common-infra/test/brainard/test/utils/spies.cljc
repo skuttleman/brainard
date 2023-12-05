@@ -1,6 +1,5 @@
 (ns brainard.test.utils.spies
-  (:refer-clojure :exclude [constantly]
-                  ))
+  (:refer-clojure :exclude [constantly]))
 
 (def ^:private ^:const init-state
   {:calls []})

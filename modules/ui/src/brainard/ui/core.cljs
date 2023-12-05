@@ -4,7 +4,7 @@
     [brainard.common.stubs.dom :as dom]
     [brainard.common.utils.routing :as rte]
     [brainard.common.views.pages.core :as pages]
-    [brainard.ui.services.navigation.core :as nav]
+    [brainard.common.stubs.nav :as nav]
     [cljs-http.client :as http]
     [pushy.core :as pushy]
     [reagent.dom :as rdom]
