@@ -25,7 +25,7 @@
   [{::defacto/keys [store]} [_ resource-id params] emit-cb]
   (let [resource (colls/wrap-vector resource-id)
         mixins (meta resource)
-        {:keys [handler route-params]} (defacto/query-handler @store [:routing/?route])]
+        {:keys [handler route-params]} (defacto/query-handler @store [:routing/route])]
     (emit-cb [:resources/submitted resource-id])
     (store/dispatch! store (conj resource params))
     (when (:with-qp-sync? mixins)

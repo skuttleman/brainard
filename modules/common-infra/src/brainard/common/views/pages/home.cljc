@@ -53,10 +53,10 @@
   [{:keys [*:store]}]
   (r/with-let [form-id (doto ::forms/new-note
                          (as-> $id (store/dispatch! *:store [:forms/ensure! $id new-note])))
-               sub:form (store/subscribe *:store [:forms/?form form-id])
-               sub:contexts (store/subscribe *:store [:resources/?resource :api.contexts/select!])
-               sub:tags (store/subscribe *:store [:resources/?resource :api.tags/select!])
-               sub:res (store/subscribe *:store [:resources/?resource [:api.notes/create! form-id]])]
+               sub:form (store/subscribe *:store [:forms/form form-id])
+               sub:contexts (store/subscribe *:store [:resources/resource :api.contexts/select!])
+               sub:tags (store/subscribe *:store [:resources/resource :api.tags/select!])
+               sub:res (store/subscribe *:store [:resources/resource [:api.notes/create! form-id]])]
     [root* {:*:store      *:store
             :form-id      form-id
             :sub:contexts sub:contexts

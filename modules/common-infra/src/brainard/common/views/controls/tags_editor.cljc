@@ -34,7 +34,7 @@
 (defn control [{:keys [*:store] :as attrs}]
   (r/with-let [form-id (doto (uuids/random)
                          (as-> $id (store/dispatch! *:store [::store/emit! [:forms/created $id]])))
-               sub:form (store/subscribe *:store [:forms/?form form-id])
+               sub:form (store/subscribe *:store [:forms/form form-id])
                on-change (->update-form *:store form-id)]
     (let [form @sub:form
           form-data (forms/data form)]

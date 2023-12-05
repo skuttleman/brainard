@@ -42,7 +42,7 @@
         [:div.body-text body]]])))
 
 (defn toasts [*:store]
-  (r/with-let [sub:toasts (store/subscribe *:store [:toasts/?toasts])]
+  (r/with-let [sub:toasts (store/subscribe *:store [:toasts/toasts])]
     [:div.toast-container
      [:ul.toast-messages
       (for [toast @sub:toasts]
