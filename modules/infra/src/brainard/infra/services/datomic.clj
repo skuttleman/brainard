@@ -7,7 +7,7 @@
     [datomic.client.api :as d]))
 
 (defn file-logger [db-name]
-  (let [file-name (format ".datomic.%s.log" db-name)]
+  (let [file-name (format "resources/private/.datomic.%s.log" db-name)]
     {::db-name  db-name
      ::writer   (io/writer (io/file file-name) :append true)
      ::lock     (Object.)
