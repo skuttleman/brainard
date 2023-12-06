@@ -25,7 +25,10 @@
                      (let [next-value (if (contains? value id)
                                         (disj value id)
                                         ((fnil conj #{}) value id))]
-                       (on-change next-value)))}
+                       (on-change next-value)
+                       (when-let [on-toggle (when (::single? attrs)
+                                             (:on-toggle attrs))]
+                         (on-toggle e))))}
         [item-control display]])]))
 
 (defn ^:private button [{:keys [attrs->content selected] :as attrs}]
@@ -81,7 +84,7 @@
 (defn singleable [{:keys [value] :as attrs}]
   (let [value (if (nil? value) #{} #{value})]
     (-> attrs
-        (assoc :value value)
+        (assoc :value value ::single? true)
         (update :on-change (fn [on-change]
                              (fn [values]
                                (let [value-next (first (remove value values))]
