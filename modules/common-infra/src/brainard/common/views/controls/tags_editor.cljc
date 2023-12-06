@@ -20,20 +20,20 @@
     (when-let [input-val (some-> (:value form-data) string/trim not-empty)]
       (if (re-matches tag-re input-val)
         (do (on-change (conj value (keyword input-val)))
-            (store/dispatch! *:store [::store/emit! [:forms/changed form-id [:value] nil]]))
-        (store/dispatch! *:store [::store/emit! [:forms/changed form-id [:invalid?] true]])))))
+            (store/emit! *:store [:forms/changed form-id [:value] nil]))
+        (store/emit! *:store [:forms/changed form-id [:invalid?] true])))))
 
 (defn ^:private ->update-form [*:store form-id]
   (fn [next-value]
     (let [next-value (cond-> next-value
                        (keyword? next-value) kw/str)]
       (doto *:store
-        (store/dispatch! [::store/emit! [:forms/changed form-id [:value] next-value]])
-        (store/dispatch! [::store/emit! [:forms/changed form-id [:invalid?] false]])))))
+        (store/emit! [:forms/changed form-id [:value] next-value])
+        (store/emit! [:forms/changed form-id [:invalid?] false])))))
 
 (defn control [{:keys [*:store] :as attrs}]
   (r/with-let [form-id (doto (uuids/random)
-                         (as-> $id (store/dispatch! *:store [::store/emit! [:forms/created $id]])))
+                         (as-> $id (store/emit! *:store [:forms/created $id])))
                sub:form (store/subscribe *:store [:forms/form form-id])
                on-change (->update-form *:store form-id)]
     (let [form @sub:form
@@ -53,4 +53,4 @@
          [:span "invalid tag"])
        [comp/tag-list attrs]])
     (finally
-      (store/dispatch! *:store [::store/emit! [:forms/destroyed form-id]]))))
+      (store/emit! *:store [:forms/destroyed form-id]))))

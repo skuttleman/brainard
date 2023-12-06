@@ -16,4 +16,4 @@
                         (get-in (:remote result) path))
             :errors (when (not= :init status)
                       (get-in errors path))
-            :on-change [::store/emit! [:forms/changed (::forms/id form) path]]))))
+            :on-change [::store/emit! [:forms/changed (forms/id form) path]]))))

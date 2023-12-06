@@ -2,6 +2,9 @@
   (:require
     [brainard.common.utils.maps :as maps]))
 
+(defn id [form]
+  (::id form))
+
 (defn data
   "Extract the canonical model of data from the form."
   [form]

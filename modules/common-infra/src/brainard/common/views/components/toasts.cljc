@@ -13,7 +13,7 @@
 
 (defn ^:private open-toast! [*:store {toast-id :id :as toast}]
   (when (= :init (:state toast))
-    (store/dispatch! *:store [::store/emit! [:toasts/shown toast-id]]))
+    (store/emit! *:store [:toasts/shown toast-id]))
   (async/go
     (async/<! (async/timeout 5555))
     (store/dispatch! *:store [:toasts/hide! toast-id]))

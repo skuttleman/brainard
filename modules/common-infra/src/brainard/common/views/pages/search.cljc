@@ -31,11 +31,11 @@
 (defn ^:private qp-syncer [{:keys [*:store form-id]} contexts tags]
   (fn [_ _ _ {:keys [query-params]}]
     (let [data (->empty-form query-params contexts tags)]
-      (or (do (store/dispatch! *:store [::store/emit! [:forms/created form-id data {:remove-nil? true}]])
+      (or (do (store/emit! *:store [:forms/created form-id data {:remove-nil? true}])
               (when (nil? (search-validator data))
                 (store/dispatch! *:store [:resources/submit! ^:with-qp-sync? [:api.notes/select! form-id] data])
                 true))
-          (store/dispatch! *:store [::store/emit! [:resources/destroyed [:api.notes/select! form-id]]])))))
+          (store/emit! *:store [:resources/destroyed [:api.notes/select! form-id]])))))
 
 (defn ^:private item-control [item]
   [:span item])
@@ -125,5 +125,5 @@
                                                           :sub:notes    sub:notes}]]
      [comp/with-resource sub:notes [search-results {:hide-init? true}]]]
     (finally
-      (store/dispatch! *:store [::store/emit! [:resources/destroyed [:api.notes/select! form-id]]])
-      (store/dispatch! *:store [::store/emit! [:forms/destroyed form-id]]))))
+      (store/emit! *:store [:resources/destroyed [:api.notes/select! form-id]])
+      (store/emit! *:store [:forms/destroyed form-id]))))

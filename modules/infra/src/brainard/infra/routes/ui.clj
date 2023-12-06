@@ -36,7 +36,7 @@
                               (-> req
                                   (assoc :brainard/apis apis)
                                   handler))}
-        store (doto (defacto/->WatchableStore ctx (atom nil))
+        store (doto (defacto/->WatchableStore ctx (atom nil) false)
                 (defacto/dispatch! [:resources/submit! :api.tags/select!])
                 (defacto/dispatch! [:resources/submit! :api.contexts/select!]))]
     (->> (routes.tmpl/render store [pages/page store route])

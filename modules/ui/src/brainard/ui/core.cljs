@@ -2,13 +2,12 @@
   (:require
     [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
+    [brainard.common.stubs.nav :as nav]
     [brainard.common.utils.routing :as rte]
     [brainard.common.views.pages.core :as pages]
-    [brainard.common.stubs.nav :as nav]
     [cljs-http.client :as http]
     [pushy.core :as pushy]
     [reagent.dom :as rdom]
-    brainard.common.store.queries
     brainard.common.store.commands
     brainard.common.store.events
     brainard.common.store.queries))
@@ -27,7 +26,7 @@
   []
   (enable-console-print!)
   (set! nav/pushy-link (letfn [(dispatch [route]
-                                 (store/dispatch! store [::store/emit! [:routing/navigated route]]))]
+                                 (store/emit! store [:routing/navigated route]))]
                          (doto (pushy/pushy dispatch rte/match)
                            pushy/start!)))
   (load!))

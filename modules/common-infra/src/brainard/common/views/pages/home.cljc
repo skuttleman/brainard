@@ -64,5 +64,5 @@
             :sub:res      sub:res
             :sub:tags     sub:tags}]
     (finally
-      (store/dispatch! *:store [::store/emit! [:resources/destroyed [:api.notes/create! form-id]]])
-      (store/dispatch! *:store [::store/emit! [:forms/destroyed form-id]]))))
+      (store/emit! *:store [:resources/destroyed [:api.notes/create! form-id]])
+      (store/emit! *:store [:forms/destroyed form-id]))))

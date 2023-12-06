@@ -139,7 +139,7 @@
                            (dom/prevent-default! e)
                            (when (or init? (forms/changed? form))
                              (if errors
-                               (store/dispatch! *:store [::store/emit! [:resources/failed resource-key :local errors]])
+                               (store/emit! *:store [:resources/failed resource-key :local errors])
                                (store/dispatch! *:store [:resources/submit! resource-key params]))))}
              (merge (select-keys attrs #{:class :style}))
              (cond-> any-errors? (update :class conj "errors")))]

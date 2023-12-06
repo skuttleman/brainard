@@ -4,7 +4,7 @@
     [defacto.core :as defacto]
     [clojure.pprint :as pp]))
 
-(defmethod defacto/query-handler ::all
+(defmethod defacto/query-responder ::all
   [db _]
   (select-keys db #{}))
 
@@ -31,6 +31,9 @@
 
 (defn dispatch! [store command]
   (defacto/dispatch! store command))
+
+(defn emit! [store event]
+  (defacto/dispatch! store [::emit! event]))
 
 (defn subscribe [store query]
   (defacto/subscribe store query))

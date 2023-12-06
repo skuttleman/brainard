@@ -17,8 +17,8 @@
 
 (defn ^:private tag-editor [{:keys [*:store form-id form sub:res sub:tags]} note]
   (let [data (forms/data form)
-        cancel-event [::store/emit! [:forms/created form-id {:notes/tags (:notes/tags note)
-                                                             ::editing?  false}]]]
+        cancel-event [:forms/created form-id {:notes/tags (:notes/tags note)
+                                              ::editing?  false}]]
     [ctrls/form {:*:store      *:store
                  :form         form
                  :params       {:note-id  (:notes/id note)
@@ -32,7 +32,7 @@
                  :buttons      [[:button.button.is-cancel
                                  {:on-click (fn [e]
                                               (dom/prevent-default! e)
-                                              (store/dispatch! *:store cancel-event))}
+                                              (store/emit! *:store cancel-event))}
                                  "Cancel"]]}
      [ctrls/tags-editor (-> {:*:store   *:store
                              :label     "Tags"
@@ -48,7 +48,7 @@
      [:em "no tags"])
    [:button.button {:disabled #?(:clj true :default false)
                     :on-click (fn [_]
-                                (store/dispatch! *:store [::store/emit! [:forms/changed form-id [::editing?] true]]))}
+                                (store/emit! *:store [:forms/changed form-id [::editing?] true]))}
     "edit tags"]])
 
 (defn ^:private root* [*:store note]
@@ -72,7 +72,7 @@
          [tag-editor attrs note]
          [tag-list attrs note])])
     (finally
-      (store/dispatch! *:store [::store/emit! [:forms/destroyed form-id]]))))
+      (store/emit! *:store [:forms/destroyed form-id]))))
 
 (defmethod ipages/page :routes.ui/note
   [{:keys [route-params *:store]}]
@@ -80,5 +80,4 @@
                             (store/subscribe *:store [:resources/resource [:api.notes/find! (:notes/id route-params)]]))]
     [comp/with-resource sub:note [root* *:store]]
     (finally
-      (store/dispatch! *:store
-                       [::store/emit! [:resources/destroyed [:api.notes/find! (:notes/id route-params)]]]))))
+      (store/emit! *:store [:resources/destroyed [:api.notes/find! (:notes/id route-params)]]))))
