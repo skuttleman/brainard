@@ -6,9 +6,6 @@
     `(clojure.test/async ~cb ~@body)
     `(let [prom# (promise)
            ~cb (fn [] (deliver prom# nil))
-           {result# :result ex# :ex} (try {:result (do ~@body)}
-                                          (catch Throwable ex#
-                                            {:ex ex#}))]
+           result# (do ~@body)]
        @prom#
-       (some-> ex# throw)
        result#)))

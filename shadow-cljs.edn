@@ -4,9 +4,9 @@
                 :output-dir "resources/public/js"
                 :compiler   {:optimizations :none}
                 :devtools   {:watch-dir  "resources/public"
-                             :after-load brainard.ui.core/load!}
-                :modules    {:main {:init-fn brainard.ui.core/init!}}}
+                             :after-load brainard.app/load!}
+                :modules    {:main {:init-fn brainard.app/init!}}}
           :ui  {:target     :browser
                 :output-dir "resources/public/js"
                 :compiler   {:optimizations :advanced}
-                :modules    {:main {:init-fn brainard.ui.core/init!}}}}}
+                :modules    {:main {:init-fn brainard.app/init!}}}}}

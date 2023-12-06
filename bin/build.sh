@@ -7,7 +7,7 @@ rm -rf resources/public/css/*
 rm -rf resources/public/js/*
 
 echo building scss
-sass --style=compressed modules/ui/resources/private/scss/main.scss resources/public/css/main.css
+sass --style=compressed resources/private/scss/main.scss resources/public/css/main.css
 
 echo building cljs
 npm install

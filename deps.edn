@@ -1,6 +1,6 @@
 {:paths   ["resources" "src"]
  :deps    {brainard/infra            {:local/root "modules/infra"}
-           brainard/ui               {:local/root "modules/ui"}
+           cljs-http/cljs-http       {:mvn/version "0.1.46"}
            nrepl/nrepl               {:mvn/version "1.0.0"}
            org.clojure/clojure       {:mvn/version "1.11.1"}
            org.clojure/clojurescript {:mvn/version "1.10.844"}}
@@ -10,7 +10,5 @@
                                   "dev/src"
                                   "modules/api/test"
                                   "modules/infra/test"
-                                  "modules/common-core/test"
-                                  "modules/common-infra/test"
-                                  "modules/ui/test"]}
+                                  "modules/core/test"]}
            :shadow {:extra-deps {thheller/shadow-cljs {:mvn/version "2.12.5"}}}}}

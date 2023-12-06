@@ -1,12 +1,15 @@
 {:paths ["src"]
  :deps  {brainard/api          {:local/root "../api"}
-         brainard/common-core  {:local/root "../common-core"}
-         brainard/common-infra {:local/root "../common-infra"}
+         brainard/core         {:local/root "../core"}
          com.datomic/local     {:mvn/version "1.0.267"}
          duct/core             {:mvn/version "0.8.0"}
          hiccup/hiccup         {:mvn/version "1.0.5"}
+         kibu/pushy            {:mvn/version "0.3.8"}
          org.immutant/immutant {:mvn/version "2.1.10"
                                 :exclusions  [ch.qos.logback/logback-classic
                                               org.jboss.naming/jnpserver
                                               ring/ring-core]}
-         ring/ring-core        {:mvn/version "1.3.2"}}}
+         reagent/reagent       {:mvn/version "1.0.0"}
+         ring/ring-core        {:mvn/version "1.3.2"}
+         skuttleman/defacto    {:git/url "https://github.com/skuttleman/defacto"
+                                :sha     "99ff98ee81194d647d1a1b80e255e2ae02c23832"}}}

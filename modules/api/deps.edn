@@ -1,2 +1,2 @@
 {:paths ["src"]
- :deps  {brainard/common-core {:local/root "../common-core"}}}
+ :deps  {brainard/core {:local/root "../core"}}}

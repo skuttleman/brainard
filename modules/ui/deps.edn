@@ -1,5 +1,0 @@
-{:paths ["resources" "src"]
- :deps  {brainard/common-core  {:local/root "../common-core"}
-         brainard/common-infra {:local/root "../common-infra"}
-         cljs-http/cljs-http   {:mvn/version "0.1.46"}
-         reagent/reagent       {:mvn/version "1.0.0"}}}

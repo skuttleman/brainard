@@ -1,4 +1,4 @@
-(ns brainard.ui.core
+(ns brainard.app
   (:require
     [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
@@ -18,8 +18,8 @@
 (defn load!
   "Called when new code is compiled in the browser."
   []
-  (rdom/render [pages/root store]
-               (.getElementById js/document "root")))
+  (let [root (.getElementById js/document "root")]
+    (rdom/render [pages/root store] root)))
 
 (defn init!
   "Called when the DOM finishes loading."

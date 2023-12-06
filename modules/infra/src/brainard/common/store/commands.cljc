@@ -32,57 +32,54 @@
       (nav/navigate! handler (assoc route-params :query-params params)))))
 
 (defmethod defacto/command-handler :api.tags/select!
-  [{::defacto/keys [store] :services/keys [http]} _ _]
-  (store.api/request! store http {::store.api/spec :api.tags/select!}))
+  [{::defacto/keys [store]} _ _]
+  (let [params (store.api/spec->params {::store.api/spec :api.tags/select!})]
+    (store/dispatch! store [::store.api/request! params])))
 
 (defmethod defacto/command-handler :api.contexts/select!
-  [{::defacto/keys [store] :services/keys [http]} _ _]
-  (store.api/request! store http {::store.api/spec :api.contexts/select!}))
+  [{::defacto/keys [store]} _ _]
+  (let [params (store.api/spec->params {::store.api/spec :api.contexts/select!})]
+    (store/dispatch! store [::store.api/request! params])))
 
 (defmethod defacto/command-handler :api.notes/select!
-  [{::defacto/keys [store] :services/keys [http]} [_ resource-id params] _]
-  (store.api/request! store http {::store.api/spec :api.notes/select!
-                                  :resource/id     resource-id
-                                  :params          {:query-params params}}))
+  [{::defacto/keys [store]} [_ resource-id params] _]
+  (let [params (store.api/spec->params {::store.api/spec :api.notes/select!
+                                        :resource/id     resource-id
+                                        :params          {:query-params params}})]
+    (store/dispatch! store [::store.api/request! params])))
 
 (defmethod defacto/command-handler :api.notes/find!
-  [{::defacto/keys [store] :services/keys [http]} [_ resource-id] _]
-  (store.api/request! store
-                      http
-                      {::store.api/spec :api.notes/find!
-                       :resource/id     resource-id
-                       :params          {:notes/id resource-id}}))
+  [{::defacto/keys [store]} [_ resource-id] _]
+  (let [params (store.api/spec->params {::store.api/spec :api.notes/find!
+                                        :resource/id     resource-id
+                                        :params          {:notes/id resource-id}})]
+    (store/dispatch! store [::store.api/request! params])))
 
 (defmethod defacto/command-handler :api.notes/create!
-  [{::defacto/keys [store] :services/keys [http]} [_ resource-id {:keys [data reset-to]}] _]
-  (let [on-success-n (if reset-to
-                       [[::store/emit! [:forms/created resource-id reset-to]]
-                        [::store/emit! [:resources/destroyed [:api.notes/create! resource-id]]]]
-                       [[::store/emit! [:resources/succeeded [:api.notes/create! resource-id]]]])]
-    (store.api/request! store
-                        http
-                        {::store.api/spec :api.notes/create!
-                         :resource/id     resource-id
-                         :body            data
-                         :on-success-n    on-success-n})))
+  [{::defacto/keys [store]} [_ resource-id {:keys [data reset-to]}] _]
+  (let [ok-events (if reset-to
+                    [[:forms/created resource-id reset-to]
+                     [:resources/destroyed [:api.notes/create! resource-id]]]
+                    [[:resources/succeeded [:api.notes/create! resource-id]]])
+        params (store.api/spec->params {::store.api/spec :api.notes/create!
+                                        :resource/id     resource-id
+                                        :body            data
+                                        :ok-events       ok-events})]
+    (store/dispatch! store [::store.api/request! params])))
 
 (defmethod defacto/command-handler :api.notes/update!
-  [{::defacto/keys [store] :services/keys [http]} [_ resource-id {:keys [note-id data fetch? reset-to]}] _]
-  (store.api/request! store
-                      http
-                      {::store.api/spec :api.notes/update!
-                       :params          {:notes/id note-id}
-                       :body            data
-                       :on-success-n    (cond-> []
-                                          reset-to
-                                          (conj [::store/emit! [:forms/created resource-id reset-to]]
-                                                [::store/emit! [:resources/destroyed [:api.notes/update! resource-id]]])
-
-                                          (nil? reset-to)
-                                          (conj [::store/emit! [:resources/succeeded [:api.notes/update! resource-id]]])
-
-                                          fetch?
-                                          (conj [:resources/submit! [:api.notes/find! note-id]]))}))
+  [{::defacto/keys [store]} [_ resource-id {:keys [note-id data fetch? reset-to]}] _]
+  (let [params (store.api/spec->params
+                 {::store.api/spec :api.notes/update!
+                  :params          {:notes/id note-id}
+                  :body            data
+                  :ok-events       (if reset-to
+                                     [[:forms/created resource-id reset-to]
+                                      [:resources/destroyed [:api.notes/update! resource-id]]]
+                                     [[:resources/succeeded [:api.notes/update! resource-id]]])
+                  :ok-commands     (when fetch?
+                                     [[:resources/submit! [:api.notes/find! note-id]]])})]
+    (store/dispatch! store [::store.api/request! params])))
 
 (defmethod defacto/command-handler :toasts/succeed!
   [{::defacto/keys [store]} [_ {:keys [message]}] _]
