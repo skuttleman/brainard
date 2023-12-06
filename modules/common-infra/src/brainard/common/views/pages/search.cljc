@@ -12,6 +12,9 @@
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.views.pages.interfaces :as ipages]))
 
+(def ^:private ^:const form-id
+  ::forms/search)
+
 (defn ^:private ->empty-form [{:keys [context] :as query-params} contexts tags]
   (cond-> {:notes/tags (into #{}
                              (comp (map keyword) (filter (set tags)))
@@ -21,14 +24,14 @@
 (def ^:private search-validator
   (valid/->validator valid/notes-query))
 
-(defn ^:private init-search-form! [{:keys [*:store form-id query-params]} contexts tags]
+(defn ^:private init-search-form! [{:keys [*:store query-params]} contexts tags]
   (let [data (->empty-form query-params contexts tags)]
     (store/dispatch! *:store [:forms/ensure! form-id data {:remove-nil? true}])
     (when (nil? (search-validator data))
       (store/dispatch! *:store [:resources/ensure! ^:with-qp-sync? [:api.notes/select! form-id] data]))
     (store/subscribe *:store [:forms/form form-id])))
 
-(defn ^:private qp-syncer [{:keys [*:store form-id]} contexts tags]
+(defn ^:private qp-syncer [{:keys [*:store]} contexts tags]
   (fn [_ _ _ {:keys [query-params]}]
     (let [data (->empty-form query-params contexts tags)]
       (or (do (store/emit! *:store [:forms/created form-id data {:remove-nil? true}])
@@ -88,7 +91,7 @@
          (when (< 8 (count tags))
            [:em {:style {:margin-left "8px"}} "more..."])]])]))
 
-(defn ^:private root* [{:keys [*:store form-id sub:notes] :as attrs} [contexts tags]]
+(defn ^:private root* [{:keys [*:store sub:notes] :as attrs} [contexts tags]]
   (r/with-let [sub:route (doto (store/subscribe *:store [:routing/route])
                            (add-watch ::qp-sync (qp-syncer attrs contexts tags)))
                sub:form (init-search-form! attrs contexts tags)]
@@ -114,13 +117,11 @@
 
 (defmethod ipages/page :routes.ui/search
   [{:keys [*:store query-params]}]
-  (r/with-let [form-id ::forms/search
-               sub:contexts (store/subscribe *:store [:resources/resource :api.contexts/select!])
+  (r/with-let [sub:contexts (store/subscribe *:store [:resources/resource :api.contexts/select!])
                sub:tags (store/subscribe *:store [:resources/resource :api.tags/select!])
                sub:notes (store/subscribe *:store [:resources/resource [:api.notes/select! form-id]])]
     [:div.layout--stack-between
      [comp/with-resources [sub:contexts sub:tags] [root* {:*:store      *:store
-                                                          :form-id      form-id
                                                           :query-params query-params
                                                           :sub:notes    sub:notes}]]
      [comp/with-resource sub:notes [search-results {:hide-init? true}]]]

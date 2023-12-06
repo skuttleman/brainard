@@ -8,6 +8,9 @@
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.views.pages.interfaces :as ipages]))
 
+(def ^:private ^:const form-id
+  ::forms/new-note)
+
 (def ^:private new-note
   {:notes/body    nil
    :notes/context nil
@@ -16,7 +19,7 @@
 (def ^:private new-note-validator
   (valid/->validator valid/new-note))
 
-(defn ^:private root* [{:keys [*:store form-id sub:contexts sub:form sub:res sub:tags]}]
+(defn ^:private root* [{:keys [*:store sub:contexts sub:form sub:res sub:tags]}]
   (let [form @sub:form
         data (forms/data form)
         errors (new-note-validator data)]
@@ -51,14 +54,12 @@
 
 (defmethod ipages/page :routes.ui/home
   [{:keys [*:store]}]
-  (r/with-let [form-id (doto ::forms/new-note
-                         (as-> $id (store/dispatch! *:store [:forms/ensure! $id new-note])))
+  (r/with-let [_ (store/dispatch! *:store [:forms/ensure! form-id new-note])
                sub:form (store/subscribe *:store [:forms/form form-id])
                sub:contexts (store/subscribe *:store [:resources/resource :api.contexts/select!])
                sub:tags (store/subscribe *:store [:resources/resource :api.tags/select!])
                sub:res (store/subscribe *:store [:resources/resource [:api.notes/create! form-id]])]
     [root* {:*:store      *:store
-            :form-id      form-id
             :sub:contexts sub:contexts
             :sub:form     sub:form
             :sub:res      sub:res

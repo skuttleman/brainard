@@ -10,12 +10,15 @@
     [brainard.common.views.pages.interfaces :as ipages]
     [clojure.set :as set]))
 
+(def ^:private ^:const form-id
+  ::forms/edit-note)
+
 (defn ^:private diff-tags [old new]
   (let [removals (set/difference old new)]
     {:notes/tags!remove removals
      :notes/tags        new}))
 
-(defn ^:private tag-editor [{:keys [*:store form-id form sub:res sub:tags]} note]
+(defn ^:private tag-editor [{:keys [*:store form sub:res sub:tags]} note]
   (let [data (forms/data form)
         cancel-event [:forms/created form-id {:notes/tags (:notes/tags note)
                                               ::editing?  false}]]
@@ -41,7 +44,7 @@
                                               sub:res
                                               [:notes/tags]))]]))
 
-(defn ^:private tag-list [{:keys [*:store form-id]} note]
+(defn ^:private tag-list [{:keys [*:store]} note]
   [:div.layout--space-between
    (if-let [tags (not-empty (:notes/tags note))]
      [comp/tag-list {:value tags}]
@@ -52,16 +55,14 @@
     "edit tags"]])
 
 (defn ^:private root* [*:store note]
-  (r/with-let [form-id (doto ::forms/edit-note
-                         (as-> $id (store/dispatch! *:store
-                                                    [:forms/ensure! $id {:notes/tags (:notes/tags note)
-                                                                         ::editing?  false}])))
+  (r/with-let [_ (store/dispatch! *:store
+                                  [:forms/ensure! form-id {:notes/tags (:notes/tags note)
+                                                           ::editing?  false}])
                sub:form (store/subscribe *:store [:forms/form form-id])
                sub:res (store/subscribe *:store [:resources/resource [:api.notes/update! form-id]])
                sub:tags (store/subscribe *:store [:resources/resource :api.tags/select!])]
     (let [form @sub:form
           attrs {:*:store  *:store
-                 :form-id  form-id
                  :form     form
                  :sub:res  sub:res
                  :sub:tags sub:tags}]
