@@ -19,14 +19,14 @@
 (defn ^:private disabled-compat [disabled]
   #?(:clj true :default disabled))
 
-(defn ^:private dispatch-on-change [on-change *:store]
+(defn ^:private emit-on-change [on-change *:store]
   (fn [value]
     (when on-change
-      (store/dispatch! *:store (conj on-change value)))))
+      (store/emit! *:store (conj on-change value)))))
 
-(defn ^:private with-dispatch-on-change [component]
+(defn ^:private with-emit-on-change [component]
   (fn [{:keys [*:store] :as attrs} & args]
-    (into [component (update attrs :on-change dispatch-on-change *:store)] args)))
+    (into [component (update attrs :on-change emit-on-change *:store)] args)))
 
 (defn ^:private with-id [component]
   (fn [attrs & args]
@@ -71,7 +71,7 @@
 
 (def ^{:arglists '([attrs])} textarea
   (with-id
-    (with-dispatch-on-change
+    (with-emit-on-change
       (with-trim-blur
         (fn [{:keys [disabled on-change value] :as attrs}]
           [form-field
@@ -84,7 +84,7 @@
 
 (def ^{:arglists '([attrs])} tags-editor
   (with-id
-    (with-dispatch-on-change
+    (with-emit-on-change
       (fn [attrs]
         [form-field
          (update attrs :disabled disabled-compat)
@@ -92,7 +92,7 @@
 
 (def ^{:arglists '([attrs])} type-ahead
   (with-id
-    (with-dispatch-on-change
+    (with-emit-on-change
       (fn [attrs]
         [form-field
          (update attrs :disabled disabled-compat)
@@ -100,7 +100,7 @@
 
 (def ^{:arglists '([attrs])} multi-dropdown
   (with-id
-    (with-dispatch-on-change
+    (with-emit-on-change
       (fn [attrs]
         [form-field
          (update attrs :disabled disabled-compat)
@@ -108,7 +108,7 @@
 
 (def ^{:arglists '([attrs])} single-dropdown
   (with-id
-    (with-dispatch-on-change
+    (with-emit-on-change
       (fn [attrs]
         [form-field
          (update attrs :disabled disabled-compat)

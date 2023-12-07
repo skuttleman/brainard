@@ -3,6 +3,7 @@
   (:require
     [brainard.common.forms.core :as forms]
     [brainard.common.store.core :as store]
+    [brainard.common.store.specs :as rspecs]
     [brainard.common.validations.core :as valid]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.views.controls.core :as ctrls]
@@ -28,8 +29,8 @@
                  :errors       errors
                  :params       {:data     data
                                 :reset-to new-note}
-                 :resource-key [:api.notes/create! form-id]
-                 :sub:res      sub:res}
+                 :resource-key [::rspecs/notes#create form-id]
+                 :sub:res sub:res}
      [:strong "Create a note"]
      [ctrls/type-ahead (-> {:*:store   *:store
                             :label     "Context"
@@ -56,14 +57,14 @@
   [{:keys [*:store]}]
   (r/with-let [_ (store/dispatch! *:store [:forms/ensure! form-id new-note])
                sub:form (store/subscribe *:store [:forms/form form-id])
-               sub:contexts (store/subscribe *:store [:resources/resource :api.contexts/select!])
-               sub:tags (store/subscribe *:store [:resources/resource :api.tags/select!])
-               sub:res (store/subscribe *:store [:resources/resource [:api.notes/create! form-id]])]
+               sub:contexts (store/subscribe *:store [:resources/resource ::rspecs/contexts#select])
+               sub:tags (store/subscribe *:store [:resources/resource ::rspecs/tags#select])
+               sub:res (store/subscribe *:store [:resources/resource [::rspecs/notes#create form-id]])]
     [root* {:*:store      *:store
             :sub:contexts sub:contexts
             :sub:form     sub:form
             :sub:res      sub:res
             :sub:tags     sub:tags}]
     (finally
-      (store/emit! *:store [:resources/destroyed [:api.notes/create! form-id]])
+      (store/emit! *:store [:resources/destroyed [::rspecs/notes#create form-id]])
       (store/emit! *:store [:forms/destroyed form-id]))))

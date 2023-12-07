@@ -1,6 +1,7 @@
 (ns brainard.common.store.events
   (:require
     [brainard.common.forms.core :as forms]
+    [brainard.common.store.specs :as rspecs]
     [defacto.core :as defacto]))
 
 (defn ^:private remote->warnings [warnings]
@@ -29,14 +30,14 @@
 
 (defmethod defacto/event-reducer :resources/note-saved
   [db [_ {:notes/keys [context tags]}]]
-  (let [tag-status (get-in db [:resources/resources :api.tags/select! 0])
-        ctx-status (get-in db [:resources/resources :api.contexts/select! 0])]
+  (let [tag-status (get-in db [:resources/resources ::rspecs/tags#select 0])
+        ctx-status (get-in db [:resources/resources ::rspecs/contexts#select 0])]
     (cond-> db
       (= :success tag-status)
-      (update-in [:resources/resources :api.tags/select! 1] into tags)
+      (update-in [:resources/resources ::rspecs/tags#select 1] into tags)
 
       (and context (= :success ctx-status))
-      (update-in [:resources/resources :api.contexts/select! 1] conj context))))
+      (update-in [:resources/resources ::rspecs/contexts#select 1] conj context))))
 
 (defmethod defacto/event-reducer :forms/created
   [db [_ form-id data opts]]

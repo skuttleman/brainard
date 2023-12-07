@@ -3,6 +3,7 @@
   (:require
     [brainard.common.forms.core :as forms]
     [brainard.common.store.core :as store]
+    [brainard.common.store.specs :as rspecs]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.views.components.core :as comp]
@@ -29,14 +30,14 @@
                                 :data     (diff-tags (:notes/tags note) (:notes/tags data))
                                 :fetch?   true
                                 :reset-to (assoc data ::editing? false)}
-                 :resource-key [:api.notes/update! form-id]
-                 :sub:res      sub:res
-                 :submit/body  "Save"
-                 :buttons      [[:button.button.is-cancel
-                                 {:on-click (fn [e]
-                                              (dom/prevent-default! e)
-                                              (store/emit! *:store cancel-event))}
-                                 "Cancel"]]}
+                 :resource-key [::rspecs/notes#update form-id]
+                 :sub:res sub:res
+                 :submit/body "Save"
+                 :buttons [[:button.button.is-cancel
+                            {:on-click (fn [e]
+                                         (dom/prevent-default! e)
+                                         (store/emit! *:store cancel-event))}
+                            "Cancel"]]}
      [ctrls/tags-editor (-> {:*:store   *:store
                              :label     "Tags"
                              :sub:items sub:tags}
@@ -59,8 +60,8 @@
                                   [:forms/ensure! form-id {:notes/tags (:notes/tags note)
                                                            ::editing?  false}])
                sub:form (store/subscribe *:store [:forms/form form-id])
-               sub:res (store/subscribe *:store [:resources/resource [:api.notes/update! form-id]])
-               sub:tags (store/subscribe *:store [:resources/resource :api.tags/select!])]
+               sub:res (store/subscribe *:store [:resources/resource [::rspecs/notes#update form-id]])
+               sub:tags (store/subscribe *:store [:resources/resource ::rspecs/tags#select])]
     (let [form @sub:form
           attrs {:*:store  *:store
                  :form     form
@@ -77,8 +78,8 @@
 
 (defmethod ipages/page :routes.ui/note
   [{:keys [route-params *:store]}]
-  (r/with-let [sub:note (do (store/dispatch! *:store [:resources/ensure! [:api.notes/find! (:notes/id route-params)]])
-                            (store/subscribe *:store [:resources/resource [:api.notes/find! (:notes/id route-params)]]))]
+  (r/with-let [sub:note (do (store/dispatch! *:store [:resources/ensure! [::rspecs/notes#find (:notes/id route-params)]])
+                            (store/subscribe *:store [:resources/resource [::rspecs/notes#find (:notes/id route-params)]]))]
     [comp/with-resource sub:note [root* *:store]]
     (finally
-      (store/emit! *:store [:resources/destroyed [:api.notes/find! (:notes/id route-params)]]))))
+      (store/emit! *:store [:resources/destroyed [::rspecs/notes#find (:notes/id route-params)]]))))

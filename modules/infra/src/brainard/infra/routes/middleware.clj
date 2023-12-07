@@ -38,7 +38,6 @@
     (try (handler req)
          (catch Throwable ex
            (log/error ex (ex-message ex) (ex-data ex))
-           (clojure.pprint/pprint ex)
            (routes.err/ex->response (ex-data ex))))))
 
 (defn with-routing

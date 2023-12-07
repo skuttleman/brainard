@@ -1,5 +1,6 @@
 (ns brainard.infra.routes.ui
   (:require
+    [brainard.common.store.specs :as rspecs]
     [brainard.common.utils.edn :as edn]
     [brainard.common.views.pages.core :as pages]
     [brainard.infra.routes.errors :as routes.err]
@@ -37,8 +38,8 @@
                                   (assoc :brainard/apis apis)
                                   handler))}
         store (doto (defacto/->WatchableStore ctx (atom nil) false)
-                (defacto/dispatch! [:resources/submit! :api.tags/select!])
-                (defacto/dispatch! [:resources/submit! :api.contexts/select!]))]
+                (defacto/dispatch! [:resources/submit! ::rspecs/tags#select])
+                (defacto/dispatch! [:resources/submit! ::rspecs/contexts#select]))]
     (->> (routes.tmpl/render store [pages/page store route])
          hiccup/html
          (str "<!doctype html>"))))

@@ -8,10 +8,6 @@
   [db _]
   (select-keys db #{}))
 
-(defmethod defacto/command-handler ::emit!
-  [_ [_ event & more] emit-cb]
-  (emit-cb (into event more)))
-
 (defn ^:private add-dev-logger! [store]
   (add-watch (defacto/subscribe store [::all])
              (gensym)
@@ -33,7 +29,7 @@
   (defacto/dispatch! store command))
 
 (defn emit! [store event]
-  (defacto/dispatch! store [::emit! event]))
+  (dispatch! store [::defacto/emit! event]))
 
 (defn subscribe [store query]
   (defacto/subscribe store query))

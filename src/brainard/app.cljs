@@ -25,8 +25,6 @@
   "Called when the DOM finishes loading."
   []
   (enable-console-print!)
-  (set! nav/pushy-link (letfn [(dispatch [route]
-                                 (store/emit! store [:routing/navigated route]))]
-                         (doto (pushy/pushy dispatch rte/match)
-                           pushy/start!)))
+  (set! nav/*nav* (doto (pushy/pushy #(store/emit! store [:routing/navigated %]) rte/match)
+                         pushy/start!))
   (load!))

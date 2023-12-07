@@ -1,7 +1,6 @@
 (ns brainard.common.views.controls.shared
   (:require
-    [brainard.common.forms.core :as forms]
-    [brainard.common.store.core :as store]))
+    [brainard.common.forms.core :as forms]))
 
 (defn with-attrs
   "Prepares common form attributes used by controls in [[brainard.common.views.controls.core]]. "
@@ -16,4 +15,4 @@
                         (get-in (:remote result) path))
             :errors (when (not= :init status)
                       (get-in errors path))
-            :on-change [::store/emit! [:forms/changed (forms/id form) path]]))))
+            :on-change [:forms/changed (forms/id form) path]))))

@@ -3,6 +3,7 @@
   (:require
     [brainard.common.forms.core :as forms]
     [brainard.common.store.core :as store]
+    [brainard.common.store.specs :as rspecs]
     [brainard.common.validations.core :as valid]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.colls :as colls]
@@ -28,17 +29,18 @@
   (let [data (->empty-form query-params contexts tags)]
     (store/dispatch! *:store [:forms/ensure! form-id data {:remove-nil? true}])
     (when (nil? (search-validator data))
-      (store/dispatch! *:store [:resources/ensure! ^:with-qp-sync? [:api.notes/select! form-id] data]))
+      (store/dispatch! *:store [:resources/ensure! ^:with-qp-sync? [::rspecs/notes#select form-id] data]))
     (store/subscribe *:store [:forms/form form-id])))
 
 (defn ^:private qp-syncer [{:keys [*:store]} contexts tags]
   (fn [_ _ _ {:keys [query-params]}]
     (let [data (->empty-form query-params contexts tags)]
-      (or (do (store/emit! *:store [:forms/created form-id data {:remove-nil? true}])
-              (when (nil? (search-validator data))
-                (store/dispatch! *:store [:resources/submit! ^:with-qp-sync? [:api.notes/select! form-id] data])
-                true))
-          (store/emit! *:store [:resources/destroyed [:api.notes/select! form-id]])))))
+      (when-not (= data (forms/data @(store/subscribe *:store [:forms/form form-id])))
+        (or (do (store/emit! *:store [:forms/created form-id data {:remove-nil? true}])
+                (when (nil? (search-validator data))
+                  (store/dispatch! *:store [:resources/submit! ^:with-qp-sync? [::rspecs/notes#select form-id] data])
+                  true))
+            (store/emit! *:store [:resources/destroyed [::rspecs/notes#select form-id]]))))))
 
 (defn ^:private item-control [item]
   [:span item])
@@ -103,7 +105,7 @@
                    :form         form
                    :errors       errors
                    :params       form-data
-                   :resource-key ^:with-qp-sync? [:api.notes/select! form-id]
+                   :resource-key ^:with-qp-sync? [::rspecs/notes#select form-id]
                    :sub:res      sub:notes
                    :submit/body  [:<>
                                   [comp/icon :search]
@@ -117,14 +119,14 @@
 
 (defmethod ipages/page :routes.ui/search
   [{:keys [*:store query-params]}]
-  (r/with-let [sub:contexts (store/subscribe *:store [:resources/resource :api.contexts/select!])
-               sub:tags (store/subscribe *:store [:resources/resource :api.tags/select!])
-               sub:notes (store/subscribe *:store [:resources/resource [:api.notes/select! form-id]])]
+  (r/with-let [sub:contexts (store/subscribe *:store [:resources/resource ::rspecs/contexts#select])
+               sub:tags (store/subscribe *:store [:resources/resource ::rspecs/tags#select])
+               sub:notes (store/subscribe *:store [:resources/resource [::rspecs/notes#select form-id]])]
     [:div.layout--stack-between
      [comp/with-resources [sub:contexts sub:tags] [root* {:*:store      *:store
                                                           :query-params query-params
                                                           :sub:notes    sub:notes}]]
      [comp/with-resource sub:notes [search-results {:hide-init? true}]]]
     (finally
-      (store/emit! *:store [:resources/destroyed [:api.notes/select! form-id]])
+      (store/emit! *:store [:resources/destroyed [::rspecs/notes#select form-id]])
       (store/emit! *:store [:forms/destroyed form-id]))))

@@ -1,5 +1,6 @@
 (ns brainard.infra.routes.core
   (:require
+    [brainard.common.utils.logger :as log]
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.infra.routes.middleware :as mw]
     [ring.middleware.keyword-params :as ring.kw-params]
