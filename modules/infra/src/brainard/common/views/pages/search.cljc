@@ -29,7 +29,7 @@
   (let [data (->empty-form query-params contexts tags)]
     (store/dispatch! *:store [:forms/ensure! form-id data {:remove-nil? true}])
     (when (nil? (search-validator data))
-      (store/dispatch! *:store [:resources/ensure! ^:with-qp-sync? [::rspecs/notes#select form-id] data]))
+      (store/dispatch! *:store [:resources/ensure! [::rspecs/notes#select form-id] data]))
     (store/subscribe *:store [:forms/form form-id])))
 
 (defn ^:private qp-syncer [{:keys [*:store]} contexts tags]
@@ -38,7 +38,7 @@
       (when-not (= data (forms/data @(store/subscribe *:store [:forms/form form-id])))
         (or (do (store/emit! *:store [:forms/created form-id data {:remove-nil? true}])
                 (when (nil? (search-validator data))
-                  (store/dispatch! *:store [:resources/submit! ^:with-qp-sync? [::rspecs/notes#select form-id] data])
+                  (store/dispatch! *:store [:resources/submit! [::rspecs/notes#select form-id] data])
                   true))
             (store/emit! *:store [:resources/destroyed [::rspecs/notes#select form-id]]))))))
 
@@ -94,7 +94,7 @@
            [:em {:style {:margin-left "8px"}} "more..."])]])]))
 
 (defn ^:private root* [{:keys [*:store sub:notes] :as attrs} [contexts tags]]
-  (r/with-let [sub:route (doto (store/subscribe *:store [:routing/route])
+  (r/with-let [sub:route (doto (store/subscribe *:store [:routing/?:route])
                            (add-watch ::qp-sync (qp-syncer attrs contexts tags)))
                sub:form (init-search-form! attrs contexts tags)]
     (let [form @sub:form
@@ -105,7 +105,7 @@
                    :form         form
                    :errors       errors
                    :params       form-data
-                   :resource-key ^:with-qp-sync? [::rspecs/notes#select form-id]
+                   :resource-key [::rspecs/notes#select form-id]
                    :sub:res      sub:notes
                    :submit/body  [:<>
                                   [comp/icon :search]
@@ -119,9 +119,9 @@
 
 (defmethod ipages/page :routes.ui/search
   [{:keys [*:store query-params]}]
-  (r/with-let [sub:contexts (store/subscribe *:store [:resources/resource ::rspecs/contexts#select])
-               sub:tags (store/subscribe *:store [:resources/resource ::rspecs/tags#select])
-               sub:notes (store/subscribe *:store [:resources/resource [::rspecs/notes#select form-id]])]
+  (r/with-let [sub:contexts (store/subscribe *:store [:resources/?:resource ::rspecs/contexts#select])
+               sub:tags (store/subscribe *:store [:resources/?:resource ::rspecs/tags#select])
+               sub:notes (store/subscribe *:store [:resources/?:resource [::rspecs/notes#select form-id]])]
     [:div.layout--stack-between
      [comp/with-resources [sub:contexts sub:tags] [root* {:*:store      *:store
                                                           :query-params query-params

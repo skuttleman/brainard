@@ -46,5 +46,5 @@
    [comp/toasts *:store]])
 
 (defn root [*:store]
-  (r/with-let [router (store/subscribe *:store [:routing/route])]
+  (r/with-let [router (store/subscribe *:store [:routing/?:route])]
     [page *:store @router]))

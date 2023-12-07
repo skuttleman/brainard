@@ -60,8 +60,8 @@
                                   [:forms/ensure! form-id {:notes/tags (:notes/tags note)
                                                            ::editing?  false}])
                sub:form (store/subscribe *:store [:forms/form form-id])
-               sub:res (store/subscribe *:store [:resources/resource [::rspecs/notes#update form-id]])
-               sub:tags (store/subscribe *:store [:resources/resource ::rspecs/tags#select])]
+               sub:res (store/subscribe *:store [:resources/?:resource [::rspecs/notes#update form-id]])
+               sub:tags (store/subscribe *:store [:resources/?:resource ::rspecs/tags#select])]
     (let [form @sub:form
           attrs {:*:store  *:store
                  :form     form
@@ -79,7 +79,7 @@
 (defmethod ipages/page :routes.ui/note
   [{:keys [route-params *:store]}]
   (r/with-let [sub:note (do (store/dispatch! *:store [:resources/ensure! [::rspecs/notes#find (:notes/id route-params)]])
-                            (store/subscribe *:store [:resources/resource [::rspecs/notes#find (:notes/id route-params)]]))]
+                            (store/subscribe *:store [:resources/?:resource [::rspecs/notes#find (:notes/id route-params)]]))]
     [comp/with-resource sub:note [root* *:store]]
     (finally
       (store/emit! *:store [:resources/destroyed [::rspecs/notes#find (:notes/id route-params)]]))))

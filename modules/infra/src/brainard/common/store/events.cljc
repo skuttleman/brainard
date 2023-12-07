@@ -30,8 +30,8 @@
 
 (defmethod defacto/event-reducer :resources/note-saved
   [db [_ {:notes/keys [context tags]}]]
-  (let [tag-status (get-in db [:resources/resources ::rspecs/tags#select 0])
-        ctx-status (get-in db [:resources/resources ::rspecs/contexts#select 0])]
+  (let [[tag-status] (defacto/query-responder db [:resources/?:resource ::rspecs/tags#select])
+        [ctx-status] (defacto/query-responder db [:resources/?:resource ::rspecs/contexts#select])]
     (cond-> db
       (= :success tag-status)
       (update-in [:resources/resources ::rspecs/tags#select 1] into tags)
@@ -62,7 +62,7 @@
 (defmethod defacto/event-reducer :toasts/shown
   [db [_ toast-id]]
   (cond-> db
-    (get-in db [:toasts/toasts toast-id :state])
+    (:state (defacto/query-responder db [:toasts/?:toast toast-id]))
     (assoc-in [:toasts/toasts toast-id :state] :visible)))
 
 (defmethod defacto/event-reducer :toasts/destroyed

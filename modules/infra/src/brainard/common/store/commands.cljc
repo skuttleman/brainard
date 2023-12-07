@@ -20,20 +20,20 @@
   [{::defacto/keys [store]} [_ resource-id params] _]
   (#?(:cljs async/go :default do)
     #?(:cljs (async/<! (async/timeout 1)))
-    (when (= [:init] (defacto/query-responder @store [:resources/resource resource-id]))
+    (when (= [:init] (defacto/query-responder @store [:resources/?:resource resource-id]))
       (store/dispatch! store [:resources/submit! resource-id params]))))
 
 (defmethod defacto/command-handler :resources/submit!
   [{::defacto/keys [store]} [_ resource-id params] emit-cb]
-  (let [mixins (meta resource-id)
-        {:keys [handler route-params]} (defacto/query-responder @store [:routing/route])
-        req (rspecs/->req {::rspecs/spec resource-id
+  (let [req (rspecs/->req {::rspecs/spec resource-id
                            :params       params})]
     (emit-cb [:resources/submitted resource-id])
-    (store/dispatch! store [::store.api/request! req])
-    ;; TODO - find another way
-    (when (:with-qp-sync? mixins)
-      (nav/navigate! handler (assoc route-params :query-params params)))))
+    (store/dispatch! store [::store.api/request! req])))
+
+(defmethod defacto/command-handler :routing/with-qp!
+  [{::defacto/keys [store] :services/keys [nav]} [_ query-params] _]
+  (let [{:keys [handler route-params]} (defacto/query-responder @store [:routing/?:route])]
+    (nav/navigate! nav handler (assoc route-params :query-params query-params))))
 
 (defmethod defacto/command-handler :toasts/succeed!
   [{::defacto/keys [store]} [_ {:keys [message]}] _]

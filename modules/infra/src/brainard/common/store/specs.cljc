@@ -8,15 +8,16 @@
 (defn ->req [spec]
   (let [params (resource-spec spec)
         url (rte/path-for (:route params) (:params params))]
-    (-> {:req {:request-method (:method params)
-               :url            url
-               :body           (some-> (:body params) pr-str)
-               :headers        {"content-type" "application/edn"}}}
-        (merge (select-keys params #{:ok-commands :ok-events :err-commands :err-events}))
-        (update :ok-commands into (:ok-commands spec))
-        (update :ok-events into (:ok-events spec))
-        (update :err-commands into (:err-commands spec))
-        (update :err-events into (:err-events spec)))))
+    (merge {:req {:request-method (:method params)
+                  :url            url
+                  :body           (some-> (:body params) pr-str)
+                  :headers        {"content-type" "application/edn"}}}
+           (select-keys params #{:pre-events
+                                 :pre-commands
+                                 :ok-events
+                                 :ok-commands
+                                 :err-events
+                                 :err-commands}))))
 
 (defmethod resource-spec ::tags#select
   [_]
@@ -34,11 +35,12 @@
 
 (defmethod resource-spec ::notes#select
   [{[_ resource-id] ::spec :keys [params]}]
-  {:route      :routes.api/notes
-   :method     :get
-   :params     {:query-params params}
-   :ok-events  [[:resources/succeeded [::notes#select resource-id]]]
-   :err-events [[:resources/failed [::notes#select resource-id] :remote]]})
+  {:route        :routes.api/notes
+   :method       :get
+   :params       {:query-params params}
+   :pre-commands [[:routing/with-qp! params]]
+   :ok-events    [[:resources/succeeded [::notes#select resource-id]]]
+   :err-events   [[:resources/failed [::notes#select resource-id] :remote]]})
 
 (defmethod resource-spec ::notes#find
   [{[_ resource-id] ::spec}]
