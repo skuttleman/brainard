@@ -22,16 +22,17 @@
 (defmethod defacto/command-handler :resources/ensure!
   [{::defacto/keys [store]} [_ resource-id params] _]
   (#?(:cljs async/go :default do)
+    ;; prevents reload shenanigans with reagent initializing new component before destroying old
     #?(:cljs (async/<! (async/timeout 1)))
     (when (= [:init] (defacto/query-responder @store [:resources/?:resource resource-id]))
       (store/dispatch! store [:resources/submit! resource-id params]))))
 
 (defmethod defacto/command-handler :resources/submit!
   [{::defacto/keys [store]} [_ resource-id params] emit-cb]
-  (let [req (rspecs/->req {::rspecs/spec resource-id
-                           :params       params})]
+  (let [input (rspecs/->req {::rspecs/spec resource-id
+                             :params       params})]
     (emit-cb [:resources/submitted resource-id])
-    (store/dispatch! store [::store.api/request! req])))
+    (store/dispatch! store [::store.api/request! input])))
 
 (defmethod defacto/command-handler :routing/with-qp!
   [{::defacto/keys [store] :services/keys [nav]} [_ query-params] _]

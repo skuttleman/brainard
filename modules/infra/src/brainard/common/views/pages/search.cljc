@@ -80,7 +80,7 @@
        [:li
         [:div.layout--row
          [:strong.layout--no-shrink context]
-         [:span.space--left.truncate
+         [:span.flex-grow.space--left.truncate
           body]
          [:a.link.space--left {:href (rte/path-for :routes.ui/note {:notes/id id})}
           "view"]]

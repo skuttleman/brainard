@@ -1,6 +1,7 @@
 {:paths   ["resources" "src"]
  :deps    {brainard/infra            {:local/root "modules/infra"}
            cljs-http/cljs-http       {:mvn/version "0.1.46"}
+           kibu/pushy                {:mvn/version "0.3.8"}
            nrepl/nrepl               {:mvn/version "1.0.0"}
            org.clojure/clojure       {:mvn/version "1.11.1"}
            org.clojure/clojurescript {:mvn/version "1.11.60"}}

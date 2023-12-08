@@ -4,7 +4,6 @@
          com.datomic/local     {:mvn/version "1.0.267"}
          duct/core             {:mvn/version "0.8.0"}
          hiccup/hiccup         {:mvn/version "1.0.5"}
-         kibu/pushy            {:mvn/version "0.3.8"}
          org.immutant/immutant {:mvn/version "2.1.10"
                                 :exclusions  [ch.qos.logback/logback-classic
                                               org.jboss.naming/jnpserver

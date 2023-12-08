@@ -24,4 +24,5 @@
 
 (defmethod defacto/query-responder :toasts/?:toast
   [db [_ toast-id]]
-  (get-in db [:toasts/toasts toast-id]))
+  (some-> (get-in db [:toasts/toasts toast-id])
+          (assoc :id toast-id)))

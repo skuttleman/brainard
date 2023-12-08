@@ -2,33 +2,43 @@
   (:require
     [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
+    [brainard.common.stubs.nav :as nav]
     [brainard.common.utils.routing :as rte]
     [brainard.common.views.pages.core :as pages]
     [cljs-http.client :as http]
+    [defacto.core :as defacto]
     [pushy.core :as pushy]
     [reagent.dom :as rdom]
     brainard.common.store.commands
     brainard.common.store.events
     brainard.common.store.queries))
 
-(def ^:private ^:dynamic *nav*)
+(def ^:private ^:dynamic *store*)
 
-(defonce ^:private store
-  (delay
-    (store/create {:services/http http/request
-                   :services/nav  *nav*}
-                  (:init-db dom/env))))
+(deftype NavComponent [^:volatile-mutable -pushy]
+  defacto/IInitialize
+  (init! [_ store]
+    (let [pushy (pushy/pushy #(store/emit! store [:routing/navigated %]) rte/match)]
+      (set! -pushy pushy)
+      (pushy/start! pushy)))
+
+  nav/INavigate
+  (-set! [_ uri]
+    (pushy/set-token! -pushy uri))
+  (-replace! [_ uri]
+    (pushy/replace-token! -pushy uri)))
 
 (defn load!
   "Called when new code is compiled in the browser."
   []
   (let [root (.getElementById js/document "root")]
-    (rdom/render [pages/root @store] root)))
+    (rdom/render [pages/root *store*] root)))
 
 (defn init!
   "Called when the DOM finishes loading."
   []
   (enable-console-print!)
-  (set! *nav* (pushy/pushy #(store/emit! @store [:routing/navigated %]) rte/match))
-  (pushy/start! *nav*)
+  (set! *store* (store/create {:services/http http/request
+                               :services/nav  (->NavComponent nil)}
+                              (:init-db dom/env)))
   (load!))

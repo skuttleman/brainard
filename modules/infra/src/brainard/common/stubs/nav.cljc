@@ -1,26 +1,25 @@
 (ns brainard.common.stubs.nav
   (:require
-    #?(:cljs [pushy.core :as pushy])
     [brainard.common.utils.routing :as rte]))
 
+(defprotocol INavigate
+  (-set! [this uri])
+  (-replace! [this uri]))
+
 (defn navigate!
-  "Navigates with history to a URI (string) or `handle` (keyword) with option `params`."
-  ([nav handle-or-uri]
-   #?(:cljs
-      (if (string? handle-or-uri)
-        (pushy/set-token! nav handle-or-uri)
-        (navigate! nav handle-or-uri nil))))
-  ([nav handle params]
-   #?(:cljs
-      (pushy/set-token! nav (rte/path-for handle params)))))
+  "Navigates with history to a URI (string) or `token` (keyword) with option `params`."
+  ([nav token-or-uri]
+   (if (string? token-or-uri)
+     (-set! nav token-or-uri)
+     (navigate! nav token-or-uri nil)))
+  ([nav token params]
+   (-set! nav (rte/path-for token params))))
 
 (defn replace!
-  "Generates a routing uri and navigates via [[replace-uri!]]."
-  ([nav handle-or-uri]
-   #?(:cljs
-      (if (string? handle-or-uri)
-        (pushy/replace-token! nav handle-or-uri)
-        (replace! nav handle-or-uri nil))))
-  ([nav handle params]
-   #?(:cljs
-      (pushy/replace-token! nav (rte/path-for handle params)))))
+  "Takes a string or routing token and optional params"
+  ([nav token-or-uri]
+   (if (string? token-or-uri)
+     (-replace! nav token-or-uri)
+     (replace! nav token-or-uri nil)))
+  ([nav token params]
+   (-replace! nav (rte/path-for token params))))
