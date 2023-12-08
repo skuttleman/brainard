@@ -15,7 +15,7 @@
   (when (= :init (:state toast))
     (store/emit! *:store [:toasts/shown toast-id]))
   (async/go
-    (async/<! (async/timeout 5555))
+    (async/<! (async/timeout 4444))
     (store/dispatch! *:store [:toasts/hide! toast-id]))
   toast)
 
@@ -35,10 +35,9 @@
                         (when adding? "adding")
                         (when removing? "removing")]}
          (and removing? height-val) (update :style assoc :margin-top (str "-" height-val "px")))
-       [:div.message-body
+       [:div.message-body.pointer
         {:on-click (fn [_]
-                     (store/dispatch! *:store [:toasts/hide! toast-id]))
-         :style    {:cursor :pointer}}
+                     (store/dispatch! *:store [:toasts/hide! toast-id]))}
         [:div.body-text body]]])))
 
 (defn toasts [*:store]

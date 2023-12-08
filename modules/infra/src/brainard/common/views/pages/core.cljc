@@ -27,8 +27,7 @@
         search (rte/path-for :routes.ui/search)]
     [:nav.navbar
      {:role "navigation" :aria-label "main navigation"}
-     [:div.navbar-start
-      {:style {:position :relative}}
+     [:div.navbar-start.layout--relative
       [:div#header-nav.navbar-menu
        [:ul.navbar-start.oversize.tabs
         [:li

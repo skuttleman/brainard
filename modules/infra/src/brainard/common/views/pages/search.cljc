@@ -48,30 +48,28 @@
 (defn ^:private context-filter [{:keys [*:store errors form sub:notes]} contexts]
   (r/with-let [options (map #(vector % %) contexts)
                options-by-id (into {} options)]
-    [:div {:style {:flex-basis "49%"}}
-     [ctrls/single-dropdown (-> {:*:store       *:store
-                                 :label         "Context filter"
-                                 :options       options
-                                 :options-by-id options-by-id
-                                 :item-control  item-control}
-                                (ctrls/with-attrs form
-                                                  sub:notes
-                                                  [:notes/context]
-                                                  errors))]]))
-
-(defn ^:private tag-filter [{:keys [*:store errors form sub:notes]} tags]
-  (r/with-let [options (map #(vector % (str %)) tags)
-               options-by-id (into {} options)]
-    [:div {:style {:flex-basis "49%"}}
-     [ctrls/multi-dropdown (-> {:*:store       *:store
-                                :label         "Tag Filer"
+    [ctrls/single-dropdown (-> {:*:store       *:store
+                                :label         "Context filter"
                                 :options       options
                                 :options-by-id options-by-id
                                 :item-control  item-control}
                                (ctrls/with-attrs form
                                                  sub:notes
-                                                 [:notes/tags]
-                                                 errors))]]))
+                                                 [:notes/context]
+                                                 errors))]))
+
+(defn ^:private tag-filter [{:keys [*:store errors form sub:notes]} tags]
+  (r/with-let [options (map #(vector % (str %)) tags)
+               options-by-id (into {} options)]
+    [ctrls/multi-dropdown (-> {:*:store       *:store
+                               :label         "Tag Filer"
+                               :options       options
+                               :options-by-id options-by-id
+                               :item-control  item-control}
+                              (ctrls/with-attrs form
+                                                sub:notes
+                                                [:notes/tags]
+                                                errors))]))
 
 (defn ^:private search-results [_ notes]
   (if-not (seq notes)
@@ -84,14 +82,13 @@
         [:div.layout--space-between
          [:div.layout--row
           [:strong context]
-          [:span {:style {:margin-left "8px"}} (strings/truncate-to body 100)]]
-         [:a.link {:href  (rte/path-for :routes.ui/note {:notes/id id})
-                   :style {:margin-left "8px"}}
+          [:span.space--left (strings/truncate-to body 100)]]
+         [:a.link.space--left {:href (rte/path-for :routes.ui/note {:notes/id id})}
           "view"]]
         [:div.flex
          [comp/tag-list {:value (take 8 tags)}]
          (when (< 8 (count tags))
-           [:em {:style {:margin-left "8px"}} "more..."])]])]))
+           [:em.space--left "more..."])]])]))
 
 (defn ^:private root* [{:keys [*:store sub:notes] :as attrs} [contexts tags]]
   (r/with-let [sub:route (doto (store/subscribe *:store [:routing/?:route])
@@ -109,11 +106,12 @@
                    :sub:res      sub:notes
                    :submit/body  [:<>
                                   [comp/icon :search]
-                                  [:span {:style {:margin-left "8px"}}
-                                   "Search"]]}
-       [:div.layout--space-between
-        [context-filter attrs contexts]
-        [tag-filter attrs tags]]])
+                                  [:span.space--left "Search"]]}
+       [:div.flex.layout--room-between
+        [:div.flex-grow
+         [context-filter attrs contexts]]
+        [:div.flex-grow
+         [tag-filter attrs tags]]]])
     (finally
       (remove-watch sub:route ::qp-sync))))
 

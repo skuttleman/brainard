@@ -9,6 +9,11 @@
         justify-content: space-between;
     }
 
+    .dropdown-items {
+        max-height:400px;
+        overflow-y: scroll;
+    }
+
     .dropdown-item {
         &.is-active {
             background-color: #3273dc;

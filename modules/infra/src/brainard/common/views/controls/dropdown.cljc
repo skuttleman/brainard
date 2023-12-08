@@ -13,8 +13,6 @@
 (defn ^:private option-list [{:keys [item-control on-change value] :as attrs}]
   (r/with-let [options (split-selection attrs)]
     [:ul.dropdown-items
-     {:style {:max-height "400px"
-              :overflow-y :scroll}}
      (for [[id display] options
            :let [selected? (contains? value id)]]
        ^{:key id}

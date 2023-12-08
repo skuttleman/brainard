@@ -47,8 +47,7 @@
   (when label
     [:label.label
      (cond-> {:html-for id}
-       label-small? (assoc :style {:font-weight :normal
-                                   :font-size   "0.8em"}))
+       label-small? (assoc :class ["small"]))
      label]))
 
 (defn ^:private form-field-meta-list [type items]
@@ -115,7 +114,7 @@
          [dd/control (dd/singleable attrs)]]))))
 
 (defn ^:private form-button-row [{:keys [buttons disabled requesting?] :as attrs}]
-  (cond-> [:div.button-row
+  (cond-> [:div.button-row.layout--room-between
            [comp/plain-button
             {:class    ["is-primary" "submit"]
              :type     :submit
@@ -123,7 +122,7 @@
             (:submit/body attrs "Submit")]]
 
     requesting?
-    (conj [:div {:style {:margin-bottom "8px"}} [comp/spinner]])
+    (conj [:div.space--bottom [comp/spinner]])
 
     buttons
     (into buttons)))
