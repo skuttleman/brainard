@@ -56,7 +56,7 @@
 (defmethod ipages/page :routes.ui/home
   [{:keys [*:store]}]
   (r/with-let [_ (store/dispatch! *:store [:forms/ensure! form-id new-note])
-               sub:form (store/subscribe *:store [:forms/form form-id])
+               sub:form (store/subscribe *:store [:forms/?:form form-id])
                sub:contexts (store/subscribe *:store [:resources/?:resource ::rspecs/contexts#select])
                sub:tags (store/subscribe *:store [:resources/?:resource ::rspecs/tags#select])
                sub:res (store/subscribe *:store [:resources/?:resource [::rspecs/notes#create form-id]])]

@@ -7,6 +7,10 @@
     [brainard.common.utils.uuids :as uuids]
     [clojure.string :as string]))
 
+(def ^:private token->coercers
+  {:routes.api/note {:notes/id uuids/->uuid}
+   :routes.ui/note  {:notes/id uuids/->uuid}})
+
 (def ^:private api-routes
   ["/api" [["/notes" [["" :routes.api/notes]
                       [["/" [uuids/regex :notes/id]] :routes.api/note]]]
@@ -29,10 +33,6 @@
 (def ^:private all-routes
   ["" [api-routes resource-routes ui-routes]])
 
-(def ^:private token->coercers
-  {:routes.api/note {:notes/id uuids/->uuid}
-   :routes.ui/note  {:notes/id uuids/->uuid}})
-
 (defn ^:private coerce-params [params coercers]
   (reduce (fn [params [k coercer]]
             (cond-> params
@@ -51,15 +51,12 @@
            (mapcat (fn [[k v]]
                      (when (some? v)
                        (map (fn [v']
-                              (str (name k) "=" (cond-> v' (keyword? v') kw/str)))
+                              (cond-> (name k)
+                                (not (true? v'))
+                                (str "=" (cond-> v' (keyword? v') kw/str))))
                             (cond-> v (not (coll? v)) vector)))))
            seq
            (string/join "&")))
-
-(defn ^:private with-qp [uri query-params]
-  (let [query (->query-string query-params)]
-    (cond-> uri
-      query (str "?" query))))
 
 (defn ->query-params
   "Parses a query-string into a map of params. Param values will be a string or set of strings.
@@ -77,6 +74,11 @@
                   (assoc params k v))))
             {}
             (string/split query #"&"))))
+
+(defn ^:private with-qp [uri query-params]
+  (let [query (->query-string query-params)]
+    (cond-> uri
+      query (str "?" query))))
 
 (defn path-for
   "Produces a path from a route handle and optional params."

@@ -147,7 +147,10 @@
           (and form-errors (not init?))
           (conj [form-field-meta-list :error errors]))
         (conj [form-button-row (-> attrs
-                                   (update :disabled (comp disabled-compat fns/or) requesting? any-errors?)
+                                   (update :disabled (fn [disabled]
+                                                       (disabled-compat (or disabled
+                                                                            requesting?
+                                                                            any-errors?))))
                                    (assoc :requesting? requesting?))]))))
 
 (def ^{:arglists '([attrs form sub:res path] [attrs form sub:res path errors])} with-attrs

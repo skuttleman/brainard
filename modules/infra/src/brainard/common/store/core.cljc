@@ -33,3 +33,6 @@
 
 (defn subscribe [store query]
   (defacto/subscribe store query))
+
+(defn query [store query]
+  (defacto/query-responder @store query))

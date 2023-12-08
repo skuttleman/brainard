@@ -16,7 +16,7 @@
 
 (defmethod defacto/command-handler :forms/ensure!
   [{::defacto/keys [store]} [_ form-id params] emit-cb]
-  (when-not (defacto/query-responder @store [:forms/form form-id])
+  (when-not (defacto/query-responder @store [:forms/?:form form-id])
     (emit-cb [:forms/created form-id params])))
 
 (defmethod defacto/command-handler :resources/ensure!

@@ -86,6 +86,16 @@
     align-items: center;
 }
 
+.layout--no-shrink {
+    flex-shrink: 0;
+}
+
+.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .is-small {
     font-size: 0.75em;
 }

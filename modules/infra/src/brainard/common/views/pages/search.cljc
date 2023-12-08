@@ -8,7 +8,6 @@
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.colls :as colls]
     [brainard.common.utils.routing :as rte]
-    [brainard.common.utils.strings :as strings]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.views.pages.interfaces :as ipages]))
@@ -30,12 +29,12 @@
     (store/dispatch! *:store [:forms/ensure! form-id data {:remove-nil? true}])
     (when (nil? (search-validator data))
       (store/dispatch! *:store [:resources/ensure! [::rspecs/notes#select form-id] data]))
-    (store/subscribe *:store [:forms/form form-id])))
+    (store/subscribe *:store [:forms/?:form form-id])))
 
 (defn ^:private qp-syncer [{:keys [*:store]} contexts tags]
   (fn [_ _ _ {:keys [query-params]}]
     (let [data (->empty-form query-params contexts tags)]
-      (when-not (= data (forms/data @(store/subscribe *:store [:forms/form form-id])))
+      (when-not (= data (forms/data (store/query *:store [:forms/?:form form-id])))
         (or (do (store/emit! *:store [:forms/created form-id data {:remove-nil? true}])
                 (when (nil? (search-validator data))
                   (store/dispatch! *:store [:resources/submit! [::rspecs/notes#select form-id] data])
@@ -79,10 +78,10 @@
      (for [{:notes/keys [id context body tags]} notes]
        ^{:key id}
        [:li
-        [:div.layout--space-between
-         [:div.layout--row
-          [:strong context]
-          [:span.space--left (strings/truncate-to body 100)]]
+        [:div.layout--row
+         [:strong.layout--no-shrink context]
+         [:span.space--left.truncate
+          body]
          [:a.link.space--left {:href (rte/path-for :routes.ui/note {:notes/id id})}
           "view"]]
         [:div.flex

@@ -10,7 +10,7 @@
   [db [_ handle]]
   (get-in db [:resources/resources handle] [:init]))
 
-(defmethod defacto/query-responder :forms/form
+(defmethod defacto/query-responder :forms/?:form
   [db [_ form-id]]
   (get-in db [:forms/forms form-id]))
 

@@ -59,7 +59,7 @@
   (r/with-let [_ (store/dispatch! *:store
                                   [:forms/ensure! form-id {:notes/tags (:notes/tags note)
                                                            ::editing?  false}])
-               sub:form (store/subscribe *:store [:forms/form form-id])
+               sub:form (store/subscribe *:store [:forms/?:form form-id])
                sub:res (store/subscribe *:store [:resources/?:resource [::rspecs/notes#update form-id]])
                sub:tags (store/subscribe *:store [:resources/?:resource ::rspecs/tags#select])]
     (let [form @sub:form
