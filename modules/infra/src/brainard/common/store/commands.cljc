@@ -11,6 +11,9 @@
      (:import
        (java.util Date))))
 
+(defonce ^:private *:toast-id
+  (atom #?(:cljs (.getTime (js/Date.)) :default (.getTime (Date.)))))
+
 (defmethod defacto/command-handler :forms/ensure!
   [{::defacto/keys [store]} [_ form-id params] emit-cb]
   (when-not (defacto/query-responder @store [:forms/form form-id])
@@ -55,7 +58,7 @@
 
 (defmethod defacto/command-handler :toasts/create!
   [_ [_ level body] emit-cb]
-  (let [toast-id #?(:cljs (.getTime (js/Date.)) :default (.getTime (Date.)))]
+  (let [toast-id (swap! *:toast-id inc)]
     (emit-cb [:toasts/created toast-id {:state :init
                                         :level level
                                         :body  body}])))

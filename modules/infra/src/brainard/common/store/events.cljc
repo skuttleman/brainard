@@ -53,7 +53,9 @@
 
 (defmethod defacto/event-reducer :toasts/hidden
   [db [_ toast-id]]
-  (assoc-in db [:toasts/toasts toast-id :state] :hidden))
+  (cond-> db
+    (:state (defacto/query-responder db [:toasts/?:toast toast-id]))
+    (assoc-in [:toasts/toasts toast-id :state] :hidden)))
 
 (defmethod defacto/event-reducer :toasts/created
   [db [_ toast-id toast]]
