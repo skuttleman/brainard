@@ -35,8 +35,8 @@
 
 (defmethod defacto/command-handler :routing/with-qp!
   [{::defacto/keys [store] :services/keys [nav]} [_ query-params] _]
-  (let [{:keys [handler route-params]} (defacto/query-responder @store [:routing/?:route])]
-    (nav/navigate! nav handler (assoc route-params :query-params query-params))))
+  (let [{:keys [token route-params]} (defacto/query-responder @store [:routing/?:route])]
+    (nav/navigate! nav token (assoc route-params :query-params query-params))))
 
 (defmethod defacto/command-handler :toasts/succeed!
   [{::defacto/keys [store]} [_ {:keys [message]}] _]

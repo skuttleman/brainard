@@ -16,7 +16,7 @@
       (derive :routes.ui/not-found :routes/ui)))
 
 (defn router [{:keys [request-method] :brainard/keys [route]}]
-  [request-method (:handler route)])
+  [request-method (:token route)])
 
 (defmulti handler
           "Defines an HTTP route handler. Dispatch value is a tuple of `[request-method handler-token]`."

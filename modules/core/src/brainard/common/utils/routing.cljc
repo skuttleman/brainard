@@ -29,7 +29,7 @@
 (def ^:private all-routes
   ["" [api-routes resource-routes ui-routes]])
 
-(def ^:private handler->coercers
+(def ^:private token->coercers
   {:routes.api/note {:notes/id uuids/->uuid}
    :routes.ui/note  {:notes/id uuids/->uuid}})
 
@@ -80,18 +80,19 @@
 
 (defn path-for
   "Produces a path from a route handle and optional params."
-  ([handle]
-   (path-for handle nil))
-  ([handle params]
-   (let [route-info (apply bidi/path-for all-routes handle (flatten (seq params)))]
+  ([token]
+   (path-for token nil))
+  ([token params]
+   (let [route-info (apply bidi/path-for all-routes token (flatten (seq params)))]
      (with-qp route-info (:query-params params)))))
 
 (defn match
   "Matches a route uri and parses route info."
-  [path]
-  (let [[path query-string] (string/split path #"\?")
-        route-info (bidi/match-route all-routes path)
-        coercers (handler->coercers (:handler route-info))]
-    (-> route-info
-        (update :route-params coerce-params coercers)
-        (assoc :query-params (->query-params query-string)))))
+  [uri]
+  (let [[path query-string] (string/split uri #"\?")
+        {:keys [handler route-params]} (bidi/match-route all-routes path)
+        coercers (token->coercers handler)]
+    {:token        handler
+     :uri          uri
+     :route-params (coerce-params route-params coercers)
+     :query-params (->query-params query-string)}))

@@ -22,7 +22,7 @@
     [:h1.title "brainard"]
     [:em "'cause absent-minded people need help 'membering junk"]]])
 
-(defn ^:private navbar [{:keys [handler]}]
+(defn ^:private navbar [{:keys [token]}]
   (let [home (rte/path-for :routes.ui/home)
         search (rte/path-for :routes.ui/search)]
     [:nav.navbar
@@ -32,10 +32,10 @@
       [:div#header-nav.navbar-menu
        [:ul.navbar-start.oversize.tabs
         [:li
-         {:class [(when (= :routes.ui/home handler) "is-active")]}
+         {:class [(when (= :routes.ui/home token) "is-active")]}
          [:a.navbar-item {:href home} "Home"]]
         [:li
-         {:class [(when (= :routes.ui/search handler) "is-active")]}
+         {:class [(when (= :routes.ui/search token) "is-active")]}
          [:a.navbar-item {:href search} "Search"]]]]]]))
 
 (defn page [*:store route-info]

@@ -2,4 +2,4 @@
 
 (defmulti page
           "Implements a page from routing info."
-          :handler)
+          :token)
