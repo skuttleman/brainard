@@ -3,11 +3,11 @@
     [brainard.api.notes.interfaces :as inotes]
     [brainard.common.utils.uuids :as uuids]
     [brainard.infra.services.datomic :as datomic]
-    [brainard.test.infra.system :as tsys]
-    [clojure.test :refer [are deftest is testing]]
+    [brainard.test.system :as tsys]
+    [clojure.test :refer [deftest is testing]]
     brainard.infra.services.system)
   (:import
-    (java.util Date)))
+    (java.util Date UUID)))
 
 (deftest save!-test
   (tsys/with-system [{:brainard/keys [datomic-conn notes-store]} nil]
@@ -38,10 +38,10 @@
                     :notes/timestamp date-time}
                    note))))
         (testing "and when updating and retracting tags"
-          (inotes/save! notes-store {:notes/id           note-id
-                                     :notes/context      "different context"
+          (inotes/save! notes-store {:notes/id          note-id
+                                     :notes/context     "different context"
                                      :notes/tags!remove #{:one :two}
-                                     :notes/tags         #{:four :five :six}})
+                                     :notes/tags        #{:four :five :six}})
           (testing "updates the note in datomic"
             (let [note (-> datomic-conn
                            (datomic/query '[:find (pull ?e [:notes/id
@@ -76,7 +76,7 @@
                                                     :notes/tags    #{:b :c :d}}
                                                    {:notes/id      id-4
                                                     :notes/context "b"
-                                                    :notes/tags #{:d}}]})
+                                                    :notes/tags    #{:d}}]})
         (testing "and when querying notes"
           (testing "finds notes by context"
             (let [results (into #{}
@@ -101,8 +101,12 @@
             (let [results (into #{}
                                 (map #(update % :notes/tags set))
                                 (inotes/get-notes notes-store {:notes/context "b"
-                                                               :notes/tags #{:b}}))]
+                                                               :notes/tags    #{:b}}))]
               (is (= #{{:notes/id      id-3
                         :notes/context "b"
                         :notes/tags    #{:b :c :d}}}
-                     results)))))))))
+                     results)))))
+
+        (testing "and when querying a note that doesn't exist"
+          (testing "returns nil"
+            (is (nil? (inotes/get-note notes-store (UUID/randomUUID))))))))))

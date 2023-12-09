@@ -1,0 +1,6 @@
+{:paths ["resources" "src"]
+ :deps  {com.datomic/local      {:mvn/version "1.0.267"}
+         danlentz/clj-uuid      {:mvn/version "0.1.9"}
+         duct/core              {:mvn/version "0.8.0"}
+         org.clojure/core.async {:mvn/version "1.6.673"}
+         org.clojure/core.match {:mvn/version "1.0.1"}}}

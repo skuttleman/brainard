@@ -52,4 +52,4 @@
 (defn get-note
   "Find note by primary key."
   [notes-api note-id]
-  (tag-set (inotes/get-note (:store notes-api) note-id)))
+  (some-> (inotes/get-note (:store notes-api) note-id) tag-set))
