@@ -1,7 +1,7 @@
 (ns brainard.common.store.flows-test
   (:require
     [brainard.common.forms.core :as forms]
-    [brainard.common.resources.api :as store.api]
+    [brainard.common.resources.api :as rapi]
     [brainard.common.store.core :as store]
     [brainard.common.resources.specs :as-alias rspecs]
     [brainard.common.stubs.nav :as nav]
@@ -71,7 +71,7 @@
                               #{:route-params :token :uri}))))))))
 
 (deftest resources-test
-  (let [method (::store.api/request! (methods defacto/command-handler))
+  (let [method (::rapi/request! (methods defacto/command-handler))
         calls (atom [])
         handler (fn [_ [_ params] _]
                   (swap! calls conj params))
@@ -80,7 +80,7 @@
     (testing "when ensuring the resource exists"
       (try
         (#?(:cljs -add-method :default .addMethod) defacto/command-handler
-                                                   ::store.api/request!
+                                                   ::rapi/request!
                                                    handler)
 
         (testing "and when the resource does exist"
@@ -110,7 +110,7 @@
             (is (not (empty? @calls)))))
         (finally
           (#?(:cljs -add-method :default .addMethod) defacto/command-handler
-                                                     ::store.api/request!
+                                                     ::rapi/request!
                                                      method))))))
 
 (deftest toast-test

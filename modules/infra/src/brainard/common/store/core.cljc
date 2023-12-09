@@ -30,7 +30,7 @@
   (defacto/dispatch! store command))
 
 (defn emit! [store event]
-  (dispatch! store [::defacto/emit! event]))
+  (defacto/emit! store event))
 
 (defn subscribe [store query]
   (defacto/subscribe store query))

@@ -1,6 +1,6 @@
 (ns brainard.common.store.commands
   (:require
-    [brainard.common.resources.api :as store.api]
+    [brainard.common.resources.api :as rapi]
     [brainard.common.store.core :as store]
     [brainard.common.resources.specs :as rspecs]
     [brainard.common.stubs.nav :as nav]
@@ -29,7 +29,7 @@
   (let [input (rspecs/->req {::rspecs/spec resource-id
                              :params       params})]
     (emit-cb [:resources/submitted resource-id])
-    (store/dispatch! store [::store.api/request! input])))
+    (store/dispatch! store [::rapi/request! input])))
 
 (defmethod defacto/command-handler :routing/with-qp!
   [{::defacto/keys [store] :services/keys [nav]} [_ query-params] _]
