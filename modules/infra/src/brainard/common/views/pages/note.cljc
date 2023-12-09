@@ -3,7 +3,7 @@
   (:require
     [brainard.common.forms.core :as forms]
     [brainard.common.store.core :as store]
-    [brainard.common.store.specs :as-alias rspecs]
+    [brainard.common.resources.specs :as-alias rspecs]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.views.components.core :as comp]
@@ -55,7 +55,7 @@
                                 (store/emit! *:store [:forms/changed form-id [::editing?] true]))}
     "edit tags"]])
 
-(defn ^:private root* [*:store note]
+(defn ^:private root* [*:store [note]]
   (r/with-let [_ (store/dispatch! *:store
                                   [:forms/ensure! form-id {:notes/tags (:notes/tags note)
                                                            ::editing?  false}])
@@ -80,6 +80,6 @@
   [{:keys [route-params *:store]}]
   (r/with-let [sub:note (do (store/dispatch! *:store [:resources/ensure! [::rspecs/notes#find (:notes/id route-params)]])
                             (store/subscribe *:store [:resources/?:resource [::rspecs/notes#find (:notes/id route-params)]]))]
-    [comp/with-resource sub:note [root* *:store]]
+    [comp/with-resources [sub:note] [root* *:store]]
     (finally
       (store/emit! *:store [:resources/destroyed [::rspecs/notes#find (:notes/id route-params)]]))))

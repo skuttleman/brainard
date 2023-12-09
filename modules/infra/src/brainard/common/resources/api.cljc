@@ -1,4 +1,4 @@
-(ns brainard.common.store.api
+(ns brainard.common.resources.api
   (:require
     [brainard.common.store.core :as store]
     [clojure.core.async :as async]

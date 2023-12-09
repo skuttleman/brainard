@@ -3,7 +3,7 @@
   (:require
     [brainard.common.forms.core :as forms]
     [brainard.common.store.core :as store]
-    [brainard.common.store.specs :as-alias rspecs]
+    [brainard.common.resources.specs :as-alias rspecs]
     [brainard.common.validations.core :as valid]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.colls :as colls]
@@ -69,7 +69,7 @@
                                                 [:notes/tags]
                                                 errors))]))
 
-(defn ^:private search-results [_ notes]
+(defn ^:private search-results [_ [notes]]
   (if-not (seq notes)
     [:span.search-results
      [comp/alert :info "No search results"]]
@@ -111,7 +111,7 @@
         [:div.flex-grow
          [tag-filter attrs tags]]]])
     (finally
-      (remove-watch sub:route ::store/qp))))
+      (remove-watch sub:route ::qp-sync))))
 
 (defmethod ipages/page :routes.ui/search
   [{:keys [*:store query-params]}]
@@ -122,7 +122,7 @@
      [comp/with-resources [sub:contexts sub:tags] [root* {:*:store      *:store
                                                           :query-params query-params
                                                           :sub:notes    sub:notes}]]
-     [comp/with-resource sub:notes [search-results {:hide-init? true}]]]
+     [comp/with-resources [sub:notes] [search-results {:hide-init? true}]]]
     (finally
       (store/emit! *:store [:resources/destroyed [::rspecs/notes#select form-id]])
       (store/emit! *:store [:forms/destroyed form-id]))))

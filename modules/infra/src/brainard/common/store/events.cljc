@@ -1,8 +1,7 @@
 (ns brainard.common.store.events
   (:require
     [brainard.common.forms.core :as forms]
-    [brainard.common.store.core :as store]
-    [brainard.common.store.specs :as-alias rspecs]
+    [brainard.common.resources.specs :as-alias rspecs]
     [defacto.core :as defacto]))
 
 (defn ^:private remote->warnings [warnings]

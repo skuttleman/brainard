@@ -1,8 +1,8 @@
 (ns brainard.common.store.commands
   (:require
-    [brainard.common.store.api :as store.api]
+    [brainard.common.resources.api :as store.api]
     [brainard.common.store.core :as store]
-    [brainard.common.store.specs :as rspecs]
+    [brainard.common.resources.specs :as rspecs]
     [brainard.common.stubs.nav :as nav]
     [clojure.core.async :as async]
     [clojure.string :as string]

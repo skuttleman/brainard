@@ -1,4 +1,5 @@
 (ns brainard.common.store.core
+  #?(:cljs (:require-macros brainard.common.store.core))
   (:require
     [brainard.common.stubs.reagent :as r]
     [defacto.core :as defacto]

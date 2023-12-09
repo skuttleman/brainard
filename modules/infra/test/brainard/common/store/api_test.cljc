@@ -1,6 +1,6 @@
-(ns brainard.common.store.api-test
+(ns brainard.common.resources.api-test
   (:require
-    [brainard.common.store.api :as store.api]
+    [brainard.common.resources.api :as store.api]
     [brainard.test.utils.common :as tu]
     [clojure.core.async :as async]
     [clojure.test :refer [deftest is testing]]

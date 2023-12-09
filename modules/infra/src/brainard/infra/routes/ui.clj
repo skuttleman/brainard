@@ -1,6 +1,6 @@
 (ns brainard.infra.routes.ui
   (:require
-    [brainard.common.store.specs :as-alias rspecs]
+    [brainard.common.resources.specs :as-alias rspecs]
     [brainard.common.stubs.nav :as nav]
     [brainard.common.utils.edn :as edn]
     [brainard.common.utils.routing :as rte]

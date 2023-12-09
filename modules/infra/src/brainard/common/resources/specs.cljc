@@ -1,4 +1,4 @@
-(ns brainard.common.store.specs
+(ns brainard.common.resources.specs
   (:require
     [brainard.common.utils.colls :as colls]
     [brainard.common.utils.routing :as rte]))

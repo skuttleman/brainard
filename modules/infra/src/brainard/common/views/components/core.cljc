@@ -90,16 +90,6 @@
     (finally
       (run! dom/remove-listener! listeners))))
 
-(defn with-resource [sub:res comp]
-  (let [[_ opts :as comp] (colls/wrap-vector comp)
-        [status data] @sub:res]
-    (when (or (not= :init status) (not (:hide-init? opts)))
-      (case status
-        :success (conj comp data)
-        :error (when-not (:local data)
-                 [:div.error [alert :error "An error occurred."]])
-        [spinner opts]))))
-
 (defn with-resources [resources comp]
   (let [[_ opts :as comp] (colls/wrap-vector comp)
         [status data] (loop [[sub:res :as resources] resources
