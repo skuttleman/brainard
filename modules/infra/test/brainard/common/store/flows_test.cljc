@@ -3,7 +3,7 @@
     [brainard.common.forms.core :as forms]
     [brainard.common.store.api :as store.api]
     [brainard.common.store.core :as store]
-    [brainard.common.store.specs :as rspecs]
+    [brainard.common.store.specs :as-alias rspecs]
     [brainard.common.stubs.nav :as nav]
     [brainard.common.utils.routing :as rte]
     [brainard.common.utils.uuids :as uuids]

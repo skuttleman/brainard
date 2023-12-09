@@ -1,7 +1,8 @@
 (ns brainard.common.store.events
   (:require
     [brainard.common.forms.core :as forms]
-    [brainard.common.store.specs :as rspecs]
+    [brainard.common.store.core :as store]
+    [brainard.common.store.specs :as-alias rspecs]
     [defacto.core :as defacto]))
 
 (defn ^:private remote->warnings [warnings]
@@ -26,7 +27,9 @@
 
 (defmethod defacto/event-reducer :resources/destroyed
   [db [_ resource-id]]
-  (update db :resources/resources dissoc resource-id))
+  (cond-> db
+    (not (defacto/query-responder db [:app/?:loading]))
+    (update :resources/resources dissoc resource-id)))
 
 (defmethod defacto/event-reducer :resources/note-saved
   [db [_ {:notes/keys [context tags]}]]
@@ -45,7 +48,9 @@
 
 (defmethod defacto/event-reducer :forms/destroyed
   [db [_ form-id]]
-  (update db :forms/forms dissoc form-id))
+  (cond-> db
+    (not (defacto/query-responder db [:app/?:loading]))
+    (update :forms/forms dissoc form-id)))
 
 (defmethod defacto/event-reducer :forms/changed
   [db [_ form-id path value]]

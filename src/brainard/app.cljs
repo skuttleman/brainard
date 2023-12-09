@@ -28,11 +28,23 @@
   (-replace! [_ uri]
     (pushy/replace-token! -pushy uri)))
 
+(defmethod defacto/event-reducer ::loading-changed
+  [db [_ status]]
+  (assoc db ::loading? status))
+
+(defmethod defacto/query-responder :app/?:loading
+  [db _]
+  (::loading? db false))
+
 (defn load!
   "Called when new code is compiled in the browser."
   []
   (let [root (.getElementById js/document "root")]
-    (rdom/render [pages/root *store*] root)))
+    (store/emit! *store* [::loading-changed true])
+    (rdom/render [pages/root *store*]
+                 root
+                 (fn []
+                   (store/emit! *store* [::loading-changed false])))))
 
 (defn init!
   "Called when the DOM finishes loading."

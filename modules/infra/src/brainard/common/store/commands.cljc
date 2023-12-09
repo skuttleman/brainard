@@ -16,16 +16,13 @@
 
 (defmethod defacto/command-handler :forms/ensure!
   [{::defacto/keys [store]} [_ form-id params] emit-cb]
-  (when-not (defacto/query-responder @store [:forms/?:form form-id])
+  (when-not (store/query store [:forms/?:form form-id])
     (emit-cb [:forms/created form-id params])))
 
 (defmethod defacto/command-handler :resources/ensure!
   [{::defacto/keys [store]} [_ resource-id params] _]
-  (#?(:cljs async/go :default do)
-    ;; prevents reload shenanigans with reagent initializing new component before destroying old
-    #?(:cljs (async/<! (async/timeout 1)))
-    (when (= [:init] (defacto/query-responder @store [:resources/?:resource resource-id]))
-      (store/dispatch! store [:resources/submit! resource-id params]))))
+  (when (= [:init] (store/query store [:resources/?:resource resource-id]))
+    (store/dispatch! store [:resources/submit! resource-id params])))
 
 (defmethod defacto/command-handler :resources/submit!
   [{::defacto/keys [store]} [_ resource-id params] emit-cb]
@@ -36,7 +33,7 @@
 
 (defmethod defacto/command-handler :routing/with-qp!
   [{::defacto/keys [store] :services/keys [nav]} [_ query-params] _]
-  (let [{:keys [token route-params]} (defacto/query-responder @store [:routing/?:route])]
+  (let [{:keys [token route-params]} (store/query store [:routing/?:route])]
     (nav/navigate! nav token (assoc route-params :query-params query-params))))
 
 (defmethod defacto/command-handler :toasts/succeed!

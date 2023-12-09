@@ -3,7 +3,7 @@
   (:require
     [brainard.common.forms.core :as forms]
     [brainard.common.store.core :as store]
-    [brainard.common.store.specs :as rspecs]
+    [brainard.common.store.specs :as-alias rspecs]
     [brainard.common.validations.core :as valid]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.colls :as colls]
@@ -12,8 +12,7 @@
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.views.pages.interfaces :as ipages]))
 
-(def ^:private ^:const form-id
-  ::forms/search)
+(def ^:private ^:const form-id ::forms/search)
 
 (defn ^:private ->empty-form [{:keys [context] :as query-params} contexts tags]
   (cond-> {:notes/tags (into #{}
@@ -112,7 +111,7 @@
         [:div.flex-grow
          [tag-filter attrs tags]]]])
     (finally
-      (remove-watch sub:route ::qp-sync))))
+      (remove-watch sub:route ::store/qp))))
 
 (defmethod ipages/page :routes.ui/search
   [{:keys [*:store query-params]}]

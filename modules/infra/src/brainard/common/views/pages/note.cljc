@@ -3,7 +3,7 @@
   (:require
     [brainard.common.forms.core :as forms]
     [brainard.common.store.core :as store]
-    [brainard.common.store.specs :as rspecs]
+    [brainard.common.store.specs :as-alias rspecs]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.views.components.core :as comp]
