@@ -1,17 +1,30 @@
 {:paths   ["resources" "src"]
- :deps    {brainard/infra            {:local/root "modules/infra"}
+ :deps    {bidi/bidi                 {:mvn/version "2.1.6"
+                                      :exclusions  [ring/ring-core]}
            cljs-http/cljs-http       {:mvn/version "0.1.46"}
+           com.datomic/local         {:mvn/version "1.0.267"}
+           com.fzakaria/slf4j-timbre {:mvn/version "0.3.21"}
+           com.taoensso/timbre       {:mvn/version "6.0.4"}
+           danlentz/clj-uuid         {:mvn/version "0.1.9"}
+           duct/core                 {:mvn/version "0.8.0"}
+           hiccup/hiccup             {:mvn/version "1.0.5"}
            kibu/pushy                {:mvn/version "0.3.8"}
+           metosin/jsonista          {:mvn/version "0.3.7"}
+           metosin/malli             {:mvn/version "0.10.1"}
            nrepl/nrepl               {:mvn/version "1.0.0"}
            org.clojure/clojure       {:mvn/version "1.11.1"}
-           org.clojure/clojurescript {:mvn/version "1.11.60"}}
- :aliases {:dev    {:extra-deps  {brainard/test                 {:local/root "modules/test"}
-                                  io.github.clojure/tools.build {:mvn/version "0.9.6"}
+           org.clojure/clojurescript {:mvn/version "1.11.60"}
+           org.clojure/core.async    {:mvn/version "1.6.673"}
+           org.clojure/core.match    {:mvn/version "1.0.1"}
+           org.immutant/immutant     {:mvn/version "2.1.10"
+                                      :exclusions  [ch.qos.logback/logback-classic
+                                                    org.jboss.naming/jnpserver
+                                                    ring/ring-core]}
+           reagent/reagent           {:mvn/version "1.2.0"}
+           ring/ring-core            {:mvn/version "1.3.2"}
+           skuttleman/defacto        {:git/url "https://github.com/skuttleman/defacto"
+                                      :git/sha "2e3382d7d0474ff8641f43cb574bbbd25b698d2e"}}
+ :aliases {:dev    {:extra-deps  {io.github.clojure/tools.build {:mvn/version "0.9.6"}
                                   ring/ring-devel               {:mvn/version "1.3.2"}}
-                    :extra-paths ["dev/resources"
-                                  "dev/src"
-                                  "test"
-                                  "modules/api/test"
-                                  "modules/infra/test"
-                                  "modules/core/test"]}
+                    :extra-paths ["dev/resources" "dev/src" "test"]}
            :shadow {:extra-deps {thheller/shadow-cljs {:mvn/version "2.26.2"}}}}}
