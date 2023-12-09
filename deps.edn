@@ -10,6 +10,7 @@
                                   ring/ring-devel               {:mvn/version "1.3.2"}}
                     :extra-paths ["dev/resources"
                                   "dev/src"
+                                  "test"
                                   "modules/api/test"
                                   "modules/infra/test"
                                   "modules/core/test"]}

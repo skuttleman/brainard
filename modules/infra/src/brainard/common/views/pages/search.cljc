@@ -2,8 +2,8 @@
   "The search page."
   (:require
     [brainard.common.forms.core :as forms]
-    [brainard.common.store.core :as store]
     [brainard.common.resources.specs :as-alias rspecs]
+    [brainard.common.store.core :as store]
     [brainard.common.validations.core :as valid]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.colls :as colls]
@@ -23,34 +23,13 @@
 (def ^:private search-validator
   (valid/->validator valid/notes-query))
 
-(defn ^:private init-search-form! [{:keys [*:store query-params]} contexts tags]
-  (let [data (->empty-form query-params contexts tags)]
-    (store/dispatch! *:store [:forms/ensure! form-id data {:remove-nil? true}])
-    (when (nil? (search-validator data))
-      (store/dispatch! *:store [:resources/ensure! [::rspecs/notes#select form-id] data]))
-    (store/subscribe *:store [:forms/?:form form-id])))
-
-(defn ^:private qp-syncer [{:keys [*:store]} contexts tags]
-  (fn [_ _ _ {:keys [query-params]}]
-    (let [data (->empty-form query-params contexts tags)]
-      (when-not (= data (forms/data (store/query *:store [:forms/?:form form-id])))
-        (or (do (store/emit! *:store [:forms/created form-id data {:remove-nil? true}])
-                (when (nil? (search-validator data))
-                  (store/dispatch! *:store [:resources/submit! [::rspecs/notes#select form-id] data])
-                  true))
-            (store/emit! *:store [:resources/destroyed [::rspecs/notes#select form-id]]))))))
-
-(defn ^:private item-control [item]
-  [:span item])
-
 (defn ^:private context-filter [{:keys [*:store errors form sub:notes]} contexts]
   (r/with-let [options (map #(vector % %) contexts)
                options-by-id (into {} options)]
     [ctrls/single-dropdown (-> {:*:store       *:store
                                 :label         "Context filter"
                                 :options       options
-                                :options-by-id options-by-id
-                                :item-control  item-control}
+                                :options-by-id options-by-id}
                                (ctrls/with-attrs form
                                                  sub:notes
                                                  [:notes/context]
@@ -62,8 +41,7 @@
     [ctrls/multi-dropdown (-> {:*:store       *:store
                                :label         "Tag Filer"
                                :options       options
-                               :options-by-id options-by-id
-                               :item-control  item-control}
+                               :options-by-id options-by-id}
                               (ctrls/with-attrs form
                                                 sub:notes
                                                 [:notes/tags]
@@ -89,9 +67,12 @@
            [:em.space--left "more..."])]])]))
 
 (defn ^:private root* [{:keys [*:store sub:notes] :as attrs} [contexts tags]]
-  (r/with-let [sub:route (doto (store/subscribe *:store [:routing/?:route])
-                           (add-watch ::qp-sync (qp-syncer attrs contexts tags)))
-               sub:form (init-search-form! attrs contexts tags)]
+  (store/with-qp-sync-form [sub:form {:form-id      form-id
+                                      :store        *:store
+                                      :init         (:query-params attrs)
+                                      :resource-key [::rspecs/notes#select form-id]
+                                      :->empty-form #(->empty-form % contexts tags)
+                                      :validator    search-validator}]
     (let [form @sub:form
           form-data (forms/data form)
           errors (search-validator form-data)
@@ -109,9 +90,7 @@
         [:div.flex-grow
          [context-filter attrs contexts]]
         [:div.flex-grow
-         [tag-filter attrs tags]]]])
-    (finally
-      (remove-watch sub:route ::qp-sync))))
+         [tag-filter attrs tags]]]])))
 
 (defmethod ipages/page :routes.ui/search
   [{:keys [*:store query-params]}]

@@ -10,7 +10,8 @@
   (let [{selected true unselected false} (group-by (partial contains? value) options)]
     (concat selected unselected)))
 
-(defn ^:private option-list [{:keys [item-control on-change value] :as attrs}]
+(defn ^:private option-list [{:keys [item-control on-change value] :as attrs
+                              :or {item-control (partial vector :span)}}]
   (r/with-let [options (split-selection attrs)]
     [:ul.dropdown-items
      (for [[id display] options

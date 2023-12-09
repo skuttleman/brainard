@@ -30,11 +30,7 @@
 
 (defmethod defacto/event-reducer ::loading-changed
   [db [_ status]]
-  (assoc db ::loading? status))
-
-(defmethod defacto/query-responder :app/?:loading
-  [db _]
-  (::loading? db false))
+  (assoc db :app/loading? status))
 
 (defn load!
   "Called when new code is compiled in the browser."
