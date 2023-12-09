@@ -5,7 +5,10 @@
     [brainard.common.utils.colls :as colls]
     [brainard.common.utils.keywords :as kw]
     [brainard.common.utils.uuids :as uuids]
-    [clojure.string :as string]))
+    [clojure.string :as string])
+  #?(:clj
+     (:import
+       (java.net URLEncoder URLDecoder))))
 
 (def ^:private token->coercers
   {:routes.api/note {:notes/id uuids/->uuid}
@@ -41,6 +44,14 @@
           params
           coercers))
 
+(defn ^:private encode [s]
+  #?(:cljs    (js/encodeURIComponent s)
+     :default (URLEncoder/encode ^String s "UTF8")))
+
+(defn ^:private decode [s]
+  #?(:cljs    (js/decodeURIComponent s)
+     :default (URLDecoder/decode ^String s "UTF8")))
+
 (defn ->query-string
   "Converts a map of query-params into a query-string.
 
@@ -53,7 +64,7 @@
                        (map (fn [v']
                               (cond-> (name k)
                                 (not (true? v'))
-                                (str "=" (cond-> v' (keyword? v') kw/str))))
+                                (str "=" (encode (str (cond-> v' (keyword? v') kw/str))))))
                             (cond-> v (not (coll? v)) vector)))))
            seq
            (string/join "&")))
@@ -68,7 +79,7 @@
     (reduce (fn [params pair]
               (let [[k v] (string/split pair #"=")
                     k (keyword k)
-                    v (if (re-find #"=" pair) (str v) true)]
+                    v (if (re-find #"=" pair) (decode (str v)) true)]
                 (if (contains? params k)
                   (assoc params k (conj (colls/wrap-set (get params k)) v))
                   (assoc params k v))))

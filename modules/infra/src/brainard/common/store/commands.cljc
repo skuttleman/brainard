@@ -24,11 +24,17 @@
   (when (= [:init] (store/query store [:resources/?:resource resource-id]))
     (store/dispatch! store [:resources/submit! resource-id params])))
 
+(defmethod defacto/command-handler :resources/sync!
+  [{::defacto/keys [store]} [_ resource-id params] _]
+  (let [[status _ curr-params] (store/query store [:resources/?:resource resource-id])]
+    (when (or (= :init status) (not= params curr-params))
+      (store/dispatch! store [:resources/submit! resource-id params]))))
+
 (defmethod defacto/command-handler :resources/submit!
   [{::defacto/keys [store]} [_ resource-id params] emit-cb]
   (let [input (rspecs/->req {::rspecs/spec resource-id
                              :params       params})]
-    (emit-cb [:resources/submitted resource-id])
+    (emit-cb [:resources/submitted resource-id params])
     (store/dispatch! store [::rapi/request! input])))
 
 (defmethod defacto/command-handler :routing/with-qp!

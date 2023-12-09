@@ -12,17 +12,21 @@
   (assoc db :routing/info routing-info))
 
 (defmethod defacto/event-reducer :resources/submitted
-  [db [_ resource-id]]
-  (assoc-in db [:resources/resources resource-id] [:requesting]))
+  [db [_ resource-id params]]
+  (assoc-in db [:resources/resources resource-id] [:requesting nil params]))
 
 (defmethod defacto/event-reducer :resources/succeeded
   [db [_ resource-id data]]
-  (assoc-in db [:resources/resources resource-id] [:success data]))
+  (update-in db [:resources/resources resource-id]
+             (fn [[_ _ params]]
+               [:success data params])))
 
 (defmethod defacto/event-reducer :resources/failed
   [db [_ resource-id source errors]]
   (let [errors (cond-> errors (= :remote source) remote->warnings)]
-    (assoc-in db [:resources/resources resource-id] [:error {source errors}])))
+    (update-in db [:resources/resources resource-id]
+               (fn [[_ _ params]]
+                 [:error {source errors} params]))))
 
 (defmethod defacto/event-reducer :resources/destroyed
   [db [_ resource-id]]

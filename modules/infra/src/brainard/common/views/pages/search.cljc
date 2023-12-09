@@ -7,7 +7,7 @@
     [brainard.common.validations.core :as valid]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.colls :as colls]
-    [brainard.common.utils.routing :as rte]
+    [brainard.common.views.pages.shared :as spages]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.views.pages.interfaces :as ipages]))
@@ -47,24 +47,7 @@
                                                 [:notes/tags]
                                                 errors))]))
 
-(defn ^:private search-results [_ [notes]]
-  (if-not (seq notes)
-    [:span.search-results
-     [comp/alert :info "No search results"]]
-    [:ul.search-results
-     (for [{:notes/keys [id context body tags]} notes]
-       ^{:key id}
-       [:li
-        [:div.layout--row
-         [:strong.layout--no-shrink context]
-         [:span.flex-grow.space--left.truncate
-          body]
-         [:a.link.space--left {:href (rte/path-for :routes.ui/note {:notes/id id})}
-          "view"]]
-        [:div.flex
-         [comp/tag-list {:value (take 8 tags)}]
-         (when (< 8 (count tags))
-           [:em.space--left "more..."])]])]))
+
 
 (defn ^:private root* [{:keys [*:store sub:notes] :as attrs} [contexts tags]]
   (store/with-qp-sync-form [sub:form {:form-id      form-id
@@ -101,7 +84,7 @@
      [comp/with-resources [sub:contexts sub:tags] [root* {:*:store      *:store
                                                           :query-params query-params
                                                           :sub:notes    sub:notes}]]
-     [comp/with-resources [sub:notes] [search-results {:hide-init? true}]]]
+     [comp/with-resources [sub:notes] [spages/search-results {:hide-init? true}]]]
     (finally
       (store/emit! *:store [:resources/destroyed [::rspecs/notes#select form-id]])
       (store/emit! *:store [:forms/destroyed form-id]))))
