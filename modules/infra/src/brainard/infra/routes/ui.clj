@@ -47,12 +47,11 @@
 
 (defn ^:private hydrate [{:brainard/keys [apis route]}]
   (let [handler (cljs-http->ring ui-handler)
-        ctx {:services/http (fn [req]
-                              (-> req
-                                  (assoc :brainard/apis apis)
-                                  handler))
-             :services/nav (->StubNav route nil)}
+        nav (->StubNav route nil)
+        ctx {:services/http #(handler (assoc % :brainard/apis apis))
+             :services/nav  nav}
         store (defacto/->WatchableStore ctx (atom nil) false)]
+    (defacto/init! nav store)
     (defacto/dispatch! store [:resources/submit! ::rspecs/tags#select])
     (defacto/dispatch! store [:resources/submit! ::rspecs/contexts#select])
     (->> (routes.tmpl/render store [pages/page store route])
