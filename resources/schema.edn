@@ -1,4 +1,5 @@
-({:db/ident       :notes/id
+(;; notes
+ {:db/ident       :notes/id
   :db/valueType   :db.type/uuid
   :db/cardinality :db.cardinality/one
   :db/unique      :db.unique/identity
@@ -19,4 +20,39 @@
  {:db/ident       :notes/timestamp
   :db/valueType   :db.type/instant
   :db/cardinality :db.cardinality/one
-  :db/doc         "The time the note was recorded"})
+  :db/doc         "The time the note was recorded"}
+
+ ;; schedules
+ {:db/ident       :schedules/id
+  :db/valueType   :db.type/uuid
+  :db/cardinality :db.cardinality/one
+  :db/unique      :db.unique/identity
+  :db/doc         "The external id of the schedule"}
+ {:db/ident       :schedules/note-id
+  :db/valueType   :db.type/uuid
+  :db/cardinality :db.cardinality/one
+  :db/doc         "The id of the note to which the schedule applies"}
+ {:db/ident       :schedules/before-timestamp
+  :db/valueType   :db.type/instant
+  :db/cardinality :db.cardinality/one
+  :db/doc         "A maximum UTC timestamp before which the schedule applies"}
+ {:db/ident       :schedules/after-timestamp
+  :db/valueType   :db.type/instant
+  :db/cardinality :db.cardinality/one
+  :db/doc         "A minimum UTC timestamp after which the schedule applies"}
+ {:db/ident       :schedules/month
+  :db/valueType   :db.type/keyword
+  :db/cardinality :db.cardinality/one
+  :db/doc         "The month when the schedule applies"}
+ {:db/ident       :schedules/day
+  :db/valueType   :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc         "The day-of-the-month when the schedule applies"}
+ {:db/ident       :schedules/weekday
+  :db/valueType   :db.type/keyword
+  :db/cardinality :db.cardinality/one
+  :db/doc         "The weekday the schedule applies"}
+ {:db/ident       :schedules/week-index
+  :db/valueType   :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc         "The week index (i.e. first week = 0, second week = 1, etc.) when the schedule applies"})

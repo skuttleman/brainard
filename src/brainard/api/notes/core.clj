@@ -49,6 +49,13 @@
        (map tag-set)
        (sort-by :notes/timestamp)))
 
+(defn get-notes-by-ids
+  "Selects notes by unique ids"
+  [notes-api note-ids]
+  (->> (inotes/get-notes-by-ids (:store notes-api) note-ids)
+       (map tag-set)
+       (sort-by :notes/timestamp)))
+
 (defn get-note
   "Find note by primary key."
   [notes-api note-id]

@@ -3,6 +3,7 @@
     [brainard.common.utils.logger :as log]
     [brainard.infra.services.datomic :as datomic]
     [brainard.infra.stores.notes :as stores.notes]
+    [brainard.infra.stores.schedules :as stores.sched]
     [duct.core :as duct]
     [brainard.infra.routes.core :as routes]
     [immutant.web :as web]
@@ -29,6 +30,10 @@
 (defmethod ig/init-key :brainard.store/notes
   [_ deps]
   (stores.notes/create-store deps))
+
+(defmethod ig/init-key :brainard.store/schedules
+  [_ deps]
+  (stores.sched/create-store deps))
 
 (defmethod ig/init-key :brainard/webserver
   [_ {:keys [apis server-port]}]

@@ -7,7 +7,7 @@
     [clojure.test :refer [deftest is testing]]
     brainard.infra.services.system)
   (:import
-    (java.util Date UUID)))
+    (java.util Date)))
 
 (deftest save!-test
   (tsys/with-system [{:brainard/keys [datomic-conn notes-store]} nil]
@@ -109,4 +109,4 @@
 
         (testing "and when querying a note that doesn't exist"
           (testing "returns nil"
-            (is (nil? (inotes/get-note notes-store (UUID/randomUUID))))))))))
+            (is (nil? (inotes/get-note notes-store (uuids/random))))))))))

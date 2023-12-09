@@ -1,11 +1,10 @@
 (ns brainard.test.integration.core-test
   (:require
+    [brainard.common.utils.uuids :as uuids]
     [brainard.test.http :as thttp]
     [brainard.test.system :as tsys]
     [clojure.test :refer [deftest is testing]]
-    brainard.infra.services.system)
-  (:import
-    (java.util UUID)))
+    brainard.infra.services.system))
 
 (deftest notes-integration-test
   (tsys/with-system [{:brainard/keys [apis]} nil]
@@ -147,7 +146,7 @@
 
       (testing "and when fetching a note by non-existing id"
         (let [response (http {:method :get
-                              :uri    (str "/api/notes/" (UUID/randomUUID))})
+                              :uri    (str "/api/notes/" (uuids/random))})
               errors (-> response :body :errors)]
           (testing "throws an error"
             (is (not (thttp/success? response)))

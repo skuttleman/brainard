@@ -1,10 +1,10 @@
 (ns brainard.test.system
   (:require
+    [brainard.common.utils.uuids :as uuids]
     [brainard.infra.services.datomic :as-alias datomic]
     [duct.core :as duct]
     [integrant.core :as ig])
   (:import
-    (java.util UUID)
     (org.apache.commons.io.output NullWriter)))
 
 (defmethod ig/init-key :brainard.test/null-logger
@@ -16,7 +16,7 @@
 
 (defmethod ig/init-key :brainard.test/db-name
   [_ _]
-  (str (UUID/randomUUID)))
+  (str (uuids/random)))
 
 (defmacro with-system [[sys-binding opts] & body]
   (let [sys (gensym)

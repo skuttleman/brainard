@@ -8,7 +8,8 @@
                     :notes/context
                     :notes/body
                     :notes/tags
-                    :notes/timestamp])])
+                    :notes/timestamp])
+    :in $])
 
 (defn ^:private save! [{:keys [datomic-conn]} note]
   (let [{note-id :notes/id retract-tags :notes/tags!remove} note]
@@ -42,9 +43,17 @@
     (->> (datomic/query datomic-conn query)
          (map first))))
 
+(defn ^:private get-notes-by-ids [{:keys [datomic-conn]} note-ids]
+  (->> (datomic/query datomic-conn
+                      (into select
+                            '[[?id ...]
+                             :where [?e :notes/id ?id]])
+                      note-ids)
+       (map first)))
+
 (defn ^:private get-note [{:keys [datomic-conn]} note-id]
   (-> (datomic/query datomic-conn
-                     (into select '[:in $ ?note-id
+                     (into select '[?note-id
                                     :where [?e :notes/id ?note-id]])
                      note-id)
       ffirst))
@@ -57,4 +66,5 @@
               `inotes/get-contexts #'get-contexts
               `inotes/get-tags     #'get-tags
               `inotes/get-notes    #'get-notes
+              `inotes/get-notes-by-ids #'get-notes-by-ids
               `inotes/get-note     #'get-note}))
