@@ -7,14 +7,15 @@
 
  ;; apis
  [:brainard/apis :duct/const]
- {:notes #ig/ref :brainard.api/notes
+ {:notes     #ig/ref :brainard.api/notes
   :schedules #ig/ref :brainard.api/schedules}
 
  [:brainard.api/notes :duct/const :brainard/notes-api]
  {:store #ig/ref :brainard.store/notes}
 
  [:brainard.api/schedules :duct/const :brainard/schedules-api]
- {:store #ig/ref :brainard.store/schedules}
+ {:store     #ig/ref :brainard.store/schedules
+  :notes-api #ig/ref :brainard.api/notes}
 
  ;; stores
  [:brainard.store/notes :brainard/notes-store]

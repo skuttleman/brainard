@@ -17,6 +17,8 @@
 (def ^:private api-routes
   ["/api" [["/notes" [["" :routes.api/notes]
                       [["/" [uuids/regex :notes/id]] :routes.api/note]]]
+           ["/schedules" [["" :routes.api/schedules]
+                          [["/" [uuids/regex :schedules/id]] :routes.api/schedule]]]
            ["/tags" :routes.api/tags]
            ["/contexts" :routes.api/contexts]
            [true :routes.api/not-found]]])

@@ -6,8 +6,10 @@
     [ring.util.mime-type :as ring.mime]))
 
 (defmethod iroutes/req->input :default
-  [req]
-  (:body req))
+  [{:brainard/keys [route] :as req}]
+  (or (:body req)
+      (merge (:route-params route)
+             (:query-params route))))
 
 (defmethod iroutes/handler :default
   [_]

@@ -37,5 +37,6 @@
   nil)
 
 (defn relevant-notes [schedules-api timestamp]
-  (let [note-ids (select-note-ids (:store schedules-api) timestamp)]
-    (notes/get-notes-by-ids (:notes-api schedules-api) note-ids)))
+  (->> (select-note-ids (:store schedules-api) timestamp)
+       (map :schedules/note-id)
+       (notes/get-notes-by-ids (:notes-api schedules-api))))

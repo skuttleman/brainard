@@ -26,10 +26,6 @@
    :body   {:data (notes/create! (:notes apis) input)}})
 
 
-(defmethod iroutes/req->input [:get :routes.api/note]
-  [{:brainard/keys [route]}]
-  (:route-params route))
-
 (defmethod iroutes/handler [:get :routes.api/note]
   [{:brainard/keys [apis input]}]
   (if-let [note (notes/get-note (:notes apis) (:notes/id input))]
