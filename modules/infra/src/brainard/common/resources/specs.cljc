@@ -34,11 +34,11 @@
    :err-events [[:resources/failed ::contexts#select :remote]]})
 
 (defmethod resource-spec ::notes#select
-  [{[_ resource-id] ::spec :keys [params]}]
+  [{[_ resource-id] ::spec {:keys [data pre-commands]} :params}]
   {:route        :routes.api/notes
    :method       :get
-   :params       {:query-params params}
-   :pre-commands [[:routing/with-qp! params]]
+   :params       {:query-params data}
+   :pre-commands pre-commands
    :ok-events    [[:resources/succeeded [::notes#select resource-id]]]
    :err-events   [[:resources/failed [::notes#select resource-id] :remote]]})
 
@@ -51,7 +51,7 @@
    :err-events [[:resources/failed [::notes#find resource-id] :remote]]})
 
 (defmethod resource-spec ::notes#create
-  [{[_ resource-id] ::spec {:keys [data reset-to]} :params}]
+  [{[_ resource-id] ::spec {:keys [data pre-events reset-to]} :params}]
   (let [ok-events (if reset-to
                     [[:forms/created resource-id reset-to]
                      [:resources/destroyed [::notes#create resource-id]]]
@@ -59,6 +59,7 @@
     {:route        :routes.api/notes
      :method       :post
      :body         data
+     :pre-events   pre-events
      :ok-events    (conj ok-events [:resources/note-saved])
      :ok-commands  [[:toasts/succeed! {:message "note created"}]]
      :err-events   [[:resources/failed [::notes#create resource-id] :remote]]

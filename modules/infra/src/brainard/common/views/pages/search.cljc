@@ -15,10 +15,12 @@
 (def ^:private ^:const form-id ::forms/search)
 
 (defn ^:private ->empty-form [{:keys [context] :as query-params} contexts tags]
-  (cond-> {:notes/tags (into #{}
-                             (comp (map keyword) (filter (set tags)))
-                             (colls/wrap-set (:tags query-params)))}
-    (contains? contexts context) (assoc :notes/context context)))
+  (let [data (cond-> {:notes/tags (into #{}
+                                        (comp (map keyword) (filter (set tags)))
+                                        (colls/wrap-set (:tags query-params)))}
+               (contains? contexts context) (assoc :notes/context context))]
+    {:data         data
+     :pre-commands [[:routing/with-qp! data]]}))
 
 (def ^:private search-validator
   (valid/->validator valid/notes-query))
@@ -54,7 +56,7 @@
                                       :store        *:store
                                       :init         (:query-params attrs)
                                       :resource-key [::rspecs/notes#select form-id]
-                                      :->empty-form #(->empty-form % contexts tags)
+                                      :->params     #(->empty-form % contexts tags)
                                       :validator    search-validator}]
     (let [form @sub:form
           form-data (forms/data form)
@@ -63,7 +65,8 @@
       [ctrls/form {:*:store      *:store
                    :form         form
                    :errors       errors
-                   :params       form-data
+                   :params       {:data         form-data
+                                  :pre-commands [[:routing/with-qp! form-data]]}
                    :resource-key [::rspecs/notes#select form-id]
                    :sub:res      sub:notes
                    :submit/body  [:<>

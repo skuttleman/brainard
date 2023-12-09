@@ -129,7 +129,7 @@
 
 (defn form [{:keys [*:store errors form params resource-key sub:res] :as attrs} & fields]
   (let [form-errors (when (vector? errors) errors)
-        [status] @sub:res
+        {:keys [status]} @sub:res
         requesting? (= :requesting status)
         init? (= :init status)
         any-errors? (and errors (not init?))]

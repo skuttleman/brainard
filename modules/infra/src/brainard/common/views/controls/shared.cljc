@@ -8,11 +8,11 @@
    (with-attrs attrs form sub:res path nil))
   ([attrs form sub:res path errors]
    (let [data (forms/data form)
-         [status result] @sub:res]
+         {:keys [status payload]} @sub:res]
      (assoc attrs
             :value (get-in data path)
             :warnings (when (= :error status)
-                        (get-in (:remote result) path))
+                        (get-in (:remote payload) path))
             :errors (when (not= :init status)
                       (get-in errors path))
             :on-change [:forms/changed (forms/id form) path]))))

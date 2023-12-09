@@ -21,14 +21,14 @@
 
 (defmethod defacto/command-handler :resources/ensure!
   [{::defacto/keys [store]} [_ resource-id params] _]
-  (when (= [:init] (store/query store [:resources/?:resource resource-id]))
+  (when (= :init (:status (store/query store [:resources/?:resource resource-id])))
     (store/dispatch! store [:resources/submit! resource-id params])))
 
 (defmethod defacto/command-handler :resources/sync!
-  [{::defacto/keys [store]} [_ resource-id params] _]
-  (let [[status _ curr-params] (store/query store [:resources/?:resource resource-id])]
-    (when (or (= :init status) (not= params curr-params))
-      (store/dispatch! store [:resources/submit! resource-id params]))))
+  [{::defacto/keys [store]} [_ resource-id next-params] _]
+  (let [{:keys [status params]} (store/query store [:resources/?:resource resource-id])]
+    (when (or (= :init status) (not= params next-params))
+      (store/dispatch! store [:resources/submit! resource-id next-params]))))
 
 (defmethod defacto/command-handler :resources/submit!
   [{::defacto/keys [store]} [_ resource-id params] emit-cb]

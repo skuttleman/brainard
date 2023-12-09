@@ -15,9 +15,6 @@
 (def ^:private ^:const form-id
   ::forms/new-note)
 
-(def ^:private ^:const note-res
-  ::notes)
-
 (def ^:private new-note
   {:notes/body    nil
    :notes/context nil
@@ -25,6 +22,13 @@
 
 (def ^:private new-note-validator
   (valid/->validator valid/new-note))
+
+(defn ^:private ->context-blur [store]
+  (fn [e]
+    (store/dispatch! store
+                     [:resources/sync!
+                      [::rspecs/notes#select form-id]
+                      {:data {:notes/context (dom/target-value e)}}])))
 
 (defn ^:private root* [{:keys [*:store sub:contexts sub:form sub:res sub:tags]}]
   (let [form @sub:form
@@ -34,18 +38,15 @@
                  :form         form
                  :errors       errors
                  :params       {:data     data
-                                :reset-to new-note}
+                                :reset-to new-note
+                                :pre-events [[:resources/destroyed [::rspecs/notes#select form-id]]]}
                  :resource-key [::rspecs/notes#create form-id]
                  :sub:res      sub:res}
      [:strong "Create a note"]
      [ctrls/type-ahead (-> {:*:store   *:store
                             :label     "Context"
                             :sub:items sub:contexts
-                            :on-blur   (fn [e]
-                                         (store/dispatch! *:store
-                                                          [:resources/sync!
-                                                           [::rspecs/notes#select note-res]
-                                                           {:notes/context (dom/target-value e)}]))}
+                            :on-blur   (->context-blur *:store)}
                            (ctrls/with-attrs form sub:res [:notes/context] errors))]
      [ctrls/textarea (-> {:label   "Body"
                           :*:store *:store}
@@ -56,10 +57,12 @@
                             (ctrls/with-attrs form sub:res [:notes/tags] errors))]]))
 
 (defn ^:private search-results [opts [notes]]
-  (when (seq notes)
-    [:div
-     [:h3.subtitle [:em "Some related notes..."]]
-     [spages/search-results opts [notes]]]))
+  [:div
+   (if (seq notes)
+     [:<>
+      [:h3.subtitle [:em "Some related notes..."]]
+      [spages/search-results opts [notes]]]
+     [:em "Brand new context!"])])
 
 (defmethod ipages/page :routes.ui/home
   [{:keys [*:store]}]
@@ -68,7 +71,7 @@
                sub:contexts (store/subscribe *:store [:resources/?:resource ::rspecs/contexts#select])
                sub:tags (store/subscribe *:store [:resources/?:resource ::rspecs/tags#select])
                sub:res (store/subscribe *:store [:resources/?:resource [::rspecs/notes#create form-id]])
-               sub:notes (store/subscribe *:store [:resources/?:resource [::rspecs/notes#select note-res]])]
+               sub:notes (store/subscribe *:store [:resources/?:resource [::rspecs/notes#select form-id]])]
     [:div
      [root* {:*:store      *:store
              :sub:contexts sub:contexts
@@ -77,6 +80,6 @@
              :sub:tags     sub:tags}]
      [comp/with-resources [sub:notes] [search-results {:hide-init? true}]]]
     (finally
-      (store/emit! *:store [:resources/destroyed [::rspecs/notes#select note-res]])
+      (store/emit! *:store [:resources/destroyed [::rspecs/notes#select form-id]])
       (store/emit! *:store [:resources/destroyed [::rspecs/notes#create form-id]])
       (store/emit! *:store [:forms/destroyed form-id]))))

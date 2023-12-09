@@ -4,8 +4,13 @@
     [brainard.common.resources.specs :as-alias rspecs]
     [defacto.core :as defacto]))
 
+(defn ^:private merger [row1 row2]
+  (if (and (map? row1) (map? row2))
+    (merge-with conj row1 row2)
+    (or row2 row1)))
+
 (defn ^:private remote->warnings [warnings]
-  (transduce (map :details) (partial merge-with conj) nil warnings))
+  (transduce (map :details) merger nil warnings))
 
 (defmethod defacto/event-reducer :routing/navigated
   [db [_ routing-info]]
@@ -13,20 +18,21 @@
 
 (defmethod defacto/event-reducer :resources/submitted
   [db [_ resource-id params]]
-  (assoc-in db [:resources/resources resource-id] [:requesting nil params]))
+  (assoc-in db [:resources/resources resource-id] {:status :requesting
+                                                   :params params}))
 
 (defmethod defacto/event-reducer :resources/succeeded
   [db [_ resource-id data]]
-  (update-in db [:resources/resources resource-id]
-             (fn [[_ _ params]]
-               [:success data params])))
+  (update-in db [:resources/resources resource-id] assoc
+             :status :success
+             :payload data))
 
 (defmethod defacto/event-reducer :resources/failed
   [db [_ resource-id source errors]]
   (let [errors (cond-> errors (= :remote source) remote->warnings)]
-    (update-in db [:resources/resources resource-id]
-               (fn [[_ _ params]]
-                 [:error {source errors} params]))))
+    (update-in db [:resources/resources resource-id] assoc
+               :status :error
+               :payload {source errors})))
 
 (defmethod defacto/event-reducer :resources/destroyed
   [db [_ resource-id]]
@@ -36,8 +42,8 @@
 
 (defmethod defacto/event-reducer :resources/note-saved
   [db [_ {:notes/keys [context tags]}]]
-  (let [[tag-status] (defacto/query-responder db [:resources/?:resource ::rspecs/tags#select])
-        [ctx-status] (defacto/query-responder db [:resources/?:resource ::rspecs/contexts#select])]
+  (let [tag-status (:status (defacto/query-responder db [:resources/?:resource ::rspecs/tags#select]))
+        ctx-status (:status (defacto/query-responder db [:resources/?:resource ::rspecs/contexts#select]))]
     (cond-> db
       (= :success tag-status)
       (update-in [:resources/resources ::rspecs/tags#select 1] into tags)

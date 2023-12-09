@@ -39,20 +39,20 @@
 (defn query [store query]
   (defacto/query-responder @store query))
 
-(defn init-form! [{:keys [->empty-form form-id init resource-key store validator]}]
-  (let [data (->empty-form init)]
+(defn init-form! [{:keys [->params form-id init resource-key store validator]}]
+  (let [{:keys [data] :as params} (->params init)]
     (dispatch! store [:forms/ensure! form-id data {:remove-nil? true}])
     (when (nil? (validator data))
-      (dispatch! store [:resources/ensure! resource-key data]))
+      (dispatch! store [:resources/ensure! resource-key params]))
     (subscribe store [:forms/?:form form-id])))
 
-(defn qp-syncer [{:keys [->empty-form form-id resource-key store validator]}]
+(defn qp-syncer [{:keys [->params form-id resource-key store validator]}]
   (fn [_ _ _ {:keys [query-params]}]
-    (let [data (->empty-form query-params)]
+    (let [{:keys [data] :as params} (->params query-params)]
       (when-not (= data (forms/data (query store [:forms/?:form form-id])))
         (or (do (emit! store [:forms/created form-id data {:remove-nil? true}])
                 (when (nil? (validator data))
-                  (dispatch! store [:resources/submit! resource-key data])
+                  (dispatch! store [:resources/submit! resource-key params])
                   true))
             (emit! store [:resources/destroyed resource-key]))))))
 

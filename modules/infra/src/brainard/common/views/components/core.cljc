@@ -94,11 +94,11 @@
   (let [[_ opts :as comp] (colls/wrap-vector comp)
         [status data] (loop [[sub:res :as resources] resources
                              successes []]
-                        (let [[status data] (some-> sub:res deref)]
+                        (let [{:keys [status payload]} (some-> sub:res deref)]
                           (cond
                             (empty? resources) [:success successes]
-                            (= :success status) (recur (next resources) (conj successes data))
-                            :else [status data])))]
+                            (= :success status) (recur (next resources) (conj successes payload))
+                            :else [status payload])))]
     (when (or (not= :init status) (not (:hide-init? opts)))
       (case status
         :success (conj comp data)
