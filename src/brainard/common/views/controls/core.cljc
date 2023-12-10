@@ -174,8 +174,7 @@
                            (dom/prevent-default! e)
                            (store/dispatch! *:store [:resources/submit! resource-key params]))}
              (merge (select-keys attrs #{:class :style}))
-             (cond-> any-errors? (update :class conj "errors")))
-         [comp/pprint payload]]
+             (cond-> any-errors? (update :class conj "errors")))]
         (into fields)
         (cond->
           (and form-errors (not init?))
