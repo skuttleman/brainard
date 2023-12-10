@@ -10,6 +10,7 @@
     brainard.common.store.queries
     brainard.infra.routes.base
     brainard.infra.routes.notes
+    brainard.infra.routes.schedules
     brainard.infra.routes.ui))
 
 (defn ^:private asset? [{:keys [uri]}]

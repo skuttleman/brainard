@@ -48,12 +48,13 @@
                               before-timestamp))))
 
 (defn ^:private get-by-note-id [{:keys [datomic-conn]} note-id]
-  (datomic/query datomic-conn
-                 (into select
-                       '[?note-id
-                         :where
-                         [?e :schedules/note-id ?note-id]])
-                 note-id))
+  (->> (datomic/query datomic-conn
+                      (into select
+                            '[?note-id
+                              :where
+                              [?e :schedules/note-id ?note-id]])
+                      note-id)
+       (map first)))
 
 (defn create-store
   "Creates a schedules store which implements [[isched/IScheduleStore]]"

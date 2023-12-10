@@ -140,10 +140,10 @@
          (update attrs :disabled disabled-compat)
          [dd/control (dd/singleable attrs)]]))))
 
-(defn ^:private form-button-row [{:keys [buttons disabled requesting?] :as attrs}]
+(defn ^:private form-button-row [{:keys [attempted? buttons disabled requesting?] :as attrs}]
   (cond-> [:div.button-row.layout--room-between
            [comp/plain-button
-            {:class    ["is-primary" "submit" (when disabled "disabled")]
+            {:class    ["is-primary" "submit" (when attempted? "disabled")]
              :type     :submit
              :disabled (disabled-compat disabled)}
             (:submit/body attrs "Submit")]]
@@ -154,7 +154,7 @@
     buttons
     (into buttons)))
 
-(defn form [{:keys [*:store disabled form params resource-key sub:res] :as attrs} & fields]
+(defn form [{:keys [*:store disabled form params resource-key sub:res horizontal?] :as attrs} & fields]
   (let [{:keys [status payload]} @sub:res
         errors (when (= :error status)
                  (or (:local payload) (:remote payload)))
@@ -162,26 +162,26 @@
                       errors)
         requesting? (= :requesting status)
         init? (= :init status)
-        any-errors? (and errors (not init?))
-        submit-disabled? (boolean (or disabled
-                                      requesting?
-                                      (and (not= :init status)
-                                           (not (forms/changed? form))
-                                           (or (:local payload)
-                                               (:remote payload)))))]
-    (-> [:form.form.layout--stack-between
-         (-> {:on-submit (fn [e]
-                           (dom/prevent-default! e)
-                           (store/dispatch! *:store [:resources/submit! resource-key params]))}
-             (merge (select-keys attrs #{:class :style}))
-             (cond-> any-errors? (update :class conj "errors")))]
-        (into fields)
-        (cond->
-          (and form-errors (not init?))
-          (conj [form-field-meta-list :error errors]))
-        (conj [form-button-row (assoc attrs
-                                      :disabled submit-disabled?
-                                      :requesting? requesting?)]))))
+        any-errors? (and errors (not init?))]
+    [:form.form
+     (-> {:on-submit (fn [e]
+                       (dom/prevent-default! e)
+                       (store/dispatch! *:store [:resources/submit! resource-key params]))}
+         (merge (select-keys attrs #{:class :style}))
+         (cond-> any-errors? (update :class conj "errors")))
+     (into [:div {:class [(if horizontal?
+                            "layout--space-between"
+                            "layout--stack-between")]}]
+           fields)
+     (when (and form-errors (not init?))
+       [form-field-meta-list :error errors])
+     [form-button-row (assoc attrs
+                             :attempted? (and (not init?)
+                                              (not (forms/changed? form))
+                                              (or (:local payload)
+                                                  (:remote payload)))
+                             :disabled (or disabled requesting?)
+                             :requesting? requesting?)]]))
 
 (def ^{:arglists '([attrs form sub:res path])} with-attrs
   "Prepares common form attributes used by controls in [[brainard.common.views.controls.core]]. "
