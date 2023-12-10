@@ -51,6 +51,7 @@
       [ctrls/form {:*:store      *:store
                    :form         form
                    :params       {:data         form-data
+                                  :changed?     (forms/changed? form)
                                   :pre-commands [[:routing/with-qp! form-data]]}
                    :resource-key [::rspecs/notes#select form-id]
                    :sub:res      sub:notes

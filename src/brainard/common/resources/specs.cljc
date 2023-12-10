@@ -41,9 +41,11 @@
   (valid/->validator valid/notes-query))
 
 (defmethod resource-spec ::notes#select
-  [{[_ resource-id] ::spec {:keys [data pre-commands]} :params}]
+  [{[_ resource-id] ::spec {:keys [changed? data pre-commands]} :params}]
   (if-let [errors (search-validator data)]
-    {:pre-events [[:resources/failed [::notes#select resource-id] :local errors]]}
+    (if changed?
+      {:pre-events [[:resources/failed [::notes#select resource-id] :local errors]]}
+      {:pre-events [[:resources/initialized [::notes#select resource-id]]]})
     {:route        :routes.api/notes
      :method       :get
      :params       {:query-params data}

@@ -38,7 +38,11 @@
   [db [_ resource-id]]
   (cond-> db
     (not (defacto/query-responder db [:app/?:loading]))
-    (update :resources/resources dissoc resource-id)))
+    (defacto/event-reducer [:resources/initialized resource-id])))
+
+(defmethod defacto/event-reducer :resources/initialized
+  [db [_ resource-id]]
+  (update db :resources/resources dissoc resource-id))
 
 (defmethod defacto/event-reducer :resources/note-saved
   [db [_ {:notes/keys [context tags]}]]

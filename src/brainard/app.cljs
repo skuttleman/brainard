@@ -32,15 +32,18 @@
   [db [_ status]]
   (assoc db :app/loading? status))
 
-(defn load!
-  "Called when new code is compiled in the browser."
-  []
+(defn ^:private load* []
   (let [root (.getElementById js/document "root")]
-    (store/emit! *store* [::loading-changed true])
     (rdom/render [pages/root *store*]
                  root
                  (fn []
                    (store/emit! *store* [::loading-changed false])))))
+
+(defn load!
+  "Called when new code is compiled in the browser."
+  []
+  (store/emit! *store* [::loading-changed true])
+  (load*))
 
 (defn init!
   "Called when the DOM finishes loading."
@@ -49,4 +52,4 @@
   (set! *store* (store/create {:services/http http/request
                                :services/nav  (->NavComponent nil)}
                               (:init-db dom/env)))
-  (load!))
+  (load*))
