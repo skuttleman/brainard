@@ -6,7 +6,7 @@
 (defn ^:private ->err-response [status body]
   (routes.res/->response status (pr-str body) {"content-type" "application/edn"}))
 
-(defmulti ex->response
+(defmulti ^{:arglists '([ex-data])} ex->response
           "Produces an HTTP response from exception details thrown by [[valid/validate!]]."
           ::valid/type)
 

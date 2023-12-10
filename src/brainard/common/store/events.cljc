@@ -58,20 +58,48 @@
   [db [_ form-id path value]]
   (update-in db [:forms/forms form-id] forms/change path value))
 
-(defmethod defacto/event-reducer :toasts/hidden
-  [db [_ toast-id]]
+(defmethod defacto/event-reducer :modals/created
+  [db [_ modal-id modal]]
+  (update db :modals/modals assoc modal-id modal))
+
+(defmethod defacto/event-reducer :modals/displayed
+  [db [_ modal-id]]
   (cond-> db
-    (:state (defacto/query-responder db [:toasts/?:toast toast-id]))
-    (assoc-in [:toasts/toasts toast-id :state] :hidden)))
+    (get-in db [:modals/modals modal-id])
+    (assoc-in [:modals/modals modal-id :state] :displayed)))
+
+(defmethod defacto/event-reducer :modals/hidden
+  [db [_ modal-id]]
+  (cond-> db
+    (get-in db [:modals/modals modal-id])
+    (assoc-in [:modals/modals modal-id :state] :hidden)))
+
+(defmethod defacto/event-reducer :modals/all-hidden
+  [db _]
+  (update db :modals/modals update-vals #(assoc % :state :hidden)))
+
+(defmethod defacto/event-reducer :modals/destroyed
+  [db [_ modal-id]]
+  (update db :modals/modals dissoc modal-id))
+
+(defmethod defacto/event-reducer :modals/all-destroyed
+  [db _]
+  (update db :modals/modals empty))
 
 (defmethod defacto/event-reducer :toasts/created
   [db [_ toast-id toast]]
   (assoc-in db [:toasts/toasts toast-id] toast))
 
+(defmethod defacto/event-reducer :toasts/hidden
+  [db [_ toast-id]]
+  (cond-> db
+    (defacto/query-responder db [:toasts/?:toast toast-id])
+    (assoc-in [:toasts/toasts toast-id :state] :hidden)))
+
 (defmethod defacto/event-reducer :toasts/shown
   [db [_ toast-id]]
   (cond-> db
-    (:state (defacto/query-responder db [:toasts/?:toast toast-id]))
+    (defacto/query-responder db [:toasts/?:toast toast-id])
     (assoc-in [:toasts/toasts toast-id :state] :visible)))
 
 (defmethod defacto/event-reducer :toasts/destroyed
@@ -95,3 +123,11 @@
     (cond-> db
       (= :success (:status note-res))
       (update-in [:resources/resources [::rspecs/notes#find note-id] :payload :notes/schedules] conj sched))))
+
+(defmethod defacto/event-reducer :api.schedules/deleted
+  [db [_ sched-id note-id]]
+  (let [note-res (defacto/query-responder db [:resources/?:resource [::rspecs/notes#find note-id]])]
+    (cond-> db
+      (= :success (:status note-res))
+      (update-in [:resources/resources [::rspecs/notes#find note-id] :payload :notes/schedules]
+                 (partial remove (comp #{sched-id} :schedules/id))))))

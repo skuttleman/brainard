@@ -1,5 +1,5 @@
 (ns brainard.common.views.pages.interfaces)
 
-(defmulti page
+(defmulti ^{:arglists '([route])} page
           "Implements a page from routing info."
           :token)

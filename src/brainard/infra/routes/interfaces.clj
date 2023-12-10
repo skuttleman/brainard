@@ -18,13 +18,13 @@
 (defn router [{:keys [request-method] :brainard/keys [route]}]
   [request-method (:token route)])
 
-(defmulti handler
+(defmulti ^{:arglists '([req])} handler
           "Defines an HTTP route handler. Dispatch value is a tuple of `[request-method handler-token]`."
           router
           :hierarchy
           #'routing-hierarchy)
 
-(defmulti req->input
+(defmulti ^{:arglists '([req])} req->input
           "Defines an HTTP route coercer which gathers relevant data for the request. Defaults to the request :body."
           router
           :hierarchy

@@ -42,7 +42,8 @@
    [header]
    [navbar route-info]
    [ipages/page (assoc route-info :*:store *:store)]
-   [comp/toasts *:store]])
+   [comp/toasts *:store]
+   [comp/modals *:store]])
 
 (defn root [*:store]
   (r/with-let [router (store/subscribe *:store [:routing/?:route])]

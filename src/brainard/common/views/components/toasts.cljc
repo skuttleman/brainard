@@ -40,7 +40,7 @@
                      (store/dispatch! *:store [:toasts/hide! toast-id]))}
         [:div.body-text body]]])))
 
-(defn toasts [*:store]
+(defn root [*:store]
   (r/with-let [sub:toasts (store/subscribe *:store [:toasts/?:toasts])]
     [:div.toast-container
      [:ul.toast-messages

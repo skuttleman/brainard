@@ -9,6 +9,7 @@
     [brainard.common.utils.maps :as maps]
     [brainard.common.utils.uuids :as uuids]
     [brainard.common.views.components.core :as comp]
+    [brainard.common.views.components.interfaces :as icomp]
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.views.pages.interfaces :as ipages]
     [clojure.pprint :as pp]
@@ -127,19 +128,21 @@
                              (interpose [:span "AND"])))]
     (into [:div.flex.layout--room-between] parts)))
 
-(defn ^:private schedules-list [note]
+(defn ^:private schedules-list [*:store note]
   [:div
    (if-let [scheds (seq (:notes/schedules note))]
      [:<>
       [:p [:em "Existing schedules"]]
       [:ul.layout--stack-between
-       (for [sched scheds]
-         ^{:key (:schedules/id sched)}
+       (for [{sched-id :schedules/id :as sched} scheds
+             :let [modal [:modals/sure?
+                          {:description  "This schedule will be deleted"
+                           :yes-commands [[:resources/submit! [::rspecs/schedules#destroy sched-id] note]]}]]]
+         ^{:key sched-id}
          [:li.layout--room-between.layout--align-center.space--left
           [comp/plain-button {:class    ["is-danger" "is-light" "is-small"]
                               :on-click (fn [_]
-                                          ;; TODO impl
-                                          (println "DELETE" (:schedules/id sched)))}
+                                          (store/dispatch! *:store [:modals/create! modal]))}
            [comp/icon :trash]]
           [schedule-display sched]])]]
      [:p [:em "no related schedules"]])])
@@ -186,7 +189,7 @@
       [:em "Add a schedule: "]
       [:span.space--left [schedule-display (forms/data @sub:form)]]]
      [schedules-form (merge attrs (maps/m sub:form sub:res)) note]
-     [schedules-list note]]))
+     [schedules-list *:store note]]))
 
 (defn ^:private root* [*:store [note]]
   (r/with-let [init-form {:notes/tags (:notes/tags note)

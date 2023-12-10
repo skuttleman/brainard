@@ -18,6 +18,13 @@
   [db [_ form-id]]
   (get-in db [:forms/forms form-id]))
 
+(defmethod defacto/query-responder :modals/?:modals
+  [db _]
+  (->> (:modals/modals db)
+       (sort-by key >)
+       (map (fn [[modal-id modal]]
+              (assoc modal :id modal-id)))))
+
 (defmethod defacto/query-responder :toasts/?:toasts
   [db _]
   (->> (:toasts/toasts db)

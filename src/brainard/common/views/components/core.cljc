@@ -1,29 +1,34 @@
 (ns brainard.common.views.components.core
   "Reusable reagent components."
   (:require
+    [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.colls :as colls]
     [brainard.common.utils.maps :as maps]
+    [brainard.common.views.components.interfaces :as icomp]
+    [brainard.common.views.components.modals :as comp.modals]
+    [brainard.common.views.components.shared :as scomp]
     [brainard.common.views.components.toasts :as comp.toasts]
     [clojure.pprint :as pp]))
 
 (defn pprint [data]
   [:pre (with-out-str (pp/pprint data))])
 
+(def ^{:arglists '([attrs & content])} plain-button
+  scomp/plain-button)
+
+(def ^{:arglists '([heading body & tabs])} tile
+  scomp/tile)
+
+(def ^{:arglists '([icon-class] [attrs icon-class])} icon
+  scomp/icon)
+
 (defn spinner
   ([]
    (spinner nil))
   ([{:keys [size]}]
    [(keyword (str "div.loader." (name (or size :small))))]))
-
-(defn plain-button [attrs & content]
-  (let [disabled #?(:clj true :default (:disabled attrs))]
-    (-> attrs
-        (maps/assoc-defaults :type :button)
-        (cond-> disabled (update :class (fnil conj []) "is-disabled"))
-        (->> (conj [:button.button]))
-        (into content))))
 
 (defn plain-input [attrs]
   [:input.input
@@ -32,12 +37,6 @@
                       :id :on-blur :value :on-focus :auto-focus})
        (update :on-change comp dom/target-value)
        (maps/assoc-defaults :type :text))])
-
-(defn icon
-  ([icon-class]
-   (icon {} icon-class))
-  ([attrs icon-class]
-   [:i.fas (update attrs :class conj (str "fa-" (name icon-class)))]))
 
 (def ^:private level->class
   {:error "is-danger"})
@@ -117,4 +116,25 @@
                                                    (dom/prevent-default! e)
                                                    (on-change (disj value tag)))}])])])
 
-(def ^{:arglists '([*:store])} toasts comp.toasts/toasts)
+(def ^{:arglists '([*:store])} modals comp.modals/root)
+
+(def ^{:arglists '([*:store])} toasts comp.toasts/root)
+
+(defmethod icomp/modal-header :modals/sure?
+  [_ _]
+  "Are you sure?")
+
+(defmethod icomp/modal-body :modals/sure?
+  [*:store {:keys [description no-commands close! yes-commands]}]
+  [:div.layout--stack-between
+   [:p description]
+   [:div.layout--room-between
+    [plain-button {:class    ["is-info"]
+                   :on-click (fn [e]
+                               (run! (partial store/dispatch! *:store) yes-commands)
+                               (close! e))}
+     "Yes"]
+    [plain-button {:on-click (fn [e]
+                               (run! (partial store/dispatch! *:store) no-commands)
+                               (close! e))}
+     "No"]]])

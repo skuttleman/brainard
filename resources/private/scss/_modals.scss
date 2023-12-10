@@ -1,0 +1,41 @@
+.modal-container {
+    background-color: transparent;
+    height: 100vh;
+    left: 0;
+    position: fixed;
+    top: 0;
+    transition: background-color 0.333s ease-out;
+    width: 100vw;
+    z-index: 100;
+    pointer-events: none;
+
+    &.is-active {
+        background-color: rgba(10,10,10,0.86);
+        pointer-events: auto;
+    }
+
+    .modal-stack {
+        align-items: center;
+        display: flex;
+        height: 100vh;
+        justify-content: center;
+
+        .modal-list {
+            .modal-item {
+                margin-top: -50px;
+                transition: margin-top 0.333s ease-out,
+                            opacity 0.333s ease-out;
+                opacity: 0;
+                pointer-events: none;
+
+
+
+                &:not(.adding, .removing) {
+                    opacity: 1;
+                    pointer-events: auto;
+                    margin-top: 0;
+                }
+            }
+        }
+    }
+}

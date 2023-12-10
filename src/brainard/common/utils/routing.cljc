@@ -11,8 +11,9 @@
        (java.net URLEncoder URLDecoder))))
 
 (def ^:private token->coercers
-  {:routes.api/note {:notes/id uuids/->uuid}
-   :routes.ui/note  {:notes/id uuids/->uuid}})
+  {:routes.api/note     {:notes/id uuids/->uuid}
+   :routes.ui/note      {:notes/id uuids/->uuid}
+   :routes.api/schedule {:schedules/id uuids/->uuid}})
 
 (def ^:private api-routes
   ["/api" [["/notes" [["" :routes.api/notes]

@@ -4,7 +4,8 @@
     [brainard.common.utils.routing :as rte]
     [brainard.common.validations.core :as valid]))
 
-(defmulti ^:private resource-spec (comp first colls/wrap-vector ::spec))
+(defmulti ^:private ^{:arglists '([spec])} resource-spec
+          (comp first colls/wrap-vector ::type))
 
 (defn ->req [spec]
   (let [params (resource-spec spec)
@@ -41,7 +42,7 @@
   (valid/->validator valid/notes-query))
 
 (defmethod resource-spec ::notes#select
-  [{[_ resource-id] ::spec {:keys [changed? data pre-commands]} :params}]
+  [{[_ resource-id] ::type {:keys [changed? data pre-commands]} :params}]
   (if-let [errors (search-validator data)]
     (if changed?
       {:pre-events [[:resources/failed [::notes#select resource-id] :local errors]]}
@@ -54,7 +55,7 @@
      :err-events   [[:resources/failed [::notes#select resource-id] :remote]]}))
 
 (defmethod resource-spec ::notes#find
-  [{[_ resource-id] ::spec}]
+  [{[_ resource-id] ::type}]
   {:route      :routes.api/note
    :method     :get
    :params     {:notes/id resource-id}
@@ -65,7 +66,7 @@
   (valid/->validator valid/new-note))
 
 (defmethod resource-spec ::notes#create
-  [{[_ resource-id] ::spec {:keys [data pre-events reset-to]} :params}]
+  [{[_ resource-id] ::type {:keys [data pre-events reset-to]} :params}]
   (if-let [errors (new-note-validator data)]
     {:pre-events [[:resources/failed [::notes#create resource-id] :local errors]]}
     (let [ok-events (if reset-to
@@ -82,7 +83,7 @@
        :err-commands [[:toasts/fail!]]})))
 
 (defmethod resource-spec ::notes#update
-  [{[_ resource-id] ::spec {:keys [note-id data fetch? reset-to]} :params}]
+  [{[_ resource-id] ::type {:keys [note-id data fetch? reset-to]} :params}]
   (let [ok-events (if reset-to
                     [[:forms/created resource-id reset-to]
                      [:resources/destroyed [::notes#update resource-id]]]
@@ -102,7 +103,7 @@
   (valid/->validator valid/new-schedule))
 
 (defmethod resource-spec ::schedules#create
-  [{[_ resource-id] ::spec {:keys [data reset-to]} :params}]
+  [{[_ resource-id] ::type {:keys [data reset-to]} :params}]
   (if-let [errors (new-schedule-validator data)]
     {:pre-events [[:resources/failed [::schedules#create resource-id] :local errors]]}
     (let [ok-events (if reset-to
@@ -116,3 +117,14 @@
        :ok-commands  [[:toasts/succeed! {:message "schedule created"}]]
        :err-events   [[:resources/failed [::schedules#create resource-id] :remote]]
        :err-commands [[:toasts/fail!]]})))
+
+(defmethod resource-spec ::schedules#destroy
+  [{[_ resource-id] ::type :keys [params]}]
+  {:route        :routes.api/schedule
+   :method       :delete
+   :params       {:schedules/id resource-id}
+   :ok-events    [[:resources/destroyed [::schedules#destroy resource-id]]
+                  [:api.schedules/deleted resource-id (:notes/id params)]]
+   :ok-commands  [[:toasts/succeed! {:message "schedule deleted"}]]
+   :err-events   [[:resources/destroyed [::schedules#destroy resource-id]]]
+   :err-commands [[:toasts/fail!]]})

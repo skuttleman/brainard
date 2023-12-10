@@ -6,13 +6,12 @@
     [brainard.common.stubs.nav :as nav]
     [clojure.core.async :as async]
     [clojure.string :as string]
-    [defacto.core :as defacto])
-  #?(:clj
-     (:import
-       (java.util Date))))
+    [defacto.core :as defacto]))
 
-(defonce ^:private *:toast-id
-  (atom #?(:cljs (.getTime (js/Date.)) :default (.getTime (Date.)))))
+(defonce ^:private ->sortable-id
+  (let [id (atom 0)]
+    (fn []
+      (swap! id inc))))
 
 (defmethod defacto/command-handler :forms/ensure!
   [{::defacto/keys [store]} [_ form-id params opts] emit-cb]
@@ -32,7 +31,7 @@
 
 (defmethod defacto/command-handler :resources/submit!
   [{::defacto/keys [store]} [_ resource-id params] emit-cb]
-  (let [input (rspecs/->req {::rspecs/spec resource-id
+  (let [input (rspecs/->req {::rspecs/type resource-id
                              :params       params})]
     (emit-cb [:resources/submitted resource-id params])
     (store/dispatch! store [::rapi/request! input])))
@@ -41,6 +40,30 @@
   [{::defacto/keys [store] :services/keys [nav]} [_ query-params] _]
   (let [{:keys [token route-params]} (store/query store [:routing/?:route])]
     (nav/navigate! nav token (assoc route-params :query-params query-params))))
+
+(defmethod defacto/command-handler :modals/create!
+  [_ [_ body] emit-cb]
+  (let [modal-id (->sortable-id)]
+    (emit-cb [:modals/created modal-id {:state  :init
+                                        :body   body}])
+    (async/go
+      (async/<! (async/timeout 10))
+      (emit-cb [:modals/displayed modal-id]))))
+
+(defmethod defacto/command-handler :modals/remove!
+  [_ [_ modal-id] emit-cb]
+  (emit-cb [:modals/hidden modal-id])
+  (async/go
+    (async/<! (async/timeout 500))
+    (emit-cb [:modals/destroyed modal-id])))
+
+(defmethod defacto/command-handler :modals/remove-all!
+  [_ _ emit-cb]
+  (emit-cb [:modals/all-hidden])
+  (async/go
+    (async/<! (async/timeout 500))
+    (emit-cb [:modals/all-destroyed])))
+
 
 (defmethod defacto/command-handler :toasts/succeed!
   [{::defacto/keys [store]} [_ {:keys [message]}] _]
@@ -62,7 +85,7 @@
 
 (defmethod defacto/command-handler :toasts/create!
   [_ [_ level body] emit-cb]
-  (let [toast-id (swap! *:toast-id inc)]
+  (let [toast-id (->sortable-id)]
     (emit-cb [:toasts/created toast-id {:state :init
                                         :level level
                                         :body  body}])))
