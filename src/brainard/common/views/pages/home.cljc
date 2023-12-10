@@ -50,12 +50,12 @@
                              :sub:items sub:tags}
                             (ctrls/with-attrs form sub:res [:notes/tags]))]]))
 
-(defn ^:private search-results [opts [notes]]
+(defn ^:private search-results [[notes]]
   [:div
    (if (seq notes)
      [:<>
       [:h3.subtitle [:em "Some related notes..."]]
-      [spages/search-results opts [notes]]]
+      [spages/search-results notes]]
      [:em "Brand new context!"])])
 
 (defmethod ipages/page :routes.ui/home
@@ -72,7 +72,7 @@
              :sub:form     sub:form
              :sub:res      sub:res
              :sub:tags     sub:tags}]
-     [comp/with-resources [sub:notes] [search-results {:hide-init? true}]]]
+     [comp/with-resources [sub:notes] search-results]]
     (finally
       (store/emit! *:store [:resources/destroyed [::rspecs/notes#select form-id]])
       (store/emit! *:store [:resources/destroyed [::rspecs/notes#create form-id]])

@@ -133,8 +133,8 @@
                    :on-click (fn [e]
                                (run! (partial store/dispatch! *:store) yes-commands)
                                (close! e))}
-     "Yes"]
+     "OK"]
     [plain-button {:on-click (fn [e]
                                (run! (partial store/dispatch! *:store) no-commands)
                                (close! e))}
-     "No"]]])
+     "Cancel"]]])

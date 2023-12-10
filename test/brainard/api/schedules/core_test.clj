@@ -1,7 +1,7 @@
 (ns brainard.api.schedules.core-test
   (:require
+    [brainard.api.core :as api]
     [brainard.api.notes.interfaces :as inotes]
-    [brainard.api.schedules.core :as sched]
     [brainard.api.schedules.interfaces :as isched]
     [clojure.test :refer [deftest is testing]]))
 
@@ -13,12 +13,14 @@
                  isched/ISchedulesStore
                  (get-schedules [_ filters]
                    (deliver query filters)
-                   [1 2 3])
+                   [{:schedules/note-id 1}
+                    {:schedules/note-id 2}
+                    {:schedules/note-id 3}])
 
                  inotes/INotesStore
                  (get-notes-by-ids [_ ids]
                    (map (partial hash-map :notes/id) ids)))
-          results (sched/relevant-notes {:store mock :notes-api {:store mock}} timestamp)]
+          results (api/relevant-notes {:schedules {:store mock} :notes {:store mock}} timestamp)]
       (testing "sends a query to the schedule store"
         (is (= {:schedules/after-timestamp  timestamp
                 :schedules/before-timestamp timestamp

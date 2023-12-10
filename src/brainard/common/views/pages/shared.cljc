@@ -3,7 +3,7 @@
     [brainard.common.utils.routing :as rte]
     [brainard.common.views.components.core :as comp]))
 
-(defn search-results [_ [notes]]
+(defn search-results [notes]
   (if-not (seq notes)
     [:span.search-results
      [comp/alert :info "No search results"]]

@@ -13,9 +13,9 @@
   (api.notes/get-notes (:notes apis) params))
 
 (defn get-note [apis note-id]
-  (let [note (api.notes/get-note (:notes apis) note-id)
-        schedules (api.sched/get-by-note-id (:schedules apis) note-id)]
-    (assoc note :notes/schedules schedules)))
+  (when-let [note (api.notes/get-note (:notes apis) note-id)]
+    (let [schedules (api.sched/get-by-note-id (:schedules apis) note-id)]
+      (assoc note :notes/schedules schedules))))
 
 (defn get-tags [apis]
   (api.notes/get-tags (:notes apis)))

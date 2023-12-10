@@ -34,6 +34,12 @@
                :status :error
                :payload {source errors})))
 
+(defmethod defacto/event-reducer :resources/warned
+  [db [_ resource-id response]]
+  (let [warnings (remote->warnings response)]
+    (update-in db [:resources/resources resource-id] assoc
+               :warnings warnings)))
+
 (defmethod defacto/event-reducer :resources/destroyed
   [db [_ resource-id]]
   (cond-> db

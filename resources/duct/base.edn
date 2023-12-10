@@ -14,8 +14,7 @@
  {:store #ig/ref :brainard.store/notes}
 
  [:brainard.api/schedules :duct/const :brainard/schedules-api]
- {:store     #ig/ref :brainard.store/schedules
-  :notes-api #ig/ref :brainard.api/notes}
+ {:store #ig/ref :brainard.store/schedules}
 
  ;; stores
  [:brainard.store/notes :brainard/notes-store]

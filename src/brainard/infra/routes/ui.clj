@@ -54,7 +54,8 @@
     (defacto/init! nav store)
     (defacto/dispatch! store [:resources/submit! ::rspecs/tags#select])
     (defacto/dispatch! store [:resources/submit! ::rspecs/contexts#select])
-    (->> (routes.tmpl/render store [pages/page store route])
+    (defacto/dispatch! store [:resources/submit! ::rspecs/notes#poll])
+    (->> (routes.tmpl/render store [pages/page (assoc route :*:store store)])
          hiccup/html
          (str "<!doctype html>"))))
 

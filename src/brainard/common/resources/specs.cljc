@@ -128,3 +128,12 @@
    :ok-commands  [[:toasts/succeed! {:message "schedule deleted"}]]
    :err-events   [[:resources/destroyed [::schedules#destroy resource-id]]]
    :err-commands [[:toasts/fail!]]})
+
+(defmethod resource-spec ::notes#poll
+  [_]
+  {:route        :routes.api/notes?scheduled
+   :method       :get
+   :ok-events    [[:resources/succeeded ::notes#poll]]
+   :ok-commands  [[:resources/after! 5000 [:resources/quietly! ::notes#poll]]]
+   :err-events   [[:resources/warned ::notes#poll]]
+   :err-commands [[:resources/after! 5000 [:resources/quietly! ::notes#poll]]]})

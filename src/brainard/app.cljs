@@ -1,5 +1,6 @@
 (ns brainard.app
   (:require
+    [brainard.common.resources.specs :as rspecs]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.nav :as nav]
@@ -52,4 +53,5 @@
   (set! *store* (store/create {:services/http http/request
                                :services/nav  (->NavComponent nil)}
                               (:init-db dom/env)))
+  (defacto/dispatch! *store* [:resources/quietly! ::rspecs/notes#poll])
   (load*))

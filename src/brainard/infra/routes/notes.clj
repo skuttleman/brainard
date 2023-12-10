@@ -1,7 +1,14 @@
 (ns brainard.infra.routes.notes
   (:require
     [brainard.api.core :as api]
-    [brainard.infra.routes.interfaces :as iroutes]))
+    [brainard.infra.routes.interfaces :as iroutes])
+  (:import
+    (java.util Date)))
+
+(defmethod iroutes/handler [:get :routes.api/notes?scheduled]
+  [{:brainard/keys [apis]}]
+  {:status 200
+   :body   {:data (api/relevant-notes apis (Date.))}})
 
 (defmethod iroutes/req->input [:get :routes.api/notes]
   [{:brainard/keys [route]}]
