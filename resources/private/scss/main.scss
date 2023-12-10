@@ -45,8 +45,10 @@
         }
 
         .button.submit {
-            background-color: $orange;
-            border-color: $orange;
+            &.disabled {
+                background-color: $orange;
+                border-color: $orange;
+            }
         }
     }
 }

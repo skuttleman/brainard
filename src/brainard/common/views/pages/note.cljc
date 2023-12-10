@@ -7,7 +7,6 @@
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.uuids :as uuids]
-    [brainard.common.validations.core :as valid]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.views.pages.interfaces :as ipages]
@@ -15,9 +14,6 @@
 
 (def ^:private ^:const form-id
   ::forms/edit-note)
-
-(def ^:private new-schedule-validator
-  (valid/->validator valid/new-schedule))
 
 (defn ^:private diff-tags [old new]
   (let [removals (set/difference old new)]
@@ -107,11 +103,9 @@
                             (store/subscribe *:store [:forms/?:form form-id]))
                sub:res (store/subscribe *:store [:resources/?:resource [::rspecs/schedules#create form-id]])]
     (let [form @sub:form
-          form-data (forms/data form)
-          errors (new-schedule-validator form-data)]
+          form-data (forms/data form)]
       [ctrls/form {:*:store      *:store
                    :form         form
-                   :errors       errors
                    :params       {:reset-to init-form
                                   :data     form-data}
                    :resource-key [::rspecs/schedules#create form-id]
@@ -120,19 +114,19 @@
        [:p.subtitle "Add a schedule"]
        [ctrls/select (-> {:*:store *:store
                           :label   "Day of the month"}
-                         (ctrls/with-attrs form sub:res [:schedules/day] errors))
+                         (ctrls/with-attrs form sub:res [:schedules/day]))
         day-options]
        [ctrls/select (-> {:*:store *:store
                           :label   "Day of the week"}
-                         (ctrls/with-attrs form sub:res [:schedules/weekday] errors))
+                         (ctrls/with-attrs form sub:res [:schedules/weekday]))
         weekday-options]
        [ctrls/select (-> {:*:store *:store
                           :label   "Week of the month"}
-                         (ctrls/with-attrs form sub:res [:schedules/week-index] errors))
+                         (ctrls/with-attrs form sub:res [:schedules/week-index]))
         week-index-options]
        [ctrls/select (-> {:*:store *:store
                           :label   "Month of the year"}
-                         (ctrls/with-attrs form sub:res [:schedules/month] errors))
+                         (ctrls/with-attrs form sub:res [:schedules/month]))
         month-options]])
     (finally
       (store/emit! *:store [:forms/destroyed form-id])

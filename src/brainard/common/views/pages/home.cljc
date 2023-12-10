@@ -5,7 +5,6 @@
     [brainard.common.store.core :as store]
     [brainard.common.resources.specs :as-alias rspecs]
     [brainard.common.stubs.dom :as dom]
-    [brainard.common.validations.core :as valid]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.core :as ctrls]
@@ -20,9 +19,6 @@
    :notes/context nil
    :notes/tags    #{}})
 
-(def ^:private new-note-validator
-  (valid/->validator valid/new-note))
-
 (defn ^:private ->context-blur [store]
   (fn [e]
     (store/dispatch! store
@@ -32,13 +28,11 @@
 
 (defn ^:private root* [{:keys [*:store sub:contexts sub:form sub:res sub:tags]}]
   (let [form @sub:form
-        data (forms/data form)
-        errors (new-note-validator data)]
+        data (forms/data form)]
     [ctrls/form {:*:store      *:store
                  :form         form
-                 :errors       errors
-                 :params       {:data     data
-                                :reset-to new-note
+                 :params       {:data       data
+                                :reset-to   new-note
                                 :pre-events [[:resources/destroyed [::rspecs/notes#select form-id]]]}
                  :resource-key [::rspecs/notes#create form-id]
                  :sub:res      sub:res}
@@ -47,14 +41,14 @@
                             :label     "Context"
                             :sub:items sub:contexts
                             :on-blur   (->context-blur *:store)}
-                           (ctrls/with-attrs form sub:res [:notes/context] errors))]
+                           (ctrls/with-attrs form sub:res [:notes/context]))]
      [ctrls/textarea (-> {:label   "Body"
                           :*:store *:store}
-                         (ctrls/with-attrs form sub:res [:notes/body] errors))]
+                         (ctrls/with-attrs form sub:res [:notes/body]))]
      [ctrls/tags-editor (-> {:*:store   *:store
                              :label     "Tags"
                              :sub:items sub:tags}
-                            (ctrls/with-attrs form sub:res [:notes/tags] errors))]]))
+                            (ctrls/with-attrs form sub:res [:notes/tags]))]]))
 
 (defn ^:private search-results [opts [notes]]
   [:div

@@ -4,7 +4,6 @@
     [brainard.common.forms.core :as forms]
     [brainard.common.resources.specs :as-alias rspecs]
     [brainard.common.store.core :as store]
-    [brainard.common.validations.core :as valid]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.colls :as colls]
     [brainard.common.views.pages.shared :as spages]
@@ -22,49 +21,35 @@
     {:data         data
      :pre-commands [[:routing/with-qp! data]]}))
 
-(def ^:private search-validator
-  (valid/->validator valid/notes-query))
-
-(defn ^:private context-filter [{:keys [*:store errors form sub:notes]} contexts]
+(defn ^:private context-filter [{:keys [*:store form sub:notes]} contexts]
   (r/with-let [options (map #(vector % %) contexts)
                options-by-id (into {} options)]
     [ctrls/single-dropdown (-> {:*:store       *:store
                                 :label         "Context filter"
                                 :options       options
                                 :options-by-id options-by-id}
-                               (ctrls/with-attrs form
-                                                 sub:notes
-                                                 [:notes/context]
-                                                 errors))]))
+                               (ctrls/with-attrs form sub:notes [:notes/context]))]))
 
-(defn ^:private tag-filter [{:keys [*:store errors form sub:notes]} tags]
+(defn ^:private tag-filter [{:keys [*:store form sub:notes]} tags]
   (r/with-let [options (map #(vector % (str %)) tags)
                options-by-id (into {} options)]
     [ctrls/multi-dropdown (-> {:*:store       *:store
                                :label         "Tag Filer"
                                :options       options
                                :options-by-id options-by-id}
-                              (ctrls/with-attrs form
-                                                sub:notes
-                                                [:notes/tags]
-                                                errors))]))
-
-
+                              (ctrls/with-attrs form sub:notes [:notes/tags]))]))
 
 (defn ^:private root* [{:keys [*:store sub:notes] :as attrs} [contexts tags]]
   (store/with-qp-sync-form [sub:form {:form-id      form-id
                                       :store        *:store
                                       :init         (:query-params attrs)
                                       :resource-key [::rspecs/notes#select form-id]
-                                      :->params     #(->empty-form % contexts tags)
-                                      :validator    search-validator}]
+                                      :->params     #(->empty-form % contexts tags)}]
     (let [form @sub:form
           form-data (forms/data form)
-          errors (search-validator form-data)
-          attrs (assoc attrs :form form :errors errors)]
+          attrs (assoc attrs :form form)]
       [ctrls/form {:*:store      *:store
                    :form         form
-                   :errors       errors
                    :params       {:data         form-data
                                   :pre-commands [[:routing/with-qp! form-data]]}
                    :resource-key [::rspecs/notes#select form-id]

@@ -17,12 +17,13 @@
   (let [{:keys [req pre-events pre-commands ok-events ok-commands err-events err-commands]} params]
     (run! emit-cb pre-events)
     (run! (partial store/dispatch! store) pre-commands)
-    (#?(:cljs async/go :default do)
-      (let [response (#?(:cljs async/<! :default do) (http req))
-            {:keys [data errors]} (:body response)
-            payload (or errors data)
-            [events commands] (if (success? (:status response))
-                                [ok-events ok-commands]
-                                [err-events err-commands])]
-        (send-all emit-cb events payload)
-        (send-all (partial store/dispatch! store) commands payload)))))
+    (when req
+      (#?(:cljs async/go :default do)
+        (let [response (#?(:cljs async/<! :default do) (http req))
+              {:keys [data errors]} (:body response)
+              payload (or errors data)
+              [events commands] (if (success? (:status response))
+                                  [ok-events ok-commands]
+                                  [err-events err-commands])]
+          (send-all emit-cb events payload)
+          (send-all (partial store/dispatch! store) commands payload))))))
