@@ -76,7 +76,7 @@
        :method       :post
        :body         data
        :pre-events   pre-events
-       :ok-events    (conj ok-events [:resources/note-saved])
+       :ok-events    (conj ok-events [:api.notes/saved])
        :ok-commands  [[:toasts/succeed! {:message "note created"}]]
        :err-events   [[:resources/failed [::notes#create resource-id] :remote]]
        :err-commands [[:toasts/fail!]]})))
@@ -93,7 +93,7 @@
      :params       {:notes/id note-id}
      :method       :patch
      :body         data
-     :ok-events    (conj ok-events [:resources/note-saved])
+     :ok-events    (conj ok-events [:api.notes/saved])
      :ok-commands  (conj ok-commands [:toasts/succeed! {:message "note updated"}])
      :err-events   [[:resources/failed [::notes#update resource-id] :remote]]
      :err-commands [[:toasts/fail!]]}))
@@ -112,7 +112,7 @@
       {:route        :routes.api/schedules
        :method       :post
        :body         data
-       :ok-events    (conj ok-events [:resources/schedule-saved])
+       :ok-events    (conj ok-events [:api.schedules/saved (:schedules/note-id data)])
        :ok-commands  [[:toasts/succeed! {:message "schedule created"}]]
        :err-events   [[:resources/failed [::schedules#create resource-id] :remote]]
        :err-commands [[:toasts/fail!]]})))

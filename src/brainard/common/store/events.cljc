@@ -44,17 +44,6 @@
   [db [_ resource-id]]
   (update db :resources/resources dissoc resource-id))
 
-(defmethod defacto/event-reducer :resources/note-saved
-  [db [_ {:notes/keys [context tags]}]]
-  (let [tag-status (:status (defacto/query-responder db [:resources/?:resource ::rspecs/tags#select]))
-        ctx-status (:status (defacto/query-responder db [:resources/?:resource ::rspecs/contexts#select]))]
-    (cond-> db
-      (= :success tag-status)
-      (update-in [:resources/resources ::rspecs/tags#select 1] into tags)
-
-      (and context (= :success ctx-status))
-      (update-in [:resources/resources ::rspecs/contexts#select 1] conj context))))
-
 (defmethod defacto/event-reducer :forms/created
   [db [_ form-id data opts]]
   (assoc-in db [:forms/forms form-id] (forms/create form-id data opts)))
@@ -88,3 +77,21 @@
 (defmethod defacto/event-reducer :toasts/destroyed
   [db [_ toast-id]]
   (update db :toasts/toasts dissoc toast-id))
+
+(defmethod defacto/event-reducer :api.notes/saved
+  [db [_ {:notes/keys [context tags]}]]
+  (let [tag-res (defacto/query-responder db [:resources/?:resource ::rspecs/tags#select])
+        ctx-res (defacto/query-responder db [:resources/?:resource ::rspecs/contexts#select])]
+    (cond-> db
+      (= :success (:status tag-res))
+      (update-in [:resources/resources ::rspecs/tags#select :payload] into tags)
+
+      (and context (= :success (:status ctx-res)))
+      (update-in [:resources/resources ::rspecs/contexts#select :payload] conj context))))
+
+(defmethod defacto/event-reducer :api.schedules/saved
+  [db [_ note-id sched]]
+  (let [note-res (defacto/query-responder db [:resources/?:resource [::rspecs/notes#find note-id]])]
+    (cond-> db
+      (= :success (:status note-res))
+      (update-in [:resources/resources [::rspecs/notes#find note-id] :payload :notes/schedules] conj sched))))
