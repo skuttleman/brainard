@@ -81,6 +81,33 @@
                  :on-change (comp on-change dom/target-value)}
                 (merge (select-keys attrs #{:class :id :on-blur :ref})))]])))))
 
+(def ^{:arglists '([attrs options])} select
+  (with-id
+    (with-emit-on-change
+      (fn [{:keys [disabled on-change value] :as attrs} options]
+        (let [option-values (set (map first options))
+              value (if (contains? option-values value)
+                      value
+                      ::empty)]
+          [form-field
+           attrs
+           [:div.select
+            [:select
+             (-> {:value     (str value)
+                  :disabled  disabled
+                  :on-change (comp on-change
+                                   (into {} (map (juxt str identity) option-values))
+                                   dom/target-value)}
+                 (merge (select-keys attrs #{:class :id :on-blur :ref})))
+             (for [[option label attrs] (cond->> options
+                                          (= ::empty value)
+                                          (cons [::empty "Choose..." {:disabled true}]))
+                   :let [str-option (str option)]]
+               ^{:key str-option}
+               [:option
+                (assoc attrs :value str-option)
+                label])]]])))))
+
 (def ^{:arglists '([attrs])} tags-editor
   (with-id
     (with-emit-on-change

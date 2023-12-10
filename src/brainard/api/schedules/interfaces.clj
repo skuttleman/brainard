@@ -8,4 +8,6 @@
   (delete! [this schedule-id]
     "Deletes a schedule by id.")
   (get-schedules [this filters]
-    "Returns schedules that match filters"))
+    "Returns schedules that match filters")
+  (get-by-note-id [this note-id]
+    "Returns schedules for a specific note"))

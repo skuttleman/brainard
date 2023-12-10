@@ -15,9 +15,9 @@
   (atom #?(:cljs (.getTime (js/Date.)) :default (.getTime (Date.)))))
 
 (defmethod defacto/command-handler :forms/ensure!
-  [{::defacto/keys [store]} [_ form-id params] emit-cb]
+  [{::defacto/keys [store]} [_ form-id params opts] emit-cb]
   (when-not (store/query store [:forms/?:form form-id])
-    (emit-cb [:forms/created form-id params])))
+    (emit-cb [:forms/created form-id params opts])))
 
 (defmethod defacto/command-handler :resources/ensure!
   [{::defacto/keys [store]} [_ resource-id params] _]

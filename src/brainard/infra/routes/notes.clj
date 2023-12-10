@@ -1,6 +1,6 @@
 (ns brainard.infra.routes.notes
   (:require
-    [brainard.api.notes.core :as notes]
+    [brainard.api.core :as api]
     [brainard.infra.routes.interfaces :as iroutes]))
 
 (defmethod iroutes/req->input [:get :routes.api/notes]
@@ -15,7 +15,7 @@
 
 (defmethod iroutes/handler [:get :routes.api/notes]
   [{:brainard/keys [apis input]}]
-  (let [results (notes/get-notes (:notes apis) input)]
+  (let [results (api/get-notes apis input)]
     {:status 200
      :body   {:data results}}))
 
@@ -23,12 +23,12 @@
 (defmethod iroutes/handler [:post :routes.api/notes]
   [{:brainard/keys [apis input]}]
   {:status 201
-   :body   {:data (notes/create! (:notes apis) input)}})
+   :body   {:data (api/create-note! apis input)}})
 
 
 (defmethod iroutes/handler [:get :routes.api/note]
   [{:brainard/keys [apis input]}]
-  (if-let [note (notes/get-note (:notes apis) (:notes/id input))]
+  (if-let [note (api/get-note apis (:notes/id input))]
     {:status 200
      :body   {:data note}}
     {:status 404
@@ -42,9 +42,7 @@
 
 (defmethod iroutes/handler [:patch :routes.api/note]
   [{:brainard/keys [apis input]}]
-  (if-let [note (notes/update! (:notes apis)
-                               (:notes/id input)
-                               input)]
+  (if-let [note (api/update-note! apis (:notes/id input) input)]
     {:status 200
      :body   {:data note}}
     {:status 404
@@ -55,10 +53,10 @@
 (defmethod iroutes/handler [:get :routes.api/tags]
   [{:brainard/keys [apis]}]
   {:status 200
-   :body   {:data (notes/get-tags (:notes apis))}})
+   :body   {:data (api/get-tags apis)}})
 
 
 (defmethod iroutes/handler [:get :routes.api/contexts]
   [{:brainard/keys [apis]}]
   {:status 200
-   :body   {:data (notes/get-contexts (:notes apis))}})
+   :body   {:data (api/get-contexts apis)}})

@@ -80,7 +80,10 @@
              (comp some? :schedules/month)
              (comp some? :schedules/day)
              (comp some? :schedules/weekday)
-             (comp some? :schedules/week-index))]])
+             (comp some? :schedules/week-index))]
+   [:fn {:error/message "cannot select day of month and week of month"}
+    (some-fn (comp nil? :schedules/day)
+             (comp nil? :schedules/week-index))]])
 
 (def full-schedule
   (mu/merge (second new-schedule)

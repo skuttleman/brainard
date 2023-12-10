@@ -81,3 +81,17 @@
      :ok-commands  (conj ok-commands [:toasts/succeed! {:message "note updated"}])
      :err-events   [[:resources/failed [::notes#update resource-id] :remote]]
      :err-commands [[:toasts/fail!]]}))
+
+(defmethod resource-spec ::schedules#create
+  [{[_ resource-id] ::spec {:keys [data reset-to]} :params}]
+  (let [ok-events (if reset-to
+                    [[:forms/created resource-id reset-to]
+                     [:resources/destroyed [::schedules#create resource-id]]]
+                    [[:resources/succeeded [::schedules#create resource-id]]])]
+    {:route        :routes.api/schedules
+     :method       :post
+     :body         data
+     :ok-events    (conj ok-events [:resources/schedule-saved])
+     :ok-commands  [[:toasts/succeed! {:message "schedule created"}]]
+     :err-events   [[:resources/failed [::schedules#create resource-id] :remote]]
+     :err-commands [[:toasts/fail!]]}))

@@ -36,5 +36,5 @@
     (datomic.client.api/delete-database (:brainard.datomic/client system) {:db-name db-name})
     (alter-var-root #'system (fn [sys]
                                (ig/halt! sys)
-                               (spit (format ".datomic.%s.log" db-name) "")
+                               (spit (format "resources/private/.datomic.%s.log" db-name) "")
                                (sys/start! "duct.edn")))))
