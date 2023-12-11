@@ -41,7 +41,14 @@
 
 .form {
     &.errors {
-        .error-list {
+        &.is-changed {
+            .form-error-list {
+                color: $orange;
+            }
+        }
+
+        .form-error-list {
+            transition: color 0.5s linear;
             color: $red;
         }
 
@@ -64,7 +71,14 @@
             }
         }
 
+        &.is-changed {
+            .error-list {
+                color: $orange;
+            }
+        }
+
         .error-list {
+            transition: color 0.5s linear;
             color: $red;
         }
     }

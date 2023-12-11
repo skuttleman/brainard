@@ -9,6 +9,7 @@
         {:keys [status payload]} @sub:res]
     (assoc attrs
            :value (get-in data path)
+           :changed? (forms/changed? form path)
            :warnings (when (= :error status)
                        (get-in (:remote payload) path))
            :errors (when (not= :init status)

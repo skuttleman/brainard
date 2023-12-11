@@ -112,7 +112,8 @@
      [:div.tags.has-addons
       [:span.tag.is-info.is-light (str tag)]
       (when on-change
-        [:button.button.tag.is-delete {:on-click (fn [e]
+        [:button.button.tag.is-delete {:tab-index -1
+                                       :on-click (fn [e]
                                                    (dom/prevent-default! e)
                                                    (on-change (disj value tag)))}])])])
 

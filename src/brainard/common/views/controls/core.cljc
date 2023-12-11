@@ -56,18 +56,26 @@
        label-small? (assoc :class ["small"]))
      label]))
 
-(defn ^:private form-field-meta-list [type items]
-  (when (seq items)
-    [:ul {:class [(str (name type) "-list")]}
-     (for [item items]
-       ^{:key item}
-       [:li {:class [(name type)]}
-        item])]))
+(defn ^:private form-field-meta-list
+  ([type items]
+   (form-field-meta-list type items false))
+  ([type items form?]
+   (when (seq items)
+     [:ul {:class [(str (when form? "form-")
+                        (name type)
+                        "-list")]}
+      (for [item items]
+        ^{:key item}
+        [:li {:class [(name type)]}
+         item])])))
 
-(defn ^:private form-field [{:keys [errors form-field-class warnings] :as attrs} & body]
+(defn ^:private form-field [{:keys [changed? errors form-field-class warnings] :as attrs} & body]
   (let [errors (seq (remove nil? errors))]
     [:div.form-field
-     {:class (into [(when errors "errors") (when warnings "warnings")] form-field-class)}
+     {:class (into [(when errors "errors")
+                    (when warnings "warnings")
+                    (when changed? "is-changed")]
+                   form-field-class)}
      [:<>
       [form-field-label attrs]
       (into [:div.form-field-control] body)]
@@ -204,22 +212,25 @@
                       errors)
         requesting? (= :requesting status)
         init? (= :init status)
-        any-errors? (and errors (not init?))]
+        any-errors? (and errors (not init?))
+        changed? (forms/changed? form)]
     [:form.form
      (-> {:on-submit (fn [e]
                        (dom/prevent-default! e)
                        (store/dispatch! *:store [:resources/submit! resource-key params]))}
          (merge (select-keys attrs #{:class :style}))
-         (cond-> any-errors? (update :class conj "errors")))
+         (cond->
+           any-errors? (update :class conj "errors")
+           changed? (update :class conj "is-changed")))
      (into [:div {:class [(if horizontal?
                             "layout--space-between"
                             "layout--stack-between")]}]
            fields)
      (when (and form-errors (not init?))
-       [form-field-meta-list :error errors])
+       [form-field-meta-list :error errors true])
      [form-button-row (assoc attrs
                              :attempted? (and (not init?)
-                                              (not (forms/changed? form))
+                                              (not changed?)
                                               (or (:local payload)
                                                   (:remote payload)))
                              :disabled (or disabled requesting?)

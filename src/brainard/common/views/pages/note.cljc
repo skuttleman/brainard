@@ -157,38 +157,38 @@
   (let [form @sub:form
         form-id (forms/id form)
         form-data (forms/data form)]
-    [:<>
-     [comp/pprint form-data]
-     [ctrls/form {:*:store      *:store
-                  :horizontal?  true
-                  :form         form
-                  :params       {:reset-to {:schedules/note-id (:notes/id note)}
-                                 :data     form-data}
-                  :resource-key [::rspecs/schedules#create form-id]
-                  :sub:res      sub:res
-                  :submit/body  "Save"}
-      [ctrls/select (-> {:label   "Day of the month"
-                         :*:store *:store}
-                        (ctrls/with-attrs form sub:res [:schedules/day]))
-       day-options]
-      [ctrls/select (-> {:label   "Day of the week"
-                         :*:store *:store}
-                        (ctrls/with-attrs form sub:res [:schedules/weekday]))
-       weekday-options]
-      [ctrls/select (-> {:label   "Week of the month"
-                         :*:store *:store}
-                        (ctrls/with-attrs form sub:res [:schedules/week-index]))
-       week-index-options]
-      [ctrls/select (-> {:label   "Month of the year"
-                         :*:store *:store}
-                        (ctrls/with-attrs form sub:res [:schedules/month]))
-       month-options]
-      [ctrls/datetime (-> {:label   "Earliest Moment"
-                           :*:store *:store}
-                          (ctrls/with-attrs form sub:res [:schedules/after-timestamp]))]
-      [ctrls/datetime (-> {:label   "Latest Moment"
-                           :*:store *:store}
-                          (ctrls/with-attrs form sub:res [:schedules/before-timestamp]))]]]))
+    [ctrls/form {:*:store      *:store
+                 :horizontal?  true
+                 :form         form
+                 :params       {:reset-to {:schedules/note-id (:notes/id note)}
+                                :data     form-data}
+                 :resource-key [::rspecs/schedules#create form-id]
+                 :sub:res      sub:res
+                 :submit/body  "Save"}
+     [ctrls/select (-> {:label   "Day of the month"
+                        :*:store *:store}
+                       (ctrls/with-attrs form sub:res [:schedules/day])
+                       (assoc :errors ["garbage"]
+                              :warnings ["ill kempt"]))
+      day-options]
+     [ctrls/select (-> {:label   "Day of the week"
+                        :*:store *:store}
+                       (ctrls/with-attrs form sub:res [:schedules/weekday]))
+      weekday-options]
+     [ctrls/select (-> {:label   "Week of the month"
+                        :*:store *:store}
+                       (ctrls/with-attrs form sub:res [:schedules/week-index]))
+      week-index-options]
+     [ctrls/select (-> {:label   "Month of the year"
+                        :*:store *:store}
+                       (ctrls/with-attrs form sub:res [:schedules/month]))
+      month-options]
+     [ctrls/datetime (-> {:label   "Earliest Moment"
+                          :*:store *:store}
+                         (ctrls/with-attrs form sub:res [:schedules/after-timestamp]))]
+     [ctrls/datetime (-> {:label   "Latest Moment"
+                          :*:store *:store}
+                         (ctrls/with-attrs form sub:res [:schedules/before-timestamp]))]]))
 
 (defn ^:private schedules-editor [{:keys [*:store] :as attrs} note]
   (r/with-let [form-id (uuids/random)

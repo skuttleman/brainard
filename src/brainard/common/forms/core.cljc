@@ -26,8 +26,10 @@
 
 (defn changed?
   "Does the current value of the form differ from the initial value?"
-  [{::keys [current init]}]
-  (not= current init))
+  ([{::keys [current init]}]
+   (not= current init))
+  ([{::keys [current init]} path]
+   (not= (get current path) (get init path))))
 
 (defn create
   "Creates a form from a model. Supported opts

@@ -10,7 +10,7 @@
     [:ul.search-results
      (for [{:notes/keys [id context body tags]} notes]
        ^{:key id}
-       [:li
+       [:li {:id id}
         [:div.layout--row
          [:strong.layout--no-shrink context]
          [:span.flex-grow.space--left.truncate
