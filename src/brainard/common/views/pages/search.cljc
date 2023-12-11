@@ -64,7 +64,7 @@
         [:div.flex-grow
          [tag-filter attrs tags]]]])))
 
-(defn ^:private search-results [[notes]]
+(defn ^:private search-results [_ [notes]]
   [spages/search-results notes])
 
 (defmethod ipages/page :routes.ui/search
@@ -76,7 +76,7 @@
      [comp/with-resources [sub:contexts sub:tags] [root* {:*:store      *:store
                                                           :query-params query-params
                                                           :sub:notes    sub:notes}]]
-     [comp/with-resources [sub:notes] search-results]]
+     [comp/with-resources [sub:notes] [search-results {:hide-init? true}]]]
     (finally
       (store/emit! *:store [:resources/destroyed [::rspecs/notes#select form-id]])
       (store/emit! *:store [:forms/destroyed form-id]))))

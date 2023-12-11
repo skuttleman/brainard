@@ -6,10 +6,10 @@
     [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
+    [brainard.common.utils.dates :as dates]
     [brainard.common.utils.maps :as maps]
     [brainard.common.utils.uuids :as uuids]
     [brainard.common.views.components.core :as comp]
-    [brainard.common.views.components.interfaces :as icomp]
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.views.pages.interfaces :as ipages]
     [clojure.pprint :as pp]
@@ -91,13 +91,13 @@
         (map (juxt identity identity))
         (range 1 32)))
 
+(defn ^:private ->radix [v]
+  (pp/cl-format nil "~:R" v))
+
 (def ^:private ^:const week-index-options
-  [[nil "(any)"]
-   [0 "1st week"]
-   [1 "2nd week"]
-   [2 "3rd week"]
-   [3 "4th week"]
-   [4 "5th week"]])
+  (into [[nil "(any)"]]
+        (map (juxt identity #(str (->radix (inc %)) " week")))
+        (range 5)))
 
 (defn ^:private ->schedule-part [[k v]]
   (case k
@@ -111,13 +111,19 @@
 
     :schedules/day [:<>
                     [:span "on the"]
-                    [:em.blue (pp/cl-format nil "~:R" v)]
+                    [:em.blue (->radix v)]
                     [:span "day of the month"]]
 
     :schedules/week-index [:<>
                            [:span "during the"]
-                           [:em.blue (pp/cl-format nil "~:R" (inc v))]
+                           [:em.blue (->radix (inc v))]
                            [:span "week of the month"]]
+    :schedules/before-timestamp [:<>
+                                 [:span "before"]
+                                 [:span (dates/to-iso-datetime-min-precision v)]]
+    :schedules/after-timestamp [:<>
+                                [:span "after"]
+                                [:span (dates/to-iso-datetime-min-precision v)]]
     nil))
 
 (defn ^:private schedule-display [form-data]
@@ -151,30 +157,38 @@
   (let [form @sub:form
         form-id (forms/id form)
         form-data (forms/data form)]
-    [ctrls/form {:*:store      *:store
-                 :horizontal?  true
-                 :form         form
-                 :params       {:reset-to {:schedules/note-id (:notes/id note)}
-                                :data     form-data}
-                 :resource-key [::rspecs/schedules#create form-id]
-                 :sub:res      sub:res
-                 :submit/body  "Save"}
-     [ctrls/select (-> {:*:store *:store
-                        :label   "Day of the month"}
-                       (ctrls/with-attrs form sub:res [:schedules/day]))
-      day-options]
-     [ctrls/select (-> {:*:store *:store
-                        :label   "Day of the week"}
-                       (ctrls/with-attrs form sub:res [:schedules/weekday]))
-      weekday-options]
-     [ctrls/select (-> {:*:store *:store
-                        :label   "Week of the month"}
-                       (ctrls/with-attrs form sub:res [:schedules/week-index]))
-      week-index-options]
-     [ctrls/select (-> {:*:store *:store
-                        :label   "Month of the year"}
-                       (ctrls/with-attrs form sub:res [:schedules/month]))
-      month-options]]))
+    [:<>
+     [comp/pprint form-data]
+     [ctrls/form {:*:store      *:store
+                  :horizontal?  true
+                  :form         form
+                  :params       {:reset-to {:schedules/note-id (:notes/id note)}
+                                 :data     form-data}
+                  :resource-key [::rspecs/schedules#create form-id]
+                  :sub:res      sub:res
+                  :submit/body  "Save"}
+      [ctrls/select (-> {:label   "Day of the month"
+                         :*:store *:store}
+                        (ctrls/with-attrs form sub:res [:schedules/day]))
+       day-options]
+      [ctrls/select (-> {:label   "Day of the week"
+                         :*:store *:store}
+                        (ctrls/with-attrs form sub:res [:schedules/weekday]))
+       weekday-options]
+      [ctrls/select (-> {:label   "Week of the month"
+                         :*:store *:store}
+                        (ctrls/with-attrs form sub:res [:schedules/week-index]))
+       week-index-options]
+      [ctrls/select (-> {:label   "Month of the year"
+                         :*:store *:store}
+                        (ctrls/with-attrs form sub:res [:schedules/month]))
+       month-options]
+      [ctrls/datetime (-> {:label   "Earliest Moment"
+                           :*:store *:store}
+                          (ctrls/with-attrs form sub:res [:schedules/after-timestamp]))]
+      [ctrls/datetime (-> {:label   "Latest Moment"
+                           :*:store *:store}
+                          (ctrls/with-attrs form sub:res [:schedules/before-timestamp]))]]]))
 
 (defn ^:private schedules-editor [{:keys [*:store] :as attrs} note]
   (r/with-let [form-id (uuids/random)
@@ -191,7 +205,7 @@
      [schedules-form (merge attrs (maps/m sub:form sub:res)) note]
      [schedules-list *:store note]]))
 
-(defn ^:private root* [*:store [note]]
+(defn ^:private root* [{:keys [*:store]} [note]]
   (r/with-let [init-form {:notes/tags (:notes/tags note)
                           ::editing?  false}
                sub:form (do (store/dispatch! *:store [:forms/ensure! form-id init-form])
@@ -218,6 +232,6 @@
   (let [resource [::rspecs/notes#find (:notes/id route-params)]]
     (r/with-let [sub:note (do (store/dispatch! *:store [:resources/ensure! resource])
                               (store/subscribe *:store [:resources/?:resource resource]))]
-      [comp/with-resources [sub:note] [root* *:store]]
+      [comp/with-resources [sub:note] [root* {:*:store *:store}]]
       (finally
         (store/emit! *:store [:resources/destroyed resource])))))

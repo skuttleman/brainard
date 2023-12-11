@@ -3,7 +3,9 @@
     [brainard.common.resources.api :as rapi]
     [brainard.common.store.core :as store]
     [brainard.common.resources.specs :as rspecs]
+    [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.nav :as nav]
+    [brainard.common.utils.routing :as rte]
     [clojure.core.async :as async]
     [clojure.string :as string]
     [defacto.core :as defacto]))
@@ -17,6 +19,7 @@
   [{::defacto/keys [store]} [_ form-id params opts] emit-cb]
   (when-not (store/query store [:forms/?:form form-id])
     (emit-cb [:forms/created form-id params opts])))
+
 
 (defmethod defacto/command-handler :resources/ensure!
   [{::defacto/keys [store]} [_ resource-id params] _]
@@ -52,11 +55,12 @@
   (let [{:keys [token route-params]} (store/query store [:routing/?:route])]
     (nav/navigate! nav token (assoc route-params :query-params query-params))))
 
+
 (defmethod defacto/command-handler :modals/create!
   [_ [_ body] emit-cb]
   (let [modal-id (->sortable-id)]
-    (emit-cb [:modals/created modal-id {:state  :init
-                                        :body   body}])
+    (emit-cb [:modals/created modal-id {:state :init
+                                        :body  body}])
     (async/go
       (async/<! (async/timeout 10))
       (emit-cb [:modals/displayed modal-id]))))
@@ -99,4 +103,21 @@
   (let [toast-id (->sortable-id)]
     (emit-cb [:toasts/created toast-id {:state :init
                                         :level level
+                                        :body  body}])))
+
+(defmethod defacto/command-handler :toasts.notes/succeed!
+  [{:services/keys [nav]} [_ note] emit-cb]
+  (let [toast-id (->sortable-id)
+        body [:span
+              "a "
+              [:a.link.is-link
+               {:href     "#"
+                :on-click (fn [e]
+                            (dom/prevent-default! e)
+                            (dom/stop-propagation! e)
+                            (nav/navigate! nav :routes.ui/note (select-keys note #{:notes/id})))}
+               "new note"]
+              " was created"]]
+    (emit-cb [:toasts/created toast-id {:state :init
+                                        :level :success
                                         :body  body}])))

@@ -78,7 +78,7 @@
        :body         data
        :pre-events   pre-events
        :ok-events    (conj ok-events [:api.notes/saved])
-       :ok-commands  [[:toasts/succeed! {:message "note created"}]]
+       :ok-commands  [[:toasts.notes/succeed!]]
        :err-events   [[:resources/failed [::notes#create resource-id] :remote]]
        :err-commands [[:toasts/fail!]]})))
 
@@ -134,6 +134,6 @@
   {:route        :routes.api/notes?scheduled
    :method       :get
    :ok-events    [[:resources/succeeded ::notes#poll]]
-   :ok-commands  [[:resources/after! 5000 [:resources/quietly! ::notes#poll]]]
+   :ok-commands  [[:resources/after! 30000 [:resources/quietly! ::notes#poll]]]
    :err-events   [[:resources/warned ::notes#poll]]
-   :err-commands [[:resources/after! 5000 [:resources/quietly! ::notes#poll]]]})
+   :err-commands [[:resources/after! 30000 [:resources/quietly! ::notes#poll]]]})

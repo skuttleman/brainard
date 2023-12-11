@@ -48,7 +48,7 @@
            [:a.navbar-item {:href buzz}
             "Buzz"
             (when (pos? buzzes)
-              [:span.tag.is-info buzzes])]]]]]])))
+              [:span.tag.is-info.space--left buzzes])]]]]]])))
 
 (defn page [{:keys [*:store] :as attrs}]
   [:div.container

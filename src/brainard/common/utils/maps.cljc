@@ -32,6 +32,13 @@
               (remove (comp some? (partial get m) first)))
         kvs))
 
+(defn update-when
+  "Only applies update when `k` exists in `m`."
+  [m k f & f-args]
+  (if (get m k)
+    (apply update m k f f-args)
+     m))
+
 (defmacro m
   "Generates a map literal by keying symbols off a keyword representation. At runtime,
    the symbols will be evaluated as normal.

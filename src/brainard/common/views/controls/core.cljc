@@ -5,13 +5,14 @@
    [input {:on-change [:my-event]}]"
   (:require
     [brainard.common.forms.core :as forms]
-    [brainard.common.views.controls.shared :as shared]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.fns :as fns]
+    [brainard.common.utils.maps :as maps]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.dropdown :as dd]
+    [brainard.common.views.controls.shared :as shared]
     [brainard.common.views.controls.tags-editor :as tags-editor]
     [brainard.common.views.controls.type-ahead :as type-ahead]
     [clojure.string :as string]))
@@ -32,6 +33,11 @@
   (fn [attrs & args]
     (r/with-let [id (gensym "form-field")]
       (into [component (assoc attrs :id id)] args))))
+
+(defn ^:private with-disabled-compat [component]
+  (fn [attrs & args]
+    (-> [component (update attrs :disabled disabled-compat)]
+        (into args))))
 
 (defn ^:private with-trim-blur [component]
   (fn [attrs & args]
@@ -68,77 +74,113 @@
      [form-field-meta-list :error errors]
      [form-field-meta-list :warning warnings]]))
 
+(def ^{:arglists '([attrs])} input
+  (with-id
+    (with-emit-on-change
+      (with-trim-blur
+        (with-disabled-compat
+          (fn [attrs]
+            [form-field
+             attrs
+             [comp/plain-input attrs]]))))))
+
+(defn ^:private to-iso [date]
+  #?(:cljs (letfn [(pad [num]
+                     (str (when (< num 10) \0) num))]
+             (str (.getFullYear date)
+                  \- (pad (inc (.getMonth date)))
+                  \- (pad (.getDate date))
+                  \T (pad (.getHours date))
+                  \: (pad (.getMinutes date))))))
+
+(def ^{:arglists '([attrs])} datetime
+  (with-id
+    (with-emit-on-change
+      (with-disabled-compat
+        (fn [attrs]
+          (let [attrs' (-> attrs
+                           (assoc :type :datetime-local)
+                           #?@(:cljs [(maps/update-when :value to-iso)
+                                      (update :on-change comp #(some-> % not-empty js/Date.))]))]
+            [form-field
+             attrs
+             [comp/plain-input attrs']]))))))
+
 (def ^{:arglists '([attrs])} textarea
   (with-id
     (with-emit-on-change
       (with-trim-blur
-        (fn [{:keys [disabled on-change value] :as attrs}]
-          [form-field
-           attrs
-           [:textarea.textarea
-            (-> {:value     value
-                 :disabled  (disabled-compat disabled)
-                 :on-change (comp on-change dom/target-value)}
-                (merge (select-keys attrs #{:class :id :on-blur :ref})))]])))))
+        (with-disabled-compat
+          (fn [{:keys [on-change value] :as attrs}]
+            [form-field
+             attrs
+             [:textarea.textarea
+              (-> {:value     value
+                   :on-change (comp on-change dom/target-value)}
+                  (merge (select-keys attrs #{:class :disabled :id :on-blur :ref})))]]))))))
 
 (def ^{:arglists '([attrs options])} select
   (with-id
     (with-emit-on-change
-      (fn [{:keys [disabled on-change value] :as attrs} options]
-        (let [option-values (set (map first options))
-              value (if (contains? option-values value)
-                      value
-                      ::empty)]
-          [form-field
-           attrs
-           [:div.select
-            [:select
-             (-> {:value     (str value)
-                  :disabled  disabled
-                  :on-change (comp on-change
-                                   (into {} (map (juxt str identity) option-values))
-                                   dom/target-value)}
-                 (merge (select-keys attrs #{:class :id :on-blur :ref})))
-             (for [[option label attrs] (cond->> options
-                                          (= ::empty value)
-                                          (cons [::empty "Choose..." {:disabled true}]))
-                   :let [str-option (str option)]]
-               ^{:key str-option}
-               [:option
-                (assoc attrs :value str-option)
-                label])]]])))))
+      (with-disabled-compat
+        (fn [{:keys [on-change value] :as attrs} options]
+          (let [option-values (set (map first options))
+                value (if (contains? option-values value)
+                        value
+                        ::empty)]
+            [form-field
+             attrs
+             [:div.select
+              [:select
+               (-> {:value     (str value)
+                    :on-change (comp on-change
+                                     (into {} (map (juxt str identity) option-values))
+                                     dom/target-value)}
+                   (merge (select-keys attrs #{:class :disabled :id :on-blur :ref})))
+               (for [[option label attrs] (cond->> options
+                                            (= ::empty value)
+                                            (cons [::empty "Choose..." {:disabled true}]))
+                     :let [str-option (str option)]]
+                 ^{:key str-option}
+                 [:option
+                  (assoc attrs :value str-option)
+                  label])]]]))))))
 
 (def ^{:arglists '([attrs])} tags-editor
   (with-id
     (with-emit-on-change
-      (fn [attrs]
-        [form-field
-         (update attrs :disabled disabled-compat)
-         [tags-editor/control attrs]]))))
+      (with-disabled-compat
+        (fn [attrs]
+          [form-field
+           attrs
+           [tags-editor/control attrs]])))))
 
 (def ^{:arglists '([attrs])} type-ahead
   (with-id
     (with-emit-on-change
-      (fn [attrs]
-        [form-field
-         (update attrs :disabled disabled-compat)
-         [type-ahead/control attrs]]))))
+      (with-disabled-compat
+        (fn [attrs]
+          [form-field
+           attrs
+           [type-ahead/control attrs]])))))
 
 (def ^{:arglists '([attrs])} multi-dropdown
   (with-id
     (with-emit-on-change
-      (fn [attrs]
-        [form-field
-         (update attrs :disabled disabled-compat)
-         [dd/control attrs]]))))
+      (with-disabled-compat
+        (fn [attrs]
+          [form-field
+           attrs
+           [dd/control attrs]])))))
 
 (def ^{:arglists '([attrs])} single-dropdown
   (with-id
     (with-emit-on-change
-      (fn [attrs]
-        [form-field
-         (update attrs :disabled disabled-compat)
-         [dd/control (dd/singleable attrs)]]))))
+      (with-disabled-compat
+        (fn [attrs]
+          [form-field
+           attrs
+           [dd/control (dd/singleable attrs)]])))))
 
 (defn ^:private form-button-row [{:keys [attempted? buttons disabled requesting?] :as attrs}]
   (cond-> [:div.button-row.layout--room-between

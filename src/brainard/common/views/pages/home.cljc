@@ -50,7 +50,7 @@
                              :sub:items sub:tags}
                             (ctrls/with-attrs form sub:res [:notes/tags]))]]))
 
-(defn ^:private search-results [[notes]]
+(defn ^:private search-results [_ [notes]]
   [:div
    (if (seq notes)
      [:<>
@@ -72,7 +72,7 @@
              :sub:form     sub:form
              :sub:res      sub:res
              :sub:tags     sub:tags}]
-     [comp/with-resources [sub:notes] search-results]]
+     [comp/with-resources [sub:notes] [search-results {:hide-init? true}]]]
     (finally
       (store/emit! *:store [:resources/destroyed [::rspecs/notes#select form-id]])
       (store/emit! *:store [:resources/destroyed [::rspecs/notes#create form-id]])

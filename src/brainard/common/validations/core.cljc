@@ -83,7 +83,12 @@
              (comp some? :schedules/week-index))]
    [:fn {:error/message "cannot select day of month and week of month"}
     (some-fn (comp nil? :schedules/day)
-             (comp nil? :schedules/week-index))]])
+             (comp nil? :schedules/week-index))]
+   [:fn {:error/message "`earliest moment` has to be before `latest moment`"}
+    (fn [{:schedules/keys [after-timestamp before-timestamp]}]
+      (if (and after-timestamp before-timestamp)
+        (<= (.getTime after-timestamp) (.getTime before-timestamp))
+        true))]])
 
 (def full-schedule
   (mu/merge (second new-schedule)

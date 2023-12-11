@@ -36,6 +36,8 @@
             .message-body {
                 display: flex;
                 width: 100%;
+                background-color: $light-grey;
+
                 .body-text {
                     flex-grow: 1;
                 }
