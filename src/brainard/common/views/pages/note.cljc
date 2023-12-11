@@ -167,9 +167,7 @@
                  :submit/body  "Save"}
      [ctrls/select (-> {:label   "Day of the month"
                         :*:store *:store}
-                       (ctrls/with-attrs form sub:res [:schedules/day])
-                       (assoc :errors ["garbage"]
-                              :warnings ["ill kempt"]))
+                       (ctrls/with-attrs form sub:res [:schedules/day]))
       day-options]
      [ctrls/select (-> {:label   "Day of the week"
                         :*:store *:store}

@@ -8,7 +8,7 @@
           (comp first colls/wrap-vector ::type))
 
 (defn ^:private with-msgs [m k params spec]
-  (if-let [v (seq (concat (get spec k) (get params k)))]
+  (if-let [v (seq (concat (get spec k) (get params k) (get-in spec [:params k])))]
     (assoc m k (vec v))
     m))
 
@@ -104,6 +104,14 @@
             :err-commands [[:toasts/fail!]]}
            spec)))
 
+(defmethod resource-spec ::notes#buzz
+  [spec]
+  (->req {:route      :routes.api/notes?scheduled
+          :method     :get
+          :ok-events  [[:resources/succeeded ::notes#buzz]]
+          :err-events [[:resources/warned ::notes#buzz]]}
+         spec))
+
 (def ^:private new-schedule-validator
   (valid/->validator valid/new-schedule))
 
@@ -134,12 +142,4 @@
           :ok-commands  [[:toasts/succeed! {:message "schedule deleted"}]]
           :err-events   [[:resources/destroyed [::schedules#destroy resource-id]]]
           :err-commands [[:toasts/fail!]]}
-         spec))
-
-(defmethod resource-spec ::notes#buzz
-  [spec]
-  (->req {:route      :routes.api/notes?scheduled
-          :method     :get
-          :ok-events  [[:resources/succeeded ::notes#buzz]]
-          :err-events [[:resources/warned ::notes#buzz]]}
          spec))
