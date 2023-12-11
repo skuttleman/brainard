@@ -12,7 +12,7 @@
 
 (defmethod ipages/page :routes.ui/buzz
   [{:keys [*:store]}]
-  (r/with-let [sub:notes (store/subscribe *:store [:resources/?:resource ::rspecs/notes#poll])]
+  (r/with-let [sub:notes (store/subscribe *:store [:resources/?:resource ::rspecs/notes#buzz])]
     [:div
      [:h2.subtitle "What's relevant now?"]
      [comp/with-resources [sub:notes] buzz]]))

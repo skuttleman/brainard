@@ -9,12 +9,19 @@
 
 (defn ->req [spec]
   (let [params (resource-spec spec)
-        req-params (select-keys params #{:pre-events
-                                         :pre-commands
-                                         :ok-events
-                                         :ok-commands
-                                         :err-events
-                                         :err-commands})]
+        req-params (-> params
+                       (select-keys #{:pre-events
+                                      :pre-commands
+                                      :ok-events
+                                      :ok-commands
+                                      :err-events
+                                      :err-commands})
+                       (update :pre-events into (:pre-events spec))
+                       (update :pre-commands into (:pre-commands spec))
+                       (update :ok-events into (:ok-events spec))
+                       (update :ok-commands into (:ok-commands spec))
+                       (update :err-events into (:err-events spec))
+                       (update :err-commands into (:err-commands spec)))]
     (if-let [route (:route params)]
       (let [url (rte/path-for route (:params params))]
         (merge {:req {:request-method (:method params)
@@ -129,11 +136,9 @@
    :err-events   [[:resources/destroyed [::schedules#destroy resource-id]]]
    :err-commands [[:toasts/fail!]]})
 
-(defmethod resource-spec ::notes#poll
+(defmethod resource-spec ::notes#buzz
   [_]
   {:route        :routes.api/notes?scheduled
    :method       :get
-   :ok-events    [[:resources/succeeded ::notes#poll]]
-   :ok-commands  [[:resources/after! 30000 [:resources/quietly! ::notes#poll]]]
-   :err-events   [[:resources/warned ::notes#poll]]
-   :err-commands [[:resources/after! 30000 [:resources/quietly! ::notes#poll]]]})
+   :ok-events    [[:resources/succeeded ::notes#buzz]]
+   :err-events   [[:resources/warned ::notes#buzz]]})

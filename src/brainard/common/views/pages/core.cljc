@@ -25,7 +25,7 @@
     [:em "'cause absent-minded people need help 'membering junk"]]])
 
 (defn ^:private navbar [{:keys [*:store token]}]
-  (r/with-let [sub:buzz (store/subscribe *:store [:resources/?:resource ::rspecs/notes#poll])]
+  (r/with-let [sub:buzz (store/subscribe *:store [:resources/?:resource ::rspecs/notes#buzz])]
     (let [home (rte/path-for :routes.ui/home)
           search (rte/path-for :routes.ui/search)
           buzz (rte/path-for :routes.ui/buzz)

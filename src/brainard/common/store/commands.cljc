@@ -41,13 +41,17 @@
 
 (defmethod defacto/command-handler :resources/submit!
   [{::defacto/keys [store]} [_ resource-id params] emit-cb]
-  (emit-cb [:resources/submitted resource-id params])
-  (store/dispatch! store [:resources/quietly! resource-id params]))
-
-(defmethod defacto/command-handler :resources/quietly!
-  [{::defacto/keys [store]} [_ resource-id params] _]
   (let [input (rspecs/->req {::rspecs/type resource-id
                              :params       params})]
+    (emit-cb [:resources/submitted resource-id params])
+    (store/dispatch! store [::rapi/request! input])))
+
+(defmethod defacto/command-handler :resources/poll!
+  [{::defacto/keys [store]} [_ resource-id params] _]
+  (let [input (rspecs/->req {::rspecs/type resource-id
+                             :params       params
+                             :ok-commands  [[:resources/after! 15000 [:resources/poll! resource-id params]]]
+                             :err-commands [[:resources/after! 15000 [:resources/poll! resource-id params]]]})]
     (store/dispatch! store [::rapi/request! input])))
 
 (defmethod defacto/command-handler :routing/with-qp!

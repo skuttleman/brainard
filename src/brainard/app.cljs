@@ -53,5 +53,5 @@
   (set! *store* (store/create {:services/http http/request
                                :services/nav  (->NavComponent nil)}
                               (:init-db dom/env)))
-  (defacto/dispatch! *store* [:resources/quietly! ::rspecs/notes#poll])
+  (defacto/dispatch! *store* [:resources/poll! ::rspecs/notes#buzz])
   (load*))
