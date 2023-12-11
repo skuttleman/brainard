@@ -30,8 +30,9 @@
           search (rte/path-for :routes.ui/search)
           buzz (rte/path-for :routes.ui/buzz)
           {:keys [status payload]} @sub:buzz
-          buzzes (when (= :success status)
-                   (count payload))]
+          buzzes (if (= :success status)
+                   (count payload)
+                   0)]
       [:nav.navbar
        {:role "navigation" :aria-label "main navigation"}
        [:div.navbar-start.layout--relative

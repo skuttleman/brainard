@@ -41,18 +41,18 @@
 
 (defmethod defacto/command-handler :resources/submit!
   [{::defacto/keys [store]} [_ resource-id params] emit-cb]
-  (let [input (rspecs/->req {::rspecs/type resource-id
-                             :params       params})]
+  (let [input {::rspecs/type resource-id
+               :params       params}]
     (emit-cb [:resources/submitted resource-id params])
-    (store/dispatch! store [::rapi/request! input])))
+    (store/dispatch! store [::rapi/request! (rspecs/resource-spec input)])))
 
 (defmethod defacto/command-handler :resources/poll!
   [{::defacto/keys [store]} [_ resource-id params] _]
-  (let [input (rspecs/->req {::rspecs/type resource-id
-                             :params       params
-                             :ok-commands  [[:resources/after! 15000 [:resources/poll! resource-id params]]]
-                             :err-commands [[:resources/after! 15000 [:resources/poll! resource-id params]]]})]
-    (store/dispatch! store [::rapi/request! input])))
+  (let [input {::rspecs/type resource-id
+               :params       params
+               :ok-commands  [[:resources/after! 15000 [:resources/poll! resource-id params]]]
+               :err-commands [[:resources/after! 15000 [:resources/poll! resource-id params]]]}]
+    (store/dispatch! store [::rapi/request! (rspecs/resource-spec input)])))
 
 (defmethod defacto/command-handler :routing/with-qp!
   [{::defacto/keys [store] :services/keys [nav]} [_ query-params] _]
