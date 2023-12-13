@@ -1,11 +1,8 @@
 (ns brainard.common.store.commands
   (:require
-    [brainard.common.resources.api :as rapi]
     [brainard.common.store.core :as store]
-    [brainard.common.resources.specs :as rspecs]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.nav :as nav]
-    [brainard.common.utils.routing :as rte]
     [clojure.core.async :as async]
     [clojure.string :as string]
     [defacto.core :as defacto]))
@@ -20,45 +17,10 @@
   (when-not (store/query store [:forms/?:form form-id])
     (emit-cb [:forms/created form-id params opts])))
 
-
-(defmethod defacto/command-handler :resources/ensure!
-  [{::defacto/keys [store]} [_ resource-id params] _]
-  (when (= :init (:status (store/query store [:resources/?:resource resource-id])))
-    (store/dispatch! store [:resources/submit! resource-id params])))
-
-(defmethod defacto/command-handler :resources/sync!
-  [{::defacto/keys [store]} [_ resource-id next-params] _]
-  (let [{:keys [status params]} (store/query store [:resources/?:resource resource-id])]
-    (when (or (= :init status) (not= params next-params))
-      (store/dispatch! store [:resources/submit! resource-id next-params]))))
-
-(defmethod defacto/command-handler :resources/after!
-  [{::defacto/keys [store]} [_ ms command] _]
-  #?(:cljs
-     (async/go
-       (async/<! (async/timeout ms))
-       (store/dispatch! store command))))
-
-(defmethod defacto/command-handler :resources/submit!
-  [{::defacto/keys [store]} [_ resource-id params] emit-cb]
-  (let [input {::rspecs/type resource-id
-               :params       params}]
-    (emit-cb [:resources/submitted resource-id params])
-    (store/dispatch! store [::rapi/request! (rspecs/resource-spec input)])))
-
-(defmethod defacto/command-handler :resources/poll!
-  [{::defacto/keys [store]} [_ resource-id params] _]
-  (let [input {::rspecs/type resource-id
-               :params       params
-               :ok-commands  [[:resources/after! 15000 [:resources/poll! resource-id params]]]
-               :err-commands [[:resources/after! 15000 [:resources/poll! resource-id params]]]}]
-    (store/dispatch! store [::rapi/request! (rspecs/resource-spec input)])))
-
 (defmethod defacto/command-handler :routing/with-qp!
   [{::defacto/keys [store] :services/keys [nav]} [_ query-params] _]
   (let [{:keys [token route-params]} (store/query store [:routing/?:route])]
     (nav/navigate! nav token (assoc route-params :query-params query-params))))
-
 
 (defmethod defacto/command-handler :modals/create!
   [_ [_ body] emit-cb]
@@ -89,11 +51,8 @@
   (store/dispatch! store [:toasts/create! :success message]))
 
 (defmethod defacto/command-handler :toasts/fail!
-  [{::defacto/keys [store]} [_ errors] _]
-  (let [msg (if-let [messages (seq (keep :message errors))]
-              (string/join ", " messages)
-              "An unknown error occurred")]
-    (store/dispatch! store [:toasts/create! :error msg])))
+  [{::defacto/keys [store]} _ _]
+  (store/dispatch! store [:toasts/create! :error "An error occurred"]))
 
 (defmethod defacto/command-handler :toasts/hide!
   [_ [_ toast-id] emit-cb]

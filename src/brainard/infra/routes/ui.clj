@@ -10,9 +10,12 @@
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.infra.routes.middleware :as mw]
     [brainard.infra.routes.response :as routes.res]
+    [clojure.core.async :as async]
     [clojure.set :as set]
     [defacto.core :as defacto]
-    [hiccup.core :as hiccup]))
+    [defacto.resources.core :as res]
+    [hiccup.core :as hiccup]
+    defacto.impl))
 
 (defn ^:private cljs-http->ring [handler]
   (fn [req]
@@ -45,16 +48,32 @@
   (-replace! [this uri]
     (nav/-set! this uri)))
 
+(def ^:private defacto-api
+  {:command-handler defacto/command-handler
+   :event-reducer   defacto/event-reducer
+   :query-responder defacto/query-responder})
+
+(defn ^:private ->Sub [atom-db query]
+  (defacto.impl/->StandardSubscription atom-db query defacto/query-responder false))
+
+(defn ^:private ->request-fn [handler apis]
+  (fn [_ params]
+    (async/go
+      (try
+        [:ok (:data (:body (handler (assoc params :brainard/apis apis))))]
+        (catch Throwable ex
+          [:err (:errors (:body (ex-data ex)))])))))
+
 (defn ^:private hydrate [{:brainard/keys [apis route]}]
   (let [handler (cljs-http->ring ui-handler)
         nav (->StubNav route nil)
-        ctx {:services/http #(handler (assoc % :brainard/apis apis))
+        ctx {::res/request-fn (->request-fn handler apis)
              :services/nav  nav}
-        store (defacto/->WatchableStore ctx (atom nil) false)]
-    (defacto/init! nav store)
-    (defacto/dispatch! store [:resources/submit! ::rspecs/tags#select])
-    (defacto/dispatch! store [:resources/submit! ::rspecs/contexts#select])
-    (defacto/dispatch! store [:resources/submit! ::rspecs/notes#buzz])
+        store (doto (defacto.impl/->WatchableStore ctx (atom nil) defacto-api ->Sub)
+                (->> (defacto/init! nav))
+                (defacto/dispatch! [::res/submit! ::rspecs/tags#select])
+                (defacto/dispatch! [::res/submit! ::rspecs/contexts#select])
+                (defacto/dispatch! [::res/submit! ::rspecs/notes#buzz]))]
     (->> (routes.tmpl/render store [pages/page (assoc route :*:store store)])
          hiccup/html
          (str "<!doctype html>"))))

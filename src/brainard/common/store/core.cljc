@@ -3,8 +3,9 @@
   (:require
     [brainard.common.forms.core :as forms]
     [brainard.common.stubs.reagent :as r]
+    [clojure.pprint :as pp]
     [defacto.core :as defacto]
-    [clojure.pprint :as pp]))
+    [defacto.resources.core :as res]))
 
 (defmethod defacto/query-responder ::all
   [db _]
@@ -24,7 +25,7 @@
   ([ctx]
    (create ctx nil))
   ([ctx db-value]
-   (doto (defacto/create ctx db-value r/atom)
+   (doto (defacto/create ctx db-value {:->sub r/atom})
      add-dev-logger!)))
 
 (defn dispatch! [store command]
@@ -42,7 +43,7 @@
 (defn init-form! [{:keys [->params form-id init resource-key store]}]
   (let [{:keys [data] :as params} (->params init)]
     (dispatch! store [:forms/ensure! form-id data {:remove-nil? true}])
-    (dispatch! store [:resources/ensure! resource-key params])
+    (dispatch! store [::res/ensure! resource-key params])
     (subscribe store [:forms/?:form form-id])))
 
 (defn qp-syncer [{:keys [->params form-id resource-key store]}]
@@ -50,7 +51,7 @@
     (let [{:keys [data] :as params} (->params query-params)]
       (when-not (= data (forms/data (query store [:forms/?:form form-id])))
         (emit! store [:forms/created form-id data {:remove-nil? true}])
-        (dispatch! store [:resources/submit! resource-key params])))))
+        (dispatch! store [::res/submit! resource-key params])))))
 
 (defmacro with-qp-sync-form [[form-sym opts & bindings] & body]
   (let [last-line (last body)
@@ -66,5 +67,5 @@
                   ~@bindings]
        ~@body
        ~(list 'finally
-              `(do ~@fin)
-              `(remove-watch ~sub-sym ~watch-key)))))
+              `(do (remove-watch ~sub-sym ~watch-key)
+                   ~@fin)))))

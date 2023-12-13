@@ -5,14 +5,15 @@
     [brainard.common.stubs.reagent :as r]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.pages.interfaces :as ipages]
-    [brainard.common.views.pages.shared :as spages]))
-
-(defn ^:private buzz [[notes]]
-  [spages/search-results notes])
+    [brainard.common.views.pages.shared :as spages]
+    [defacto.resources.core :as res]))
 
 (defmethod ipages/page :routes.ui/buzz
   [{:keys [*:store]}]
-  (r/with-let [sub:notes (store/subscribe *:store [:resources/?:resource ::rspecs/notes#buzz])]
-    [:div
-     [:h2.subtitle "What's relevant now?"]
-     [comp/with-resources [sub:notes] buzz]]))
+  (r/with-let [sub:notes (store/subscribe *:store [::res/?:resource ::rspecs/notes#buzz])]
+    (let [{:keys [status payload]} @sub:notes]
+      [:div
+       [:h2.subtitle "What's relevant now?"]
+       (if (#{:error :init} status)
+         [comp/spinner]
+         [spages/search-results payload])])))

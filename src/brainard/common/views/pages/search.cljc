@@ -9,7 +9,8 @@
     [brainard.common.views.pages.shared :as spages]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.core :as ctrls]
-    [brainard.common.views.pages.interfaces :as ipages]))
+    [brainard.common.views.pages.interfaces :as ipages]
+    [defacto.resources.core :as res]))
 
 (def ^:private ^:const form-id ::forms/search)
 
@@ -69,14 +70,14 @@
 
 (defmethod ipages/page :routes.ui/search
   [{:keys [*:store query-params]}]
-  (r/with-let [sub:contexts (store/subscribe *:store [:resources/?:resource ::rspecs/contexts#select])
-               sub:tags (store/subscribe *:store [:resources/?:resource ::rspecs/tags#select])
-               sub:notes (store/subscribe *:store [:resources/?:resource [::rspecs/notes#select form-id]])]
+  (r/with-let [sub:contexts (store/subscribe *:store [::res/?:resource ::rspecs/contexts#select])
+               sub:tags (store/subscribe *:store [::res/?:resource ::rspecs/tags#select])
+               sub:notes (store/subscribe *:store [::res/?:resource [::rspecs/notes#select form-id]])]
     [:div.layout--stack-between
      [comp/with-resources [sub:contexts sub:tags] [root* {:*:store      *:store
                                                           :query-params query-params
                                                           :sub:notes    sub:notes}]]
      [comp/with-resources [sub:notes] [search-results {:hide-init? true}]]]
     (finally
-      (store/emit! *:store [:resources/destroyed [::rspecs/notes#select form-id]])
+      (store/emit! *:store [::res/destroyed [::rspecs/notes#select form-id]])
       (store/emit! *:store [:forms/destroyed form-id]))))

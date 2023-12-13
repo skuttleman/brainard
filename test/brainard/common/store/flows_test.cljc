@@ -2,13 +2,14 @@
   (:require
     [brainard.common.forms.core :as forms]
     [brainard.common.resources.api :as rapi]
-    [brainard.common.store.core :as store]
     [brainard.common.resources.specs :as-alias rspecs]
+    [brainard.common.store.core :as store]
     [brainard.common.stubs.nav :as nav]
     [brainard.common.utils.routing :as rte]
     [brainard.common.utils.uuids :as uuids]
     [clojure.test :refer [deftest is testing]]
     [defacto.core :as defacto]
+    [defacto.resources.core :as res]
     brainard.common.store.commands
     brainard.common.store.events
     brainard.common.store.queries))
@@ -85,26 +86,26 @@
 
         (testing "and when the resource does exist"
           (reset! calls [])
-          (store/dispatch! store [:resources/ensure! [::rspecs/notes#find note-id]])
+          (store/dispatch! store [::res/ensure! [::rspecs/notes#find note-id]])
 
           (testing "submits the resource"
             (let [[input] @calls]
               (is (= {:req        {:request-method :get
                                    :url            (str "/api/notes/" note-id)}
-                      :ok-events  [[:resources/succeeded [::rspecs/notes#find note-id]]]
-                      :err-events [[:resources/failed [::rspecs/notes#find note-id] :remote]]}
+                      :ok-events  [[::res/succeeded [::rspecs/notes#find note-id]]]
+                      :err-events [[::res/failed [::rspecs/notes#find note-id]]]}
                      (update input :req select-keys #{:request-method :url}))))))
 
         (testing "and when the resource exists"
           (reset! calls [])
-          (store/dispatch! store [:resources/ensure! [::rspecs/notes#find note-id]])
+          (store/dispatch! store [::res/ensure! [::rspecs/notes#find note-id]])
 
           (testing "does not submit the resource"
             (is (empty? @calls))))
 
         (testing "when submitting an existing resource"
           (reset! calls [])
-          (store/dispatch! store [:resources/submit! [::rspecs/notes#find note-id]])
+          (store/dispatch! store [::res/submit! [::rspecs/notes#find note-id]])
 
           (testing "submits the resource"
             (is (not (empty? @calls)))))

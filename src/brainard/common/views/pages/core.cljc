@@ -7,9 +7,10 @@
     [brainard.common.utils.routing :as rte]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.pages.interfaces :as ipages]
+    [defacto.resources.core :as res]
+    brainard.common.views.pages.buzz
     brainard.common.views.pages.home
     brainard.common.views.pages.note
-    brainard.common.views.pages.buzz
     brainard.common.views.pages.search))
 
 (defmethod ipages/page :default
@@ -25,14 +26,14 @@
     [:em "'cause absent-minded people need help 'membering junk"]]])
 
 (defn ^:private navbar [{:keys [*:store token]}]
-  (r/with-let [sub:buzz (store/subscribe *:store [:resources/?:resource ::rspecs/notes#buzz])]
+  (r/with-let [sub:buzz (store/subscribe *:store [::res/?:resource ::rspecs/notes#buzz])]
     (let [home (rte/path-for :routes.ui/home)
           search (rte/path-for :routes.ui/search)
           buzz (rte/path-for :routes.ui/buzz)
           {:keys [status payload]} @sub:buzz
-          buzzes (if (= :success status)
-                   (count payload)
-                   0)]
+          buzzes (if (= :error status)
+                   0
+                   (count payload))]
       [:nav.navbar
        {:role "navigation" :aria-label "main navigation"}
        [:div.navbar-start.layout--relative

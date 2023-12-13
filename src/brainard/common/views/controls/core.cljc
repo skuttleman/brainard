@@ -15,7 +15,8 @@
     [brainard.common.views.controls.shared :as shared]
     [brainard.common.views.controls.tags-editor :as tags-editor]
     [brainard.common.views.controls.type-ahead :as type-ahead]
-    [clojure.string :as string]))
+    [clojure.string :as string]
+    [defacto.resources.core :as res]))
 
 (defn ^:private disabled-compat [disabled]
   #?(:clj true :default disabled))
@@ -207,7 +208,7 @@
 (defn form [{:keys [*:store disabled form params resource-key sub:res horizontal?] :as attrs} & fields]
   (let [{:keys [status payload]} @sub:res
         errors (when (= :error status)
-                 (or (:local payload) (:remote payload)))
+                 payload)
         form-errors (when (vector? errors)
                       errors)
         requesting? (= :requesting status)
@@ -217,7 +218,7 @@
     [:form.form
      (-> {:on-submit (fn [e]
                        (dom/prevent-default! e)
-                       (store/dispatch! *:store [:resources/submit! resource-key params]))}
+                       (store/dispatch! *:store [::res/submit! resource-key params]))}
          (merge (select-keys attrs #{:class :style}))
          (cond->
            any-errors? (update :class conj "errors")
@@ -229,10 +230,7 @@
      (when (and form-errors (not init?))
        [form-field-meta-list :error errors true])
      [form-button-row (assoc attrs
-                             :attempted? (and (not init?)
-                                              (not changed?)
-                                              (or (:local payload)
-                                                  (:remote payload)))
+                             :attempted? (and (not init?) (not changed?) errors)
                              :disabled (or disabled requesting?)
                              :requesting? requesting?)]]))
 

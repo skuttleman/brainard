@@ -13,7 +13,8 @@
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.views.pages.interfaces :as ipages]
     [clojure.pprint :as pp]
-    [clojure.set :as set]))
+    [clojure.set :as set]
+    [defacto.resources.core :as res]))
 
 (def ^:private ^:const form-id
   ::forms/edit-note)
@@ -143,7 +144,7 @@
        (for [{sched-id :schedules/id :as sched} scheds
              :let [modal [:modals/sure?
                           {:description  "This schedule will be deleted"
-                           :yes-commands [[:resources/submit! [::rspecs/schedules#destroy sched-id] note]]}]]]
+                           :yes-commands [[::res/submit! [::rspecs/schedules#destroy sched-id] note]]}]]]
          ^{:key sched-id}
          [:li.layout--room-between.layout--align-center.space--left
           [comp/plain-button {:class    ["is-danger" "is-light" "is-small"]
@@ -195,7 +196,7 @@
                                                       {:schedules/note-id (:notes/id note)}
                                                       {:remove-nil? true}])
                             (store/subscribe *:store [:forms/?:form form-id]))
-               sub:res (store/subscribe *:store [:resources/?:resource [::rspecs/schedules#create form-id]])]
+               sub:res (store/subscribe *:store [::res/?:resource [::rspecs/schedules#create form-id]])]
     [:div.layout--stack-between
      [:div.flex.row
       [:em "Add a schedule: "]
@@ -208,8 +209,8 @@
                           ::editing?  false}
                sub:form (do (store/dispatch! *:store [:forms/ensure! form-id init-form])
                             (store/subscribe *:store [:forms/?:form form-id]))
-               sub:res (store/subscribe *:store [:resources/?:resource [::rspecs/notes#update form-id]])
-               sub:tags (store/subscribe *:store [:resources/?:resource ::rspecs/tags#select])]
+               sub:res (store/subscribe *:store [::res/?:resource [::rspecs/notes#update form-id]])
+               sub:tags (store/subscribe *:store [::res/?:resource ::rspecs/tags#select])]
     (let [form @sub:form
           attrs {:*:store  *:store
                  :form     form
@@ -228,8 +229,8 @@
 (defmethod ipages/page :routes.ui/note
   [{:keys [route-params *:store]}]
   (let [resource [::rspecs/notes#find (:notes/id route-params)]]
-    (r/with-let [sub:note (do (store/dispatch! *:store [:resources/ensure! resource])
-                              (store/subscribe *:store [:resources/?:resource resource]))]
+    (r/with-let [sub:note (do (store/dispatch! *:store [::res/ensure! resource])
+                              (store/subscribe *:store [::res/?:resource resource]))]
       [comp/with-resources [sub:note] [root* {:*:store *:store}]]
       (finally
-        (store/emit! *:store [:resources/destroyed resource])))))
+        (store/emit! *:store [::res/destroyed resource])))))

@@ -10,8 +10,8 @@
     (assoc attrs
            :value (get-in data path)
            :changed? (forms/changed? form path)
-           :warnings (when (= :error status)
-                       (get-in (:remote payload) path))
-           :errors (when (not= :init status)
-                     (get-in (:local payload) path))
+           :warnings (when (and (= :error status) (not (:local? (meta payload))))
+                       (get-in payload path))
+           :errors (when (and (not= :init status) (:local? (meta payload)))
+                     (get-in payload path))
            :on-change [:forms/changed (forms/id form) path])))

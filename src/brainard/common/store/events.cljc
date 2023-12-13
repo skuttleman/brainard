@@ -2,53 +2,12 @@
   (:require
     [brainard.common.forms.core :as forms]
     [brainard.common.resources.specs :as-alias rspecs]
-    [defacto.core :as defacto]))
-
-(defn ^:private merger [row1 row2]
-  (if (and (map? row1) (map? row2))
-    (merge-with conj row1 row2)
-    (or row2 row1)))
-
-(defn ^:private remote->warnings [warnings]
-  (transduce (map :details) merger nil warnings))
+    [defacto.core :as defacto]
+    [defacto.resources.core :as res]))
 
 (defmethod defacto/event-reducer :routing/navigated
   [db [_ routing-info]]
   (assoc db :routing/info routing-info))
-
-(defmethod defacto/event-reducer :resources/submitted
-  [db [_ resource-id params]]
-  (assoc-in db [:resources/resources resource-id] {:status :requesting
-                                                   :params params}))
-
-(defmethod defacto/event-reducer :resources/succeeded
-  [db [_ resource-id data]]
-  (update-in db [:resources/resources resource-id] assoc
-             :status :success
-             :payload data))
-
-(defmethod defacto/event-reducer :resources/failed
-  [db [_ resource-id source errors]]
-  (let [errors (cond-> errors (= :remote source) remote->warnings)]
-    (update-in db [:resources/resources resource-id] assoc
-               :status :error
-               :payload {source errors})))
-
-(defmethod defacto/event-reducer :resources/warned
-  [db [_ resource-id response]]
-  (let [warnings (remote->warnings response)]
-    (update-in db [:resources/resources resource-id] assoc
-               :warnings warnings)))
-
-(defmethod defacto/event-reducer :resources/destroyed
-  [db [_ resource-id]]
-  (cond-> db
-    (not (defacto/query-responder db [:app/?:loading]))
-    (defacto/event-reducer [:resources/initialized resource-id])))
-
-(defmethod defacto/event-reducer :resources/initialized
-  [db [_ resource-id]]
-  (update db :resources/resources dissoc resource-id))
 
 (defmethod defacto/event-reducer :forms/created
   [db [_ form-id data opts]]
@@ -114,26 +73,30 @@
 
 (defmethod defacto/event-reducer :api.notes/saved
   [db [_ {:notes/keys [context tags]}]]
-  (let [tag-res (defacto/query-responder db [:resources/?:resource ::rspecs/tags#select])
-        ctx-res (defacto/query-responder db [:resources/?:resource ::rspecs/contexts#select])]
+  (let [tag-res (defacto/query-responder db [::res/?:resource ::rspecs/tags#select])
+        ctx-res (defacto/query-responder db [::res/?:resource ::rspecs/contexts#select])]
     (cond-> db
       (= :success (:status tag-res))
-      (update-in [:resources/resources ::rspecs/tags#select :payload] into tags)
+      (defacto/event-reducer db [::res/succeeded ::rspecs/tags#select
+                                 (into (:payload tag-res) tags)])
 
       (and context (= :success (:status ctx-res)))
-      (update-in [:resources/resources ::rspecs/contexts#select :payload] conj context))))
+      (defacto/event-reducer db [::res/succeeded ::rspecs/contexts#select
+                                 (conj (:payload ctx-res) context)]))))
 
 (defmethod defacto/event-reducer :api.schedules/saved
   [db [_ note-id sched]]
-  (let [note-res (defacto/query-responder db [:resources/?:resource [::rspecs/notes#find note-id]])]
+  (let [note-res (defacto/query-responder db [::res/?:resource [::rspecs/notes#find note-id]])]
     (cond-> db
       (= :success (:status note-res))
-      (update-in [:resources/resources [::rspecs/notes#find note-id] :payload :notes/schedules] conj sched))))
+      (defacto/event-reducer [::res/succeeded [::rspecs/notes#find note-id]
+                              (update (:payload note-res) :notes/schedules conj sched)]))))
 
 (defmethod defacto/event-reducer :api.schedules/deleted
   [db [_ sched-id note-id]]
-  (let [note-res (defacto/query-responder db [:resources/?:resource [::rspecs/notes#find note-id]])]
+  (let [note-res (defacto/query-responder db [::res/?:resource [::rspecs/notes#find note-id]])]
     (cond-> db
       (= :success (:status note-res))
-      (update-in [:resources/resources [::rspecs/notes#find note-id] :payload :notes/schedules]
-                 (partial remove (comp #{sched-id} :schedules/id))))))
+      (defacto/event-reducer [::res/succeeded [::rspecs/notes#find note-id]
+                              (update (:payload note-res) :notes/schedules
+                                      (partial remove (comp #{sched-id} :schedules/id)))]))))

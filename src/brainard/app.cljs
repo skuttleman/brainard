@@ -7,7 +7,9 @@
     [brainard.common.utils.routing :as rte]
     [brainard.common.views.pages.core :as pages]
     [cljs-http.client :as http]
+    [clojure.core.async :as async]
     [defacto.core :as defacto]
+    [defacto.resources.core :as res]
     [pushy.core :as pushy]
     [reagent.dom :as rdom]
     brainard.common.store.commands
@@ -46,12 +48,33 @@
   (store/emit! *store* [::loading-changed true])
   (load*))
 
+(defn ^:private success? [status]
+  (and (integer? status)
+       (<= 200 status 299)))
+
+(defn ^:private merger [row1 row2]
+  (if (and (map? row1) (map? row2))
+    (merge-with conj row1 row2)
+    (or row2 row1)))
+
+(defn ^:private remote->warnings [warnings]
+  (transduce (map :details) merger nil warnings))
+
+(defn ^:private request-fn [_ params]
+  (async/go
+    (let [{:keys [status body]} (async/<! (http/request params))]
+      (if (success? status)
+        [:ok (:data body)]
+        [:err (remote->warnings (:errors body))]))))
+
 (defn init!
   "Called when the DOM finishes loading."
   []
   (enable-console-print!)
-  (set! *store* (store/create {:services/http http/request
-                               :services/nav  (->NavComponent nil)}
+  (set! *store* (store/create {::res/request-fn request-fn
+                               :services/nav    (->NavComponent nil)}
                               (:init-db dom/env)))
-  (defacto/dispatch! *store* [:resources/poll! ::rspecs/notes#buzz])
+  (async/go
+    (async/<! (async/timeout 15000))
+    (defacto/dispatch! *store* [::res/poll! 15000 ::rspecs/notes#buzz]))
   (load*))

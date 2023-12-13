@@ -101,7 +101,7 @@
     (when (or (not= :init status) (not (:hide-init? opts)))
       (case status
         :success (conj comp data)
-        :error (when-not (:local data)
+        :error (when-not (:local? (meta data))
                  [:div.error [alert :error "An error occurred."]])
         [spinner opts]))))
 
