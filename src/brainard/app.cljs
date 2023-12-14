@@ -71,8 +71,8 @@
   "Called when the DOM finishes loading."
   []
   (enable-console-print!)
-  (set! *store* (store/create {::res/request-fn request-fn
-                               :services/nav    (->NavComponent nil)}
+  (set! *store* (store/create (-> {:services/nav (->NavComponent nil)}
+                                  (res/with-ctx request-fn))
                               (:init-db dom/env)))
   (async/go
     (async/<! (async/timeout 15000))

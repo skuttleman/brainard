@@ -6,7 +6,7 @@
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.pages.interfaces :as ipages]
     [brainard.common.views.pages.shared :as spages]
-    [defacto.resources.core :as res]))
+    [defacto.resources.core :as-alias res]))
 
 (defmethod ipages/page :routes.ui/buzz
   [{:keys [*:store]}]

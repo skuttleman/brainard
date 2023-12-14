@@ -16,7 +16,7 @@
     [brainard.common.views.controls.tags-editor :as tags-editor]
     [brainard.common.views.controls.type-ahead :as type-ahead]
     [clojure.string :as string]
-    [defacto.resources.core :as res]))
+    [defacto.resources.core :as-alias res]))
 
 (defn ^:private disabled-compat [disabled]
   #?(:clj true :default disabled))

@@ -10,10 +10,9 @@
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.infra.routes.middleware :as mw]
     [brainard.infra.routes.response :as routes.res]
-    [clojure.core.async :as async]
     [clojure.set :as set]
     [defacto.core :as defacto]
-    [defacto.resources.core :as res]
+    [defacto.resources.core :as-alias res]
     [hiccup.core :as hiccup]
     defacto.impl))
 
@@ -58,28 +57,28 @@
 
 (defn ^:private ->request-fn [handler apis]
   (fn [_ params]
-    (async/go
-      (try
-        [:ok (:data (:body (handler (assoc params :brainard/apis apis))))]
-        (catch Throwable ex
-          [:err (:errors (:body (ex-data ex)))])))))
+    (try
+      [:ok (-> params (assoc :brainard/apis apis) handler :body :data)]
+      (catch Throwable ex
+        [:err (-> ex ex-data :body :errors)]))))
 
-(defn ^:private hydrate [{:brainard/keys [apis route]}]
+(defn ^:private create-store [{:brainard/keys [apis route]}]
   (let [handler (cljs-http->ring ui-handler)
         nav (->StubNav route nil)
-        ctx {::res/request-fn (->request-fn handler apis)
-             :services/nav  nav}
-        store (doto (defacto.impl/->WatchableStore ctx (atom nil) defacto-api ->Sub)
-                (->> (defacto/init! nav))
-                (defacto/dispatch! [::res/submit! ::rspecs/tags#select])
-                (defacto/dispatch! [::res/submit! ::rspecs/contexts#select])
-                (defacto/dispatch! [::res/submit! ::rspecs/notes#buzz]))]
-    (->> (routes.tmpl/render store [pages/page (assoc route :*:store store)])
-         hiccup/html
-         (str "<!doctype html>"))))
+        ctx (-> {:services/nav nav}
+                (res/with-ctx (->request-fn handler apis)))]
+    (doto (defacto.impl/->WatchableStore ctx (atom nil) defacto-api ->Sub)
+      (->> (defacto/init! nav))
+      (defacto/dispatch! [::res/submit! ::rspecs/tags#select])
+      (defacto/dispatch! [::res/submit! ::rspecs/contexts#select])
+      (defacto/dispatch! [::res/submit! ::rspecs/notes#buzz]))))
 
 (defmethod iroutes/handler [:get :routes/ui]
-  [req]
-  (routes.res/->response 200
-                         (hydrate req)
-                         {"content-type" "text/html"}))
+  [{:brainard/keys [route] :as req}]
+  (let [store (create-store req)]
+    (routes.res/->response 200
+                           (->> [pages/page (assoc route :*:store store)]
+                                (routes.tmpl/render store)
+                                hiccup/html
+                                (str "<!doctype html>"))
+                           {"content-type" "text/html"})))

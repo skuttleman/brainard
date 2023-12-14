@@ -10,7 +10,7 @@
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.views.pages.interfaces :as ipages]
-    [defacto.resources.core :as res]))
+    [defacto.resources.core :as-alias res]))
 
 (def ^:private ^:const form-id ::forms/search)
 

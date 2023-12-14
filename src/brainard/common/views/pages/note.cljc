@@ -14,7 +14,7 @@
     [brainard.common.views.pages.interfaces :as ipages]
     [clojure.pprint :as pp]
     [clojure.set :as set]
-    [defacto.resources.core :as res]))
+    [defacto.resources.core :as-alias res]))
 
 (def ^:private ^:const form-id
   ::forms/edit-note)

@@ -7,7 +7,7 @@
     [brainard.common.utils.routing :as rte]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.pages.interfaces :as ipages]
-    [defacto.resources.core :as res]
+    [defacto.resources.core :as-alias res]
     brainard.common.views.pages.buzz
     brainard.common.views.pages.home
     brainard.common.views.pages.note
@@ -23,7 +23,7 @@
     [:img.logo.layout--space-after {:src "/img/brainard.png" :height "120px" :width "120px"}]]
    [:div.layout--col
     [:h1.title "brainard"]
-    [:em "'cause absent-minded people need help 'membering junk"]]])
+    [:em "'cause absent-minded people need help 'membering stuff"]]])
 
 (defn ^:private navbar [{:keys [*:store token]}]
   (r/with-let [sub:buzz (store/subscribe *:store [::res/?:resource ::rspecs/notes#buzz])]

@@ -63,7 +63,6 @@
 (defmethod res/->request-spec ::notes#create
   [[_ resource-id] {:keys [data reset-to]}]
   (if-let [errors (new-note-validator data)]
-    ;; TODO - forms
     {:pre-events [[::res/failed [::notes#create resource-id]
                    (with-meta errors {:local? true})]]}
     (->req {:route        :routes.api/notes
@@ -104,7 +103,6 @@
     {:pre-events [[::res/failed [::schedules#create resource-id] (with-meta errors {:local? true})]]}
     (let [ok-events (when reset-to
                       [[:forms/created resource-id reset-to]
-                       ;; TODO - forms
                        [::res/destroyed [::schedules#create resource-id]]])]
       (->req {:route        :routes.api/schedules
               :method       :post

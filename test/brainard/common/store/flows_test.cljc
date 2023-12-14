@@ -9,7 +9,7 @@
     [brainard.common.utils.uuids :as uuids]
     [clojure.test :refer [deftest is testing]]
     [defacto.core :as defacto]
-    [defacto.resources.core :as res]
+    [defacto.resources.core :as-alias res]
     brainard.common.store.commands
     brainard.common.store.events
     brainard.common.store.queries))
