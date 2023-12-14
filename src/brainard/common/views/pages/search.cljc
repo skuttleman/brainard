@@ -1,7 +1,7 @@
 (ns brainard.common.views.pages.search
   "The search page."
   (:require
-    [brainard.common.forms.core :as forms]
+    [defacto.forms.core :as forms]
     [brainard.common.resources.specs :as-alias rspecs]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.reagent :as r]
@@ -80,4 +80,4 @@
      [comp/with-resources [sub:notes] [search-results {:hide-init? true}]]]
     (finally
       (store/emit! *:store [::res/destroyed [::rspecs/notes#select form-id]])
-      (store/emit! *:store [:forms/destroyed form-id]))))
+      (store/emit! *:store [::forms/destroyed form-id]))))

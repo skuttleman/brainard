@@ -1,7 +1,7 @@
 (ns brainard.common.views.pages.note
   "The page for viewing a note and editing its tags."
   (:require
-    [brainard.common.forms.core :as forms]
+    [defacto.forms.core :as forms]
     [brainard.common.resources.specs :as-alias rspecs]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
@@ -26,7 +26,7 @@
 
 (defn ^:private tag-editor [{:keys [*:store form sub:res sub:tags]} note]
   (let [data (forms/data form)
-        cancel-event [:forms/created form-id {:notes/tags (:notes/tags note)
+        cancel-event [::forms/created form-id {:notes/tags (:notes/tags note)
                                               ::editing?  false}]]
     [ctrls/form {:*:store      *:store
                  :form         form
@@ -57,7 +57,7 @@
      [:em "no tags"])
    [:button.button {:disabled #?(:clj true :default false)
                     :on-click (fn [_]
-                                (store/emit! *:store [:forms/changed form-id [::editing?] true]))}
+                                (store/emit! *:store [::forms/changed form-id [::editing?] true]))}
     "edit tags"]])
 
 (def ^:private ^:const month-options
@@ -191,11 +191,11 @@
 
 (defn ^:private schedules-editor [{:keys [*:store] :as attrs} note]
   (r/with-let [form-id (uuids/random)
-               sub:form (do (store/dispatch! *:store [:forms/ensure!
+               sub:form (do (store/dispatch! *:store [::forms/ensure!
                                                       form-id
                                                       {:schedules/note-id (:notes/id note)}
                                                       {:remove-nil? true}])
-                            (store/subscribe *:store [:forms/?:form form-id]))
+                            (store/subscribe *:store [::forms/?:form form-id]))
                sub:res (store/subscribe *:store [::res/?:resource [::rspecs/schedules#create form-id]])]
     [:div.layout--stack-between
      [:div.flex.row
@@ -207,8 +207,8 @@
 (defn ^:private root* [{:keys [*:store]} [note]]
   (r/with-let [init-form {:notes/tags (:notes/tags note)
                           ::editing?  false}
-               sub:form (do (store/dispatch! *:store [:forms/ensure! form-id init-form])
-                            (store/subscribe *:store [:forms/?:form form-id]))
+               sub:form (do (store/dispatch! *:store [::forms/ensure! form-id init-form])
+                            (store/subscribe *:store [::forms/?:form form-id]))
                sub:res (store/subscribe *:store [::res/?:resource [::rspecs/notes#update form-id]])
                sub:tags (store/subscribe *:store [::res/?:resource ::rspecs/tags#select])]
     (let [form @sub:form
@@ -224,7 +224,7 @@
          [tag-list attrs note])
        [schedules-editor attrs note]])
     (finally
-      (store/emit! *:store [:forms/destroyed form-id]))))
+      (store/emit! *:store [::forms/destroyed form-id]))))
 
 (defmethod ipages/page :routes.ui/note
   [{:keys [route-params *:store]}]

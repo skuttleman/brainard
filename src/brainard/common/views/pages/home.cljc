@@ -1,7 +1,7 @@
 (ns brainard.common.views.pages.home
   "The home page with note creation form."
   (:require
-    [brainard.common.forms.core :as forms]
+    [defacto.forms.core :as forms]
     [brainard.common.store.core :as store]
     [brainard.common.resources.specs :as-alias rspecs]
     [brainard.common.stubs.dom :as dom]
@@ -61,8 +61,8 @@
 
 (defmethod ipages/page :routes.ui/home
   [{:keys [*:store]}]
-  (r/with-let [_ (store/dispatch! *:store [:forms/ensure! form-id new-note])
-               sub:form (store/subscribe *:store [:forms/?:form form-id])
+  (r/with-let [_ (store/dispatch! *:store [::forms/ensure! form-id new-note])
+               sub:form (store/subscribe *:store [::forms/?:form form-id])
                sub:contexts (store/subscribe *:store [::res/?:resource ::rspecs/contexts#select])
                sub:tags (store/subscribe *:store [::res/?:resource ::rspecs/tags#select])
                sub:res (store/subscribe *:store [::res/?:resource [::rspecs/notes#create form-id]])
@@ -77,4 +77,4 @@
     (finally
       (store/emit! *:store [::res/destroyed [::rspecs/notes#select form-id]])
       (store/emit! *:store [::res/destroyed [::rspecs/notes#create form-id]])
-      (store/emit! *:store [:forms/destroyed form-id]))))
+      (store/emit! *:store [::forms/destroyed form-id]))))

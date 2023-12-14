@@ -1,6 +1,5 @@
 (ns brainard.common.store.events
   (:require
-    [brainard.common.forms.core :as forms]
     [brainard.common.resources.specs :as-alias rspecs]
     [defacto.core :as defacto]
     [defacto.resources.core :as-alias res]))
@@ -8,20 +7,6 @@
 (defmethod defacto/event-reducer :routing/navigated
   [db [_ routing-info]]
   (assoc db :routing/info routing-info))
-
-(defmethod defacto/event-reducer :forms/created
-  [db [_ form-id data opts]]
-  (assoc-in db [:forms/forms form-id] (forms/create form-id data opts)))
-
-(defmethod defacto/event-reducer :forms/destroyed
-  [db [_ form-id]]
-  (cond-> db
-    (not (defacto/query-responder db [:app/?:loading]))
-    (update :forms/forms dissoc form-id)))
-
-(defmethod defacto/event-reducer :forms/changed
-  [db [_ form-id path value]]
-  (update-in db [:forms/forms form-id] forms/change path value))
 
 (defmethod defacto/event-reducer :modals/created
   [db [_ modal-id modal]]

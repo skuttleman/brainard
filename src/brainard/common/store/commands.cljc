@@ -4,18 +4,12 @@
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.nav :as nav]
     [clojure.core.async :as async]
-    [clojure.string :as string]
     [defacto.core :as defacto]))
 
 (defonce ^:private ->sortable-id
   (let [id (atom 0)]
     (fn []
       (swap! id inc))))
-
-(defmethod defacto/command-handler :forms/ensure!
-  [{::defacto/keys [store]} [_ form-id params opts] emit-cb]
-  (when-not (store/query store [:forms/?:form form-id])
-    (emit-cb [:forms/created form-id params opts])))
 
 (defmethod defacto/command-handler :routing/with-qp!
   [{::defacto/keys [store] :services/keys [nav]} [_ query-params] _]

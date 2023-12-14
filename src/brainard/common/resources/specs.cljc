@@ -2,6 +2,7 @@
   (:require
     [brainard.common.utils.routing :as rte]
     [brainard.common.validations.core :as valid]
+    [defacto.forms.core :as forms]
     [defacto.resources.core :as res]))
 
 (defn ^:private with-msgs [m k params spec]
@@ -70,7 +71,7 @@
             :body         data
             :ok-events    (cond-> [[:api.notes/saved]]
                             reset-to
-                            (conj [:forms/created resource-id reset-to]
+                            (conj [::forms/created resource-id reset-to]
                                   [::res/destroyed [::notes#create resource-id]]))
             :ok-commands  [[:toasts.notes/succeed!]]
             :err-commands [[:toasts/fail!]]})))
@@ -83,7 +84,7 @@
           :body         data
           :ok-events    (cond-> [[:api.notes/saved]]
                           reset-to
-                          (conj [:forms/created resource-id reset-to]))
+                          (conj [::forms/created resource-id reset-to]))
           :ok-commands  (cond-> [[:toasts/succeed! {:message "note updated"}]]
                           fetch?
                           (conj [::res/submit! [::notes#find note-id]]))
@@ -102,7 +103,7 @@
   (if-let [errors (new-schedule-validator data)]
     {:pre-events [[::res/failed [::schedules#create resource-id] (with-meta errors {:local? true})]]}
     (let [ok-events (when reset-to
-                      [[:forms/created resource-id reset-to]
+                      [[::forms/created resource-id reset-to]
                        [::res/destroyed [::schedules#create resource-id]]])]
       (->req {:route        :routes.api/schedules
               :method       :post

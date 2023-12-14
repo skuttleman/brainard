@@ -10,10 +10,6 @@
   [db _]
   (:routing/info db))
 
-(defmethod defacto/query-responder :forms/?:form
-  [db [_ form-id]]
-  (get-in db [:forms/forms form-id]))
-
 (defmethod defacto/query-responder :modals/?:modals
   [db _]
   (->> (:modals/modals db)

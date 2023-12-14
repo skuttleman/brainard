@@ -1,7 +1,7 @@
 (ns brainard.common.store.core
   #?(:cljs (:require-macros brainard.common.store.core))
   (:require
-    [brainard.common.forms.core :as forms]
+    [defacto.forms.core :as forms]
     [brainard.common.stubs.reagent :as r]
     [clojure.pprint :as pp]
     [defacto.core :as defacto]
@@ -42,15 +42,15 @@
 
 (defn init-form! [{:keys [->params form-id init resource-key store]}]
   (let [{:keys [data] :as params} (->params init)]
-    (dispatch! store [:forms/ensure! form-id data {:remove-nil? true}])
+    (dispatch! store [::forms/ensure! form-id data {:remove-nil? true}])
     (dispatch! store [::res/ensure! resource-key params])
-    (subscribe store [:forms/?:form form-id])))
+    (subscribe store [::forms/?:form form-id])))
 
 (defn qp-syncer [{:keys [->params form-id resource-key store]}]
   (fn [_ _ _ {:keys [query-params]}]
     (let [{:keys [data] :as params} (->params query-params)]
-      (when-not (= data (forms/data (query store [:forms/?:form form-id])))
-        (emit! store [:forms/created form-id data {:remove-nil? true}])
+      (when-not (= data (forms/data (query store [::forms/?:form form-id])))
+        (emit! store [::forms/created form-id data {:remove-nil? true}])
         (dispatch! store [::res/submit! resource-key params])))))
 
 (defmacro with-qp-sync-form [[form-sym opts & bindings] & body]

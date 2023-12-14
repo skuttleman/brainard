@@ -4,7 +4,7 @@
 
    [input {:on-change [:my-event]}]"
   (:require
-    [brainard.common.forms.core :as forms]
+    [defacto.forms.core :as forms]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
