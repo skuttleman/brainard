@@ -6,14 +6,14 @@
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.pages.interfaces :as ipages]
     [brainard.common.views.pages.shared :as spages]
-    [defacto.resources.core :as-alias res]))
+    [defacto.resources.core :as res]))
 
 (defmethod ipages/page :routes.ui/buzz
   [{:keys [*:store]}]
-  (r/with-let [sub:notes (store/subscribe *:store [::res/?:resource ::rspecs/notes#buzz])]
-    (let [{:keys [status payload]} @sub:notes]
+  (r/with-let [sub:notes (store/subscribe *:store [::res/?:resource [::rspecs/notes#buzz]])]
+    (let [resource @sub:notes]
       [:div
        [:h2.subtitle "What's relevant now?"]
-       (if (#{:error :init} status)
-         [comp/spinner]
-         [spages/search-results payload])])))
+       (if (or (res/requesting? resource) (res/success? resource))
+         [spages/search-results (res/payload resource)]
+         [comp/spinner])])))

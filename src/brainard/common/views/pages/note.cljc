@@ -14,6 +14,7 @@
     [brainard.common.views.pages.interfaces :as ipages]
     [clojure.pprint :as pp]
     [clojure.set :as set]
+    [defacto.forms.plus :as forms+]
     [defacto.resources.core :as-alias res]))
 
 (def ^:private ^:const form-id
@@ -27,7 +28,7 @@
 (defn ^:private tag-editor [{:keys [*:store form sub:res sub:tags]} note]
   (let [data (forms/data form)
         cancel-event [::forms/created form-id {:notes/tags (:notes/tags note)
-                                              ::editing?  false}]]
+                                               ::editing?  false}]]
     [ctrls/form {:*:store      *:store
                  :form         form
                  :params       {:note-id  (:notes/id note)
@@ -46,9 +47,7 @@
      [ctrls/tags-editor (-> {:*:store   *:store
                              :label     "Tags"
                              :sub:items sub:tags}
-                            (ctrls/with-attrs form
-                                              sub:res
-                                              [:notes/tags]))]]))
+                            (ctrls/with-attrs form sub:res [:notes/tags]))]]))
 
 (defn ^:private tag-list [{:keys [*:store]} note]
   [:div.layout--space-between
@@ -154,16 +153,13 @@
           [schedule-display sched]])]]
      [:p [:em "no related schedules"]])])
 
-(defn ^:private schedules-form [{:keys [*:store sub:form sub:res]} note]
-  (let [form @sub:form
-        form-id (forms/id form)
-        form-data (forms/data form)]
+(defn ^:private schedules-form [{:keys [*:store sub:form sub:res]}]
+  (let [form @sub:form]
     [ctrls/form {:*:store      *:store
                  :horizontal?  true
-                 :form         form
-                 :params       {:reset-to {:schedules/note-id (:notes/id note)}
-                                :data     form-data}
-                 :resource-key [::rspecs/schedules#create form-id]
+                 :changed?     (forms/changed? form)
+                 :new?         true
+                 :resource-key (forms/id form)
                  :sub:res      sub:res
                  :submit/body  "Save"}
      [ctrls/select (-> {:label   "Day of the month"
@@ -192,16 +188,16 @@
 (defn ^:private schedules-editor [{:keys [*:store] :as attrs} note]
   (r/with-let [form-id (uuids/random)
                sub:form (do (store/dispatch! *:store [::forms/ensure!
-                                                      form-id
+                                                      [::forms+/post [::rspecs/schedules#create form-id]]
                                                       {:schedules/note-id (:notes/id note)}
                                                       {:remove-nil? true}])
-                            (store/subscribe *:store [::forms/?:form form-id]))
-               sub:res (store/subscribe *:store [::res/?:resource [::rspecs/schedules#create form-id]])]
+                            (store/subscribe *:store [::forms/?:form [::forms+/post [::rspecs/schedules#create form-id]]]))
+               sub:res (store/subscribe *:store [::res/?:resource [::forms+/post [::rspecs/schedules#create form-id]]])]
     [:div.layout--stack-between
      [:div.flex.row
       [:em "Add a schedule: "]
       [:span.space--left [schedule-display (forms/data @sub:form)]]]
-     [schedules-form (merge attrs (maps/m sub:form sub:res)) note]
+     [schedules-form (merge attrs (maps/m sub:form sub:res))]
      [schedules-list *:store note]]))
 
 (defn ^:private root* [{:keys [*:store]} [note]]
@@ -210,7 +206,7 @@
                sub:form (do (store/dispatch! *:store [::forms/ensure! form-id init-form])
                             (store/subscribe *:store [::forms/?:form form-id]))
                sub:res (store/subscribe *:store [::res/?:resource [::rspecs/notes#update form-id]])
-               sub:tags (store/subscribe *:store [::res/?:resource ::rspecs/tags#select])]
+               sub:tags (store/subscribe *:store [::res/?:resource [::rspecs/tags#select]])]
     (let [form @sub:form
           attrs {:*:store  *:store
                  :form     form
@@ -228,9 +224,9 @@
 
 (defmethod ipages/page :routes.ui/note
   [{:keys [route-params *:store]}]
-  (let [resource [::rspecs/notes#find (:notes/id route-params)]]
-    (r/with-let [sub:note (do (store/dispatch! *:store [::res/ensure! resource])
-                              (store/subscribe *:store [::res/?:resource resource]))]
+  (let [resource-key [::rspecs/notes#find (:notes/id route-params)]]
+    (r/with-let [sub:note (do (store/dispatch! *:store [::res/ensure! resource-key])
+                              (store/subscribe *:store [::res/?:resource resource-key]))]
       [comp/with-resources [sub:note] [root* {:*:store *:store}]]
       (finally
-        (store/emit! *:store [::res/destroyed resource])))))
+        (store/emit! *:store [::res/destroyed resource-key])))))

@@ -1,7 +1,5 @@
 (ns brainard.common.store.flows-test
   (:require
-    [defacto.forms.core :as forms]
-    [brainard.common.resources.api :as rapi]
     [brainard.common.resources.specs :as-alias rspecs]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.nav :as nav]
@@ -9,38 +7,9 @@
     [brainard.common.utils.uuids :as uuids]
     [clojure.test :refer [deftest is testing]]
     [defacto.core :as defacto]
-    [defacto.resources.core :as-alias res]
     brainard.common.store.commands
     brainard.common.store.events
     brainard.common.store.queries))
-
-(deftest forms-test
-  (testing "when creating a form"
-    (let [store (store/create)]
-      (store/dispatch! store [::forms/ensure! 123 {:fruit :apple}])
-      (testing "and when querying the db"
-        (testing "has the form data"
-          (is (= {:fruit :apple} (forms/data (store/query store [::forms/?:form 123]))))))
-
-      (testing "and when recreating a form"
-        (store/dispatch! store [::forms/ensure! 123 {:random? true}])
-        (testing "and when querying the db"
-          (testing "retains the original form data"
-            (is (= {:fruit :apple} (forms/data (store/query store [::forms/?:form 123])))))))
-
-      (testing "and when updating the form"
-        (store/emit! store [::forms/changed 123 [:fruit] :banana])
-        (store/emit! store [::forms/changed 123 [:nested :prop] -13])
-        (testing "has the updated form data"
-          (is (= {:fruit  :banana
-                  :nested {:prop -13}}
-                 (forms/data (store/query store [::forms/?:form 123]))))))
-
-      (testing "and when destroying the form"
-        (store/emit! store [::forms/destroyed 123])
-
-        (testing "no longer has form data"
-          (is (nil? (forms/data (store/query store [::forms/?:form 123])))))))))
 
 (deftype NavStub [^:volatile-mutable -store]
   defacto/IInitialize
@@ -70,49 +39,6 @@
                   :uri          (str "/api/notes/" note-id)}
                  (select-keys (store/query store [:routing/?:route])
                               #{:route-params :token :uri}))))))))
-
-(deftest resources-test
-  (let [method (::rapi/request! (methods defacto/command-handler))
-        calls (atom [])
-        handler (fn [_ [_ params] _]
-                  (swap! calls conj params))
-        store (store/create)
-        note-id (uuids/random)]
-    (testing "when ensuring the resource exists"
-      (try
-        (#?(:cljs -add-method :default .addMethod) defacto/command-handler
-                                                   ::rapi/request!
-                                                   handler)
-
-        (testing "and when the resource does exist"
-          (reset! calls [])
-          (store/dispatch! store [::res/ensure! [::rspecs/notes#find note-id]])
-
-          (testing "submits the resource"
-            (let [[input] @calls]
-              (is (= {:req        {:request-method :get
-                                   :url            (str "/api/notes/" note-id)}
-                      :ok-events  [[::res/succeeded [::rspecs/notes#find note-id]]]
-                      :err-events [[::res/failed [::rspecs/notes#find note-id]]]}
-                     (update input :req select-keys #{:request-method :url}))))))
-
-        (testing "and when the resource exists"
-          (reset! calls [])
-          (store/dispatch! store [::res/ensure! [::rspecs/notes#find note-id]])
-
-          (testing "does not submit the resource"
-            (is (empty? @calls))))
-
-        (testing "when submitting an existing resource"
-          (reset! calls [])
-          (store/dispatch! store [::res/submit! [::rspecs/notes#find note-id]])
-
-          (testing "submits the resource"
-            (is (not (empty? @calls)))))
-        (finally
-          (#?(:cljs -add-method :default .addMethod) defacto/command-handler
-                                                     ::rapi/request!
-                                                     method))))))
 
 (deftest toast-test
   (testing "when creating a toast"

@@ -10,6 +10,7 @@
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.views.pages.interfaces :as ipages]
     [brainard.common.views.pages.shared :as spages]
+    [defacto.forms.plus :as forms+]
     [defacto.resources.core :as-alias res]))
 
 (def ^:private ^:const form-id
@@ -28,14 +29,12 @@
                       {:data {:notes/context (dom/target-value e)}}])))
 
 (defn ^:private root* [{:keys [*:store sub:contexts sub:form sub:res sub:tags]}]
-  (let [form @sub:form
-        data (forms/data form)]
+  (let [form @sub:form]
     [ctrls/form {:*:store      *:store
-                 :form         form
-                 :params       {:data       data
-                                :reset-to   new-note
-                                :pre-events [[::res/destroyed [::rspecs/notes#select form-id]]]}
-                 :resource-key [::rspecs/notes#create form-id]
+                 :changed?     (forms/changed? form)
+                 :params       {:pre-events [[::res/destroyed [::rspecs/notes#select form-id]]]}
+                 :new?         true
+                 :resource-key [::forms+/post [::rspecs/notes#create form-id]]
                  :sub:res      sub:res}
      [:strong "Create a note"]
      [ctrls/type-ahead (-> {:*:store   *:store
@@ -61,11 +60,11 @@
 
 (defmethod ipages/page :routes.ui/home
   [{:keys [*:store]}]
-  (r/with-let [_ (store/dispatch! *:store [::forms/ensure! form-id new-note])
-               sub:form (store/subscribe *:store [::forms/?:form form-id])
-               sub:contexts (store/subscribe *:store [::res/?:resource ::rspecs/contexts#select])
-               sub:tags (store/subscribe *:store [::res/?:resource ::rspecs/tags#select])
-               sub:res (store/subscribe *:store [::res/?:resource [::rspecs/notes#create form-id]])
+  (r/with-let [_ (store/dispatch! *:store [::forms/ensure! [::forms+/post [::rspecs/notes#create form-id]] new-note])
+               sub:form (store/subscribe *:store [::forms/?:form [::forms+/post [::rspecs/notes#create form-id]]])
+               sub:contexts (store/subscribe *:store [::res/?:resource [::rspecs/contexts#select]])
+               sub:tags (store/subscribe *:store [::res/?:resource [::rspecs/tags#select]])
+               sub:res (store/subscribe *:store [::res/?:resource [::forms+/post [::rspecs/notes#create form-id]]])
                sub:notes (store/subscribe *:store [::res/?:resource [::rspecs/notes#select form-id]])]
     [:div
      [root* {:*:store      *:store
@@ -75,6 +74,5 @@
              :sub:tags     sub:tags}]
      [comp/with-resources [sub:notes] [search-results {:hide-init? true}]]]
     (finally
-      (store/emit! *:store [::res/destroyed [::rspecs/notes#select form-id]])
-      (store/emit! *:store [::res/destroyed [::rspecs/notes#create form-id]])
-      (store/emit! *:store [::forms/destroyed form-id]))))
+      (store/emit! *:store [::forms+/destroyed [::forms+/post [::rspecs/notes#create form-id]]])
+      (store/emit! *:store [::res/destroyed [::rspecs/notes#select form-id]]))))

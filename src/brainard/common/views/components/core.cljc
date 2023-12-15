@@ -10,7 +10,9 @@
     [brainard.common.views.components.modals :as comp.modals]
     [brainard.common.views.components.shared :as scomp]
     [brainard.common.views.components.toasts :as comp.toasts]
-    [clojure.pprint :as pp]))
+    [clojure.pprint :as pp]
+    [defacto.forms.core :as forms]
+    [defacto.resources.core :as res]))
 
 (defn pprint [data]
   [:pre (with-out-str (pp/pprint data))])
@@ -89,21 +91,25 @@
     (finally
       (run! dom/remove-listener! listeners))))
 
-(defn with-resources [resources comp]
+(defn with-resources [sub:resources comp]
   (let [[_ opts :as comp] (colls/wrap-vector comp)
-        [status data] (loop [[sub:res :as resources] resources
-                             successes []]
-                        (let [{:keys [status payload]} (some-> sub:res deref)]
-                          (cond
-                            (empty? resources) [:success successes]
-                            (= :success status) (recur (next resources) (conj successes payload))
-                            :else [status payload])))]
-    (when (or (not= :init status) (not (:hide-init? opts)))
-      (case status
-        :success (conj comp data)
-        :error (when-not (:local? (meta data))
-                 [:div.error [alert :error "An error occurred."]])
-        [spinner opts]))))
+        [success? data-or-res] (loop [[sub:res :as subs] sub:resources
+                                      successes []]
+                                 (let [resource (some-> sub:res deref)]
+                                   (cond
+                                     (empty? subs) [true successes]
+                                     (res/success? resource) (recur (next subs) (conj successes (res/payload resource)))
+                                     :else [false resource])))]
+    (when (or success?
+              (not (:hide-init? opts))
+              (not (res/init? data-or-res)))
+      (cond
+        success? (conj comp data-or-res)
+        (res/error? data-or-res) (when-not (let [payload (res/payload data-or-res)]
+                                             (or (:local? (meta payload))
+                                                 (::forms/errors payload)))
+                                   [:div.error [alert :error "An error occurred."]])
+        :else [spinner opts]))))
 
 (defn tag-list [{:keys [on-change value]}]
   [:div.tag-list.field.is-grouped.is-grouped-multiline.layout--space-between
@@ -113,9 +119,9 @@
       [:span.tag.is-info.is-light (str tag)]
       (when on-change
         [:button.button.tag.is-delete {:tab-index -1
-                                       :on-click (fn [e]
-                                                   (dom/prevent-default! e)
-                                                   (on-change (disj value tag)))}])])])
+                                       :on-click  (fn [e]
+                                                    (dom/prevent-default! e)
+                                                    (on-change (disj value tag)))}])])])
 
 (def ^{:arglists '([*:store])} modals comp.modals/root)
 

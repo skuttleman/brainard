@@ -12,7 +12,7 @@
     [brainard.infra.routes.response :as routes.res]
     [clojure.set :as set]
     [defacto.core :as defacto]
-    [defacto.resources.core :as-alias res]
+    [defacto.resources.core :as res]
     [hiccup.core :as hiccup]
     defacto.impl))
 
@@ -69,9 +69,9 @@
                 (res/with-ctx (->request-fn handler apis)))]
     (doto (defacto.impl/->WatchableStore ctx (atom nil) defacto-api ->Sub)
       (->> (defacto/init! nav))
-      (defacto/dispatch! [::res/submit! ::rspecs/tags#select])
-      (defacto/dispatch! [::res/submit! ::rspecs/contexts#select])
-      (defacto/dispatch! [::res/submit! ::rspecs/notes#buzz]))))
+      (defacto/dispatch! [::res/submit! [::rspecs/tags#select]])
+      (defacto/dispatch! [::res/submit! [::rspecs/contexts#select]])
+      (defacto/dispatch! [::res/submit! [::rspecs/notes#buzz]]))))
 
 (defmethod iroutes/handler [:get :routes/ui]
   [{:brainard/keys [route] :as req}]

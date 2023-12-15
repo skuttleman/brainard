@@ -3,6 +3,7 @@
     [brainard.common.utils.routing :as rte]
     [brainard.common.validations.core :as valid]
     [defacto.forms.core :as forms]
+    [defacto.forms.plus :as forms+]
     [defacto.resources.core :as res]))
 
 (defn ^:private with-msgs [m k params spec]
@@ -29,8 +30,7 @@
 (defmethod res/->request-spec ::tags#select
   [_ _]
   (->req {:route  :routes.api/tags
-          :method :get}
-         nil))
+          :method :get}))
 
 (defmethod res/->request-spec ::contexts#select
   [_ _]
@@ -45,7 +45,8 @@
   (if-let [errors (search-validator data)]
     (if changed?
       {:pre-events [[::res/failed [::notes#select resource-id]
-                     (with-meta errors {:local? true})]]}
+                     (with-meta errors {:local? true})]
+                    [::res/destroyed [::notes#select resource-id]]]}
       {:pre-events [[::res/destroyed [::notes#select resource-id]]]})
     (->req {:route  :routes.api/notes
             :method :get
@@ -58,21 +59,17 @@
           :method :get
           :params {:notes/id resource-id}}))
 
-(def ^:private new-note-validator
-  (valid/->validator valid/new-note))
+(let [validator (valid/->validator valid/new-note)]
+  (defmethod forms+/validate ::notes#create
+    [_ data]
+    (validator data))
 
-(defmethod res/->request-spec ::notes#create
-  [[_ resource-id] {:keys [data reset-to]}]
-  (if-let [errors (new-note-validator data)]
-    {:pre-events [[::res/failed [::notes#create resource-id]
-                   (with-meta errors {:local? true})]]}
+  (defmethod res/->request-spec ::notes#create
+    [_ {::forms/keys [data]}]
     (->req {:route        :routes.api/notes
             :method       :post
             :body         data
-            :ok-events    (cond-> [[:api.notes/saved]]
-                            reset-to
-                            (conj [::forms/created resource-id reset-to]
-                                  [::res/destroyed [::notes#create resource-id]]))
+            :ok-events    [[:api.notes/saved]]
             :ok-commands  [[:toasts.notes/succeed!]]
             :err-commands [[:toasts/fail!]]})))
 
@@ -95,22 +92,19 @@
   (->req {:route  :routes.api/notes?scheduled
           :method :get}))
 
-(def ^:private new-schedule-validator
-  (valid/->validator valid/new-schedule))
+(let [validator (valid/->validator valid/new-schedule)]
+  (defmethod forms+/validate ::schedules#create
+    [_ data]
+    (validator data))
 
-(defmethod res/->request-spec ::schedules#create
-  [[_ resource-id] {:keys [data reset-to]}]
-  (if-let [errors (new-schedule-validator data)]
-    {:pre-events [[::res/failed [::schedules#create resource-id] (with-meta errors {:local? true})]]}
-    (let [ok-events (when reset-to
-                      [[::forms/created resource-id reset-to]
-                       [::res/destroyed [::schedules#create resource-id]]])]
-      (->req {:route        :routes.api/schedules
-              :method       :post
-              :body         data
-              :ok-events    (conj ok-events [:api.schedules/saved (:schedules/note-id data)])
-              :ok-commands  [[:toasts/succeed! {:message "schedule created"}]]
-              :err-commands [[:toasts/fail!]]}))))
+  (defmethod res/->request-spec ::schedules#create
+    [_ {::forms/keys [data]}]
+    (->req {:route        :routes.api/schedules
+            :method       :post
+            :body         data
+            :ok-events    [[:api.schedules/saved (:schedules/note-id data)]]
+            :ok-commands  [[:toasts/succeed! {:message "schedule created"}]]
+            :err-commands [[:toasts/fail!]]})))
 
 (defmethod res/->request-spec ::schedules#destroy
   [[_ resource-id] params]

@@ -76,5 +76,5 @@
                               (:init-db dom/env)))
   (async/go
     (async/<! (async/timeout 15000))
-    (defacto/dispatch! *store* [::res/poll! 15000 ::rspecs/notes#buzz]))
+    (defacto/dispatch! *store* [::res/poll! 15000 [::rspecs/notes#buzz]]))
   (load*))

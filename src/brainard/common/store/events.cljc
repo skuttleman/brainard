@@ -2,7 +2,7 @@
   (:require
     [brainard.common.resources.specs :as-alias rspecs]
     [defacto.core :as defacto]
-    [defacto.resources.core :as-alias res]))
+    [defacto.resources.core :as res]))
 
 (defmethod defacto/event-reducer :routing/navigated
   [db [_ routing-info]]
@@ -58,34 +58,34 @@
 
 (defmethod defacto/event-reducer :api.notes/saved
   [db [_ {:notes/keys [context tags]}]]
-  (let [tag-res (defacto/query-responder db [::res/?:resource ::rspecs/tags#select])
-        ctx-res (defacto/query-responder db [::res/?:resource ::rspecs/contexts#select])]
+  (let [tag-res (defacto/query-responder db [::res/?:resource [::rspecs/tags#select]])
+        ctx-res (defacto/query-responder db [::res/?:resource [::rspecs/contexts#select]])]
     (cond-> db
-      (= :success (:status tag-res))
-      (-> (defacto/event-reducer [::res/submitted ::rspecs/tags#select])
-          (defacto/event-reducer [::res/succeeded ::rspecs/tags#select
-                                  (into (:payload tag-res) tags)]))
+      (res/success? tag-res)
+      (-> (defacto/event-reducer [::res/submitted [::rspecs/tags#select]])
+          (defacto/event-reducer [::res/succeeded [::rspecs/tags#select]
+                                  (into (res/payload tag-res) tags)]))
 
-      (and context (= :success (:status ctx-res)))
-      (-> (defacto/event-reducer [::res/submitted ::rspecs/contexts#select])
-          (defacto/event-reducer [::res/succeeded ::rspecs/contexts#select
-                                  (conj (:payload ctx-res) context)])))))
+      (and context (res/success? ctx-res))
+      (-> (defacto/event-reducer [::res/submitted [::rspecs/contexts#select]])
+          (defacto/event-reducer [::res/succeeded [::rspecs/contexts#select]
+                                  (conj (res/payload ctx-res) context)])))))
 
 (defmethod defacto/event-reducer :api.schedules/saved
   [db [_ note-id sched]]
   (let [note-res (defacto/query-responder db [::res/?:resource [::rspecs/notes#find note-id]])]
     (cond-> db
-      (= :success (:status note-res))
-      (-> (defacto/event-reducer [::res/submitted [::rspecs/notes#find note-id] (:params note-res)])
+      (res/success? note-res)
+      (-> (defacto/event-reducer [::res/submitted [::rspecs/notes#find note-id] (res/params note-res)])
           (defacto/event-reducer [::res/succeeded [::rspecs/notes#find note-id]
-                                  (update (:payload note-res) :notes/schedules conj sched)])))))
+                                  (update (res/payload note-res) :notes/schedules conj sched)])))))
 
 (defmethod defacto/event-reducer :api.schedules/deleted
   [db [_ sched-id note-id]]
   (let [note-res (defacto/query-responder db [::res/?:resource [::rspecs/notes#find note-id]])]
     (cond-> db
-      (= :success (:status note-res))
-      (-> (defacto/event-reducer [::res/submitted [::rspecs/notes#find note-id] (:params note-res)])
+      (res/success? note-res)
+      (-> (defacto/event-reducer [::res/submitted [::rspecs/notes#find note-id] (res/params note-res)])
           (defacto/event-reducer [::res/succeeded [::rspecs/notes#find note-id]
-                                  (update (:payload note-res) :notes/schedules
+                                  (update (res/payload note-res) :notes/schedules
                                           (partial remove (comp #{sched-id} :schedules/id)))])))))

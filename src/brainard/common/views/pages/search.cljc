@@ -70,8 +70,8 @@
 
 (defmethod ipages/page :routes.ui/search
   [{:keys [*:store query-params]}]
-  (r/with-let [sub:contexts (store/subscribe *:store [::res/?:resource ::rspecs/contexts#select])
-               sub:tags (store/subscribe *:store [::res/?:resource ::rspecs/tags#select])
+  (r/with-let [sub:contexts (store/subscribe *:store [::res/?:resource [::rspecs/contexts#select]])
+               sub:tags (store/subscribe *:store [::res/?:resource [::rspecs/tags#select]])
                sub:notes (store/subscribe *:store [::res/?:resource [::rspecs/notes#select form-id]])]
     [:div.layout--stack-between
      [comp/with-resources [sub:contexts sub:tags] [root* {:*:store      *:store

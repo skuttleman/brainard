@@ -4,7 +4,6 @@
 
    [input {:on-change [:my-event]}]"
   (:require
-    [defacto.forms.core :as forms]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
@@ -16,7 +15,8 @@
     [brainard.common.views.controls.tags-editor :as tags-editor]
     [brainard.common.views.controls.type-ahead :as type-ahead]
     [clojure.string :as string]
-    [defacto.resources.core :as-alias res]))
+    [defacto.forms.plus :as-alias forms+]
+    [defacto.resources.core :as res]))
 
 (defn ^:private disabled-compat [disabled]
   #?(:clj true :default disabled))
@@ -205,20 +205,21 @@
     buttons
     (into buttons)))
 
-(defn form [{:keys [*:store disabled form params resource-key sub:res horizontal?] :as attrs} & fields]
-  (let [{:keys [status payload]} @sub:res
-        errors (when (= :error status)
-                 payload)
+(defn form [{:keys [*:store changed? disabled params resource-key sub:res horizontal? new?] :as attrs} & fields]
+  (let [resource @sub:res
+        errors (when (res/error? resource)
+                 (res/payload resource))
         form-errors (when (vector? errors)
                       errors)
-        requesting? (= :requesting status)
-        init? (= :init status)
-        any-errors? (and errors (not init?))
-        changed? (forms/changed? form)]
+        requesting? (res/requesting? resource)
+        init? (res/init? resource)
+        any-errors? (and errors (not init?))]
     [:form.form
      (-> {:on-submit (fn [e]
                        (dom/prevent-default! e)
-                       (store/dispatch! *:store [::res/submit! resource-key params]))}
+                       (if new?
+                         (store/dispatch! *:store [::forms+/submit! resource-key params])
+                         (store/dispatch! *:store [::res/submit! resource-key params])))}
          (merge (select-keys attrs #{:class :style}))
          (cond->
            any-errors? (update :class conj "errors")

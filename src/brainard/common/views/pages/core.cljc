@@ -7,7 +7,7 @@
     [brainard.common.utils.routing :as rte]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.pages.interfaces :as ipages]
-    [defacto.resources.core :as-alias res]
+    [defacto.resources.core :as res]
     brainard.common.views.pages.buzz
     brainard.common.views.pages.home
     brainard.common.views.pages.note
@@ -26,14 +26,14 @@
     [:em "'cause absent-minded people need help 'membering stuff"]]])
 
 (defn ^:private navbar [{:keys [*:store token]}]
-  (r/with-let [sub:buzz (store/subscribe *:store [::res/?:resource ::rspecs/notes#buzz])]
+  (r/with-let [sub:buzz (store/subscribe *:store [::res/?:resource [::rspecs/notes#buzz]])]
     (let [home (rte/path-for :routes.ui/home)
           search (rte/path-for :routes.ui/search)
           buzz (rte/path-for :routes.ui/buzz)
-          {:keys [status payload]} @sub:buzz
-          buzzes (if (= :error status)
+          resource @sub:buzz
+          buzzes (if (res/error? resource)
                    0
-                   (count payload))]
+                   (count (res/payload resource)))]
       [:nav.navbar
        {:role "navigation" :aria-label "main navigation"}
        [:div.navbar-start.layout--relative
