@@ -233,6 +233,6 @@
                              :disabled (or disabled requesting?)
                              :requesting? requesting?)]]))
 
-(def ^{:arglists '([attrs form sub:res path])} with-attrs
+(def ^{:arglists '([attrs form+ path] [attrs form sub:res path])} with-attrs
   "Prepares common form attributes used by controls in [[brainard.common.views.controls.core]]. "
   shared/with-attrs)
