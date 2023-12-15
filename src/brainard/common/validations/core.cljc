@@ -39,7 +39,7 @@
    [:map
     [:notes/context {:optional true} string?]
     [:notes/tags {:optional true} [:set keyword?]]]
-   [:fn {:error/message "must select at least one context or tag"}
+   [:fn {:error/message "must select at least one tag or topic"}
     (some-fn (comp seq :notes/tags)
              (comp some? :notes/context))]])
 

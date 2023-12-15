@@ -26,7 +26,7 @@
   (r/with-let [options (map #(vector % %) contexts)
                options-by-id (into {} options)]
     [ctrls/single-dropdown (-> {:*:store       *:store
-                                :label         "Context filter"
+                                :label         "Topic filter"
                                 :options       options
                                 :options-by-id options-by-id}
                                (ctrls/with-attrs form sub:notes [:notes/context]))]))

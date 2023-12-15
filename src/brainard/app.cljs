@@ -17,12 +17,10 @@
     brainard.common.store.queries))
 
 (def ^:private ^:dynamic *store*)
-(def ^:private ^:dynamic *nav*)
 
 (deftype NavComponent [^:volatile-mutable -pushy]
   defacto/IInitialize
   (init! [_ store]
-    (when -pushy (pushy/stop! -pushy))
     (let [pushy (pushy/pushy #(store/emit! store [:routing/navigated %]) rte/match)]
       (set! -pushy pushy)
       (pushy/start! pushy)))
@@ -52,24 +50,29 @@
         [::res/ok (:data body)]
         [::res/err (remote->warnings (:errors body))]))))
 
-(defn ^:private load* [init-db]
+(defmethod defacto/event-reducer ::reset
+  [_ [_ new-db]]
+  new-db)
+
+(defn ^:private load* [cb]
   (let [root (.getElementById js/document "root")]
-    (set! *store* (store/create (-> {:services/nav *nav*}
-                                    (res/with-ctx request-fn))
-                                init-db))
-    (rdom/render [pages/root *store*] root)))
+    (rdom/render [pages/root *store*] root cb)))
 
 (defn load!
   "Called when new code is compiled in the browser."
   []
-  (load* @*store*))
+  (let [db-value @*store*]
+    (load* (fn []
+             (store/emit! *store* [::reset db-value])))))
 
 (defn init!
   "Called when the DOM finishes loading."
   []
   (enable-console-print!)
-  (set! *nav* (->NavComponent nil))
-  (async/go
+  (set! *store* (store/create (-> {:services/nav (->NavComponent nil)}
+                                  (res/with-ctx request-fn))
+                              (:init-db dom/env)))
+  #_(async/go
     (async/<! (async/timeout 15000))
     (defacto/dispatch! *store* [::res/poll! 15000 [::rspecs/notes#buzz]]))
-  (load* (:init-db dom/env)))
+  (load* (constantly nil)))

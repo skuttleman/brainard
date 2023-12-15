@@ -37,7 +37,7 @@
                  :sub:res      sub:form+}
      [:strong "Create a note"]
      [ctrls/type-ahead (-> {:*:store   *:store
-                            :label     "Context"
+                            :label     "Topic"
                             :sub:items sub:contexts
                             :on-blur   (->context-blur *:store)}
                            (ctrls/with-attrs form+ [:notes/context]))]
