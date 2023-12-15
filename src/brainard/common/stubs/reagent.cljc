@@ -14,10 +14,13 @@
      :default (clojure.core/atom value)))
 
 (defmacro with-let [bindings & body]
-  (if (:ns &env)
-    `(r*/with-let ~bindings ~@body)
-    (let [form (last body)
-          body (cond-> body
-                 (and (list? form) (= 'finally (first form)))
-                 butlast)]
+  (let [final-form (last body)
+        [body fin] (if (and (list? final-form) (= 'finally (first final-form)))
+                     [(butlast body) (rest final-form)]
+                     [body nil])]
+    (if (:ns &env)
+      `(r*/with-let ~bindings
+         ~@body
+         ~(list 'finally
+                `(do ~@fin)))
       `(let ~bindings (try ~@body)))))

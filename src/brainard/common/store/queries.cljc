@@ -2,10 +2,6 @@
   (:require
     [defacto.core :as defacto]))
 
-(defmethod defacto/query-responder :app/?:loading
-  [db _]
-  (:app/loading? db false))
-
 (defmethod defacto/query-responder :routing/?:route
   [db _]
   (:routing/info db))
