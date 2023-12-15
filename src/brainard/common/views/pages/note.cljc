@@ -30,7 +30,6 @@
         cancel-event [::forms/created form-id {:notes/tags (:notes/tags note)
                                                ::editing?  false}]]
     [ctrls/form {:*:store      *:store
-                 :form         form
                  :params       {:note-id  (:notes/id note)
                                 :old      note
                                 :data     (diff-tags (:notes/tags note) (:notes/tags data))

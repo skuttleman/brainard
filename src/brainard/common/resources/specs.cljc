@@ -59,19 +59,16 @@
           :method :get
           :params {:notes/id resource-id}}))
 
-(let [validator (valid/->validator valid/new-note)]
-  (defmethod forms+/validate ::notes#create
-    [_ data]
-    (validator data))
-
-  (defmethod res/->request-spec ::notes#create
-    [_ {::forms/keys [data]}]
-    (->req {:route        :routes.api/notes
-            :method       :post
-            :body         data
-            :ok-events    [[:api.notes/saved]]
-            :ok-commands  [[:toasts.notes/succeed!]]
-            :err-commands [[:toasts/fail!]]})))
+(let [vld (valid/->validator valid/new-note)]
+  (defmethod forms+/validate ::notes#create [_ data] (vld data)))
+(defmethod res/->request-spec ::notes#create
+  [_ {::forms/keys [data]}]
+  (->req {:route        :routes.api/notes
+          :method       :post
+          :body         data
+          :ok-events    [[:api.notes/saved]]
+          :ok-commands  [[:toasts.notes/succeed!]]
+          :err-commands [[:toasts/fail!]]}))
 
 (defmethod res/->request-spec ::notes#update
   [[_ resource-id] {:keys [note-id data fetch? reset-to]}]
@@ -92,19 +89,16 @@
   (->req {:route  :routes.api/notes?scheduled
           :method :get}))
 
-(let [validator (valid/->validator valid/new-schedule)]
-  (defmethod forms+/validate ::schedules#create
-    [_ data]
-    (validator data))
-
-  (defmethod res/->request-spec ::schedules#create
-    [_ {::forms/keys [data]}]
-    (->req {:route        :routes.api/schedules
-            :method       :post
-            :body         data
-            :ok-events    [[:api.schedules/saved (:schedules/note-id data)]]
-            :ok-commands  [[:toasts/succeed! {:message "schedule created"}]]
-            :err-commands [[:toasts/fail!]]})))
+(let [vld (valid/->validator valid/new-schedule)]
+  (defmethod forms+/validate ::schedules#create [_ data] (vld data)))
+(defmethod res/->request-spec ::schedules#create
+  [_ {::forms/keys [data]}]
+  (->req {:route        :routes.api/schedules
+          :method       :post
+          :body         data
+          :ok-events    [[:api.schedules/saved (:schedules/note-id data)]]
+          :ok-commands  [[:toasts/succeed! {:message "schedule created"}]]
+          :err-commands [[:toasts/fail!]]}))
 
 (defmethod res/->request-spec ::schedules#destroy
   [[_ resource-id] params]
