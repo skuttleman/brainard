@@ -49,8 +49,8 @@
   (async/go
     (let [{:keys [status body]} (async/<! (http/request params))]
       (if (success? status)
-        [:ok (:data body)]
-        [:err (remote->warnings (:errors body))]))))
+        [::res/ok (:data body)]
+        [::res/err (remote->warnings (:errors body))]))))
 
 (defn ^:private load* [init-db]
   (let [root (.getElementById js/document "root")]

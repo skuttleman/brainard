@@ -58,9 +58,9 @@
 (defn ^:private ->request-fn [handler apis]
   (fn [_ params]
     (try
-      [:ok (-> params (assoc :brainard/apis apis) handler :body :data)]
+      [::res/ok (-> params (assoc :brainard/apis apis) handler :body :data)]
       (catch Throwable ex
-        [:err (-> ex ex-data :body :errors)]))))
+        [::res/err (-> ex ex-data :body :errors)]))))
 
 (defn ^:private create-store [{:brainard/keys [apis route]}]
   (let [handler (cljs-http->ring ui-handler)
