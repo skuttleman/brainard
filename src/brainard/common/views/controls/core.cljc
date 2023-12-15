@@ -205,7 +205,7 @@
     buttons
     (into buttons)))
 
-(defn form [{:keys [*:store changed? disabled params resource-key sub:res horizontal? new?] :as attrs} & fields]
+(defn form [{:keys [*:store changed? disabled params resource-key sub:res horizontal?] :as attrs} & fields]
   (let [resource @sub:res
         errors (when (res/error? resource)
                  (res/payload resource))
@@ -217,9 +217,7 @@
     [:form.form
      (-> {:on-submit (fn [e]
                        (dom/prevent-default! e)
-                       (if new?
-                         (store/dispatch! *:store [::forms+/submit! resource-key params])
-                         (store/dispatch! *:store [::res/submit! resource-key params])))}
+                       (store/dispatch! *:store [::forms+/submit! resource-key params]))}
          (merge (select-keys attrs #{:class :style}))
          (cond->
            any-errors? (update :class conj "errors")

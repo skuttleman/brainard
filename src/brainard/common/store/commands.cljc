@@ -65,16 +65,14 @@
 (defmethod defacto/command-handler :toasts.notes/succeed!
   [{:services/keys [nav]} [_ note] emit-cb]
   (let [toast-id (->sortable-id)
-        body [:span
-              "a "
-              [:a.link.is-link
-               {:href     "#"
-                :on-click (fn [e]
-                            (dom/prevent-default! e)
-                            (dom/stop-propagation! e)
+        body [:span.layout--align-center
+              "a"
+              [:button.button.is-test.is-ghost
+               {:on-click (fn [_]
+                            ;; TODO - why does :a not work here?
                             (nav/navigate! nav :routes.ui/note (select-keys note #{:notes/id})))}
                "new note"]
-              " was created"]]
+              "was created"]]
     (emit-cb [:toasts/created toast-id {:state :init
                                         :level :success
                                         :body  body}])))

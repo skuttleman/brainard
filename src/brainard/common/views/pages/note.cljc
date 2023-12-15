@@ -152,52 +152,52 @@
           [schedule-display sched]])]]
      [:p [:em "no related schedules"]])])
 
-(defn ^:private schedules-form [{:keys [*:store sub:form sub:res]}]
-  (let [form @sub:form]
+(defn ^:private schedules-form [{:keys [*:store sub:form+]}]
+  (let [form+ @sub:form+]
     [ctrls/form {:*:store      *:store
                  :horizontal?  true
-                 :changed?     (forms/changed? form)
-                 :new?         true
-                 :resource-key (forms/id form)
-                 :sub:res      sub:res
+                 :changed?     (forms/changed? form+)
+                 :resource-key (forms/id form+)
+                 :sub:res      sub:form+
                  :submit/body  "Save"}
      [ctrls/select (-> {:label   "Day of the month"
                         :*:store *:store}
-                       (ctrls/with-attrs form sub:res [:schedules/day]))
+                       (ctrls/with-attrs form+ [:schedules/day]))
       day-options]
      [ctrls/select (-> {:label   "Day of the week"
                         :*:store *:store}
-                       (ctrls/with-attrs form sub:res [:schedules/weekday]))
+                       (ctrls/with-attrs form+ [:schedules/weekday]))
       weekday-options]
      [ctrls/select (-> {:label   "Week of the month"
                         :*:store *:store}
-                       (ctrls/with-attrs form sub:res [:schedules/week-index]))
+                       (ctrls/with-attrs form+ [:schedules/week-index]))
       week-index-options]
      [ctrls/select (-> {:label   "Month of the year"
                         :*:store *:store}
-                       (ctrls/with-attrs form sub:res [:schedules/month]))
+                       (ctrls/with-attrs form+ [:schedules/month]))
       month-options]
      [ctrls/datetime (-> {:label   "Earliest Moment"
                           :*:store *:store}
-                         (ctrls/with-attrs form sub:res [:schedules/after-timestamp]))]
+                         (ctrls/with-attrs form+ [:schedules/after-timestamp]))]
      [ctrls/datetime (-> {:label   "Latest Moment"
                           :*:store *:store}
-                         (ctrls/with-attrs form sub:res [:schedules/before-timestamp]))]]))
+                         (ctrls/with-attrs form+ [:schedules/before-timestamp]))]]))
 
 (defn ^:private schedules-editor [{:keys [*:store] :as attrs} note]
   (r/with-let [form-id (uuids/random)
-               sub:form (do (store/dispatch! *:store [::forms/ensure!
+               sub:form+ (do (store/dispatch! *:store [::forms/ensure!
                                                       [::forms+/post [::rspecs/schedules#create form-id]]
                                                       {:schedules/note-id (:notes/id note)}
                                                       {:remove-nil? true}])
-                            (store/subscribe *:store [::forms/?:form [::forms+/post [::rspecs/schedules#create form-id]]]))
-               sub:res (store/subscribe *:store [::res/?:resource [::forms+/post [::rspecs/schedules#create form-id]]])]
+                            (store/subscribe *:store [::forms+/?:form+ [::forms+/post [::rspecs/schedules#create form-id]]]))]
     [:div.layout--stack-between
      [:div.flex.row
       [:em "Add a schedule: "]
-      [:span.space--left [schedule-display (forms/data @sub:form)]]]
-     [schedules-form (merge attrs (maps/m sub:form sub:res))]
-     [schedules-list *:store note]]))
+      [:span.space--left [schedule-display (forms/data @sub:form+)]]]
+     [schedules-form (assoc attrs :sub:form+ sub:form+)]
+     [schedules-list *:store note]]
+    (finally
+      (store/emit! *:store [::forms+/destroyed [::forms+/post [::rspecs/schedules#create form-id]]]))))
 
 (defn ^:private root* [{:keys [*:store]} [note]]
   (r/with-let [init-form {:notes/tags (:notes/tags note)
