@@ -50,16 +50,16 @@
                              :sub:items sub:tags}
                             (ctrls/with-attrs form sub:res [:notes/tags]))]]))
 
-(defn ^:private search-results [_ [notes]]
+(defn ^:private search-results [route-info [notes]]
   [:div
    (if (seq notes)
      [:<>
       [:h3.subtitle [:em "Some related notes..."]]
-      [spages/search-results notes]]
+      [spages/search-results route-info notes]]
      [:em "Brand new context!"])])
 
 (defmethod ipages/page :routes.ui/home
-  [{:keys [*:store]}]
+  [{:keys [*:store] :as route-info}]
   (r/with-let [_ (store/dispatch! *:store [::forms/ensure! [::forms+/post [::rspecs/notes#create form-id]] new-note])
                sub:form (store/subscribe *:store [::forms/?:form [::forms+/post [::rspecs/notes#create form-id]]])
                sub:contexts (store/subscribe *:store [::res/?:resource [::rspecs/contexts#select]])
@@ -72,7 +72,7 @@
              :sub:form     sub:form
              :sub:res      sub:res
              :sub:tags     sub:tags}]
-     [comp/with-resources [sub:notes] [search-results {:hide-init? true}]]]
+     [comp/with-resources [sub:notes] [search-results (assoc route-info :hide-init? true)]]]
     (finally
       (store/emit! *:store [::forms+/destroyed [::forms+/post [::rspecs/notes#create form-id]]])
       (store/emit! *:store [::res/destroyed [::rspecs/notes#select form-id]]))))

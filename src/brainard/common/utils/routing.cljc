@@ -108,9 +108,12 @@
   "Matches a route uri and parses route info."
   [uri]
   (let [[path query-string] (string/split uri #"\?")
+        anchor #?(:cljs    (some-> js/document.location.hash not-empty (subs 1))
+                  :default nil)
         {:keys [handler route-params]} (bidi/match-route all-routes path)
         coercers (token->coercers handler)]
     {:token        handler
      :uri          uri
+     :anchor       anchor
      :route-params (coerce-params route-params coercers)
      :query-params (->query-params query-string)}))
