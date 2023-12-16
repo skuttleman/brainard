@@ -31,10 +31,9 @@
 (defn ^:private root* [{:keys [*:store sub:form+ sub:contexts sub:tags]}]
   (let [form+ @sub:form+]
     [ctrls/form {:*:store      *:store
-                 :changed?     (forms/changed? form+)
+                 :form+        form+
                  :params       {:pre-events [[::res/destroyed [::rspecs/notes#select form-id]]]}
-                 :resource-key [::forms+/post [::rspecs/notes#create form-id]]
-                 :sub:res      sub:form+}
+                 :resource-key [::forms+/post [::rspecs/notes#create form-id]]}
      [:strong "Create a note"]
      [ctrls/type-ahead (-> {:*:store   *:store
                             :label     "Topic"
@@ -45,6 +44,7 @@
                           :*:store *:store}
                          (ctrls/with-attrs form+ [:notes/body]))]
      [ctrls/tags-editor (-> {:*:store   *:store
+                             :form-id   [::tags form-id]
                              :label     "Tags"
                              :sub:items sub:tags}
                             (ctrls/with-attrs form+ [:notes/tags]))]]))

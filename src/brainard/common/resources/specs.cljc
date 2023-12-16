@@ -38,21 +38,24 @@
   (->req {:route  :routes.api/contexts
           :method :get}))
 
-(def ^:private search-validator
-  (valid/->validator valid/notes-query))
+(defmethod res/->request-spec ::forms+/gross!
+  [[_ resource-key :as form-key] {::forms/keys [form] :as params}]
+  (let [form-data (forms/data form)]
+    (if-let [errors (forms+/validate resource-key form-data)]
+       (if (forms/changed? form)
+        {:pre-events [[::res/failed form-key {::forms/errors errors}]
+                      [::res/destroyed form-key]]}
+        {:pre-events [[::res/destroyed form-key]]})
+       (res/->request-spec resource-key (assoc params ::forms/data form-data)))))
 
+(let [vld (valid/->validator valid/notes-query)]
+  (defmethod forms+/validate ::notes#select [_ data] (vld data)))
 (defmethod res/->request-spec ::notes#select
-  [[_ resource-id] {:keys [changed? data pre-commands]}]
-  (if-let [errors (search-validator data)]
-    (if changed?
-      {:pre-events [[::res/failed [::notes#select resource-id]
-                     (with-meta errors {:local? true})]
-                    [::res/destroyed [::notes#select resource-id]]]}
-      {:pre-events [[::res/destroyed [::notes#select resource-id]]]})
-    (->req {:route  :routes.api/notes
-            :method :get
-            :params {:query-params data}}
-           {:pre-commands pre-commands})))
+  [_ {::forms/keys [data] :keys [pre-commands]}]
+  (->req {:route  :routes.api/notes
+          :method :get
+          :params {:query-params data}}
+         {:pre-commands pre-commands}))
 
 (defmethod res/->request-spec ::notes#find
   [[_ resource-id] _]

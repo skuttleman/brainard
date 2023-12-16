@@ -5,6 +5,7 @@
     [brainard.common.stubs.reagent :as r]
     [clojure.pprint :as pp]
     [defacto.core :as defacto]
+    [defacto.forms.plus :as forms+]
     [defacto.resources.core :as-alias res]))
 
 (defmethod defacto/query-responder ::all
@@ -40,18 +41,18 @@
 (defn query [store query]
   (defacto/query-responder @store query))
 
-(defn init-form! [{:keys [->params form-id init resource-key store]}]
+(defn init-form! [{:keys [->params init resource-key store]}]
   (let [{:keys [data] :as params} (->params init)]
-    (dispatch! store [::forms/ensure! form-id data {:remove-nil? true}])
+    (dispatch! store [::forms/ensure! resource-key data {:remove-nil? true}])
     (dispatch! store [::res/ensure! resource-key params])
-    (subscribe store [::forms/?:form form-id])))
+    (subscribe store [::forms+/?:form+ resource-key])))
 
-(defn qp-syncer [{:keys [->params form-id resource-key store]}]
+(defn qp-syncer [{:keys [->params resource-key store]}]
   (fn [_ _ _ {:keys [query-params]}]
     (let [{:keys [data] :as params} (->params query-params)]
-      (when-not (= data (forms/data (query store [::forms/?:form form-id])))
-        (emit! store [::forms/created form-id data {:remove-nil? true}])
-        (dispatch! store [::res/submit! resource-key params])))))
+      (when-not (= data (forms/data (query store [::forms+/?:form+ resource-key])))
+        (emit! store [::forms/created resource-key data {:remove-nil? true}])
+        (dispatch! store [::forms+/submit! resource-key params])))))
 
 (defmacro with-qp-sync-form [[form-sym opts & bindings] & body]
   (let [last-line (last body)

@@ -10,6 +10,7 @@
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.views.pages.interfaces :as ipages]
+    [defacto.forms.plus :as forms+]
     [defacto.resources.core :as-alias res]))
 
 (def ^:private ^:const form-id ::forms/search)
@@ -22,39 +23,36 @@
     {:data         data
      :pre-commands [[:routing/with-qp! data]]}))
 
-(defn ^:private context-filter [{:keys [*:store form sub:notes]} contexts]
+(defn ^:private context-filter [{:keys [*:store form+]} contexts]
   (r/with-let [options (map #(vector % %) contexts)
                options-by-id (into {} options)]
     [ctrls/single-dropdown (-> {:*:store       *:store
                                 :label         "Topic filter"
                                 :options       options
                                 :options-by-id options-by-id}
-                               (ctrls/with-attrs form sub:notes [:notes/context]))]))
+                               (ctrls/with-attrs form+ [:notes/context]))]))
 
-(defn ^:private tag-filter [{:keys [*:store form sub:notes]} tags]
+(defn ^:private tag-filter [{:keys [*:store form+]} tags]
   (r/with-let [options (map #(vector % (str %)) tags)
                options-by-id (into {} options)]
     [ctrls/multi-dropdown (-> {:*:store       *:store
                                :label         "Tag Filer"
                                :options       options
                                :options-by-id options-by-id}
-                              (ctrls/with-attrs form sub:notes [:notes/tags]))]))
+                              (ctrls/with-attrs form+ [:notes/tags]))]))
 
-(defn ^:private root* [{:keys [*:store sub:notes] :as attrs} [contexts tags]]
-  (store/with-qp-sync-form [sub:form {:form-id      form-id
-                                      :store        *:store
-                                      :init         (:query-params attrs)
-                                      :resource-key [::rspecs/notes#select form-id]
-                                      :->params     #(->empty-form % contexts tags)}]
-    (let [form @sub:form
-          form-data (forms/data form)
-          attrs (assoc attrs :form form)]
+(defn ^:private root* [{:keys [*:store] :as attrs} [contexts tags]]
+  (store/with-qp-sync-form [sub:form+ {:store        *:store
+                                       :resource-key [::forms+/gross! [::rspecs/notes#select form-id]]
+                                       :init         (:query-params attrs)
+                                       :->params     #(->empty-form % contexts tags)}]
+    (let [form+ @sub:form+
+          form-data (forms/data form+)
+          attrs (assoc attrs :form+ form+)]
       [ctrls/form {:*:store      *:store
-                   :params       {:data         form-data
-                                  :changed?     (forms/changed? form)
-                                  :pre-commands [[:routing/with-qp! form-data]]}
-                   :resource-key [::rspecs/notes#select form-id]
-                   :sub:res      sub:notes
+                   :form+        form+
+                   :params       {:pre-commands [[:routing/with-qp! form-data]]}
+                   :resource-key [::forms+/gross! [::rspecs/notes#select form-id]]
                    :submit/body  [:<>
                                   [comp/icon :search]
                                   [:span.space--left "Search"]]}
@@ -71,11 +69,10 @@
   [{:keys [*:store query-params] :as route-info}]
   (r/with-let [sub:contexts (store/subscribe *:store [::res/?:resource [::rspecs/contexts#select]])
                sub:tags (store/subscribe *:store [::res/?:resource [::rspecs/tags#select]])
-               sub:notes (store/subscribe *:store [::res/?:resource [::rspecs/notes#select form-id]])]
+               sub:notes (store/subscribe *:store [::res/?:resource [::forms+/gross! [::rspecs/notes#select form-id]]])]
     [:div.layout--stack-between
      [comp/with-resources [sub:contexts sub:tags] [root* {:*:store      *:store
-                                                          :query-params query-params
-                                                          :sub:notes    sub:notes}]]
+                                                          :query-params query-params}]]
      [comp/with-resources [sub:notes] [search-results (assoc route-info :hide-init? true)]]]
     (finally
       (store/emit! *:store [::res/destroyed [::rspecs/notes#select form-id]])

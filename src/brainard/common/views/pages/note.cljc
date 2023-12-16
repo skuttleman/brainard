@@ -7,7 +7,6 @@
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.dates :as dates]
-    [brainard.common.utils.uuids :as uuids]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.views.pages.interfaces :as ipages]
@@ -23,10 +22,10 @@
         cancel-event [::forms/created [::forms+/post [::rspecs/notes#update form-id]]
                       (select-keys note #{:notes/tags})]]
     [ctrls/form {:*:store      *:store
+                 :form+        form+
                  :params       {:note   note
                                 :fetch? true}
                  :resource-key [::forms+/post [::rspecs/notes#update form-id]]
-                 :sub:res      sub:form+
                  :submit/body  "Save"
                  :buttons      [[:button.button.is-cancel
                                  {:on-click (fn [e]
@@ -34,6 +33,7 @@
                                               (store/emit! *:store cancel-event))}
                                  "Cancel"]]}
      [ctrls/tags-editor (-> {:*:store   *:store
+                             :form-id   [::tags form-id]
                              :label     "Tags"
                              :sub:items sub:tags}
                             (ctrls/with-attrs form+ [:notes/tags]))]]))
@@ -43,12 +43,13 @@
    (if-let [tags (not-empty (:notes/tags note))]
      [comp/tag-list {:value tags}]
      [:em "no tags"])
-   [:button.button {:disabled #?(:clj true :default false)
-                    :on-click (fn [_]
-                                (store/emit! *:store [::forms/changed
-                                                      [::forms+/post [::rspecs/notes#update form-id]]
-                                                      [::editing?] true]))}
-    "edit tags"]])
+   [:button.button.is-info
+    {:disabled #?(:clj true :default false)
+     :on-click (fn [_]
+                 (store/emit! *:store [::forms/changed
+                                       [::forms+/post [::rspecs/notes#update form-id]]
+                                       [::editing?] true]))}
+    "edit stags"]])
 
 (def ^:private ^:const month-options
   (into [[nil "(any)"]]
@@ -147,10 +148,10 @@
 (defn ^:private schedules-form [{:keys [*:store sub:form+]}]
   (let [form+ @sub:form+]
     [ctrls/form {:*:store      *:store
+                 :form+        form+
                  :horizontal?  true
                  :changed?     (forms/changed? form+)
                  :resource-key (forms/id form+)
-                 :sub:res      sub:form+
                  :submit/body  "Save"}
      [ctrls/select (-> {:label   "Day of the month"
                         :*:store *:store}
@@ -176,12 +177,11 @@
                          (ctrls/with-attrs form+ [:schedules/before-timestamp]))]]))
 
 (defn ^:private schedules-editor [*:store note]
-  (r/with-let [new-sched-id (uuids/random)
-               sub:form+ (do (store/dispatch! *:store [::forms/ensure!
-                                                       [::forms+/post [::rspecs/schedules#create new-sched-id]]
+  (r/with-let [sub:form+ (do (store/dispatch! *:store [::forms/ensure!
+                                                       [::forms+/post [::rspecs/schedules#create (:notes/id note)]]
                                                        {:schedules/note-id (:notes/id note)}
                                                        {:remove-nil? true}])
-                             (store/subscribe *:store [::forms+/?:form+ [::forms+/post [::rspecs/schedules#create new-sched-id]]]))]
+                             (store/subscribe *:store [::forms+/?:form+ [::forms+/post [::rspecs/schedules#create (:notes/id note)]]]))]
     [:div.layout--stack-between
      [:div.flex.row
       [:em "Add a schedule: "]
@@ -189,7 +189,7 @@
      [schedules-form {:*:store *:store :sub:form+ sub:form+}]
      [schedules-list *:store note]]
     (finally
-      (store/emit! *:store [::forms+/destroyed [::forms+/post [::rspecs/schedules#create new-sched-id]]]))))
+      (store/emit! *:store [::forms+/destroyed [::forms+/post [::rspecs/schedules#create (:notes/id note)]]]))))
 
 (defn ^:private root* [{:keys [*:store]} [note]]
   (r/with-let [init-form (select-keys note #{:notes/tags})

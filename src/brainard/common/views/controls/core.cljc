@@ -15,6 +15,7 @@
     [brainard.common.views.controls.tags-editor :as tags-editor]
     [brainard.common.views.controls.type-ahead :as type-ahead]
     [clojure.string :as string]
+    [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
     [defacto.resources.core :as res]))
 
@@ -205,14 +206,14 @@
     buttons
     (into buttons)))
 
-(defn form [{:keys [*:store changed? disabled params resource-key sub:res horizontal?] :as attrs} & fields]
-  (let [resource @sub:res
-        errors (when (res/error? resource)
-                 (res/payload resource))
+(defn form [{:keys [*:store disabled params resource-key form+ horizontal?] :as attrs} & fields]
+  (let [changed? (forms/changed? form+)
+        errors (when (res/error? form+)
+                 (res/payload form+))
         form-errors (when (vector? errors)
                       errors)
-        requesting? (res/requesting? resource)
-        init? (res/init? resource)
+        requesting? (res/requesting? form+)
+        init? (res/init? form+)
         any-errors? (and errors (not init?))]
     [:form.form
      (-> {:on-submit (fn [e]
@@ -233,6 +234,6 @@
                              :disabled (or disabled requesting?)
                              :requesting? requesting?)]]))
 
-(def ^{:arglists '([attrs form+ path] [attrs form sub:res path])} with-attrs
+(def ^{:arglists '([attrs form+ path])} with-attrs
   "Prepares common form attributes used by controls in [[brainard.common.views.controls.core]]. "
   shared/with-attrs)
