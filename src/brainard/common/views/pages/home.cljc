@@ -14,7 +14,7 @@
     [defacto.resources.core :as-alias res]))
 
 (def ^:private ^:const form-id ::forms/new-note)
-(def ^:private ^:const create-note-key [::forms+/post [::rspecs/notes#create form-id]])
+(def ^:private ^:const create-note-key [::forms+/valid [::rspecs/notes#create form-id]])
 (def ^:private ^:const select-notes-key [::rspecs/notes#select form-id])
 
 (def ^:private new-note

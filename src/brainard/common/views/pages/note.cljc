@@ -14,8 +14,8 @@
     [defacto.resources.core :as-alias res]))
 
 (def ^:private ^:const form-id ::forms/edit-note)
-(def ^:private ^:const update-note-key [::forms+/post [::rspecs/notes#update form-id]])
-(defn ^:private ^:const ->sched-create-key [note] [::forms+/post [::rspecs/schedules#create (:notes/id note)]])
+(def ^:private ^:const update-note-key [::forms+/std [::rspecs/notes#update form-id]])
+(defn ^:private ^:const ->sched-create-key [note] [::forms+/valid [::rspecs/schedules#create (:notes/id note)]])
 
 (defn ^:private tag-editor [{:keys [*:store sub:form+ sub:tags note]}]
   (let [form+ @sub:form+]

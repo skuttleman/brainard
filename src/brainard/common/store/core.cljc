@@ -6,7 +6,7 @@
     [clojure.pprint :as pp]
     [defacto.core :as defacto]
     [defacto.forms.plus :as forms+]
-    [defacto.resources.core :as-alias res]))
+    [defacto.resources.core :as res]))
 
 (defmethod defacto/query-responder ::all
   [db _]
@@ -41,18 +41,21 @@
 (defn query [store query]
   (defacto/query-responder @store query))
 
+(defn ^:private sync* [store resource-key {:keys [data] :as params}]
+  (emit! store [::forms/created resource-key data {:remove-nil? true}])
+  (dispatch! store [::forms+/submit! resource-key params])
+  (when (res/error? (query store [::res/?:resource resource-key]))
+    (emit! store [::res/destroyed resource-key])))
+
 (defn init-form! [{:keys [->params init resource-key store]}]
-  (let [{:keys [data] :as params} (->params init)]
-    (dispatch! store [::forms/ensure! resource-key data {:remove-nil? true}])
-    (dispatch! store [::res/ensure! resource-key params])
-    (subscribe store [::forms+/?:form+ resource-key])))
+  (sync* store resource-key (->params init))
+  (subscribe store [::forms+/?:form+ resource-key]))
 
 (defn qp-syncer [{:keys [->params resource-key store]}]
   (fn [_ _ _ {:keys [query-params]}]
     (let [{:keys [data] :as params} (->params query-params)]
       (when-not (= data (forms/data (query store [::forms+/?:form+ resource-key])))
-        (emit! store [::forms/created resource-key data {:remove-nil? true}])
-        (dispatch! store [::forms+/submit! resource-key params])))))
+        (sync* store resource-key params)))))
 
 (defmacro with-qp-sync-form [[form-sym opts & bindings] & body]
   (let [last-line (last body)
@@ -63,7 +66,7 @@
         watch-key (str (gensym))]
     `(r/with-let [{store# :store :as opts#} ~opts
                   ~sub-sym (doto (subscribe store# [:routing/?:route])
-                              (add-watch ~watch-key (qp-syncer opts#)))
+                             (add-watch ~watch-key (qp-syncer opts#)))
                   ~form-sym (init-form! opts#)
                   ~@bindings]
        ~@body

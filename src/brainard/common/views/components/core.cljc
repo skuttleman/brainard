@@ -105,9 +105,7 @@
               (not (res/init? data-or-res)))
       (cond
         success? (conj comp data-or-res)
-        (res/error? data-or-res) (when-not (let [payload (res/payload data-or-res)]
-                                             (or (:local? (meta payload))
-                                                 (::forms/errors payload)))
+        (res/error? data-or-res) (when-not (::forms/errors (res/payload data-or-res))
                                    [:div.error [alert :error "An error occurred."]])
         :else [spinner opts]))))
 

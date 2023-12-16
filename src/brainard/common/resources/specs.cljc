@@ -38,16 +38,6 @@
   (->req {:route  :routes.api/contexts
           :method :get}))
 
-(defmethod res/->request-spec ::forms+/gross!
-  [[_ resource-key :as form-key] {::forms/keys [form] :as params}]
-  (let [form-data (forms/data form)]
-    (if-let [errors (forms+/validate resource-key form-data)]
-       (if (forms/changed? form)
-        {:pre-events [[::res/failed form-key {::forms/errors errors}]
-                      [::res/destroyed form-key]]}
-        {:pre-events [[::res/destroyed form-key]]})
-       (res/->request-spec resource-key (assoc params ::forms/data form-data)))))
-
 (let [vld (valid/->validator valid/notes-query)]
   (defmethod forms+/validate ::notes#select [_ data] (vld data)))
 (defmethod res/->request-spec ::notes#select
@@ -74,12 +64,12 @@
           :ok-commands  [[:toasts.notes/succeed!]]
           :err-commands [[:toasts/fail!]]}))
 
-(defmethod forms+/validate ::notes#update [_ _] nil)
-(defmethod forms+/->next-init ::notes#update [_ _ result] (select-keys result #{:notes/tags}))
 (defn ^:private diff-tags [old new]
   (let [removals (set/difference old new)]
     {:notes/tags!remove removals
      :notes/tags        new}))
+
+(defmethod forms+/re-init ::notes#update [_ _ result] (select-keys result #{:notes/tags}))
 (defmethod res/->request-spec ::notes#update
   [_ {::forms/keys [data] :keys [note fetch?]}]
   (->req {:route        :routes.api/note

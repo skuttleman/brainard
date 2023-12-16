@@ -14,6 +14,7 @@
     [defacto.resources.core :as-alias res]))
 
 (def ^:private ^:const form-id ::forms/search)
+(def ^:private ^:const search-notes-key [::forms+/valid [::rspecs/notes#select form-id]])
 
 (defn ^:private ->empty-form [{:keys [context] :as query-params} contexts tags]
   (let [data (cond-> {:notes/tags (into #{}
@@ -43,7 +44,7 @@
 
 (defn ^:private root* [{:keys [*:store] :as attrs} [contexts tags]]
   (store/with-qp-sync-form [sub:form+ {:store        *:store
-                                       :resource-key [::forms+/gross! [::rspecs/notes#select form-id]]
+                                       :resource-key search-notes-key
                                        :init         (:query-params attrs)
                                        :->params     #(->empty-form % contexts tags)}]
     (let [form+ @sub:form+
@@ -52,7 +53,7 @@
       [ctrls/form {:*:store      *:store
                    :form+        form+
                    :params       {:pre-commands [[:routing/with-qp! form-data]]}
-                   :resource-key [::forms+/gross! [::rspecs/notes#select form-id]]
+                   :resource-key search-notes-key
                    :submit/body  [:<>
                                   [comp/icon :search]
                                   [:span.space--left "Search"]]}
@@ -69,11 +70,10 @@
   [{:keys [*:store query-params] :as route-info}]
   (r/with-let [sub:contexts (store/subscribe *:store [::res/?:resource [::rspecs/contexts#select]])
                sub:tags (store/subscribe *:store [::res/?:resource [::rspecs/tags#select]])
-               sub:notes (store/subscribe *:store [::res/?:resource [::forms+/gross! [::rspecs/notes#select form-id]]])]
+               sub:notes (store/subscribe *:store [::res/?:resource search-notes-key])]
     [:div.layout--stack-between
      [comp/with-resources [sub:contexts sub:tags] [root* {:*:store      *:store
                                                           :query-params query-params}]]
      [comp/with-resources [sub:notes] [search-results (assoc route-info :hide-init? true)]]]
     (finally
-      (store/emit! *:store [::res/destroyed [::rspecs/notes#select form-id]])
-      (store/emit! *:store [::forms/destroyed form-id]))))
+      (store/emit! *:store [::forms+/destroyed search-notes-key]))))

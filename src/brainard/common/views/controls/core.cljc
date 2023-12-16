@@ -210,8 +210,9 @@
   (let [changed? (forms/changed? form+)
         errors (when (res/error? form+)
                  (res/payload form+))
-        form-errors (when (vector? errors)
-                      errors)
+        local-errors (or (::forms/errors errors) errors)
+        form-errors (when (vector? local-errors)
+                      local-errors)
         requesting? (res/requesting? form+)
         init? (res/init? form+)
         any-errors? (and errors (not init?))]
@@ -228,7 +229,7 @@
                             "layout--stack-between")]}]
            fields)
      (when (and form-errors (not init?))
-       [form-field-meta-list :error errors true])
+       [form-field-meta-list :error form-errors true])
      [form-button-row (assoc attrs
                              :attempted? (and (not init?) (not changed?) errors)
                              :disabled (or disabled requesting?)
