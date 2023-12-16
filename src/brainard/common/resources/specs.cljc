@@ -2,6 +2,7 @@
   (:require
     [brainard.common.utils.routing :as rte]
     [brainard.common.validations.core :as valid]
+    [clojure.set :as set]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
     [defacto.resources.core :as res]))
@@ -70,18 +71,22 @@
           :ok-commands  [[:toasts.notes/succeed!]]
           :err-commands [[:toasts/fail!]]}))
 
+(defmethod forms+/validate ::notes#update [_ _] nil)
+(defmethod forms+/->next-init ::notes#update [_ _ result] (select-keys result #{:notes/tags}))
+(defn ^:private diff-tags [old new]
+  (let [removals (set/difference old new)]
+    {:notes/tags!remove removals
+     :notes/tags        new}))
 (defmethod res/->request-spec ::notes#update
-  [[_ resource-id] {:keys [note-id data fetch? reset-to]}]
+  [_ {::forms/keys [data] :keys [note fetch?]}]
   (->req {:route        :routes.api/note
-          :params       {:notes/id note-id}
+          :params       (select-keys note #{:notes/id})
           :method       :patch
-          :body         data
-          :ok-events    (cond-> [[:api.notes/saved]]
-                          reset-to
-                          (conj [::forms/created resource-id reset-to]))
+          :body         (diff-tags (:notes/tags note) (:notes/tags data))
+          :ok-events    [[:api.notes/saved]]
           :ok-commands  (cond-> [[:toasts/succeed! {:message "note updated"}]]
                           fetch?
-                          (conj [::res/submit! [::notes#find note-id]]))
+                          (conj [::res/submit! [::notes#find (:notes/id note)]]))
           :err-commands [[:toasts/fail!]]}))
 
 (defmethod res/->request-spec ::notes#buzz

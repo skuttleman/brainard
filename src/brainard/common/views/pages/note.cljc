@@ -12,30 +12,20 @@
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.views.pages.interfaces :as ipages]
     [clojure.pprint :as pp]
-    [clojure.set :as set]
     [defacto.forms.plus :as forms+]
     [defacto.resources.core :as-alias res]))
 
 (def ^:private ^:const form-id
   ::forms/edit-note)
 
-(defn ^:private diff-tags [old new]
-  (let [removals (set/difference old new)]
-    {:notes/tags!remove removals
-     :notes/tags        new}))
-
 (defn ^:private tag-editor [{:keys [*:store sub:form+ sub:tags note]}]
   (let [form+ @sub:form+
-        data (forms/data form+)
-        cancel-event [::forms/created [::rspecs/notes#update form-id] {:notes/tags (:notes/tags note)
-                                                                       ::editing?  false}]]
+        cancel-event [::forms/created [::forms+/post [::rspecs/notes#update form-id]]
+                      (select-keys note #{:notes/tags})]]
     [ctrls/form {:*:store      *:store
-                 :params       {:note-id  (:notes/id note)
-                                :old      note
-                                :data     (diff-tags (:notes/tags note) (:notes/tags data))
-                                :fetch?   true
-                                :reset-to (assoc data ::editing? false)}
-                 :resource-key [::rspecs/notes#update form-id]
+                 :params       {:note   note
+                                :fetch? true}
+                 :resource-key [::forms+/post [::rspecs/notes#update form-id]]
                  :sub:res      sub:form+
                  :submit/body  "Save"
                  :buttons      [[:button.button.is-cancel
@@ -55,7 +45,9 @@
      [:em "no tags"])
    [:button.button {:disabled #?(:clj true :default false)
                     :on-click (fn [_]
-                                (store/emit! *:store [::forms/changed [::rspecs/notes#update form-id] [::editing?] true]))}
+                                (store/emit! *:store [::forms/changed
+                                                      [::forms+/post [::rspecs/notes#update form-id]]
+                                                      [::editing?] true]))}
     "edit tags"]])
 
 (def ^:private ^:const month-options
@@ -200,10 +192,9 @@
       (store/emit! *:store [::forms+/destroyed [::forms+/post [::rspecs/schedules#create new-sched-id]]]))))
 
 (defn ^:private root* [{:keys [*:store]} [note]]
-  (r/with-let [init-form {:notes/tags (:notes/tags note)
-                          ::editing?  false}
-               sub:form+ (do (store/dispatch! *:store [::forms/ensure! [::rspecs/notes#update form-id] init-form])
-                             (store/subscribe *:store [::forms+/?:form+ [::rspecs/notes#update form-id]]))
+  (r/with-let [init-form (select-keys note #{:notes/tags})
+               sub:form+ (do (store/dispatch! *:store [::forms/ensure! [::forms+/post [::rspecs/notes#update form-id]] init-form])
+                             (store/subscribe *:store [::forms+/?:form+ [::forms+/post [::rspecs/notes#update form-id]]]))
                sub:tags (store/subscribe *:store [::res/?:resource [::rspecs/tags#select]])]
     [:div.layout--stack-between
      [:h1 [:strong (:notes/context note)]]
@@ -216,7 +207,7 @@
        [tag-list *:store note])
      [schedules-editor *:store note]]
     (finally
-      (store/emit! *:store [::forms+/destroyed [::rspecs/notes#update form-id]]))))
+      (store/emit! *:store [::forms+/destroyed [::forms+/post [::rspecs/notes#update form-id]]]))))
 
 (defmethod ipages/page :routes.ui/note
   [{:keys [route-params *:store]}]
