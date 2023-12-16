@@ -25,12 +25,14 @@
     [:h1.title "brainard"]
     [:em "'cause absent-minded people need help 'membering stuff"]]])
 
+(defn ^:private navbar-item [route token & body]
+  [:li
+   {:class [(when (= token route) "is-active")]}
+   (into [:a.navbar-item {:href (rte/path-for route)}] body)])
+
 (defn ^:private navbar [{:keys [*:store token]}]
   (r/with-let [sub:buzz (store/subscribe *:store [::res/?:resource [::rspecs/notes#buzz]])]
-    (let [home (rte/path-for :routes.ui/home)
-          search (rte/path-for :routes.ui/search)
-          buzz (rte/path-for :routes.ui/buzz)
-          resource @sub:buzz
+    (let [resource @sub:buzz
           buzzes (if (res/error? resource)
                    0
                    (count (res/payload resource)))]
@@ -39,18 +41,14 @@
        [:div.navbar-start.layout--relative
         [:div#header-nav.navbar-menu
          [:ul.navbar-start.oversize.tabs
-          [:li
-           {:class [(when (= :routes.ui/home token) "is-active")]}
-           [:a.navbar-item {:href home} "Home"]]
-          [:li
-           {:class [(when (= :routes.ui/search token) "is-active")]}
-           [:a.navbar-item {:href search} "Search"]]
-          [:li
-           {:class [(when (= :routes.ui/buzz token) "is-active")]}
-           [:a.navbar-item {:href buzz}
-            "Buzz"
-            (when (pos? buzzes)
-              [:span.tag.is-info.space--left buzzes])]]]]]])))
+          [navbar-item :routes.ui/home token
+           "Home"]
+          [navbar-item :routes.ui/search token
+           "Search"]
+          [navbar-item :routes.ui/buzz token
+           "Buzz"
+           (when (pos? buzzes)
+             [:span.tag.is-info.space--left buzzes])]]]]])))
 
 (defn page [{:keys [*:store] :as attrs}]
   [:div.container

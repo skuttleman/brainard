@@ -1,36 +1,36 @@
 (ns brainard.common.views.pages.note
   "The page for viewing a note and editing its tags."
   (:require
-    [defacto.forms.core :as forms]
     [brainard.common.resources.specs :as-alias rspecs]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
-    [brainard.common.utils.dates :as dates]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.views.pages.interfaces :as ipages]
-    [clojure.pprint :as pp]
+    [brainard.common.views.pages.shared :as spages]
+    [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
     [defacto.resources.core :as-alias res]))
 
-(def ^:private ^:const form-id
-  ::forms/edit-note)
+(def ^:private ^:const form-id ::forms/edit-note)
+(def ^:private ^:const update-note-key [::forms+/post [::rspecs/notes#update form-id]])
+(defn ^:private ^:const ->sched-create-key [note] [::forms+/post [::rspecs/schedules#create (:notes/id note)]])
 
 (defn ^:private tag-editor [{:keys [*:store sub:form+ sub:tags note]}]
-  (let [form+ @sub:form+
-        cancel-event [::forms/created [::forms+/post [::rspecs/notes#update form-id]]
-                      (select-keys note #{:notes/tags})]]
+  (let [form+ @sub:form+]
     [ctrls/form {:*:store      *:store
                  :form+        form+
                  :params       {:note   note
                                 :fetch? true}
-                 :resource-key [::forms+/post [::rspecs/notes#update form-id]]
+                 :resource-key update-note-key
                  :submit/body  "Save"
                  :buttons      [[:button.button.is-cancel
                                  {:on-click (fn [e]
                                               (dom/prevent-default! e)
-                                              (store/emit! *:store cancel-event))}
+                                              (store/emit! *:store
+                                                           [::forms/created update-note-key
+                                                            (select-keys note #{:notes/tags})]))}
                                  "Cancel"]]}
      [ctrls/tags-editor (-> {:*:store   *:store
                              :form-id   [::tags form-id]
@@ -46,83 +46,14 @@
    [:button.button.is-info
     {:disabled #?(:clj true :default false)
      :on-click (fn [_]
-                 (store/emit! *:store [::forms/changed
-                                       [::forms+/post [::rspecs/notes#update form-id]]
-                                       [::editing?] true]))}
+                 (store/emit! *:store [::forms/changed update-note-key [::editing?] true]))}
     "edit stags"]])
-
-(def ^:private ^:const month-options
-  (into [[nil "(any)"]]
-        (map (juxt identity name))
-        [:january
-         :february
-         :march
-         :april
-         :may
-         :june
-         :july
-         :august
-         :september
-         :october
-         :november
-         :december]))
-
-(def ^:private ^:const weekday-options
-  (into [[nil "(any)"]]
-        (map (juxt identity name))
-        [:sunday
-         :monday
-         :tuesday
-         :wednesday
-         :thursday
-         :friday
-         :saturday]))
-
-(def ^:private ^:const day-options
-  (into [[nil "(any)"]]
-        (map (juxt identity identity))
-        (range 1 32)))
-
-(defn ^:private ->radix [v]
-  (pp/cl-format nil "~:R" v))
-
-(def ^:private ^:const week-index-options
-  (into [[nil "(any)"]]
-        (map (juxt identity #(str (->radix (inc %)) " week")))
-        (range 5)))
-
-(defn ^:private ->schedule-part [[k v]]
-  (case k
-    :schedules/weekday [:<>
-                        [:span "on a"]
-                        [:em.blue (name v)]]
-
-    :schedules/month [:<>
-                      [:span "during"]
-                      [:em.blue (name v)]]
-
-    :schedules/day [:<>
-                    [:span "on the"]
-                    [:em.blue (->radix v)]
-                    [:span "day of the month"]]
-
-    :schedules/week-index [:<>
-                           [:span "during the"]
-                           [:em.blue (->radix (inc v))]
-                           [:span "week of the month"]]
-    :schedules/before-timestamp [:<>
-                                 [:span "before"]
-                                 [:span (dates/to-iso-datetime-min-precision v)]]
-    :schedules/after-timestamp [:<>
-                                [:span "after"]
-                                [:span (dates/to-iso-datetime-min-precision v)]]
-    nil))
 
 (defn ^:private schedule-display [form-data]
   (when-let [parts (seq (->> form-data
                              (sort-by key)
                              reverse
-                             (keep ->schedule-part)
+                             (keep spages/->schedule-part)
                              (interpose [:span "AND"])))]
     (into [:div.flex.layout--room-between] parts)))
 
@@ -156,19 +87,19 @@
      [ctrls/select (-> {:label   "Day of the month"
                         :*:store *:store}
                        (ctrls/with-attrs form+ [:schedules/day]))
-      day-options]
+      spages/day-options]
      [ctrls/select (-> {:label   "Day of the week"
                         :*:store *:store}
                        (ctrls/with-attrs form+ [:schedules/weekday]))
-      weekday-options]
+      spages/weekday-options]
      [ctrls/select (-> {:label   "Week of the month"
                         :*:store *:store}
                        (ctrls/with-attrs form+ [:schedules/week-index]))
-      week-index-options]
+      spages/week-index-options]
      [ctrls/select (-> {:label   "Month of the year"
                         :*:store *:store}
                        (ctrls/with-attrs form+ [:schedules/month]))
-      month-options]
+      spages/month-options]
      [ctrls/datetime (-> {:label   "Earliest Moment"
                           :*:store *:store}
                          (ctrls/with-attrs form+ [:schedules/after-timestamp]))]
@@ -177,11 +108,12 @@
                          (ctrls/with-attrs form+ [:schedules/before-timestamp]))]]))
 
 (defn ^:private schedules-editor [*:store note]
-  (r/with-let [sub:form+ (do (store/dispatch! *:store [::forms/ensure!
-                                                       [::forms+/post [::rspecs/schedules#create (:notes/id note)]]
+  (r/with-let [schedule-create-key (->sched-create-key note)
+               sub:form+ (do (store/dispatch! *:store [::forms/ensure!
+                                                       schedule-create-key
                                                        {:schedules/note-id (:notes/id note)}
                                                        {:remove-nil? true}])
-                             (store/subscribe *:store [::forms+/?:form+ [::forms+/post [::rspecs/schedules#create (:notes/id note)]]]))]
+                             (store/subscribe *:store [::forms+/?:form+ schedule-create-key]))]
     [:div.layout--stack-between
      [:div.flex.row
       [:em "Add a schedule: "]
@@ -189,12 +121,12 @@
      [schedules-form {:*:store *:store :sub:form+ sub:form+}]
      [schedules-list *:store note]]
     (finally
-      (store/emit! *:store [::forms+/destroyed [::forms+/post [::rspecs/schedules#create (:notes/id note)]]]))))
+      (store/emit! *:store [::forms+/destroyed schedule-create-key]))))
 
 (defn ^:private root* [{:keys [*:store]} [note]]
   (r/with-let [init-form (select-keys note #{:notes/tags})
-               sub:form+ (do (store/dispatch! *:store [::forms/ensure! [::forms+/post [::rspecs/notes#update form-id]] init-form])
-                             (store/subscribe *:store [::forms+/?:form+ [::forms+/post [::rspecs/notes#update form-id]]]))
+               sub:form+ (do (store/dispatch! *:store [::forms/ensure! update-note-key init-form])
+                             (store/subscribe *:store [::forms+/?:form+ update-note-key]))
                sub:tags (store/subscribe *:store [::res/?:resource [::rspecs/tags#select]])]
     [:div.layout--stack-between
      [:h1 [:strong (:notes/context note)]]
@@ -207,7 +139,7 @@
        [tag-list *:store note])
      [schedules-editor *:store note]]
     (finally
-      (store/emit! *:store [::forms+/destroyed [::forms+/post [::rspecs/notes#update form-id]]]))))
+      (store/emit! *:store [::forms+/destroyed update-note-key]))))
 
 (defmethod ipages/page :routes.ui/note
   [{:keys [route-params *:store]}]
