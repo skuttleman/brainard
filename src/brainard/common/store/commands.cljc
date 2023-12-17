@@ -1,7 +1,6 @@
 (ns brainard.common.store.commands
   (:require
     [brainard.common.store.core :as store]
-    [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.nav :as nav]
     [clojure.core.async :as async]
     [defacto.core :as defacto]))
