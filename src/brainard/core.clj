@@ -28,13 +28,4 @@
 
 (comment
   (def system (sys/start! "duct.edn"))
-  (ig/halt! system)
-
-  ;; reset db
-  (let [db-name "brainard"]
-    (require 'datomic.client.api)
-    (datomic.client.api/delete-database (:brainard.datomic/client system) {:db-name db-name})
-    (alter-var-root #'system (fn [sys]
-                               (ig/halt! sys)
-                               (spit (format "resources/private/.datomic.%s.log" db-name) "")
-                               (sys/start! "duct.edn")))))
+  (ig/halt! system))

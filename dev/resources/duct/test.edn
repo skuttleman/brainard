@@ -1,6 +1,6 @@
 {:duct.profile/base #duct/include "duct/base.edn"
- :duct.profile/test {[:brainard.test/null-logger :brainard.datomic/logger]
-                     {:db-name #ig/ref :cfg.datomic/db-name}
+ :duct.profile/test {[:brainard.test/null-logger :brainard.datascript/logger]
+                     {:db-name #ig/ref :cfg.datascript/db-name}
 
-                     [:cfg.datomic/db-name :brainard.test/db-name]
+                     [:cfg.datascript/db-name :brainard.test/db-name]
                      {}}}

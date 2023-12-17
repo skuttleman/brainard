@@ -1,7 +1,7 @@
 (ns brainard.infra.stores.schedules
   (:require
     [brainard.api.schedules.interfaces :as isched]
-    [brainard.infra.services.datomic :as datomic]))
+    [brainard.infra.services.datascript :as ds]))
 
 (def ^:private ^:const select
   '[:find (pull ?e [:schedules/id
@@ -14,13 +14,13 @@
                     :schedules/week-index])
     :in $])
 
-(defn ^:private save! [{:keys [datomic-conn]} schedule]
-  (datomic/transact! datomic-conn {:tx-data [schedule]}))
+(defn ^:private save! [{:keys [datascript-conn]} schedule]
+  (ds/transact! datascript-conn [schedule]))
 
-(defn ^:private delete! [{:keys [datomic-conn]} schedule-id]
-  (datomic/transact! datomic-conn {:tx-data [[:db/retractEntity [:schedules/id schedule-id]]]}))
+(defn ^:private delete! [{:keys [datascript-conn]} schedule-id]
+  (ds/transact! datascript-conn [[:db/retractEntity [:schedules/id schedule-id]]]))
 
-(defn ^:private get-schedules [{:keys [datomic-conn]} filters]
+(defn ^:private get-schedules [{:keys [datascript-conn]} filters]
   (let [{:schedules/keys [after-timestamp before-timestamp day month week-index weekday]} filters
         query (into select
                     '[?weekday ?month ?day ?week-idx ?after ?before
@@ -38,22 +38,22 @@
                       [(<= ?ats ?after)]
                       [(get-else $ ?e :schedules/before-timestamp ?before) ?bts]
                       [(>= ?bts ?before)]])]
-    (map first (datomic/query datomic-conn
-                              query
-                              weekday
-                              month
-                              day
-                              week-index
-                              after-timestamp
-                              before-timestamp))))
+    (map first (ds/query datascript-conn
+                         query
+                         weekday
+                         month
+                         day
+                         week-index
+                         after-timestamp
+                         before-timestamp))))
 
-(defn ^:private get-by-note-id [{:keys [datomic-conn]} note-id]
-  (->> (datomic/query datomic-conn
-                      (into select
-                            '[?note-id
-                              :where
-                              [?e :schedules/note-id ?note-id]])
-                      note-id)
+(defn ^:private get-by-note-id [{:keys [datascript-conn]} note-id]
+  (->> (ds/query datascript-conn
+                 (into select
+                       '[?note-id
+                         :where
+                         [?e :schedules/note-id ?note-id]])
+                 note-id)
        (map first)))
 
 (defn create-store

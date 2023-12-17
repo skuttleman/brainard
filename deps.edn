@@ -2,11 +2,11 @@
  :deps    {bidi/bidi                         {:mvn/version "2.1.6"
                                               :exclusions  [ring/ring-core]}
            cljs-http/cljs-http               {:mvn/version "0.1.46"}
-           com.datomic/local                 {:mvn/version "1.0.267"}
            com.fzakaria/slf4j-timbre         {:mvn/version "0.3.21"}
            com.taoensso/timbre               {:mvn/version "6.0.4"}
            com.widdindustries/cljc.java-time {:mvn/version "0.1.21"}
            danlentz/clj-uuid                 {:mvn/version "0.1.9"}
+           datascript/datascript             {:mvn/version "1.6.1"}
            duct/core                         {:mvn/version "0.8.0"}
            hiccup/hiccup                     {:mvn/version "1.0.5"}
            kibu/pushy                        {:mvn/version "0.3.8"}

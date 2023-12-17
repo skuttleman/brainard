@@ -1,7 +1,7 @@
 (ns brainard.infra.services.system
   (:require
     [brainard.common.utils.logger :as log]
-    [brainard.infra.services.datomic :as datomic]
+    [brainard.infra.services.datascript :as ds]
     [brainard.infra.stores.notes :as stores.notes]
     [brainard.infra.stores.schedules :as stores.sched]
     [duct.core :as duct]
@@ -9,23 +9,18 @@
     [immutant.web :as web]
     [integrant.core :as ig]))
 
-(defmethod ig/init-key :brainard.datomic/file-logger
+(defmethod ig/init-key :brainard.datascript/file-logger
   [_ params]
-  (datomic/file-logger (:db-name params)))
+  (ds/file-logger (:db-name params)))
 
-(defmethod ig/init-key :brainard.datomic/client
-  [_ {:keys [client db-name]}]
-  (doto (datomic/create-client (assoc client :system db-name))
-    (datomic/create-database db-name)))
+(defmethod ig/init-key :brainard.datascript/conn
+  [_ {:keys [logger]}]
+  (doto (ds/connect! logger)
+    ds/init!))
 
-(defmethod ig/init-key :brainard.datomic/conn
-  [_ {:keys [client db-name logger schema-file]}]
-  (doto (datomic/connect! client db-name logger)
-    (datomic/init! schema-file)))
-
-(defmethod ig/halt-key! :brainard.datomic/conn
+(defmethod ig/halt-key! :brainard.datascript/conn
   [_ conn]
-  (datomic/close! conn))
+  (ds/close! conn))
 
 (defmethod ig/init-key :brainard.store/notes
   [_ deps]

@@ -1,6 +1,6 @@
 {:duct.profile/base #duct/include "duct/base.edn"
- :duct.profile/prod {[:brainard.datomic/file-logger :brainard.datomic/logger]
-                     {:db-name #ig/ref :cfg.datomic/db-name}
+ :duct.profile/prod {[:brainard.datascript/file-logger :brainard.datascript/logger]
+                     {:db-name #ig/ref :cfg.datascript/db-name}
 
-                     [:cfg.datomic/db-name :duct/const]
-                     #duct/env ["DATOMIC_DB_NAME" :or "brainard"]}}
+                     [:cfg.datascript/db-name :duct/const]
+                     #duct/env ["DATASCRIPT_DB_NAME" :or "brainard"]}}

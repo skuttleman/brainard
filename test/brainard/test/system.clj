@@ -1,7 +1,7 @@
 (ns brainard.test.system
   (:require
     [brainard.common.utils.uuids :as uuids]
-    [brainard.infra.services.datomic :as-alias datomic]
+    [brainard.infra.services.datascript :as-alias ds]
     [duct.core :as duct]
     [integrant.core :as ig])
   (:import
@@ -9,10 +9,10 @@
 
 (defmethod ig/init-key :brainard.test/null-logger
   [_ {:keys [db-name]}]
-  {::datomic/db-name  db-name
-   ::datomic/log-file "/dev/null"
-   ::datomic/writer   NullWriter/NULL_WRITER
-   ::datomic/lock     (Object.)})
+  {::ds/db-name  db-name
+   ::ds/log-file "/dev/null"
+   ::ds/writer   NullWriter/NULL_WRITER
+   ::ds/lock     (Object.)})
 
 (defmethod ig/init-key :brainard.test/db-name
   [_ _]
