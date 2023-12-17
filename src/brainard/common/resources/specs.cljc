@@ -40,6 +40,7 @@
 
 (let [vld (valid/->validator valid/notes-query)]
   (defmethod forms+/validate ::notes#select [_ data] (vld data)))
+(defmethod forms+/re-init ::notes#select [_ form _] (forms/data form))
 (defmethod res/->request-spec ::notes#select
   [_ {::forms/keys [data] :keys [pre-commands]}]
   (->req {:route  :routes.api/notes
