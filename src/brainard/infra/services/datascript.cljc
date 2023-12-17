@@ -3,8 +3,8 @@
   #?(:cljs (:require-macros brainard.infra.services.datascript))
   (:require
     #?(:clj [clojure.java.io :as io])
-    [brainard.common.utils.edn :as edn]
     [brainard.common.utils.logger :as log]
+    [brainard.infra.services.db :as db]
     [datascript.core :as d]))
 
 (defn file-logger [db-name]
@@ -22,21 +22,19 @@
        (.append writer \newline)
        (.flush writer))))
 
-(defmacro ^:private load-schema! [schema-file]
-  (edn/resource schema-file))
-
 (defn ^:private load-log! [conn]
-  #?(:clj
-     (let [{::keys [lock log-file]} (meta conn)]
-       (locking lock
-         (with-open [reader (io/reader (io/file log-file))]
-           (doseq [line (line-seq reader)]
-             (d/transact (first conn) (edn/read-string line))))))))
+  #?(:clj  (let [{::keys [lock log-file]} (meta conn)]
+             (locking lock
+               (with-open [reader (io/reader (io/file log-file))]
+                 (doseq [line (line-seq reader)]
+                   (d/transact (first conn) line)))))
+     :cljs (doseq [line db/ui-log]
+             (d/transact (first conn) line))))
 
 (defn connect!
   "Connects a client to a database."
   [logger]
-  (with-meta [(d/create-conn (load-schema! "schema.edn"))] logger))
+  (with-meta [(d/create-conn db/schema)] logger))
 
 (defn close!
   "Closes a client's connection to a database."

@@ -12,11 +12,11 @@
     (try
       (let [response (-> req
                          (set/rename-keys {:url :uri})
-                         (update :body edn/read-string)
+                         (cond-> (string? (:body req)) (update :body edn/read-string))
                          handler)]
         (cond-> response
           (string? (:body response)) (update :body edn/read-string)))
-      (catch Throwable ex
+      (catch #?(:cljs :default :default Throwable) ex
         (routes.err/ex->response (ex-data ex))))))
 
 (defmethod iroutes/req->input :default

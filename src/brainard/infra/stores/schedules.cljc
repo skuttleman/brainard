@@ -3,7 +3,7 @@
     [brainard.api.schedules.interfaces :as isched]
     [brainard.infra.services.datascript :as ds]))
 
-(def ^:private ^:const select
+(def ^:private select
   '[:find (pull ?e [:schedules/id
                     :schedules/note-id
                     :schedules/before-timestamp

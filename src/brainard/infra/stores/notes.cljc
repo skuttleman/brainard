@@ -3,7 +3,7 @@
     [brainard.api.notes.interfaces :as inotes]
     [brainard.infra.services.datascript :as ds]))
 
-(def ^:private ^:const select
+(def ^:private select
   '[:find (pull ?e [:notes/id
                     :notes/context
                     :notes/body

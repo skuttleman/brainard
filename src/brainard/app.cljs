@@ -6,12 +6,12 @@
     [brainard.common.stubs.nav :as nav]
     [brainard.common.utils.routing :as rte]
     [brainard.common.views.pages.core :as pages]
+    [brainard.infra.api :as api]
     [clojure.core.async :as async]
     [defacto.core :as defacto]
     [defacto.resources.core :as res]
     [pushy.core :as pushy]
     [reagent.dom :as rdom]
-    [brainard.infra.api.http :as be]
     brainard.common.store.commands
     brainard.common.store.events
     brainard.common.store.queries))
@@ -51,7 +51,7 @@
   []
   (enable-console-print!)
   (set! *store* (store/create (-> {:services/nav (->NavComponent nil)}
-                                  (res/with-ctx be/request-fn))
+                                  (res/with-ctx api/->request-fn))
                               (:init-db dom/env)))
   #_(async/go
     (async/<! (async/timeout 15000))

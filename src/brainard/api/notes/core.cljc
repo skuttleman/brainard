@@ -2,8 +2,9 @@
   (:require
     [brainard.api.notes.interfaces :as inotes]
     [brainard.common.utils.uuids :as uuids])
-  (:import
-    (java.util Date)))
+  #?(:clj
+     (:import
+       (java.util Date))))
 
 (defn ^:private tag-set [note]
   (update note :notes/tags set))
@@ -27,7 +28,7 @@
   [notes-api note]
   (let [note (-> note
                  (clean-note (uuids/random))
-                 (assoc :notes/timestamp (Date.)))]
+                 (assoc :notes/timestamp #?(:cljs (js/Date.) :default (Date.))))]
     (inotes/save! (:store notes-api) note)
     note))
 
