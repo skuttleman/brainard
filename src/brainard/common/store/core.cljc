@@ -5,7 +5,7 @@
     [brainard.common.stubs.reagent :as r]
     [clojure.pprint :as pp]
     [defacto.core :as defacto]
-    [defacto.forms.plus :as forms+]
+    [defacto.forms.plus :as-alias forms+]
     [defacto.resources.core :as res]))
 
 (defmethod defacto/query-responder ::all

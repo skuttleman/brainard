@@ -56,11 +56,12 @@
 (let [vld (valid/->validator valid/new-note)]
   (defmethod forms+/validate ::notes#create [_ data] (vld data)))
 (defmethod res/->request-spec ::notes#create
-  [_ {::forms/keys [data]}]
+  [_ {::forms/keys [data] :keys [pre-events ok-events]}]
   (->req {:route        :routes.api/notes
           :method       :post
           :body         data
-          :ok-events    [[:api.notes/saved]]
+          :pre-events   pre-events
+          :ok-events    (conj ok-events [:api.notes/saved])
           :ok-commands  [[:toasts.notes/succeed!]]
           :err-commands [[:toasts/fail!]]}))
 

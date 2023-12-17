@@ -10,7 +10,7 @@
     [brainard.common.views.pages.interfaces :as ipages]
     [brainard.common.views.pages.shared :as spages]
     [defacto.forms.core :as forms]
-    [defacto.forms.plus :as forms+]
+    [defacto.forms.plus :as-alias forms+]
     [defacto.resources.core :as-alias res]))
 
 (def ^:private ^:const form-id ::forms/edit-note)
