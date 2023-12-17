@@ -6,12 +6,12 @@
     [brainard.common.stubs.nav :as nav]
     [brainard.common.utils.routing :as rte]
     [brainard.common.views.pages.core :as pages]
-    [cljs-http.client :as http]
     [clojure.core.async :as async]
     [defacto.core :as defacto]
     [defacto.resources.core :as res]
     [pushy.core :as pushy]
     [reagent.dom :as rdom]
+    [brainard.infra.api.http :as be]
     brainard.common.store.commands
     brainard.common.store.events
     brainard.common.store.queries))
@@ -30,25 +30,6 @@
     (pushy/set-token! -pushy uri))
   (-replace! [_ uri]
     (pushy/replace-token! -pushy uri)))
-
-(defn ^:private success? [status]
-  (and (integer? status)
-       (<= 200 status 299)))
-
-(defn ^:private merger [row1 row2]
-  (if (and (map? row1) (map? row2))
-    (merge-with conj row1 row2)
-    (or row2 row1)))
-
-(defn ^:private remote->warnings [warnings]
-  (transduce (map :details) merger nil warnings))
-
-(defn ^:private request-fn [_ params]
-  (async/go
-    (let [{:keys [status body]} (async/<! (http/request params))]
-      (if (success? status)
-        [::res/ok (:data body)]
-        [::res/err (remote->warnings (:errors body))]))))
 
 (defmethod defacto/event-reducer ::reset
   [_ [_ new-db]]
@@ -70,7 +51,7 @@
   []
   (enable-console-print!)
   (set! *store* (store/create (-> {:services/nav (->NavComponent nil)}
-                                  (res/with-ctx request-fn))
+                                  (res/with-ctx be/request-fn))
                               (:init-db dom/env)))
   #_(async/go
     (async/<! (async/timeout 15000))

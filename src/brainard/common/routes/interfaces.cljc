@@ -1,4 +1,4 @@
-(ns brainard.infra.routes.interfaces)
+(ns brainard.common.routes.interfaces)
 
 (def routing-hierarchy
   (-> (make-hierarchy)

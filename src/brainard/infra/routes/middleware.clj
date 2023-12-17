@@ -2,10 +2,7 @@
   (:require
     [brainard.common.utils.edn :as edn]
     [brainard.common.utils.logger :as log]
-    [brainard.common.utils.routing :as rte]
-    [brainard.common.validations.core :as valid]
-    [brainard.infra.routes.errors :as routes.err]
-    [brainard.infra.routes.interfaces :as iroutes]
+    [brainard.common.routes.errors :as routes.err]
     [clojure.string :as string]
     [ring.util.request :as ring.req]))
 
@@ -40,14 +37,6 @@
            (log/error ex (ex-message ex) (ex-data ex))
            (routes.err/ex->response (ex-data ex))))))
 
-(defn with-routing
-  "Includes routing data on the request."
-  [handler]
-  (fn [req]
-    (let [route-info (rte/match (cond-> (:uri req)
-                                  (:query-string req) (str "?" (:query-string req))))]
-      (handler (assoc req :brainard/route route-info)))))
-
 (defn with-edn
   "Serializes/deserializes request/response data as `edn`."
   [handler]
@@ -63,26 +52,3 @@
              (some? (:body response)))
         (-> (assoc-in [:headers "content-type"] "application/edn")
             (update :body pr-str))))))
-
-(defn with-input
-  "Includes route input as :brainard/input via [[iroutes/req->input]]"
-  [handler]
-  (fn [req]
-    (handler (assoc req :brainard/input (iroutes/req->input req)))))
-
-(defn with-spec-validation
-  "Handles input/output spec validation for spec'd routes."
-  [handler]
-  (fn [req]
-    (let [spec-key (iroutes/router req)
-          input-spec (valid/input-specs spec-key)]
-      (some-> input-spec (valid/validate! (:brainard/input req) ::valid/input-validation))
-      (let [{:keys [body] :as response} (handler req)]
-        (when-let [output-spec (valid/output-specs spec-key)]
-          (let [validator (valid/->validator output-spec)
-                err-validator (valid/->validator valid/api-errors)]
-            (when-let [errors (and (err-validator body)
-                                   (validator body))]
-              (log/warn "returning invalid response to client:" (pr-str body))
-              (log/warn (pr-str errors)))))
-        response))))

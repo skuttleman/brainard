@@ -1,7 +1,7 @@
-(ns brainard.infra.routes.schedules
+(ns brainard.common.routes.schedules
   (:require
     [brainard.api.core :as api]
-    [brainard.infra.routes.interfaces :as iroutes]))
+    [brainard.common.routes.interfaces :as iroutes]))
 
 (defmethod iroutes/handler [:post :routes.api/schedules]
   [{:brainard/keys [apis input]}]

@@ -1,39 +1,22 @@
 (ns brainard.infra.routes.ui
   (:require
     [brainard.common.resources.specs :as-alias rspecs]
+    [brainard.common.routes.base :as base]
+    [brainard.common.routes.interfaces :as iroutes]
+    [brainard.common.routes.response :as routes.res]
     [brainard.common.stubs.nav :as nav]
-    [brainard.common.utils.edn :as edn]
     [brainard.common.utils.routing :as rte]
     [brainard.common.views.pages.core :as pages]
-    [brainard.infra.routes.errors :as routes.err]
     [brainard.infra.routes.template :as routes.tmpl]
-    [brainard.infra.routes.interfaces :as iroutes]
-    [brainard.infra.routes.middleware :as mw]
-    [brainard.infra.routes.response :as routes.res]
-    [clojure.set :as set]
     [defacto.core :as defacto]
     [defacto.resources.core :as res]
     [hiccup.core :as hiccup]
+    [ring.middleware.resource :as ring.res]
+    [ring.util.mime-type :as ring.mime]
+    brainard.common.store.commands
+    brainard.common.store.events
+    brainard.common.store.queries
     defacto.impl))
-
-(defn ^:private cljs-http->ring [handler]
-  (fn [req]
-    (try
-      (let [response (-> req
-                         (set/rename-keys {:url :uri})
-                         (update :body edn/read-string)
-                         handler)]
-        (cond-> response
-          (string? (:body response)) (update :body edn/read-string)))
-      (catch Throwable ex
-        (routes.err/ex->response (ex-data ex))))))
-
-(def ^:private ui-handler
-  "Resolves \"requests\" made from the ui store during HTML hydration"
-  (-> iroutes/handler
-      mw/with-spec-validation
-      mw/with-input
-      mw/with-routing))
 
 (deftype StubNav [route ^:volatile-mutable -store]
   defacto/IInitialize
@@ -63,10 +46,9 @@
         [::res/err (-> ex ex-data :body :errors)]))))
 
 (defn ^:private create-store [{:brainard/keys [apis route]}]
-  (let [handler (cljs-http->ring ui-handler)
-        nav (->StubNav route nil)
+  (let [nav (->StubNav route nil)
         ctx (-> {:services/nav nav}
-                (res/with-ctx (->request-fn handler apis)))]
+                (res/with-ctx (->request-fn base/ui-handler apis)))]
     (doto (defacto.impl/->WatchableStore ctx (atom nil) defacto-api ->Sub)
       (->> (defacto/init! nav))
       (defacto/dispatch! [::res/submit! [::rspecs/tags#select]])
@@ -82,3 +64,11 @@
                                 hiccup/html
                                 (str "<!doctype html>"))
                            {"content-type" "text/html"})))
+
+(defmethod iroutes/handler [:get :routes.resources/asset]
+  [{:keys [uri] :as req}]
+  (let [content-type (or (ring.mime/ext-mime-type uri)
+                         "text/plain")]
+    (some-> req
+            (ring.res/resource-request "public")
+            (assoc-in [:headers "content-type"] content-type))))

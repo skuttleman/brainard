@@ -1,4 +1,4 @@
-(ns brainard.infra.routes.response)
+(ns brainard.common.routes.response)
 
 (defn ->response
   "Generates a ring-compatible HTTP response map"
