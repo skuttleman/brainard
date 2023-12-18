@@ -14,8 +14,9 @@
   "Called when new code is compiled in the browser."
   []
   (let [db-value @*store*]
-    (app/load! (fn []
-             (store/emit! *store* [::reset db-value])))))
+    (app/load! *store*
+               (fn []
+                 (store/emit! *store* [::reset db-value])))))
 
 (defn init! []
   (set! *store* (app/->store))

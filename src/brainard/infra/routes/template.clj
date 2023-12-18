@@ -84,6 +84,5 @@
 (defn render
   "Renders an HTML template"
   [store tree]
-  (->> tree
-       expand-tree
-       (into-template store)))
+  (expand-tree tree)
+  (into-template store (expand-tree tree)))

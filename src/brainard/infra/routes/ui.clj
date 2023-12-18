@@ -8,6 +8,7 @@
     [brainard.common.utils.routing :as rte]
     [brainard.common.views.pages.core :as pages]
     [brainard.infra.routes.template :as routes.tmpl]
+    [clojure.string :as string]
     [defacto.core :as defacto]
     [defacto.resources.core :as res]
     [hiccup.core :as hiccup]
@@ -51,9 +52,9 @@
                 (res/with-ctx (->request-fn base/ui-handler apis)))]
     (doto (defacto.impl/->WatchableStore ctx (atom nil) defacto-api ->Sub)
       (->> (defacto/init! nav))
+      (defacto/dispatch! [::res/submit! [::specs/notes#buzz]])
       (defacto/dispatch! [::res/submit! [::specs/tags#select]])
-      (defacto/dispatch! [::res/submit! [::specs/contexts#select]])
-      (defacto/dispatch! [::res/submit! [::specs/notes#buzz]]))))
+      (defacto/dispatch! [::res/submit! [::specs/contexts#select]]))))
 
 (defmethod iroutes/handler [:get :routes/ui]
   [{:brainard/keys [route] :as req}]
