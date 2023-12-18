@@ -53,7 +53,7 @@
   (set! *store* (store/create (-> {:services/nav (->NavComponent nil)}
                                   (res/with-ctx api/->request-fn))
                               (:init-db dom/env)))
-  #_(async/go
+  (async/go
     (async/<! (async/timeout 15000))
     (defacto/dispatch! *store* [::res/poll! 15000 [::rspecs/notes#buzz]]))
   (load* (constantly nil)))

@@ -62,7 +62,7 @@
    {:db/cardinality :db.cardinality/one
     :db/doc         "The week index (i.e. first week = 0, second week = 1, etc.) when the schedule applies"}})
 
-#?(:clj (spit "src/brainard/infra/services/log.cljc"
+#?(:clj (spit "src/brainard/infra/services/log.cljs"
               (str "(ns brainard.infra.services.log)(def log"
                    (with-open [reader (io/reader (io/file "resources/private/.ds.brainard.log"))]
                      (into [] (map edn/read-string) (line-seq reader)))

@@ -6,7 +6,7 @@ node_modules/
 resources/public/js/
 resources/public/css/
 resources/public/img/
-src/brainard/infra/services/log.cljc
+src/brainard/infra/services/log.cljs
 target/
 *.iml
 *.log

@@ -11,7 +11,7 @@
     brainard.common.routes.schedules))
 
 (defonce ^:private apis
-  (delay (let [conn (ds/connect! {})]
+  (delay (let [conn (doto (ds/connect! {}) ds/init!)]
            {:notes     {:store (notes/create-store {:datascript-conn conn})}
             :schedules {:store (sched/create-store {:datascript-conn conn})}})))
 
