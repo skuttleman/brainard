@@ -28,9 +28,7 @@
              (locking lock
                (with-open [reader (io/reader (io/file log-file))]
                  (doseq [line (line-seq reader)]
-                   (d/transact (first conn) (edn/read-string line))))))
-     :cljs (doseq [line cfg/ui-log]
-             (d/transact (first conn) line))))
+                   (d/transact (first conn) (edn/read-string line))))))))
 
 (defn connect!
   "Connects a client to a database."
