@@ -4,7 +4,7 @@
     [brainard.test.http :as thttp]
     [brainard.test.system :as tsys]
     [clojure.test :refer [deftest is testing]]
-    brainard.infra.services.system))
+    brainard.infra.system))
 
 (deftest notes-integration-test
   (tsys/with-system [{:brainard/keys [apis]} nil]

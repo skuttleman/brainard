@@ -13,4 +13,4 @@ echo building cljs
 npm install
 clj -A:shadow -m shadow.cljs.devtools.cli compile ui
 
-clj -A:dev -M -e "(require 'build)(build/default-uber)"
+clj -A:build -M -e "(require '[brainard.build :as build])(build/default-uber)"

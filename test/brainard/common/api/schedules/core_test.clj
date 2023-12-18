@@ -1,8 +1,8 @@
-(ns brainard.api.schedules.core-test
+(ns brainard.common.api.schedules.core-test
   (:require
-    [brainard.api.core :as api]
-    [brainard.api.notes.interfaces :as inotes]
-    [brainard.api.schedules.interfaces :as isched]
+    [brainard.common.api.core :as api]
+    [brainard.common.api.notes.interfaces :as inotes]
+    [brainard.common.api.schedules.interfaces :as isched]
     [clojure.test :refer [deftest is testing]]))
 
 (deftest relevant-notes-test

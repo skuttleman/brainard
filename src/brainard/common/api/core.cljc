@@ -1,7 +1,7 @@
-(ns brainard.api.core
+(ns brainard.common.api.core
   (:require
-    [brainard.api.notes.core :as api.notes]
-    [brainard.api.schedules.core :as api.sched]))
+    [brainard.common.api.notes.core :as api.notes]
+    [brainard.common.api.schedules.core :as api.sched]))
 
 (defn create-note! [apis note]
   (api.notes/create! (:notes apis) note))

@@ -1,7 +1,7 @@
 (ns brainard.common.views.pages.core
   "The core of the UI reagent layout components."
   (:require
-    [brainard.common.resources.specs :as rspecs]
+    [brainard.common.store.specs :as specs]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.routing :as rte]
@@ -31,7 +31,7 @@
    (into [:a.navbar-item {:href (rte/path-for route)}] body)])
 
 (defn ^:private navbar [{:keys [*:store token]}]
-  (r/with-let [sub:buzz (store/subscribe *:store [::res/?:resource [::rspecs/notes#buzz]])]
+  (r/with-let [sub:buzz (store/subscribe *:store [::res/?:resource [::specs/notes#buzz]])]
     (let [resource @sub:buzz
           buzzes (if (res/error? resource)
                    0

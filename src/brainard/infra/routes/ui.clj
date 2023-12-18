@@ -1,6 +1,6 @@
 (ns brainard.infra.routes.ui
   (:require
-    [brainard.common.resources.specs :as-alias rspecs]
+    [brainard.common.store.specs :as-alias specs]
     [brainard.common.routes.base :as base]
     [brainard.common.routes.interfaces :as iroutes]
     [brainard.common.routes.response :as routes.res]
@@ -51,9 +51,9 @@
                 (res/with-ctx (->request-fn base/ui-handler apis)))]
     (doto (defacto.impl/->WatchableStore ctx (atom nil) defacto-api ->Sub)
       (->> (defacto/init! nav))
-      (defacto/dispatch! [::res/submit! [::rspecs/tags#select]])
-      (defacto/dispatch! [::res/submit! [::rspecs/contexts#select]])
-      (defacto/dispatch! [::res/submit! [::rspecs/notes#buzz]]))))
+      (defacto/dispatch! [::res/submit! [::specs/tags#select]])
+      (defacto/dispatch! [::res/submit! [::specs/contexts#select]])
+      (defacto/dispatch! [::res/submit! [::specs/notes#buzz]]))))
 
 (defmethod iroutes/handler [:get :routes/ui]
   [{:brainard/keys [route] :as req}]

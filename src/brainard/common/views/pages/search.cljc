@@ -1,7 +1,7 @@
 (ns brainard.common.views.pages.search
   "The search page."
   (:require
-    [brainard.common.resources.specs :as-alias rspecs]
+    [brainard.common.store.specs :as-alias specs]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.utils.colls :as colls]
@@ -54,7 +54,7 @@
   [spages/search-results route-info notes])
 
 (defn ^:private root* [{:keys [*:store query-params] :as route-info} [contexts tags]]
-  (r/with-let [form-key [::forms+/valid [::rspecs/notes#select form-id] query-params]
+  (r/with-let [form-key [::forms+/valid [::specs/notes#select form-id] query-params]
                sub:form+ (let [loaded? (boolean (store/query *:store [::forms/?:form form-key]))]
                            (store/emit! *:store [::forms/created form-key
                                                  (->empty-form query-params contexts tags)])
@@ -72,8 +72,8 @@
 
 (defmethod ipages/page :routes.ui/search
   [{:keys [*:store query-params] :as route-info}]
-  (r/with-let [sub:contexts (store/subscribe *:store [::res/?:resource [::rspecs/contexts#select]])
-               sub:tags (store/subscribe *:store [::res/?:resource [::rspecs/tags#select]])]
+  (r/with-let [sub:contexts (store/subscribe *:store [::res/?:resource [::specs/contexts#select]])
+               sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])]
     [comp/with-resources [sub:contexts sub:tags]
      ^{:key (pr-str query-params)}
      [root* route-info]]))

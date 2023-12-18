@@ -1,8 +1,8 @@
-(ns brainard.infra.services.db
-  #?(:cljs (:require-macros brainard.infra.services.db))
+(ns brainard.infra.db.config
+  #?(:cljs (:require-macros brainard.infra.db.config))
   (:require
     #?(:clj  [clojure.java.io :as io]
-       :cljs [brainard.infra.services.log :as log])
+       :cljs [brainard.infra.db.log :as log])
     [brainard.common.utils.edn :as edn]))
 
 (def schema
@@ -62,8 +62,8 @@
    {:db/cardinality :db.cardinality/one
     :db/doc         "The week index (i.e. first week = 0, second week = 1, etc.) when the schedule applies"}})
 
-#?(:clj (spit "src/brainard/infra/services/log.cljs"
-              (str "(ns brainard.infra.services.log)(def log"
+#?(:clj (spit "src/brainard/infra/db/log.cljs"
+              (str "(ns brainard.infra.db.log)(def log"
                    (with-open [reader (io/reader (io/file "resources/private/.ds.brainard.log"))]
                      (into [] (map edn/read-string) (line-seq reader)))
                    ")"))

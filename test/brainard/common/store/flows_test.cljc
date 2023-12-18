@@ -1,6 +1,6 @@
 (ns brainard.common.store.flows-test
   (:require
-    [brainard.common.resources.specs :as-alias rspecs]
+    [brainard.common.store.specs :as-alias specs]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.nav :as nav]
     [brainard.common.utils.routing :as rte]

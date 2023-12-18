@@ -1,6 +1,6 @@
-(ns brainard.api.notes.core
+(ns brainard.common.api.notes.core
   (:require
-    [brainard.api.notes.interfaces :as inotes]
+    [brainard.common.api.notes.interfaces :as inotes]
     [brainard.common.utils.uuids :as uuids])
   #?(:clj
      (:import

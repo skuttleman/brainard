@@ -1,7 +1,7 @@
 (ns brainard.common.views.pages.home
   "The home page with note creation form."
   (:require
-    [brainard.common.resources.specs :as-alias rspecs]
+    [brainard.common.store.specs :as-alias specs]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
@@ -14,8 +14,8 @@
     [defacto.resources.core :as-alias res]))
 
 (def ^:private ^:const form-id ::forms/new-note)
-(def ^:private ^:const create-note-key [::forms+/valid [::rspecs/notes#create form-id]])
-(def ^:private ^:const select-notes-key [::rspecs/notes#select form-id])
+(def ^:private ^:const create-note-key [::forms+/valid [::specs/notes#create form-id]])
+(def ^:private ^:const select-notes-key [::specs/notes#select form-id])
 
 (def ^:private new-note
   {:notes/body    nil
@@ -61,8 +61,8 @@
   [{:keys [*:store] :as route-info}]
   (r/with-let [sub:form+ (do (store/dispatch! *:store [::forms/ensure! create-note-key new-note])
                              (store/subscribe *:store [::forms+/?:form+ create-note-key]))
-               sub:contexts (store/subscribe *:store [::res/?:resource [::rspecs/contexts#select]])
-               sub:tags (store/subscribe *:store [::res/?:resource [::rspecs/tags#select]])
+               sub:contexts (store/subscribe *:store [::res/?:resource [::specs/contexts#select]])
+               sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
                sub:notes (store/subscribe *:store [::res/?:resource select-notes-key])]
     [:div
      [root* {:*:store      *:store

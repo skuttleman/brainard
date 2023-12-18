@@ -1,7 +1,7 @@
 (ns brainard.test.system
   (:require
     [brainard.common.utils.uuids :as uuids]
-    [brainard.infra.services.datascript :as-alias ds]
+    [brainard.infra.db.datascript :as-alias ds]
     [duct.core :as duct]
     [integrant.core :as ig])
   (:import

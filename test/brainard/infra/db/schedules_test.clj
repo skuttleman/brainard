@@ -1,10 +1,10 @@
-(ns brainard.infra.stores.schedules-test
+(ns brainard.infra.db.schedules-test
   (:require
-    [brainard.api.schedules.interfaces :as isched]
+    [brainard.common.api.schedules.interfaces :as isched]
     [brainard.common.utils.uuids :as uuids]
     [brainard.test.system :as tsys]
     [clojure.test :refer [deftest is testing]]
-    brainard.infra.services.system))
+    brainard.infra.system))
 
 (deftest get-schedules-test
   (tsys/with-system [{:brainard/keys [schedules-store]} nil]

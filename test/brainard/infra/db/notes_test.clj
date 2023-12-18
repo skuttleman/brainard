@@ -1,11 +1,11 @@
-(ns brainard.infra.stores.notes-test
+(ns brainard.infra.db.notes-test
   (:require
-    [brainard.api.notes.interfaces :as inotes]
+    [brainard.common.api.notes.interfaces :as inotes]
     [brainard.common.utils.uuids :as uuids]
-    [brainard.infra.services.datascript :as ds]
+    [brainard.infra.db.datascript :as ds]
     [brainard.test.system :as tsys]
     [clojure.test :refer [deftest is testing]]
-    brainard.infra.services.system)
+    brainard.infra.system)
   (:import
     (java.util Date)))
 

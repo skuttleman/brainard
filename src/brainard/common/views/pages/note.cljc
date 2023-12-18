@@ -1,7 +1,7 @@
 (ns brainard.common.views.pages.note
   "The page for viewing a note and editing its tags."
   (:require
-    [brainard.common.resources.specs :as-alias rspecs]
+    [brainard.common.store.specs :as-alias specs]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
@@ -14,8 +14,8 @@
     [defacto.resources.core :as-alias res]))
 
 (def ^:private ^:const form-id ::forms/edit-note)
-(def ^:private ^:const update-note-key [::forms+/std [::rspecs/notes#update form-id]])
-(defn ^:private ^:const ->sched-create-key [note] [::forms+/valid [::rspecs/schedules#create (:notes/id note)]])
+(def ^:private ^:const update-note-key [::forms+/std [::specs/notes#update form-id]])
+(defn ^:private ^:const ->sched-create-key [note] [::forms+/valid [::specs/schedules#create (:notes/id note)]])
 
 (defn ^:private tag-editor [{:keys [*:store sub:form+ sub:tags note]}]
   (let [form+ @sub:form+]
@@ -66,7 +66,7 @@
        (for [{sched-id :schedules/id :as sched} scheds
              :let [modal [:modals/sure?
                           {:description  "This schedule will be deleted"
-                           :yes-commands [[::res/submit! [::rspecs/schedules#destroy sched-id] note]]}]]]
+                           :yes-commands [[::res/submit! [::specs/schedules#destroy sched-id] note]]}]]]
          ^{:key sched-id}
          [:li.layout--room-between.layout--align-center.space--left
           [comp/plain-button {:class    ["is-danger" "is-light" "is-small"]
@@ -127,7 +127,7 @@
   (r/with-let [init-form (select-keys note #{:notes/tags})
                sub:form+ (do (store/dispatch! *:store [::forms/ensure! update-note-key init-form])
                              (store/subscribe *:store [::forms+/?:form+ update-note-key]))
-               sub:tags (store/subscribe *:store [::res/?:resource [::rspecs/tags#select]])]
+               sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])]
     [:div.layout--stack-between
      [:h1 [:strong (:notes/context note)]]
      [:p (:notes/body note)]
@@ -143,7 +143,7 @@
 
 (defmethod ipages/page :routes.ui/note
   [{:keys [route-params *:store]}]
-  (let [resource-key [::rspecs/notes#find (:notes/id route-params)]]
+  (let [resource-key [::specs/notes#find (:notes/id route-params)]]
     (r/with-let [sub:note (do (store/dispatch! *:store [::res/ensure! resource-key])
                               (store/subscribe *:store [::res/?:resource resource-key]))]
       [comp/with-resources [sub:note] [root* {:*:store *:store}]]

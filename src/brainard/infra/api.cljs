@@ -1,9 +1,9 @@
 (ns brainard.infra.api
   (:require
     [brainard.common.routes.base :as base]
-    [brainard.infra.services.datascript :as ds]
-    [brainard.infra.stores.notes :as notes]
-    [brainard.infra.stores.schedules :as sched]
+    [brainard.infra.db.datascript :as ds]
+    [brainard.infra.db.notes :as notes]
+    [brainard.infra.db.schedules :as sched]
     [cljs-http.client :as http]
     [clojure.core.async :as async]
     [defacto.resources.core :as-alias res]
@@ -32,7 +32,7 @@
     #_(base/ui-handler (assoc params :brainard/apis @apis))
     (async/<! (http/request params))))
 
-(defn ->request-fn [_ params]
+(defn request-fn [_ params]
   (async/go
     (let [{:keys [status body]} (async/<! (do-request params))]
       (if (success? status)

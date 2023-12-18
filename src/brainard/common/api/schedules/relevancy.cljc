@@ -1,4 +1,4 @@
-(ns brainard.api.schedules.relevancy
+(ns brainard.common.api.schedules.relevancy
   (:require
     [cljc.java-time.zoned-date-time :as zdt]
     [cljc.java-time.zone-id :as zi]

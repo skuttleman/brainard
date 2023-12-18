@@ -1,6 +1,6 @@
 (ns brainard.common.views.pages.buzz
   (:require
-    [brainard.common.resources.specs :as rspecs]
+    [brainard.common.store.specs :as specs]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.views.components.core :as comp]
@@ -10,7 +10,7 @@
 
 (defmethod ipages/page :routes.ui/buzz
   [{:keys [*:store] :as route-info}]
-  (r/with-let [sub:notes (store/subscribe *:store [::res/?:resource [::rspecs/notes#buzz]])]
+  (r/with-let [sub:notes (store/subscribe *:store [::res/?:resource [::specs/notes#buzz]])]
     (let [resource @sub:notes]
       [:div
        [:h2.subtitle "What's relevant now?"]

@@ -3,7 +3,7 @@
     [brainard.common.routes.interfaces :as iroutes]
     [brainard.common.utils.logger :as log]
     [brainard.common.utils.routing :as rte]
-    [brainard.common.validations.core :as valid]))
+    [brainard.common.store.validations :as valid]))
 
 (defn ^:private success? [status]
   (and (integer? status)

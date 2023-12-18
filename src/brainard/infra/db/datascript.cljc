@@ -1,11 +1,11 @@
-(ns brainard.infra.services.datascript
+(ns brainard.infra.db.datascript
   "This uses an in-memory datascript client which writes transactions to a file to survive refreshes."
-  #?(:cljs (:require-macros brainard.infra.services.datascript))
+  #?(:cljs (:require-macros brainard.infra.db.datascript))
   (:require
     #?(:clj [clojure.java.io :as io])
     [brainard.common.utils.edn :as edn]
     [brainard.common.utils.logger :as log]
-    [brainard.infra.services.db :as db]
+    [brainard.infra.db.config :as cfg]
     [datascript.core :as d]))
 
 (defn file-logger [db-name]
@@ -29,13 +29,13 @@
                (with-open [reader (io/reader (io/file log-file))]
                  (doseq [line (line-seq reader)]
                    (d/transact (first conn) (edn/read-string line))))))
-     :cljs (doseq [line db/ui-log]
+     :cljs (doseq [line cfg/ui-log]
              (d/transact (first conn) line))))
 
 (defn connect!
   "Connects a client to a database."
   [logger]
-  (with-meta [(d/create-conn db/schema)] logger))
+  (with-meta [(d/create-conn cfg/schema)] logger))
 
 (defn close!
   "Closes a client's connection to a database."

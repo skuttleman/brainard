@@ -1,7 +1,7 @@
-(ns brainard.infra.stores.schedules
+(ns brainard.infra.db.schedules
   (:require
-    [brainard.api.schedules.interfaces :as isched]
-    [brainard.infra.services.datascript :as ds]))
+    [brainard.common.api.schedules.interfaces :as isched]
+    [brainard.infra.db.datascript :as ds]))
 
 (def ^:private select
   '[:find (pull ?e [:schedules/id

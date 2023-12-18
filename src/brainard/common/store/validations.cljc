@@ -1,4 +1,4 @@
-(ns brainard.common.validations.core
+(ns brainard.common.store.validations
   "Specs for data that flows through the system."
   (:require
     [malli.core :as m]

@@ -1,6 +1,6 @@
 (ns brainard.common.routes.schedules
   (:require
-    [brainard.api.core :as api]
+    [brainard.common.api.core :as api]
     [brainard.common.routes.interfaces :as iroutes]))
 
 (defmethod iroutes/handler [:post :routes.api/schedules]

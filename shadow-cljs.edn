@@ -6,8 +6,8 @@
                 :compiler-options {:warnings {:redef false}
                                    :externs  ["datascript/externs.js"]}
                 :devtools         {:watch-dir  "resources/public"
-                                   :after-load brainard.app/load!}
-                :modules          {:main {:init-fn brainard.app/init!}}}
+                                   :after-load brainard.dev/load!}
+                :modules          {:main {:init-fn brainard.dev/init!}}}
           :ui  {:target           :browser
                 :output-dir       "resources/public/js"
                 :compiler         {:optimizations :advanced}
