@@ -206,7 +206,7 @@
     buttons
     (into buttons)))
 
-(defn form [{:keys [*:store disabled params resource-key form+ horizontal?] :as attrs} & fields]
+(defn plain-form [{:keys [disabled form+ horizontal?] :as attrs} & fields]
   (let [changed? (forms/changed? form+)
         errors (when (res/error? form+)
                  (res/payload form+))
@@ -217,10 +217,8 @@
         init? (res/init? form+)
         any-errors? (and errors (not init?))]
     [:form.form
-     (-> {:on-submit (fn [e]
-                       (dom/prevent-default! e)
-                       (store/dispatch! *:store [::forms+/submit! resource-key params]))}
-         (merge (select-keys attrs #{:class :style}))
+     (-> (select-keys attrs #{:class :style :on-submit})
+         (update :on-submit comp dom/prevent-default!)
          (cond->
            any-errors? (update :class conj "errors")
            changed? (update :class conj "is-changed")))
@@ -234,6 +232,13 @@
                              :attempted? (and (not init?) (not changed?) errors)
                              :disabled (or disabled requesting?)
                              :requesting? requesting?)]]))
+
+(defn form [{:keys [*:store params resource-key] :as attrs} & fields]
+  (into [plain-form (assoc attrs
+                           :on-submit
+                           (fn [_]
+                             (store/dispatch! *:store [::forms+/submit! resource-key params])))]
+        fields))
 
 (def ^{:arglists '([attrs form+ path])} with-attrs
   "Prepares common form attributes used by controls in [[brainard.common.views.controls.core]]. "

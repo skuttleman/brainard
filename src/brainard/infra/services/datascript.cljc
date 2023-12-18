@@ -3,6 +3,7 @@
   #?(:cljs (:require-macros brainard.infra.services.datascript))
   (:require
     #?(:clj [clojure.java.io :as io])
+    [brainard.common.utils.edn :as edn]
     [brainard.common.utils.logger :as log]
     [brainard.infra.services.db :as db]
     [datascript.core :as d]))
@@ -27,7 +28,7 @@
              (locking lock
                (with-open [reader (io/reader (io/file log-file))]
                  (doseq [line (line-seq reader)]
-                   (d/transact (first conn) line)))))
+                   (d/transact (first conn) (edn/read-string line))))))
      :cljs (doseq [line db/ui-log]
              (d/transact (first conn) line))))
 
