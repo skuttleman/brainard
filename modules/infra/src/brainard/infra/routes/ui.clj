@@ -1,12 +1,12 @@
 (ns brainard.infra.routes.ui
   (:require
-    [brainard.common.store.specs :as-alias specs]
-    [brainard.common.routes.base :as base]
-    [brainard.common.routes.interfaces :as iroutes]
-    [brainard.common.routes.response :as routes.res]
-    [brainard.common.stubs.nav :as nav]
-    [brainard.api.utils.routing :as rte]
-    [brainard.common.views.pages.core :as pages]
+    [brainard.infra.store.specs :as-alias specs]
+    [brainard.infra.routes.base :as base]
+    [brainard.infra.routes.interfaces :as iroutes]
+    [brainard.infra.routes.response :as routes.res]
+    [brainard.infra.stubs.nav :as nav]
+    [brainard.infra.utils.routing :as rte]
+    [brainard.infra.views.pages.core :as pages]
     [brainard.infra.routes.template :as routes.tmpl]
     [clojure.string :as string]
     [defacto.core :as defacto]
@@ -14,9 +14,9 @@
     [hiccup.core :as hiccup]
     [ring.middleware.resource :as ring.res]
     [ring.util.mime-type :as ring.mime]
-    brainard.common.store.commands
-    brainard.common.store.events
-    brainard.common.store.queries
+    brainard.infra.store.commands
+    brainard.infra.store.events
+    brainard.infra.store.queries
     defacto.impl))
 
 (deftype StubNav [route ^:volatile-mutable -store]

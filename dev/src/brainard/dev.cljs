@@ -1,7 +1,7 @@
 (ns brainard.dev
   (:require
     [brainard.app :as app]
-    [brainard.common.store.core :as store]
+    [brainard.infra.store.core :as store]
     [defacto.core :as defacto]))
 
 (def ^:dynamic *store*)

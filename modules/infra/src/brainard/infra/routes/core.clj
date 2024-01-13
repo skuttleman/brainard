@@ -3,9 +3,9 @@
     [brainard.infra.routes.middleware :as mw]
     [ring.middleware.keyword-params :as ring.kw-params]
     [ring.middleware.params :as ring.params]
-    [brainard.common.routes.base :as base]
-    brainard.common.routes.notes
-    brainard.common.routes.schedules
+    [brainard.infra.routes.base :as base]
+    brainard.infra.routes.notes
+    brainard.infra.routes.schedules
     brainard.infra.routes.ui))
 
 (defn ^:private asset? [req]

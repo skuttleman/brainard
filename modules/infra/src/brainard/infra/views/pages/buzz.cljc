@@ -1,0 +1,19 @@
+(ns brainard.infra.views.pages.buzz
+  (:require
+    [brainard.infra.store.specs :as specs]
+    [brainard.infra.store.core :as store]
+    [brainard.infra.stubs.reagent :as r]
+    [brainard.infra.views.components.core :as comp]
+    [brainard.infra.views.pages.interfaces :as ipages]
+    [brainard.infra.views.pages.shared :as spages]
+    [defacto.resources.core :as res]))
+
+(defmethod ipages/page :routes.ui/buzz
+  [{:keys [*:store] :as route-info}]
+  (r/with-let [sub:notes (store/subscribe *:store [::res/?:resource [::specs/notes#buzz]])]
+    (let [resource @sub:notes]
+      [:div
+       [:h2.subtitle "What's relevant now?"]
+       (if (or (res/requesting? resource) (res/success? resource))
+         [spages/search-results route-info (res/payload resource)]
+         [comp/spinner])])))

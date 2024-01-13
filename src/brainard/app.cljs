@@ -1,20 +1,20 @@
 (ns brainard.app
   (:require
-    [brainard.common.store.specs :as specs]
-    [brainard.common.store.core :as store]
-    [brainard.common.stubs.dom :as dom]
-    [brainard.common.stubs.nav :as nav]
-    [brainard.api.utils.routing :as rte]
-    [brainard.common.views.pages.core :as pages]
+    [brainard.infra.store.specs :as specs]
+    [brainard.infra.store.core :as store]
+    [brainard.infra.stubs.dom :as dom]
+    [brainard.infra.stubs.nav :as nav]
+    [brainard.infra.utils.routing :as rte]
+    [brainard.infra.views.pages.core :as pages]
     [brainard.infra.api :as api]
     [clojure.core.async :as async]
     [defacto.core :as defacto]
     [defacto.resources.core :as res]
     [pushy.core :as pushy]
     [reagent.dom :as rdom]
-    brainard.common.store.commands
-    brainard.common.store.events
-    brainard.common.store.queries))
+    brainard.infra.store.commands
+    brainard.infra.store.events
+    brainard.infra.store.queries))
 
 (deftype NavComponent [^:volatile-mutable -pushy]
   defacto/IInitialize

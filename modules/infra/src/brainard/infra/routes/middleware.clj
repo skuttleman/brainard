@@ -1,8 +1,8 @@
 (ns brainard.infra.routes.middleware
   (:require
-    [brainard.api.utils.edn :as edn]
+    [brainard.infra.utils.edn :as edn]
     [brainard.api.utils.logger :as log]
-    [brainard.common.routes.errors :as routes.err]
+    [brainard.infra.routes.errors :as routes.err]
     [clojure.string :as string]
     [ring.util.request :as ring.req]))
 

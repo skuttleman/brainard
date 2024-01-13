@@ -1,6 +1,6 @@
 (ns brainard.test.http
   (:require
-    [brainard.api.utils.edn :as edn]
+    [brainard.infra.utils.edn :as edn]
     [brainard.infra.routes.core :as routes]
     [clojure.set :as set])
   (:import
