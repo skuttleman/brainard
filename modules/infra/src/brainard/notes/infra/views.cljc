@@ -1,4 +1,4 @@
-(ns brainard.infra.views.pages.shared
+(ns brainard.notes.infra.views
   (:require
     [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.components.core :as comp]))

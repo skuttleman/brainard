@@ -8,7 +8,7 @@
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.pages.interfaces :as ipages]
-    [brainard.infra.views.pages.shared :as spages]
+    [brainard.notes.infra.views :as notes.views]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
     [defacto.resources.core :as res]))
@@ -50,7 +50,7 @@
        [tag-filter attrs tags]]]]))
 
 (defn ^:private search-results [route-info [notes]]
-  [spages/search-results route-info notes])
+  [notes.views/search-results route-info notes])
 
 (defn ^:private root* [{:keys [*:store query-params] :as route-info} [contexts tags]]
   (r/with-let [form-key [::forms+/valid [::specs/notes#select form-id] query-params]

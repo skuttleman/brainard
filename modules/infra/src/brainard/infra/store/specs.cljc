@@ -1,7 +1,9 @@
 (ns brainard.infra.store.specs
   (:require
     [brainard.infra.utils.routing :as rte]
-    [brainard.infra.store.validations :as valid]
+    [brainard.infra.validations :as valid]
+    [brainard.notes.api.specs :as snotes]
+    [brainard.schedules.api.specs :as ssched]
     [clojure.set :as set]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
@@ -38,7 +40,7 @@
   (->req {:route  :routes.api/contexts
           :method :get}))
 
-(let [vld (valid/->validator valid/notes-query)]
+(let [vld (valid/->validator snotes/query)]
   (defmethod forms+/validate ::notes#select [_ data] (vld data)))
 (defmethod forms+/re-init ::notes#select [_ form _] (forms/data form))
 (defmethod res/->request-spec ::notes#select
@@ -54,7 +56,7 @@
           :method :get
           :params {:notes/id resource-id}}))
 
-(let [vld (valid/->validator valid/new-note)]
+(let [vld (valid/->validator snotes/create)]
   (defmethod forms+/validate ::notes#create [_ data] (vld data)))
 (defmethod res/->request-spec ::notes#create
   [_ {::forms/keys [data] :keys [pre-events ok-events]}]
@@ -89,7 +91,7 @@
   (->req {:route  :routes.api/notes?scheduled
           :method :get}))
 
-(let [vld (valid/->validator valid/new-schedule)]
+(let [vld (valid/->validator ssched/create)]
   (defmethod forms+/validate ::schedules#create [_ data] (vld data)))
 (defmethod res/->request-spec ::schedules#create
   [_ {::forms/keys [data]}]

@@ -7,7 +7,7 @@
     [brainard.api.utils.logger :as log]
     [brainard.infra.utils.edn :as edn]
     [brainard.infra.utils.routing :as rte]
-    [brainard.infra.store.validations :as valid]
+    [brainard.infra.validations :as valid]
     [clojure.string :as string]))
 
 (defn ^:private success? [status]

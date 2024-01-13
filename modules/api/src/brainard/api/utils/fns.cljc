@@ -3,7 +3,7 @@
   #?(:cljs (:require-macros brainard.api.utils.fns))
   (:refer-clojure :exclude [and or]))
 
-(defn apply-all! [& fns]
+(defn apply-all [& fns]
   (fn [& args]
     (doseq [f fns
             :when f]

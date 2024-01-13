@@ -1,7 +1,7 @@
 (ns brainard.infra.routes.errors
   (:require
     [brainard.infra.routes.response :as routes.res]
-    [brainard.infra.store.validations :as valid]))
+    [brainard.infra.validations :as valid]))
 
 (defn ^:private ->err-response [status body]
   (routes.res/->response status (pr-str body) {"content-type" "application/edn"}))

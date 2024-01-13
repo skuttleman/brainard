@@ -5,7 +5,7 @@
     [brainard.infra.stubs.reagent :as r]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.pages.interfaces :as ipages]
-    [brainard.infra.views.pages.shared :as spages]
+    [brainard.notes.infra.views :as notes.views]
     [defacto.resources.core :as res]))
 
 (defmethod ipages/page :routes.ui/buzz
@@ -15,5 +15,5 @@
       [:div
        [:h2.subtitle "What's relevant now?"]
        (if (or (res/requesting? resource) (res/success? resource))
-         [spages/search-results route-info (res/payload resource)]
+         [notes.views/search-results route-info (res/payload resource)]
          [comp/spinner])])))

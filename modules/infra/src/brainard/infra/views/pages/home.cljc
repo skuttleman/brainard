@@ -8,7 +8,7 @@
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.pages.interfaces :as ipages]
-    [brainard.infra.views.pages.shared :as spages]
+    [brainard.notes.infra.views :as notes.views]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
     [defacto.resources.core :as-alias res]))
@@ -29,6 +29,14 @@
                       select-notes-key
                       {::forms/data {:notes/context (dom/target-value e)}}])))
 
+(defn ^:private search-results [route-info [notes]]
+  [:div
+   (if (seq notes)
+     [:<>
+      [:h3.subtitle [:em "Some related notes..."]]
+      [notes.views/search-results route-info notes]]
+     [:em "Brand new topic!"])])
+
 (defn ^:private root* [{:keys [*:store form+ sub:contexts sub:tags]}]
   [ctrls/form {:*:store      *:store
                :form+        form+
@@ -48,14 +56,6 @@
                            :label     "Tags"
                            :sub:items sub:tags}
                           (ctrls/with-attrs form+ [:notes/tags]))]])
-
-(defn ^:private search-results [route-info [notes]]
-  [:div
-   (if (seq notes)
-     [:<>
-      [:h3.subtitle [:em "Some related notes..."]]
-      [spages/search-results route-info notes]]
-     [:em "Brand new topic!"])])
 
 (defmethod ipages/page :routes.ui/home
   [{:keys [*:store] :as route-info}]

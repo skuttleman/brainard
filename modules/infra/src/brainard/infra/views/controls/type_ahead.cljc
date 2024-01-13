@@ -44,9 +44,9 @@
                           (on-change (dom/target-value e)))
          :on-key-down   (->type-ahead-key-handler attrs)}
         (merge (select-keys attrs #{:class :disabled :id :ref :value :on-focus :on-blur :auto-focus}))
-        (update :on-focus fns/apply-all! (fn [_]
+        (update :on-focus fns/apply-all (fn [_]
                                            (swap! *:state assoc :focussed? true)))
-        (update :on-blur fns/apply-all! (fn [_]
+        (update :on-blur fns/apply-all (fn [_]
                                           (swap! *:state assoc :focussed? false))))]])
 
 (defn ^:private type-ahead-dd [{:keys [*:state dd-active? matches on-change selected-idx]}]

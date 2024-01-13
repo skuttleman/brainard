@@ -44,7 +44,7 @@
 (defn ^:private with-trim-blur [component]
   (fn [attrs & args]
     (-> attrs
-        (update :on-blur fns/apply-all!
+        (update :on-blur fns/apply-all
                 (fn [_]
                   (when-let [on-change (:on-change attrs)]
                     (on-change (some-> attrs :value string/trim not-empty)))))
