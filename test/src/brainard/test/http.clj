@@ -14,7 +14,7 @@
                        (StringReader. (pr-str %))
                        (NullReader/nullReader)))
       (set/rename-keys {:method :request-method})
-      routes/handler
+      routes/be-handler
       (update :body edn/read-string)))
 
 (defn success? [response]

@@ -1,4 +1,4 @@
-(ns brainard.infra.routes.schedules
+(ns brainard.schedules.infra.routes
   (:require
     [brainard.api.core :as api]
     [brainard.infra.routes.interfaces :as iroutes]))

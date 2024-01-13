@@ -17,4 +17,5 @@
            skuttleman/defacto-forms+ {:git/url   "https://github.com/skuttleman/defacto"
                                       :git/sha   "0739cd80cf1f1ba8d69a6417509301afd6e6751d"
                                       :deps/root "forms+"}}
- :aliases {:test {:extra-paths ["test/resources" "test/src"]}}}
+ :aliases {:test     {:extra-paths ["test/resources" "test/src"]}
+           :intellij {:extra-deps {org.clojure/clojurescript {:mvn/version "1.11.60"}}}}}

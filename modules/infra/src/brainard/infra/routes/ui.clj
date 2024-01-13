@@ -1,14 +1,13 @@
 (ns brainard.infra.routes.ui
   (:require
     [brainard.infra.store.specs :as-alias specs]
-    [brainard.infra.routes.base :as base]
+    [brainard.infra.routes.core :as routes]
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.infra.routes.response :as routes.res]
     [brainard.infra.stubs.nav :as nav]
     [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.pages.core :as pages]
     [brainard.infra.routes.template :as routes.tmpl]
-    [clojure.string :as string]
     [defacto.core :as defacto]
     [defacto.resources.core :as res]
     [hiccup.core :as hiccup]
@@ -49,7 +48,7 @@
 (defn ^:private create-store [{:brainard/keys [apis route]}]
   (let [nav (->StubNav route nil)
         ctx (-> {:services/nav nav}
-                (res/with-ctx (->request-fn base/ui-handler apis)))]
+                (res/with-ctx (->request-fn routes/ui-handler apis)))]
     (doto (defacto.impl/->WatchableStore ctx (atom nil) defacto-api ->Sub)
       (->> (defacto/init! nav))
       (defacto/dispatch! [::res/submit! [::specs/notes#buzz]])

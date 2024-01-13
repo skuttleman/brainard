@@ -1,14 +1,13 @@
 (ns brainard.infra.api
   (:require
-    [brainard.infra.routes.base :as base]
     [brainard.infra.db.datascript :as ds]
     [brainard.notes.infra.db :as notes]
     [brainard.schedules.infra.db :as sched]
     [cljs-http.client :as http]
     [clojure.core.async :as async]
     [defacto.resources.core :as-alias res]
-    brainard.infra.routes.notes
-    brainard.infra.routes.schedules))
+    brainard.notes.infra.routes
+    brainard.schedules.infra.routes))
 
 (defonce ^:private apis
   (delay (let [conn (doto (ds/connect! {}) ds/init!)]

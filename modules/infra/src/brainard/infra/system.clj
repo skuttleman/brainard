@@ -7,7 +7,10 @@
     [duct.core :as duct]
     [brainard.infra.routes.core :as routes]
     [immutant.web :as web]
-    [integrant.core :as ig]))
+    [integrant.core :as ig]
+    brainard.notes.infra.routes
+    brainard.schedules.infra.routes
+    brainard.infra.routes.ui))
 
 (defmethod ig/init-key :brainard.datascript/file-logger
   [_ params]
@@ -34,7 +37,7 @@
   [_ {:keys [apis server-port]}]
   (log/info "starting webserver on port" server-port)
   (web/run (fn [req]
-             (routes/handler (assoc req :brainard/apis apis)))
+             (routes/be-handler (assoc req :brainard/apis apis)))
            {:port server-port :host "0.0.0.0"}))
 
 (defmethod ig/halt-key! :brainard/webserver
