@@ -3,8 +3,8 @@
   #?(:cljs (:require-macros brainard.infra.db.datascript))
   (:require
     #?(:clj [clojure.java.io :as io])
-    [brainard.common.utils.edn :as edn]
-    [brainard.common.utils.logger :as log]
+    [brainard.api.utils.edn :as edn]
+    [brainard.api.utils.logger :as log]
     [brainard.infra.db.config :as cfg]
     [datascript.core :as d]))
 

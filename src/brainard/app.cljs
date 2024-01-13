@@ -4,7 +4,7 @@
     [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.nav :as nav]
-    [brainard.common.utils.routing :as rte]
+    [brainard.api.utils.routing :as rte]
     [brainard.common.views.pages.core :as pages]
     [brainard.infra.api :as api]
     [clojure.core.async :as async]

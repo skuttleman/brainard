@@ -1,8 +1,8 @@
-(ns brainard.common.api.schedules.core
+(ns brainard.schedules.api.core
   (:require
-    [brainard.common.api.schedules.interfaces :as isched]
-    [brainard.common.utils.uuids :as uuids]
-    [brainard.common.api.schedules.relevancy :as relevancy]))
+    [brainard.schedules.api.interfaces :as isched]
+    [brainard.api.utils.uuids :as uuids]
+    [brainard.schedules.api.relevancy :as relevancy]))
 
 (defn ^:private clean-schedule [schedule schedule-id]
   (-> schedule

@@ -1,7 +1,7 @@
-(ns brainard.common.api.notes.core
+(ns brainard.notes.api.core
   (:require
-    [brainard.common.api.notes.interfaces :as inotes]
-    [brainard.common.utils.uuids :as uuids])
+    [brainard.notes.api.interfaces :as inotes]
+    [brainard.api.utils.uuids :as uuids])
   #?(:clj
      (:import
        (java.util Date))))

@@ -1,9 +1,9 @@
 (ns brainard.infra.system
   (:require
-    [brainard.common.utils.logger :as log]
+    [brainard.api.utils.logger :as log]
     [brainard.infra.db.datascript :as ds]
-    [brainard.infra.db.notes :as stores.notes]
-    [brainard.infra.db.schedules :as stores.sched]
+    [brainard.notes.infra.db :as stores.notes]
+    [brainard.schedules.infra.db :as stores.sched]
     [duct.core :as duct]
     [brainard.infra.routes.core :as routes]
     [immutant.web :as web]

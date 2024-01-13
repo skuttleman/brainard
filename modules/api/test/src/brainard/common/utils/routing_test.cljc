@@ -1,6 +1,6 @@
-(ns brainard.common.utils.routing-test
+(ns brainard.api.utils.routing-test
   (:require
-    [brainard.common.utils.routing :as rte]
+    [brainard.api.utils.routing :as rte]
     [clojure.test :refer [deftest is testing]]))
 
 (deftest ->query-string-test

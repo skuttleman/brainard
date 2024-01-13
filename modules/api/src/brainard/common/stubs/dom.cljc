@@ -1,7 +1,7 @@
 (ns brainard.common.stubs.dom
   "Some cljc-compatible wrappers for DOM inter-op."
   (:require
-    [brainard.common.utils.edn :as edn]
+    [brainard.api.utils.edn :as edn]
     [clojure.set :as set]))
 
 (def ^:const window

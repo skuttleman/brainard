@@ -4,7 +4,7 @@
     [brainard.common.routes.interfaces :as iroutes]
     [brainard.common.routes.middleware :as mwc]
     [brainard.common.routes.response :as routes.res]
-    [brainard.common.utils.edn :as edn]
+    [brainard.api.utils.edn :as edn]
     [clojure.set :as set]))
 
 (defn ^:private cljs-http->ring [handler]

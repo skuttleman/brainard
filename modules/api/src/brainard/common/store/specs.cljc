@@ -1,6 +1,6 @@
 (ns brainard.common.store.specs
   (:require
-    [brainard.common.utils.routing :as rte]
+    [brainard.api.utils.routing :as rte]
     [brainard.common.store.validations :as valid]
     [clojure.set :as set]
     [defacto.forms.core :as forms]

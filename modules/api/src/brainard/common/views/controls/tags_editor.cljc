@@ -5,7 +5,7 @@
     [brainard.common.store.core :as store]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
-    [brainard.common.utils.keywords :as kw]
+    [brainard.api.utils.keywords :as kw]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.shared :as shared]
     [brainard.common.views.controls.type-ahead :as type-ahead]

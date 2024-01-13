@@ -1,6 +1,6 @@
-(ns brainard.common.utils.maps
+(ns brainard.api.utils.maps
   "Utilities for operating on maps."
-  #?(:cljs (:require-macros brainard.common.utils.maps))
+  #?(:cljs (:require-macros brainard.api.utils.maps))
   (:refer-clojure :exclude [flatten]))
 
 (defn ^:private flatten* [m path]

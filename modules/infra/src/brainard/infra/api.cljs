@@ -2,8 +2,8 @@
   (:require
     [brainard.common.routes.base :as base]
     [brainard.infra.db.datascript :as ds]
-    [brainard.infra.db.notes :as notes]
-    [brainard.infra.db.schedules :as sched]
+    [brainard.notes.infra.db :as notes]
+    [brainard.schedules.infra.db :as sched]
     [cljs-http.client :as http]
     [clojure.core.async :as async]
     [defacto.resources.core :as-alias res]

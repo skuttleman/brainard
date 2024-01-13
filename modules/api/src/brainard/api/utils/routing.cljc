@@ -1,10 +1,10 @@
-(ns brainard.common.utils.routing
+(ns brainard.api.utils.routing
   "Tokenized HTTP routing table for use with [[bidi.bidi]]"
   (:require
     [bidi.bidi :as bidi]
-    [brainard.common.utils.colls :as colls]
-    [brainard.common.utils.keywords :as kw]
-    [brainard.common.utils.uuids :as uuids]
+    [brainard.api.utils.colls :as colls]
+    [brainard.api.utils.keywords :as kw]
+    [brainard.api.utils.uuids :as uuids]
     [clojure.string :as string])
   #?(:clj
      (:import

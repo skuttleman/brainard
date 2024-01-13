@@ -3,8 +3,8 @@
     [brainard.common.store.specs :as-alias specs]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.nav :as nav]
-    [brainard.common.utils.routing :as rte]
-    [brainard.common.utils.uuids :as uuids]
+    [brainard.api.utils.routing :as rte]
+    [brainard.api.utils.uuids :as uuids]
     [clojure.test :refer [deftest is testing]]
     [defacto.core :as defacto]
     brainard.common.store.commands

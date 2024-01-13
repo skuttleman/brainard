@@ -1,7 +1,7 @@
-(ns brainard.infra.db.notes-test
+(ns brainard.test.integration.notes-test
   (:require
-    [brainard.common.api.notes.interfaces :as inotes]
-    [brainard.common.utils.uuids :as uuids]
+    [brainard.notes.api.interfaces :as inotes]
+    [brainard.api.utils.uuids :as uuids]
     [brainard.infra.db.datascript :as ds]
     [brainard.test.system :as tsys]
     [clojure.test :refer [deftest is testing]]
@@ -66,17 +66,17 @@
     (tsys/with-system [{:brainard/keys [datascript-conn notes-store]} nil]
       (let [[id-1 id-2 id-3 id-4] (repeatedly uuids/random)]
         (ds/transact! datascript-conn [{:notes/id      id-1
-                                     :notes/context "a"
-                                     :notes/tags    #{:a :b :d}}
-                                    {:notes/id      id-2
-                                     :notes/context "a"
-                                     :notes/tags    #{:a :c}}
-                                    {:notes/id      id-3
-                                     :notes/context "b"
-                                     :notes/tags    #{:b :c :d}}
-                                    {:notes/id      id-4
-                                     :notes/context "b"
-                                     :notes/tags    #{:d}}])
+                                        :notes/context "a"
+                                        :notes/tags    #{:a :b :d}}
+                                       {:notes/id      id-2
+                                        :notes/context "a"
+                                        :notes/tags    #{:a :c}}
+                                       {:notes/id      id-3
+                                        :notes/context "b"
+                                        :notes/tags    #{:b :c :d}}
+                                       {:notes/id      id-4
+                                        :notes/context "b"
+                                        :notes/tags    #{:d}}])
         (testing "and when querying notes"
           (testing "finds notes by context"
             (let [results (into #{}

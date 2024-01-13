@@ -1,7 +1,7 @@
 (ns brainard.common.views.pages.shared
   (:require
-    [brainard.common.utils.dates :as dates]
-    [brainard.common.utils.routing :as rte]
+    [brainard.api.utils.dates :as dates]
+    [brainard.api.utils.routing :as rte]
     [brainard.common.views.components.core :as comp]
     [clojure.pprint :as pp]))
 

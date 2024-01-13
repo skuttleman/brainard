@@ -1,4 +1,4 @@
-(ns brainard.common.api.notes.interfaces)
+(ns brainard.notes.api.interfaces)
 
 (defprotocol INotesStore
   "Saves/retrieves notes from a store."

@@ -1,8 +1,8 @@
 (ns brainard.common.routes.middleware
   (:require
     [brainard.common.routes.interfaces :as iroutes]
-    [brainard.common.utils.logger :as log]
-    [brainard.common.utils.routing :as rte]
+    [brainard.api.utils.logger :as log]
+    [brainard.api.utils.routing :as rte]
     [brainard.common.store.validations :as valid]))
 
 (defn ^:private success? [status]

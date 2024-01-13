@@ -1,4 +1,4 @@
-(ns brainard.common.utils.dates)
+(ns brainard.api.utils.dates)
 
 (defn ^:private pad-date-segment [num]
   (str (when (< num 10) \0) num))

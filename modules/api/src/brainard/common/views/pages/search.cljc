@@ -4,7 +4,7 @@
     [brainard.common.store.specs :as-alias specs]
     [brainard.common.store.core :as store]
     [brainard.common.stubs.reagent :as r]
-    [brainard.common.utils.colls :as colls]
+    [brainard.api.utils.colls :as colls]
     [brainard.common.views.components.core :as comp]
     [brainard.common.views.controls.core :as ctrls]
     [brainard.common.views.pages.interfaces :as ipages]

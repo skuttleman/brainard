@@ -1,4 +1,4 @@
-(ns brainard.common.utils.colls
+(ns brainard.api.utils.colls
   "Utilities for operating on heterogeneous collections (i.e. vectors, lists, and sets).")
 
 (defn wrap-vector [x]

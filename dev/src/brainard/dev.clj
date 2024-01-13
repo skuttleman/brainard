@@ -1,6 +1,6 @@
 (ns brainard.dev
   (:require
-    [brainard.common.utils.logger :as log]
+    [brainard.api.utils.logger :as log]
     [brainard.infra.system :as sys]
     [duct.core :as duct]
     [integrant.core :as ig]

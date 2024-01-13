@@ -4,7 +4,8 @@
            com.widdindustries/cljc.java-time {:mvn/version "0.1.21"}
            danlentz/clj-uuid                 {:mvn/version "0.1.9"}
            metosin/malli                     {:mvn/version "0.10.1"}
-           skuttleman/defacto-forms+         {:git/url   "https://github.com/skuttleman/defacto"
+           org.clojure/core.async            {:mvn/version "1.6.673"}
+           #_#_skuttleman/defacto-forms+         {:git/url   "https://github.com/skuttleman/defacto"
                                               :git/sha   "0739cd80cf1f1ba8d69a6417509301afd6e6751d"
                                               :deps/root "forms+"}}
- :aliases {:dev {:extra-paths ["test/resources" "test/src"]}}}
+ :aliases {:test {:extra-paths ["test/resources" "test/src"]}}}

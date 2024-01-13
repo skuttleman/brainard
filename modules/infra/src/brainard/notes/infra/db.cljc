@@ -1,6 +1,6 @@
-(ns brainard.infra.db.notes
+(ns brainard.notes.infra.db
   (:require
-    [brainard.common.api.notes.interfaces :as inotes]
+    [brainard.notes.api.interfaces :as inotes]
     [brainard.infra.db.datascript :as ds]))
 
 (def ^:private select

@@ -1,4 +1,4 @@
-(ns brainard.common.utils.uuids
+(ns brainard.api.utils.uuids
   "Utilities for generating uuids."
   #?(:clj
      (:require

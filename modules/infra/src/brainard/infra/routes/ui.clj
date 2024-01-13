@@ -5,7 +5,7 @@
     [brainard.common.routes.interfaces :as iroutes]
     [brainard.common.routes.response :as routes.res]
     [brainard.common.stubs.nav :as nav]
-    [brainard.common.utils.routing :as rte]
+    [brainard.api.utils.routing :as rte]
     [brainard.common.views.pages.core :as pages]
     [brainard.infra.routes.template :as routes.tmpl]
     [clojure.string :as string]

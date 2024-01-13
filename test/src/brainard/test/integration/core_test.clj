@@ -1,6 +1,6 @@
 (ns brainard.test.integration.core-test
   (:require
-    [brainard.common.utils.uuids :as uuids]
+    [brainard.api.utils.uuids :as uuids]
     [brainard.test.http :as thttp]
     [brainard.test.system :as tsys]
     [clojure.test :refer [deftest is testing]]

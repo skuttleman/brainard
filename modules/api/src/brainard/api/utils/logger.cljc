@@ -1,6 +1,6 @@
-(ns brainard.common.utils.logger
+(ns brainard.api.utils.logger
   "Logger wrapper."
-  #?(:cljs (:require-macros brainard.common.utils.logger))
+  #?(:cljs (:require-macros brainard.api.utils.logger))
   (:require
     [clojure.string :as string]
     [taoensso.timbre :as log*]))

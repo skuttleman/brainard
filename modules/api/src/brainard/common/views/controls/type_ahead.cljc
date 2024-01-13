@@ -1,7 +1,7 @@
 (ns brainard.common.views.controls.type-ahead
   "A type-ahead select component which allows new values."
   (:require
-    [brainard.common.utils.fns :as fns]
+    [brainard.api.utils.fns :as fns]
     [brainard.common.stubs.dom :as dom]
     [brainard.common.stubs.reagent :as r]
     [brainard.common.views.components.core :as comp]

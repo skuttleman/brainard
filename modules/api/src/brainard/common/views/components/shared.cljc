@@ -1,6 +1,6 @@
 (ns brainard.common.views.components.shared
   (:require
-    [brainard.common.utils.maps :as maps]))
+    [brainard.api.utils.maps :as maps]))
 
 (defn plain-button [attrs & content]
   (let [disabled #?(:clj true :default (:disabled attrs))]

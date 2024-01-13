@@ -1,7 +1,7 @@
-(ns brainard.infra.db.schedules-test
+(ns brainard.test.integration.schedules-test
   (:require
-    [brainard.common.api.schedules.interfaces :as isched]
-    [brainard.common.utils.uuids :as uuids]
+    [brainard.schedules.api.interfaces :as isched]
+    [brainard.api.utils.uuids :as uuids]
     [brainard.test.system :as tsys]
     [clojure.test :refer [deftest is testing]]
     brainard.infra.system))

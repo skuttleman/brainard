@@ -1,6 +1,6 @@
 (ns brainard.common.stubs.nav
   (:require
-    [brainard.common.utils.routing :as rte]))
+    [brainard.api.utils.routing :as rte]))
 
 (defprotocol INavigate
   (-set! [this uri])

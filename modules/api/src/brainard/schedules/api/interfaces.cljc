@@ -1,4 +1,4 @@
-(ns brainard.common.api.schedules.interfaces)
+(ns brainard.schedules.api.interfaces)
 
 (defprotocol ISchedulesStore
   "Saves/retrieves schedules for a note from a store"

@@ -1,6 +1,6 @@
 (ns brainard.common.routes.notes
   (:require
-    [brainard.common.api.core :as api]
+    [brainard.api.core :as api]
     [brainard.common.routes.interfaces :as iroutes])
   #?(:clj
      (:import
