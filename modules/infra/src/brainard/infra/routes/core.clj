@@ -8,8 +8,8 @@
     brainard.common.routes.schedules
     brainard.infra.routes.ui))
 
-(defn ^:private asset? [{:keys [uri]}]
-  (re-matches #"^/(js|css|img|favicon\.ico).*" uri))
+(defn ^:private asset? [req]
+  (re-matches #"^/(js|css|favicon).*$" (:uri req)))
 
 (def handler
   "Handles all HTTP requests through the webserver."

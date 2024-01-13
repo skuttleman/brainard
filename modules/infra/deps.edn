@@ -1,0 +1,19 @@
+{:paths   ["resources" "src"]
+ :deps    {bidi/bidi              {:mvn/version "2.1.6"
+                                   :exclusions  [ring/ring-core]}
+           brainard/api           {:local/root "../api"}
+           cljs-http/cljs-http    {:mvn/version "0.1.46"}
+           datascript/datascript  {:mvn/version "1.6.1"}
+           duct/core              {:mvn/version "0.8.0"}
+           hiccup/hiccup          {:mvn/version "1.0.5"}
+           kibu/pushy             {:mvn/version "0.3.8"}
+           metosin/jsonista       {:mvn/version "0.3.7"}
+           nrepl/nrepl            {:mvn/version "1.0.0"}
+           org.clojure/core.async {:mvn/version "1.6.673"}
+           org.immutant/immutant  {:mvn/version "2.1.10"
+                                   :exclusions  [ch.qos.logback/logback-classic
+                                                 org.jboss.naming/jnpserver
+                                                 ring/ring-core]}
+           reagent/reagent        {:mvn/version "1.2.0"}
+           ring/ring-core         {:mvn/version "1.9.6"}}
+ :aliases {:dev {:extra-paths ["test/resources" "test/src"]}}}
