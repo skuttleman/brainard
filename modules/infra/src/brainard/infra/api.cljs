@@ -28,7 +28,6 @@
 
 (defn ^:private do-request [params]
   (async/go
-    #_(base/ui-handler (assoc params :brainard/apis @apis))
     (async/<! (http/request params))))
 
 (defn request-fn [_ params]
