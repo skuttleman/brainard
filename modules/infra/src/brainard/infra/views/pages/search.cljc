@@ -11,7 +11,8 @@
     [brainard.notes.infra.views :as notes.views]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
-    [defacto.resources.core :as res]))
+    [defacto.resources.core :as res]
+    [whet.core :as-alias w]))
 
 (def ^:private ^:const form-id ::forms/search)
 
@@ -42,7 +43,7 @@
 (defn ^:private search-form [{:keys [*:store form+] :as attrs} contexts tags]
   (let [form-data (forms/data form+)]
     [ctrls/plain-form {:on-submit (fn [_]
-                                    (store/dispatch! *:store [:whet.core/with-qp! form-data]))}
+                                    (store/dispatch! *:store [::w/with-qp! form-data]))}
      [:div.flex.layout--room-between
       [:div.flex-grow
        [context-filter attrs contexts]]

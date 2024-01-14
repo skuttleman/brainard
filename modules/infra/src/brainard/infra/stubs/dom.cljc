@@ -5,7 +5,6 @@
     [clojure.set :as set]))
 
 (def ^:const window wdom/window)
-
 (defonce ^:private listeners (atom {}))
 
 (def ^:private key->code
@@ -15,22 +14,16 @@
    :key-codes/up    38
    :key-codes/down  40})
 
-(def ^:private code->key
-  (set/map-invert key->code))
-
-(def ^{:arglists '([e])} prevent-default! wdom/prevent-default!)
-
-(def ^{:arglists '([e])} stop-propagation! wdom/stop-propagation!)
-
-(def ^{:arglists '([e])} target-value wdom/target-value)
-
-(def ^{:arglists '([e])} blur! wdom/blur!)
-
-(def ^{:arglists '([e])} focus! wdom/focus!)
-
+(def ^:private code->key (set/map-invert key->code))
 (defn event->key [e]
   #?(:cljs
      (some-> e .-keyCode code->key)))
+
+(def ^{:arglists '([e])} prevent-default! wdom/prevent-default!)
+(def ^{:arglists '([e])} stop-propagation! wdom/stop-propagation!)
+(def ^{:arglists '([e])} target-value wdom/target-value)
+(def ^{:arglists '([e])} blur! wdom/blur!)
+(def ^{:arglists '([e])} focus! wdom/focus!)
 
 (defn add-listener!
   "Adds an event listener to a node and stores it. Returns a key which can be used

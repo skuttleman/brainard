@@ -70,7 +70,7 @@
               [:button.button.is-test.is-ghost
                {:on-click (fn [_]
                             ;; TODO - why does :a not work here?
-                            (whet.navigation/navigate! nav :routes.ui/note (select-keys note #{:notes/id})))}
+                            (nav/navigate! nav :routes.ui/note (select-keys note #{:notes/id})))}
                "new note"]
               "was created"]]
     (emit-cb [:toasts/created toast-id {:state :init

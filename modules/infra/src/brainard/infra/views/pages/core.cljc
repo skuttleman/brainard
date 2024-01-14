@@ -1,19 +1,19 @@
 (ns brainard.infra.views.pages.core
   "The core of the UI reagent layout components."
   (:require
-    [whet.core :as w]
-    [brainard.infra.store.specs :as specs]
     [brainard.infra.store.core :as store]
+    [brainard.infra.store.specs :as specs]
     [brainard.infra.stubs.reagent :as r]
     [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.pages.interfaces :as ipages]
     [defacto.resources.core :as res]
+    [whet.core :as w]
+    [whet.navigation :as nav]
     brainard.infra.views.pages.buzz
     brainard.infra.views.pages.home
     brainard.infra.views.pages.note
-    brainard.infra.views.pages.search
-    [whet.navigation :as nav]))
+    brainard.infra.views.pages.search))
 
 (defmethod ipages/page :default
   [_]
