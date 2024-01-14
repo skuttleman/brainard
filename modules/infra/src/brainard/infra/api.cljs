@@ -1,18 +1,10 @@
 (ns brainard.infra.api
   (:require
-    [brainard.infra.db.datascript :as ds]
-    [brainard.notes.infra.db :as notes]
-    [brainard.schedules.infra.db :as sched]
     [cljs-http.client :as http]
     [clojure.core.async :as async]
     [defacto.resources.core :as-alias res]
     brainard.notes.infra.routes
     brainard.schedules.infra.routes))
-
-(defonce ^:private apis
-  (delay (let [conn (doto (ds/connect! {}) ds/init!)]
-           {:notes     {:store (notes/create-store {:datascript-conn conn})}
-            :schedules {:store (sched/create-store {:datascript-conn conn})}})))
 
 (defn ^:private success? [status]
   (and (integer? status)

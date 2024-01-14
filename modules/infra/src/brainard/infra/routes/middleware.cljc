@@ -28,6 +28,7 @@
   (fn [req]
     (handler (assoc req :brainard/input (iroutes/req->input req)))))
 
+;; TODO - this is the wrong way
 (defn with-spec-validation
   "Handles input/output spec validation for spec'd routes."
   [handler]
