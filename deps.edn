@@ -5,7 +5,8 @@
            org.clojure/clojure       {:mvn/version "1.11.1"}
            org.clojure/clojurescript {:mvn/version "1.11.60"}}
  :aliases {:dev      {:extra-paths ["dev/resources" "dev/src"]
-                      :extra-deps  {nrepl/nrepl {:mvn/version "1.0.0"}}}
+                      :extra-deps  {nrepl/nrepl     {:mvn/version "1.0.0"}
+                                    ring/ring-devel {:mvn/version "1.11.0"}}}
            :test     {:extra-paths ["test/resources"
                                     "test/src"
                                     "modules/api/test/resources"

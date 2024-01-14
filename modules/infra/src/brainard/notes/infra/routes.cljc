@@ -1,7 +1,8 @@
 (ns brainard.notes.infra.routes
   (:require
     [brainard.api.core :as api]
-    [brainard.infra.routes.interfaces :as iroutes])
+    [brainard.infra.routes.interfaces :as iroutes]
+    [whet.core :as w])
   #?(:clj
      (:import
        (java.util Date))))
@@ -12,7 +13,7 @@
    :body   {:data (api/relevant-notes apis #?(:cljs (js/Date.) :default (Date.)))}})
 
 (defmethod iroutes/req->input [:get :routes.api/notes]
-  [{:brainard/keys [route]}]
+  [{::w/keys [route]}]
   (let [{:keys [tags context]} (:query-params route)
         tags (cond
                (coll? tags) (into #{} (map keyword) tags)
@@ -45,7 +46,7 @@
 
 
 (defmethod iroutes/req->input [:patch :routes.api/note]
-  [{:brainard/keys [route] :keys [body]}]
+  [{::w/keys [route] :keys [body]}]
   (assoc body :notes/id (-> route :route-params :notes/id)))
 
 (defmethod iroutes/handler [:patch :routes.api/note]

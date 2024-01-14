@@ -4,67 +4,47 @@
     [brainard.infra.routes.core :as routes]
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.infra.routes.response :as routes.res]
-    [whet.interfaces :as iwhet]
-    [brainard.infra.utils.routing :as rte]
+    [whet.core :as w]
     [brainard.infra.views.pages.core :as pages]
-    [brainard.infra.routes.template :as routes.tmpl]
     [defacto.core :as defacto]
     [defacto.resources.core :as res]
-    [hiccup.core :as hiccup]
     [ring.middleware.resource :as ring.res]
     [ring.util.mime-type :as ring.mime]
     brainard.infra.store.commands
     brainard.infra.store.events
-    brainard.infra.store.queries
-    defacto.impl))
+    brainard.infra.store.queries))
 
-(deftype StubNav [route ^:volatile-mutable -store]
-  defacto/IInitialize
-  (init! [_ store]
-    (set! -store store)
-    (defacto/emit! -store [:whet.core/navigated route]))
+(defn ^:private store->tree [route store]
+  (doto store
+    (defacto/dispatch! [::res/submit! [::specs/notes#buzz]])
+    (defacto/dispatch! [::res/submit! [::specs/tags#select]])
+    (defacto/dispatch! [::res/submit! [::specs/contexts#select]]))
+  [pages/page (assoc route :*:store store)])
 
-  iwhet/INavigate
-  (navigate! [_ token route-params query-params]
-    (defacto/emit! -store [:whet.core/navigated {:token        token
-                                                 :route-params route-params
-                                                 :query-params query-params}]))
-  (replace! [this token route-params query-params]
-    (iwhet/navigate! this token route-params query-params)))
+(def ^:private ^:const font-awesome
+  [:link {:rel         "stylesheet"
+          :href        "https://use.fontawesome.com/releases/v5.6.3/css/all.css"
+          :integrity   "sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/"
+          :crossorigin "anonymous"
+          :type        "text/css"}])
 
-(def ^:private defacto-api
-  {:command-handler defacto/command-handler
-   :event-reducer   defacto/event-reducer
-   :query-responder defacto/query-responder})
+(def ^:private ^:const bulma
+  [:link {:rel  "stylesheet"
+          :href "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css"
+          :type "text/css"}])
 
-(defn ^:private ->Sub [atom-db query]
-  (defacto.impl/->StandardSubscription atom-db query defacto/query-responder false))
-
-(defn ^:private ->request-fn [handler apis]
-  (fn [_ params]
-    (try
-      [::res/ok (-> params (assoc :brainard/apis apis) handler :body :data)]
-      (catch Throwable ex
-        [::res/err (-> ex ex-data :body :errors)]))))
-
-(defn ^:private create-store [{:brainard/keys [apis route]}]
-  (let [nav (->StubNav route nil)
-        ctx (-> {:services/nav nav}
-                (res/with-ctx (->request-fn routes/ui-handler apis)))]
-    (doto (defacto.impl/->WatchableStore ctx (atom nil) defacto-api ->Sub)
-      (->> (defacto/init! nav))
-      (defacto/dispatch! [::res/submit! [::specs/notes#buzz]])
-      (defacto/dispatch! [::res/submit! [::specs/tags#select]])
-      (defacto/dispatch! [::res/submit! [::specs/contexts#select]]))))
 
 (defmethod iroutes/handler [:get :routes/ui]
-  [{:brainard/keys [route] :as req}]
-  (let [store (create-store req)]
+  [{::w/keys [route] :brainard/keys [apis] :as req}]
+  (let [template (-> route
+                     (w/into-template (fn [req]
+                                        (-> req
+                                            (assoc :brainard/apis apis)
+                                            routes/handler))
+                                      (partial store->tree route))
+                     (w/with-html-headers font-awesome bulma))]
     (routes.res/->response 200
-                           (->> [pages/page (assoc route :*:store store)]
-                                (routes.tmpl/render store)
-                                hiccup/html
-                                (str "<!doctype html>"))
+                           (w/render-template template)
                            {"content-type" "text/html"})))
 
 (defmethod iroutes/handler [:get :routes.resources/asset]

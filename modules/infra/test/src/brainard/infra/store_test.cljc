@@ -2,46 +2,10 @@
   (:require
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.store.core :as store]
-    [whet.navigation :as nav]
-    [whet.interfaces :as iwhet]
-    [brainard.infra.utils.routing :as rte]
-    [brainard.api.utils.uuids :as uuids]
     [clojure.test :refer [deftest is testing]]
-    [defacto.core :as defacto]
     brainard.infra.store.commands
     brainard.infra.store.events
     brainard.infra.store.queries))
-
-(deftype NavStub [^:volatile-mutable -store]
-  defacto/IInitialize
-  (init! [_ store]
-    (set! -store store))
-
-  iwhet/INavigate
-  (replace! [_ token route-params query-params]
-    (store/emit! -store [:whet.core/navigated {:token        token
-                                               :route-params route-params
-                                               :query-params query-params}])))
-
-(deftest nav-test
-  (let [nav (->NavStub nil)
-        store (store/create {:services/nav nav})]
-    (testing "when navigating"
-      (testing "navigates to a string uri"
-        (nav/navigate! nav "/some/uri")
-        (is (= {:token :routes.ui/not-found
-                :uri   "/some/uri"}
-               (select-keys (store/query store [:whet.core/?:route])
-                            #{:token :uri}))))
-
-      (testing "navigates to a route token"
-        (let [note-id (uuids/random)]
-          (nav/navigate! nav :routes.api/note {:notes/id note-id})
-          (is (= {:route-params {:notes/id note-id}
-                  :token        :routes.api/note
-                  :uri          (str "/api/notes/" note-id)}
-                 (select-keys (store/query store [:whet.core/?:route])
-                              #{:route-params :token :uri}))))))))
 
 (deftest toast-test
   (testing "when creating a toast"

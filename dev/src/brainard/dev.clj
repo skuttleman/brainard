@@ -1,10 +1,12 @@
 (ns brainard.dev
   (:require
     [brainard.api.utils.logger :as log]
+    [brainard.infra.routes.core :as routes]
     [brainard.infra.system :as sys]
     [duct.core :as duct]
     [integrant.core :as ig]
-    [nrepl.server :as nrepl]))
+    [nrepl.server :as nrepl]
+    [ring.middleware.reload :as ring.rel]))
 
 (declare system)
 
@@ -21,6 +23,11 @@
                                  (fn []
                                    (log/info "stopping nREPL server")
                                    (nrepl/stop-server nrepl-server)))))
+    (alter-var-root #'routes/handler
+                    ring.rel/wrap-reload
+                    {:dirs ["src"
+                            "modules/api/src"
+                            "modules/infra/src"]})
     (def system (sys/start! "duct.edn"))
     (duct/await-daemons system)))
 

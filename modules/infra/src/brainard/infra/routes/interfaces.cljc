@@ -1,4 +1,6 @@
-(ns brainard.infra.routes.interfaces)
+(ns brainard.infra.routes.interfaces
+  (:require
+    [whet.core :as-alias w]))
 
 (def routing-hierarchy
   (-> (make-hierarchy)
@@ -16,7 +18,7 @@
       (derive :routes.ui/note :routes/ui)
       (derive :routes.ui/not-found :routes/ui)))
 
-(defn router [{:keys [request-method] :brainard/keys [route]}]
+(defn router [{:keys [request-method] ::w/keys [route]}]
   [request-method (:token route)])
 
 (defmulti ^{:arglists '([req])} handler

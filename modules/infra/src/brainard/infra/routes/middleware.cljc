@@ -1,28 +1,14 @@
 (ns brainard.infra.routes.middleware
   (:require
-    #?(:clj
-       [ring.util.request :as ring.req])
     [brainard.infra.routes.errors :as routes.err]
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.api.utils.logger :as log]
-    [brainard.infra.utils.edn :as edn]
-    [brainard.infra.utils.routing :as rte]
     [brainard.infra.validations :as valid]
-    [clojure.string :as string]
-    [whet.navigation :as nav]))
+    [clojure.string :as string]))
 
 (defn ^:private success? [status]
   (and (integer? status)
        (<= 200 status 399)))
-
-(defn with-routing
-  "Includes routing data on the request."
-  [handler]
-  (fn [req]
-    (let [route-info (nav/match rte/all-routes
-                                (cond-> (:uri req)
-                                  (:query-string req) (str "?" (:query-string req))))]
-      (handler (assoc req :brainard/route route-info)))))
 
 (defn with-input
   "Includes route input as :brainard/input via [[iroutes/req->input]]"
@@ -77,20 +63,3 @@
             (catch Throwable ex
               (log/error ex (ex-message ex) (ex-data ex))
               (routes.err/ex->response (ex-data ex)))))))
-
-#?(:clj
-   (defn with-edn
-     "Serializes/deserializes request/response data as `edn`."
-     [handler]
-     (fn [req]
-       (let [content-type (or (ring.req/content-type req)
-                              "application/edn")
-             response (-> req
-                          (cond-> (= content-type "application/edn")
-                                  (update :body edn/read))
-                          handler)]
-         (cond-> response
-           (and (nil? (get-in response [:headers "content-type"]))
-                (some? (:body response)))
-           (-> (assoc-in [:headers "content-type"] "application/edn")
-               (update :body pr-str)))))))

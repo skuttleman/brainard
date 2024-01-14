@@ -25,7 +25,7 @@
   (r/with-let [options (map #(vector % %) contexts)
                options-by-id (into {} options)]
     [ctrls/single-dropdown (-> {:*:store       *:store
-                                :label         "Topic filter"
+                                :label         "Topic Filter"
                                 :options       options
                                 :options-by-id options-by-id}
                                (ctrls/with-attrs form+ [:notes/context]))]))
@@ -34,7 +34,7 @@
   (r/with-let [options (map #(vector % (str %)) tags)
                options-by-id (into {} options)]
     [ctrls/multi-dropdown (-> {:*:store       *:store
-                               :label         "Tag Filer"
+                               :label         "Tag Filter"
                                :options       options
                                :options-by-id options-by-id}
                               (ctrls/with-attrs form+ [:notes/tags]))]))

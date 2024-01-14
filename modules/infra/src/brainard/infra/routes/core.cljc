@@ -1,31 +1,18 @@
 (ns brainard.infra.routes.core
   (:require
-    #?@(:clj [[ring.middleware.keyword-params :as ring.kw-params]
+    #?@(:clj [[brainard.infra.utils.routing :as rte]
+              [ring.middleware.keyword-params :as ring.kw-params]
               [ring.middleware.params :as ring.params]])
-    [brainard.infra.routes.errors :as routes.err]
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.infra.routes.middleware :as mw]
     [brainard.infra.routes.response :as routes.res]
-    [brainard.infra.utils.edn :as edn]
-    [clojure.set :as set]))
-
-(defn ^:private cljs-http->ring [handler]
-  (fn [req]
-    (try
-      (let [response (-> req
-                         (set/rename-keys {:url :uri})
-                         (cond-> (string? (:body req)) (update :body edn/read-string))
-                         handler)]
-        (cond-> response
-          (string? (:body response)) (update :body edn/read-string)))
-      (catch #?(:cljs :default :default Throwable) ex
-        (routes.err/ex->response (ex-data ex))))))
+    [whet.core :as w]))
 
 (defn ^:private asset? [req]
   (re-matches #"^/(js|css|favicon).*$" (:uri req)))
 
 (defmethod iroutes/req->input :default
-  [{:brainard/keys [route] :as req}]
+  [{::w/keys [route] :as req}]
   (or (:body req)
       (merge (:route-params route)
              (:query-params route))))
@@ -43,18 +30,13 @@
   (-> iroutes/handler
       mw/with-spec-validation
       mw/with-input
-      mw/with-routing))
-
-(def ui-handler
-  "Main ui app handler"
-  (cljs-http->ring handler))
+      (w/with-base-middleware rte/all-routes)))
 
 #?(:clj
    (def be-handler
      "Handles all HTTP requests through the webserver."
-     (-> handler
+     (-> #'handler
          ring.kw-params/wrap-keyword-params
          ring.params/wrap-params
-         mw/with-edn
          mw/with-error-handling
          (mw/with-logging {:xform (remove asset?)}))))
