@@ -1,19 +1,20 @@
 (ns brainard.infra.store.commands
   (:require
     [brainard.infra.store.core :as store]
-    [brainard.infra.stubs.nav :as nav]
+    [whet.navigation :as nav]
     [clojure.core.async :as async]
-    [defacto.core :as defacto]))
+    [defacto.core :as defacto]
+    [whet.core :as w]))
 
 (defonce ^:private ->sortable-id
   (let [id (atom 0)]
     (fn []
       (swap! id inc))))
 
-(defmethod defacto/command-handler :routing/with-qp!
-  [{::defacto/keys [store] :services/keys [nav]} [_ query-params] _]
-  (let [{:keys [token route-params]} (store/query store [:routing/?:route])]
-    (nav/navigate! nav token (assoc route-params :query-params query-params))))
+(defmethod defacto/command-handler ::w/with-qp!
+  [{::defacto/keys [store] ::w/keys [nav]} [_ query-params] _]
+  (let [{:keys [token route-params]} (store/query store [::w/?:route])]
+    (nav/navigate! nav token route-params query-params)))
 
 (defmethod defacto/command-handler :modals/create!
   [_ [_ body] emit-cb]
@@ -62,14 +63,14 @@
                                         :body  body}])))
 
 (defmethod defacto/command-handler :toasts.notes/succeed!
-  [{:services/keys [nav]} [_ note] emit-cb]
+  [{::w/keys [nav]} [_ note] emit-cb]
   (let [toast-id (->sortable-id)
         body [:span.layout--align-center
               "a"
               [:button.button.is-test.is-ghost
                {:on-click (fn [_]
                             ;; TODO - why does :a not work here?
-                            (nav/navigate! nav :routes.ui/note (select-keys note #{:notes/id})))}
+                            (whet.navigation/navigate! nav :routes.ui/note (select-keys note #{:notes/id})))}
                "new note"]
               "was created"]]
     (emit-cb [:toasts/created toast-id {:state :init

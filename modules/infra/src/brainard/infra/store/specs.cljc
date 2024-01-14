@@ -7,7 +7,8 @@
     [clojure.set :as set]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
-    [defacto.resources.core :as res]))
+    [defacto.resources.core :as res]
+    [whet.navigation :as nav]))
 
 (defn ^:private with-msgs [m k params spec]
   (if-let [v (seq (concat (get spec k) (get params k) (get-in spec [:params k])))]
@@ -18,7 +19,9 @@
   ([params]
    (->req params nil))
   ([params input]
-   (let [url (some-> (:route params) (rte/path-for (:params params)))]
+   (let [{:keys [query-params] :as route-params} (:params params)
+         url (when (:route params)
+               (nav/path-for rte/all-routes (:route params) route-params query-params))]
      (-> {:params {:request-method (:method params)
                    :url            url
                    :body           (some-> (:body params) pr-str)

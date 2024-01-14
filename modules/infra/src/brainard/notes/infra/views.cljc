@@ -1,7 +1,8 @@
 (ns brainard.notes.infra.views
   (:require
     [brainard.infra.utils.routing :as rte]
-    [brainard.infra.views.components.core :as comp]))
+    [brainard.infra.views.components.core :as comp]
+    [whet.navigation :as nav]))
 
 (defn search-results [{:keys [anchor]} notes]
   (if-not (seq notes)
@@ -16,7 +17,7 @@
          [:strong.layout--no-shrink context]
          [:span.flex-grow.space--left.truncate
           body]
-         [:a.link.space--left {:href (rte/path-for :routes.ui/note {:notes/id id})}
+         [:a.link.space--left {:href (nav/path-for rte/all-routes :routes.ui/note {:notes/id id})}
           "view"]]
         [:div.flex
          [comp/tag-list {:value (take 8 tags)}]

@@ -8,7 +8,8 @@
     [brainard.infra.utils.edn :as edn]
     [brainard.infra.utils.routing :as rte]
     [brainard.infra.validations :as valid]
-    [clojure.string :as string]))
+    [clojure.string :as string]
+    [whet.navigation :as nav]))
 
 (defn ^:private success? [status]
   (and (integer? status)
@@ -18,7 +19,8 @@
   "Includes routing data on the request."
   [handler]
   (fn [req]
-    (let [route-info (rte/match (cond-> (:uri req)
+    (let [route-info (nav/match rte/all-routes
+                                (cond-> (:uri req)
                                   (:query-string req) (str "?" (:query-string req))))]
       (handler (assoc req :brainard/route route-info)))))
 

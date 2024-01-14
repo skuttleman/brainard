@@ -4,7 +4,7 @@
     [brainard.infra.routes.core :as routes]
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.infra.routes.response :as routes.res]
-    [brainard.infra.stubs.nav :as nav]
+    [whet.interfaces :as iwhet]
     [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.pages.core :as pages]
     [brainard.infra.routes.template :as routes.tmpl]
@@ -22,13 +22,15 @@
   defacto/IInitialize
   (init! [_ store]
     (set! -store store)
-    (defacto/emit! -store [:routing/navigated route]))
+    (defacto/emit! -store [:whet.core/navigated route]))
 
-  nav/INavigate
-  (-set! [_ uri]
-    (defacto/emit! -store [:routing/navigated (rte/match uri)]))
-  (-replace! [this uri]
-    (nav/-set! this uri)))
+  iwhet/INavigate
+  (navigate! [_ token route-params query-params]
+    (defacto/emit! -store [:whet.core/navigated {:token        token
+                                                 :route-params route-params
+                                                 :query-params query-params}]))
+  (replace! [this token route-params query-params]
+    (iwhet/navigate! this token route-params query-params)))
 
 (def ^:private defacto-api
   {:command-handler defacto/command-handler

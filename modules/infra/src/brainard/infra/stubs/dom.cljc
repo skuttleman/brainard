@@ -1,15 +1,10 @@
 (ns brainard.infra.stubs.dom
   "Some cljc-compatible wrappers for DOM inter-op."
   (:require
-    [brainard.infra.utils.edn :as edn]
+    [whet.dom :as wdom]
     [clojure.set :as set]))
 
-(def ^:const window
-  #?(:cljs js/window :default nil))
-
-(def ^:const env
-  #?(:cljs    {:init-db (-> window .-BRAINARD_INITIAL_DB edn/read-string)}
-     :default {}))
+(def ^:const window wdom/window)
 
 (defonce ^:private listeners (atom {}))
 
@@ -23,29 +18,15 @@
 (def ^:private code->key
   (set/map-invert key->code))
 
-(defn prevent-default! [e]
-  (doto e
-    #?(:cljs
-       (some-> .preventDefault))))
+(def ^{:arglists '([e])} prevent-default! wdom/prevent-default!)
 
-(defn stop-propagation! [e]
-  (doto e
-    #?(:cljs
-       (some-> .stopPropagation))))
+(def ^{:arglists '([e])} stop-propagation! wdom/stop-propagation!)
 
-(defn target-value [e]
-  #?(:cljs
-     (some-> e .-target .-value)))
+(def ^{:arglists '([e])} target-value wdom/target-value)
 
-(defn blur! [node]
-  (doto node
-    #?(:cljs
-       (some-> .blur))))
+(def ^{:arglists '([e])} blur! wdom/blur!)
 
-(defn focus! [node]
-  (doto node
-    #?(:cljs
-       (some-> .focus))))
+(def ^{:arglists '([e])} focus! wdom/focus!)
 
 (defn event->key [e]
   #?(:cljs

@@ -4,10 +4,6 @@
     [defacto.core :as defacto]
     [defacto.resources.core :as res]))
 
-(defmethod defacto/event-reducer :routing/navigated
-  [db [_ routing-info]]
-  (assoc db :routing/info routing-info))
-
 (defmethod defacto/event-reducer :modals/created
   [db [_ modal-id modal]]
   (update db :modals/modals assoc modal-id modal))

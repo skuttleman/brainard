@@ -2,10 +2,6 @@
   (:require
     [defacto.core :as defacto]))
 
-(defmethod defacto/query-responder :routing/?:route
-  [db _]
-  (:routing/info db))
-
 (defmethod defacto/query-responder :modals/?:modals
   [db _]
   (->> (:modals/modals db)

@@ -1,6 +1,7 @@
 (ns brainard.infra.views.pages.core
   "The core of the UI reagent layout components."
   (:require
+    [whet.core :as w]
     [brainard.infra.store.specs :as specs]
     [brainard.infra.store.core :as store]
     [brainard.infra.stubs.reagent :as r]
@@ -11,7 +12,8 @@
     brainard.infra.views.pages.buzz
     brainard.infra.views.pages.home
     brainard.infra.views.pages.note
-    brainard.infra.views.pages.search))
+    brainard.infra.views.pages.search
+    [whet.navigation :as nav]))
 
 (defmethod ipages/page :default
   [_]
@@ -28,7 +30,7 @@
 (defn ^:private navbar-item [route token & body]
   [:li
    {:class [(when (= token route) "is-active")]}
-   (into [:a.navbar-item {:href (rte/path-for route)}] body)])
+   (into [:a.navbar-item {:href (nav/path-for rte/all-routes route)}] body)])
 
 (defn ^:private navbar [{:keys [*:store token]}]
   (r/with-let [sub:buzz (store/subscribe *:store [::res/?:resource [::specs/notes#buzz]])]
@@ -59,5 +61,5 @@
    [comp/modals *:store]])
 
 (defn root [*:store]
-  (r/with-let [router (store/subscribe *:store [:routing/?:route])]
+  (r/with-let [router (store/subscribe *:store [::w/?:route])]
     [page (assoc @router :*:store *:store)]))
