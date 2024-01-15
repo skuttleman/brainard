@@ -39,7 +39,7 @@
                     1 "1 Item Selected"
                     (str selected-count " Items Selected")))]
     [comp/plain-button
-     (select-keys attrs #{:class :disabled :on-blur :on-click :ref})
+     (select-keys attrs #{:class :disabled :on-blur :on-click :ref :id})
      [:span.layout--space-after content]
      [comp/icon (if (:open? attrs) :chevron-up :chevron-down)]]))
 
