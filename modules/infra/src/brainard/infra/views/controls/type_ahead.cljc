@@ -3,9 +3,9 @@
   (:require
     [brainard.api.utils.fns :as fns]
     [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.stubs.reagent :as r]
     [brainard.infra.views.components.core :as comp]
-    [clojure.string :as string]))
+    [clojure.string :as string]
+    [whet.utils.reagent :as r]))
 
 (defn ^:private filter-matches [value items]
   (let [re (re-pattern (string/lower-case (str value)))]

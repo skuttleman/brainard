@@ -3,13 +3,13 @@
     [brainard.api.utils.dates :as dates]
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as-alias specs]
-    [brainard.infra.stubs.reagent :as r]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.controls.core :as ctrls]
     [clojure.pprint :as pp]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
-    [defacto.resources.core :as-alias res]))
+    [defacto.resources.core :as-alias res]
+    [whet.utils.reagent :as r]))
 
 (defn ^:private ^:const ->sched-create-key [note] [::forms+/valid [::specs/schedules#create (:notes/id note)]])
 

@@ -3,13 +3,13 @@
   (:require
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as specs]
-    [brainard.infra.stubs.reagent :as r]
     [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.pages.interfaces :as ipages]
     [defacto.resources.core :as res]
     [whet.core :as w]
     [whet.utils.navigation :as nav]
+    [whet.utils.reagent :as r]
     brainard.infra.views.pages.buzz
     brainard.infra.views.pages.home
     brainard.infra.views.pages.note

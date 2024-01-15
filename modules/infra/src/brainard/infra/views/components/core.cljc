@@ -1,18 +1,18 @@
 (ns brainard.infra.views.components.core
   "Reusable reagent components."
   (:require
-    [brainard.infra.store.core :as store]
-    [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.stubs.reagent :as r]
     [brainard.api.utils.colls :as colls]
     [brainard.api.utils.maps :as maps]
+    [brainard.infra.store.core :as store]
+    [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.interfaces :as icomp]
     [brainard.infra.views.components.modals :as comp.modals]
     [brainard.infra.views.components.shared :as scomp]
     [brainard.infra.views.components.toasts :as comp.toasts]
     [clojure.pprint :as pp]
     [defacto.forms.core :as forms]
-    [defacto.resources.core :as res]))
+    [defacto.resources.core :as res]
+    [whet.utils.reagent :as r]))
 
 (defn pprint [data]
   [:pre (with-out-str (pp/pprint data))])

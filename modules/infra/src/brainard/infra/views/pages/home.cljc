@@ -1,17 +1,17 @@
 (ns brainard.infra.views.pages.home
   "The home page with note creation form."
   (:require
-    [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.store.core :as store]
+    [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.stubs.reagent :as r]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.pages.interfaces :as ipages]
     [brainard.notes.infra.views :as notes.views]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
-    [defacto.resources.core :as-alias res]))
+    [defacto.resources.core :as-alias res]
+    [whet.utils.reagent :as r]))
 
 (def ^:private ^:const form-id ::forms/new-note)
 (def ^:private ^:const create-note-key [::forms+/valid [::specs/notes#create form-id]])

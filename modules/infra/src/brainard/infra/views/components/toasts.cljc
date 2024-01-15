@@ -1,8 +1,8 @@
 (ns brainard.infra.views.components.toasts
   (:require
     [brainard.infra.store.core :as store]
-    [brainard.infra.stubs.reagent :as r]
-    [clojure.core.async :as async]))
+    [clojure.core.async :as async]
+    [whet.utils.reagent :as r]))
 
 (defn ^:private level->class [level]
   (case level

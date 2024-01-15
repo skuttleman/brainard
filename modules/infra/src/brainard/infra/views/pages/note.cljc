@@ -1,17 +1,17 @@
 (ns brainard.infra.views.pages.note
   "The page for viewing a note and editing its tags."
   (:require
-    [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.store.core :as store]
+    [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.stubs.reagent :as r]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.pages.interfaces :as ipages]
     [brainard.schedules.infra.views :as sched.views]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
-    [defacto.resources.core :as-alias res]))
+    [defacto.resources.core :as-alias res]
+    [whet.utils.reagent :as r]))
 
 (def ^:private ^:const form-id ::forms/edit-note)
 (def ^:private ^:const update-note-key [::forms+/std [::specs/notes#update form-id]])
@@ -46,7 +46,7 @@
     {:disabled #?(:clj true :default false)
      :on-click (fn [_]
                  (store/emit! *:store [::forms/changed update-note-key [::editing?] true]))}
-    "edit stags"]])
+    "edit tags"]])
 
 
 (defn ^:private root* [{:keys [*:store]} [note]]

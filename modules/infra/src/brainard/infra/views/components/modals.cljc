@@ -2,9 +2,9 @@
   (:require
     [brainard.infra.store.core :as store]
     [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.stubs.reagent :as r]
     [brainard.infra.views.components.interfaces :as icomp]
-    [brainard.infra.views.components.shared :as scomp]))
+    [brainard.infra.views.components.shared :as scomp]
+    [whet.utils.reagent :as r]))
 
 (defn modal* [*:store idx {modal-id :id :as modal}]
   (letfn [(close! [_]

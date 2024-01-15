@@ -1,8 +1,8 @@
 (ns brainard.infra.store.core
   #?(:cljs (:require-macros brainard.infra.store.core))
   (:require
-    [brainard.infra.stubs.reagent :as r]
-    [defacto.core :as defacto]))
+    [defacto.core :as defacto]
+    [whet.utils.reagent :as r]))
 
 (defn create
   ([]

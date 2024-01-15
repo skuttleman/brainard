@@ -4,11 +4,10 @@
 
    [input {:on-change [:my-event]}]"
   (:require
-    [brainard.infra.store.core :as store]
-    [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.stubs.reagent :as r]
     [brainard.api.utils.fns :as fns]
     [brainard.api.utils.maps :as maps]
+    [brainard.infra.store.core :as store]
+    [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.controls.dropdown :as dd]
     [brainard.infra.views.controls.shared :as shared]
@@ -17,7 +16,8 @@
     [clojure.string :as string]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
-    [defacto.resources.core :as res]))
+    [defacto.resources.core :as res]
+    [whet.utils.reagent :as r]))
 
 (defn ^:private disabled-compat [disabled]
   #?(:clj true :default disabled))

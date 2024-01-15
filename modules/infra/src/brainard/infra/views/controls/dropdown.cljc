@@ -2,9 +2,9 @@
   "A single/multi select dropdown component."
   (:require
     [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.stubs.reagent :as r]
     [brainard.infra.views.components.core :as comp]
-    [clojure.set :as set]))
+    [clojure.set :as set]
+    [whet.utils.reagent :as r]))
 
 (defn ^:private split-selection [{:keys [options value]}]
   (let [{selected true unselected false} (group-by (partial contains? value) options)]

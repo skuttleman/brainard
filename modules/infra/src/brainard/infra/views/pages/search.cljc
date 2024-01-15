@@ -1,10 +1,9 @@
 (ns brainard.infra.views.pages.search
   "The search page."
   (:require
-    [brainard.infra.store.specs :as-alias specs]
-    [brainard.infra.store.core :as store]
-    [brainard.infra.stubs.reagent :as r]
     [brainard.api.utils.colls :as colls]
+    [brainard.infra.store.core :as store]
+    [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.pages.interfaces :as ipages]
@@ -12,7 +11,8 @@
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
     [defacto.resources.core :as res]
-    [whet.core :as-alias w]))
+    [whet.core :as-alias w]
+    [whet.utils.reagent :as r]))
 
 (def ^:private ^:const form-id ::forms/search)
 
