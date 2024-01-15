@@ -9,7 +9,7 @@
     [brainard.infra.views.pages.interfaces :as ipages]
     [defacto.resources.core :as res]
     [whet.core :as w]
-    [whet.navigation :as nav]
+    [whet.utils.navigation :as nav]
     brainard.infra.views.pages.buzz
     brainard.infra.views.pages.home
     brainard.infra.views.pages.note

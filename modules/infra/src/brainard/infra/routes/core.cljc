@@ -30,7 +30,7 @@
   (-> iroutes/handler
       mw/with-spec-validation
       mw/with-input
-      (w/with-base-middleware rte/all-routes)))
+      (w/with-middleware rte/all-routes)))
 
 #?(:clj
    (def be-handler

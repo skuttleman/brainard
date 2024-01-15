@@ -2,7 +2,7 @@
   (:require
     [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.components.core :as comp]
-    [whet.navigation :as nav]))
+    [whet.utils.navigation :as nav]))
 
 (defn search-results [{:keys [anchor]} notes]
   (if-not (seq notes)

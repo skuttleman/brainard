@@ -1,7 +1,7 @@
 (ns brainard.infra.stubs.dom
   "Some cljc-compatible wrappers for DOM inter-op."
   (:require
-    [whet.dom :as wdom]
+    [whet.utils.dom :as wdom]
     [clojure.set :as set]))
 
 (def ^:const window wdom/window)

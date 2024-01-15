@@ -6,14 +6,13 @@
     [brainard.infra.views.pages.core :as pages]
     [clojure.pprint :as pp]
     [defacto.core :as defacto]
-    [reagent.dom :as rdom]
     [whet.core :as w]))
 
 (def ^:dynamic *store*)
 
 (defmethod defacto/query-responder ::all
   [db _]
-  (select-keys db #{:defacto.forms.core/-forms}))
+  (select-keys db #{}))
 
 (defn ^:private add-dev-logger! [store]
   (doto store
@@ -32,10 +31,9 @@
   "Called when new code is compiled in the browser."
   []
   (let [db-value @*store*]
-    (rdom/render [pages/root *store*]
-                 (.getElementById js/document "root")
-                 (fn []
-                   (store/emit! *store* [::reset db-value])))))
+    (w/render [pages/root *store*]
+              (fn []
+                (store/emit! *store* [::reset db-value])))))
 
 (defn ^:private after-render [store]
   (set! *store* store)

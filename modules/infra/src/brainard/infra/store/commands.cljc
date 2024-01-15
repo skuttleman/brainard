@@ -1,7 +1,7 @@
 (ns brainard.infra.store.commands
   (:require
     [brainard.infra.store.core :as store]
-    [whet.navigation :as nav]
+    [whet.utils.navigation :as nav]
     [clojure.core.async :as async]
     [defacto.core :as defacto]
     [whet.core :as w]))

@@ -2,20 +2,12 @@
  :deps    {bidi/bidi                 {:mvn/version "2.1.6"
                                       :exclusions  [ring/ring-core]}
            brainard/api              {:local/root "../api"}
-           cljs-http/cljs-http       {:mvn/version "0.1.46"}
            datascript/datascript     {:mvn/version "1.6.1"}
            duct/core                 {:mvn/version "0.8.0"}
-           hiccup/hiccup             {:mvn/version "1.0.5"}
-           kibu/pushy                {:mvn/version "0.3.8"}
            org.immutant/immutant     {:mvn/version "2.1.10"
                                       :exclusions  [ch.qos.logback/logback-classic
                                                     org.jboss.naming/jnpserver
                                                     ring/ring-core]}
-           reagent/reagent           {:mvn/version "1.2.0"}
-           ring/ring-core            {:mvn/version "1.9.6"}
-           skuttleman/defacto-forms+ {:git/url   "https://github.com/skuttleman/defacto"
-                                      :git/sha   "0739cd80cf1f1ba8d69a6417509301afd6e6751d"
-                                      :deps/root "forms+"}
            skuttleman/whet           {:local/root "../../../whet"}}
  :aliases {:test     {:extra-paths ["test/resources" "test/src"]}
            :intellij {:extra-deps {org.clojure/clojurescript {:mvn/version "1.11.60"}}}}}

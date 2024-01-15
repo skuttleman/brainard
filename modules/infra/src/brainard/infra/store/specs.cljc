@@ -1,14 +1,12 @@
 (ns brainard.infra.store.specs
   (:require
-    [brainard.infra.utils.routing :as rte]
     [brainard.infra.validations :as valid]
     [brainard.notes.api.specs :as snotes]
     [brainard.schedules.api.specs :as ssched]
     [clojure.set :as set]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
-    [defacto.resources.core :as res]
-    [whet.navigation :as nav]))
+    [defacto.resources.core :as res]))
 
 (defn ^:private with-msgs [m k params spec]
   (if-let [v (seq (concat (get spec k) (get params k) (get-in spec [:params k])))]
@@ -18,14 +16,15 @@
 (defn ^:private ->req
   ([params]
    (->req params nil))
-  ([params input]
-   (let [{:keys [query-params] :as route-params} (:params params)
-         url (when (:route params)
-               (nav/path-for rte/all-routes (:route params) route-params query-params))]
+  ([{:keys [route] :as params} input]
+   (let [{:keys [query-params] :as route-params} (:params params)]
      (-> {:params {:request-method (:method params)
-                   :url            url
-                   :body           (some-> (:body params) pr-str)
-                   :headers        {"content-type" "application/edn"}}}
+                   :route          {:token        route
+                                    :route-params route-params
+                                    :query-params query-params}
+                   :body           (:body params)}
+          :->ok   :data
+          :->err  :errors}
          (with-msgs :pre-events params input)
          (with-msgs :pre-commands params input)
          (with-msgs :ok-events params input)

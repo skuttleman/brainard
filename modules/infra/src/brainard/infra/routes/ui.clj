@@ -33,7 +33,6 @@
           :href "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css"
           :type "text/css"}])
 
-
 (defmethod iroutes/handler [:get :routes/ui]
   [{::w/keys [route] :brainard/keys [apis] :as req}]
   (let [template (-> route
@@ -42,7 +41,7 @@
                                             (assoc :brainard/apis apis)
                                             routes/handler))
                                       (partial store->tree route))
-                     (w/with-html-headers font-awesome bulma))]
+                     (w/with-html-heads font-awesome bulma))]
     (routes.res/->response 200
                            (w/render-template template)
                            {"content-type" "text/html"})))
