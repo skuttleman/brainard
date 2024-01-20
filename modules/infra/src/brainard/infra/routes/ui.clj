@@ -36,8 +36,9 @@
 
 (defmethod iroutes/handler [:get :routes/ui]
   [{::w/keys [route] ::b/keys [apis] :as req}]
-  (let [template (-> route
-                     (w/into-template (fn [req]
+  (let [template (-> {:brainard/sys apis}
+                     (w/into-template route
+                                      (fn [req]
                                         (-> req
                                             (assoc :brainard/apis apis)
                                             routes/handler))

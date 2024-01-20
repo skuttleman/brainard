@@ -10,15 +10,15 @@
     (let [query (promise)
           timestamp #inst "2024-04-17T07:11:31.715Z"
           mock (reify
-                 isched/ISchedulesStore
+                 isched/IReadSchedules
                  (get-schedules [_ filters]
                    (deliver query filters)
                    [{:schedules/note-id 1}
                     {:schedules/note-id 2}
                     {:schedules/note-id 3}])
 
-                 inotes/INotesStore
-                 (get-notes-by-ids [_ ids]
+                 inotes/IReadNotes
+                 (get-notes [_ {:notes/keys [ids]}]
                    (map (partial hash-map :notes/id) ids)))
           results (api/relevant-notes {:schedules {:store mock} :notes {:store mock}} timestamp)]
       (testing "sends a query to the schedule store"

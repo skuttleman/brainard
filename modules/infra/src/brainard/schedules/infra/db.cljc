@@ -57,7 +57,7 @@
        (map first)))
 
 (defn create-store
-  "Creates a schedules store which implements [[isched/IScheduleStore]]"
+  "Creates a schedules store which implements the interfaces in [[isched]]."
   [this]
   (with-meta this
              {`isched/save!          #'save!

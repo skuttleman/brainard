@@ -30,6 +30,8 @@
   (api.sched/delete! (:schedules apis) schedule-id))
 
 (defn relevant-notes [apis timestamp]
-  (->> (api.sched/relevant-schedules (:schedules apis) timestamp)
-       (map :schedules/note-id)
-       (api.notes/get-notes-by-ids (:notes apis))))
+  (if-let [ids (->> (api.sched/relevant-schedules (:schedules apis) timestamp)
+                    (map :schedules/note-id)
+                    seq)]
+    (api.notes/get-notes (:notes apis) {:notes/ids ids})
+    ()))

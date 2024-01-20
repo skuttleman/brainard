@@ -13,9 +13,10 @@
       (derive :routes.resources/css :routes.resources/asset)
       (derive :routes.resources/img :routes.resources/asset)
       (derive :routes.ui/buzz :routes/ui)
-      (derive :routes.ui/home :routes/ui)
+      (derive :routes.ui/main :routes/ui)
       (derive :routes.ui/search :routes/ui)
       (derive :routes.ui/note :routes/ui)
+      (derive :routes.ui/workspace :routes/ui)
       (derive :routes.ui/not-found :routes/ui)))
 
 (defn router [{:keys [request-method] ::w/keys [route]}]

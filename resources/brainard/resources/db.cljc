@@ -1,4 +1,4 @@
-(ns brainard.db)
+(ns brainard.resources.db)
 
 (def schema
   {;; notes
@@ -55,4 +55,24 @@
 
    :schedules/week-index
    {:db/cardinality :db.cardinality/one
-    :db/doc         "The week index (i.e. first week = 0, second week = 1, etc.) when the schedule applies"}})
+    :db/doc         "The week index (i.e. first week = 0, second week = 1, etc.) when the schedule applies"}
+
+   ;; workspace
+   :workspace-nodes/id
+   {:db/cardinality :db.cardinality/one
+    :db/unique      :db.unique/identity
+    :db/doc         "the unique id of the workspace node"}
+
+   :workspace-nodes/parent-id
+   {:db/cardinality :db.cardinality/one
+    :db/doc         "the parent-id of the workspace node"}
+
+   :workspace-nodes/data
+   {:db/cardinality :db.cardinality/one
+    :db/doc         "The text of the workspace node"}
+
+   :workspace-nodes/nodes
+   {:db/cardinality :db.cardinality/many
+    :db/valueType   :db.type/ref
+    :db/isComponent true
+    :db/doc         "Child workspace nodes"}})

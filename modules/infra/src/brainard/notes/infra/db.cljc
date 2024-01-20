@@ -30,26 +30,29 @@
                    :where [_ :notes/tags ?tag]])
        (map first)))
 
-(defn ^:private notes-query [{:notes/keys [context tags]}]
-  (cond-> (conj select :where)
+(defn ^:private notes-query [{:notes/keys [context tags ids]}]
+  (cond-> select
+    (seq ids)
+    (conj '[?id ...])
+
+    :always
+    (conj :where)
+
+    (seq ids)
+    (conj '[?e :notes/id ?id])
+
     (some? context)
     (conj ['?e :notes/context context])
 
     (seq tags)
     (into (map (partial conj '[?e :notes/tags])) tags)))
 
-(defn ^:private get-notes [{:keys [ds-client]} params]
-  (let [query (notes-query params)]
-    (->> (ds/query ds-client query)
-         (map first))))
-
-(defn ^:private get-notes-by-ids [{:keys [ds-client]} note-ids]
-  (->> (ds/query ds-client
-                 (into select
-                       '[[?id ...]
-                         :where [?e :notes/id ?id]])
-                 note-ids)
-       (map first)))
+(defn ^:private get-notes [{:keys [ds-client]} {:notes/keys [ids] :as params}]
+  (let [query (notes-query params)
+        result (if (seq ids)
+                 (ds/query ds-client query ids)
+                 (ds/query ds-client query))]
+    (map first result)))
 
 (defn ^:private get-note [{:keys [ds-client]} note-id]
   (-> (ds/query ds-client
@@ -59,12 +62,11 @@
       ffirst))
 
 (defn create-store
-  "Creates a notes store which implements [[inotes/INotesStore]]."
+  "Creates a notes store which implements the interfaces in [[inotes]]."
   [this]
   (with-meta this
              {`inotes/save!            #'save!
               `inotes/get-contexts     #'get-contexts
               `inotes/get-tags         #'get-tags
               `inotes/get-notes        #'get-notes
-              `inotes/get-notes-by-ids #'get-notes-by-ids
               `inotes/get-note         #'get-note}))

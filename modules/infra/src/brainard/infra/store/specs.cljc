@@ -114,3 +114,7 @@
           :ok-commands  [[:toasts/succeed! {:message "schedule deleted"}]]
           :err-events   [[::res/destroyed [::schedules#destroy resource-id]]]
           :err-commands [[:toasts/fail!]]}))
+
+(defmethod res/->request-spec ::local
+  [[_ api :as spec] params]
+  {:params (assoc params ::api api ::spec spec)})

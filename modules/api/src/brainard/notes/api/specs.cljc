@@ -24,8 +24,10 @@
 (def query
   [:and
    [:map
+    [:notes/ids {:optional true} [:set uuid?]]
     [:notes/context {:optional true} string?]
     [:notes/tags {:optional true} [:set keyword?]]]
    [:fn {:error/message "must select at least one tag or topic"}
-    (some-fn (comp seq :notes/tags)
-             (comp some? :notes/context))]])
+    (some-fn (comp seq :notes/ids)
+             (comp some? :notes/context)
+             (comp seq :notes/tags))]])

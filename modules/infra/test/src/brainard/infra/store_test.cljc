@@ -3,10 +3,10 @@
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.store.core :as store]
     [clojure.test :refer [deftest is testing]]
+    [defacto.core :as defacto]
     brainard.infra.store.commands
     brainard.infra.store.events
-    brainard.infra.store.queries
-    [defacto.core :as defacto]))
+    brainard.infra.store.queries))
 
 (deftest toast-test
   (testing "when creating a toast"

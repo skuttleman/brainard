@@ -5,30 +5,36 @@
     #?(:clj [clojure.java.io :as io])
     [brainard.infra.utils.edn :as edn]
     [brainard.api.utils.logger :as log]
-    [brainard.db :as db]
+    [brainard.resources.db :as db]
     [datascript.core :as d]))
 
-(defn file-logger [db-name]
-  #?(:cljs {::db-name db-name}
-     :clj  (let [file-name (format "resources/.ds.%s.log" db-name)]
-             {::db-name  db-name
-              ::writer   (io/writer (io/file file-name) :append true)
-              ::lock     (Object.)
-              ::log-file file-name})))
+#?(:clj
+   (defn file-logger [db-name]
+     (let [file-name (format "resources/.ds.%s.log" db-name)]
+       {::db-name  db-name
+        ::writer   (io/writer (io/file file-name) :append true)
+        ::lock     (Object.)
+        ::log-file file-name}))
+   :cljs
+   (defn local-storage-logger [db-name]
+     {::db-name db-name
+      ::state   (volatile! [])}))
 
-(defn ^:private write! [{::keys [lock writer]} data]
-  #?(:clj
-     (locking lock
-       (.write writer (pr-str data))
-       (.append writer \newline)
-       (.flush writer))))
+(defn ^:private write! [{::keys [db-name lock state writer]} data]
+  #?(:clj  (locking lock
+             (.write writer (pr-str data))
+             (.append writer \newline)
+             (.flush writer))
+     :cljs (.setItem js/localStorage db-name (pr-str (vswap! state conj data)))))
 
 (defn ^:private load-log! [conn]
   #?(:clj  (let [{::keys [lock log-file]} (meta conn)]
              (locking lock
                (with-open [reader (io/reader (io/file log-file))]
                  (doseq [line (line-seq reader)]
-                   (d/transact (first conn) (edn/read-string line))))))))
+                   (d/transact (first conn) (edn/read-string line))))))
+     :cljs (let [{::keys [db-name state]} (meta conn)]
+             (vreset! state (edn/read-string (.getItem js/localStorage db-name))))))
 
 (defn connect!
   "Connects a client to a database."
@@ -38,10 +44,10 @@
 (defn close!
   "Closes a client's connection to a database."
   [conn]
-  #?(:clj
-     (let [{::keys [lock writer]} (meta conn)]
-       (locking lock
-         (.close writer)))))
+  #?(:clj  (let [{::keys [lock writer]} (meta conn)]
+             (locking lock
+               (.close writer)))
+     :cljs (vreset! (::state (meta conn)) [])))
 
 (defn transact!
   "Transacts an arg-map to datascript."

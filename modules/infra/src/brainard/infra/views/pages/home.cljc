@@ -57,7 +57,7 @@
                            :sub:items sub:tags}
                           (ctrls/with-attrs form+ [:notes/tags]))]])
 
-(defmethod ipages/page :routes.ui/home
+(defmethod ipages/page :routes.ui/main
   [{:keys [*:store] :as route-info}]
   (r/with-let [sub:form+ (do (store/dispatch! *:store [::forms/ensure! create-note-key new-note])
                              (store/subscribe *:store [::forms+/?:form+ create-note-key]))

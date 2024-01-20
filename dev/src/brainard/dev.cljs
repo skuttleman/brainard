@@ -2,7 +2,6 @@
   (:require
     [brainard.app :as app]
     [brainard.infra.store.core :as store]
-    [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.pages.core :as pages]
     [clojure.pprint :as pp]
     [defacto.core :as defacto]
@@ -42,4 +41,4 @@
 (defn init!
   "Called when the DOM finishes loading."
   []
-  (w/render-ui rte/all-routes (comp app/store->comp with-dev)))
+  (app/initialize-app (comp app/store->comp with-dev)))

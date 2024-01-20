@@ -9,7 +9,7 @@
     [whet.core :as w]))
 
 (defn ^:private asset? [req]
-  (re-matches #"^/(js|css|favicon).*$" (:uri req)))
+  (re-matches #"^/(js|css|img|favicon).*$" (:uri req)))
 
 (defmethod iroutes/req->input :default
   [{::w/keys [route] :as req}]
@@ -30,12 +30,12 @@
   (-> iroutes/handler
       mw/with-spec-validation
       mw/with-input
-      (w/with-middleware rte/all-routes)))
+      #?(:clj (w/with-middleware rte/all-routes))))
 
 #?(:clj
    (def be-handler
      "Handles all HTTP requests through the webserver."
-     (-> handler
+     (-> #'handler
          ring.kw-params/wrap-keyword-params
          ring.params/wrap-params
          mw/with-error-handling
