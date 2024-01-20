@@ -1,6 +1,9 @@
 {:duct.profile/base #duct/include "duct/base.edn"
- :duct.profile/test {[:brainard.test/null-logger :brainard.datascript/logger]
-                     {:db-name #ig/ref :cfg.datascript/db-name}
+ :duct.profile/test {[:brainard.test/null-logger :brainard.ds/ILogger]
+                     {:db-name #ig/ref :brainard.test/db-name}
 
-                     [:cfg.datascript/db-name :brainard.test/db-name]
+                     :brainard.test/db-name
+                     {}
+
+                     [:brainard.web/test-handler :brainard/IHandler]
                      {}}}

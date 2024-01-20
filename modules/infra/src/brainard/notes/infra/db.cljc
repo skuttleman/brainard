@@ -1,7 +1,7 @@
 (ns brainard.notes.infra.db
   (:require
-    [brainard.notes.api.interfaces :as inotes]
-    [brainard.infra.db.datascript :as ds]))
+    [brainard.infra.db.datascript :as ds]
+    [brainard.notes.api.interfaces :as inotes]))
 
 (def ^:private select
   '[:find (pull ?e [:notes/id
@@ -11,21 +11,21 @@
                     :notes/timestamp])
     :in $])
 
-(defn ^:private save! [{:keys [datascript-conn]} note]
+(defn ^:private save! [{:keys [ds-client]} note]
   (let [{note-id :notes/id retract-tags :notes/tags!remove} note]
-    (ds/transact! datascript-conn
+    (ds/transact! ds-client
                   (into [(dissoc note :notes/tags!remove)]
                         (map (partial conj [:db/retract [:notes/id note-id] :notes/tags]))
                         retract-tags))))
 
-(defn ^:private get-contexts [{:keys [datascript-conn]}]
-  (->> (ds/query datascript-conn
+(defn ^:private get-contexts [{:keys [ds-client]}]
+  (->> (ds/query ds-client
                  '[:find ?context
                    :where [_ :notes/context ?context]])
        (map first)))
 
-(defn ^:private get-tags [{:keys [datascript-conn]}]
-  (->> (ds/query datascript-conn
+(defn ^:private get-tags [{:keys [ds-client]}]
+  (->> (ds/query ds-client
                  '[:find ?tag
                    :where [_ :notes/tags ?tag]])
        (map first)))
@@ -38,21 +38,21 @@
     (seq tags)
     (into (map (partial conj '[?e :notes/tags])) tags)))
 
-(defn ^:private get-notes [{:keys [datascript-conn]} params]
+(defn ^:private get-notes [{:keys [ds-client]} params]
   (let [query (notes-query params)]
-    (->> (ds/query datascript-conn query)
+    (->> (ds/query ds-client query)
          (map first))))
 
-(defn ^:private get-notes-by-ids [{:keys [datascript-conn]} note-ids]
-  (->> (ds/query datascript-conn
+(defn ^:private get-notes-by-ids [{:keys [ds-client]} note-ids]
+  (->> (ds/query ds-client
                  (into select
                        '[[?id ...]
                          :where [?e :notes/id ?id]])
                  note-ids)
        (map first)))
 
-(defn ^:private get-note [{:keys [datascript-conn]} note-id]
-  (-> (ds/query datascript-conn
+(defn ^:private get-note [{:keys [ds-client]} note-id]
+  (-> (ds/query ds-client
                 (into select '[?note-id
                                :where [?e :notes/id ?note-id]])
                 note-id)

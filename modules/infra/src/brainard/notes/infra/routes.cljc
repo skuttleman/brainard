@@ -1,5 +1,6 @@
 (ns brainard.notes.infra.routes
   (:require
+    [brainard :as-alias b]
     [brainard.api.core :as api]
     [brainard.infra.routes.interfaces :as iroutes]
     [whet.core :as w])
@@ -8,7 +9,7 @@
        (java.util Date))))
 
 (defmethod iroutes/handler [:get :routes.api/notes?scheduled]
-  [{:brainard/keys [apis]}]
+  [{::b/keys [apis]}]
   {:status 200
    :body   {:data (api/relevant-notes apis #?(:cljs (js/Date.) :default (Date.)))}})
 
@@ -23,20 +24,20 @@
       context (assoc :notes/context context))))
 
 (defmethod iroutes/handler [:get :routes.api/notes]
-  [{:brainard/keys [apis input]}]
+  [{::b/keys [apis input]}]
   (let [results (api/get-notes apis input)]
     {:status 200
      :body   {:data results}}))
 
 
 (defmethod iroutes/handler [:post :routes.api/notes]
-  [{:brainard/keys [apis input]}]
+  [{::b/keys [apis input]}]
   {:status 201
    :body   {:data (api/create-note! apis input)}})
 
 
 (defmethod iroutes/handler [:get :routes.api/note]
-  [{:brainard/keys [apis input]}]
+  [{::b/keys [apis input]}]
   (if-let [note (api/get-note apis (:notes/id input))]
     {:status 200
      :body   {:data note}}
@@ -50,7 +51,7 @@
   (assoc body :notes/id (-> route :route-params :notes/id)))
 
 (defmethod iroutes/handler [:patch :routes.api/note]
-  [{:brainard/keys [apis input]}]
+  [{::b/keys [apis input]}]
   (if-let [note (api/update-note! apis (:notes/id input) input)]
     {:status 200
      :body   {:data note}}
@@ -60,12 +61,12 @@
 
 
 (defmethod iroutes/handler [:get :routes.api/tags]
-  [{:brainard/keys [apis]}]
+  [{::b/keys [apis]}]
   {:status 200
    :body   {:data (api/get-tags apis)}})
 
 
 (defmethod iroutes/handler [:get :routes.api/contexts]
-  [{:brainard/keys [apis]}]
+  [{::b/keys [apis]}]
   {:status 200
    :body   {:data (api/get-contexts apis)}})

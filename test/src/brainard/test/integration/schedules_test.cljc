@@ -1,13 +1,14 @@
 (ns brainard.test.integration.schedules-test
   (:require
-    [brainard.schedules.api.interfaces :as isched]
+    [brainard :as-alias b]
     [brainard.api.utils.uuids :as uuids]
+    [brainard.schedules.api.interfaces :as isched]
     [brainard.test.system :as tsys]
     [clojure.test :refer [deftest is testing]]
     brainard.infra.system))
 
 (deftest get-schedules-test
-  (tsys/with-system [{:brainard/keys [schedules-store]} nil]
+  (tsys/with-system [{::b/keys [schedules-store]} nil]
     (testing "when saving a schedule"
       (let [[s1 s2 s3 s4 s5 s6 s7] (repeatedly uuids/random)
             timestamp #inst "2023-12-09T20:31:04.197Z"

@@ -3,30 +3,34 @@
 
  :brainard/webserver
  {:apis        #ig/ref :brainard/apis
+  :handler     #ig/ref :brainard/IHandler
   :server-port #ig/ref :cfg/server-port}
 
  ;; apis
- [:brainard/apis :duct/const]
- {:notes     #ig/ref :brainard.api/notes
-  :schedules #ig/ref :brainard.api/schedules}
+ [:duct/const :brainard/apis]
+ {:notes     #ig/ref :brainard/notes-api
+  :schedules #ig/ref :brainard/schedules-api}
 
- [:brainard.api/notes :duct/const :brainard/notes-api]
- {:store #ig/ref :brainard.store/notes}
+ [:duct/const :brainard/notes-api]
+ {:store #ig/ref :brainard.stores/notes}
 
- [:brainard.api/schedules :duct/const :brainard/schedules-api]
- {:store #ig/ref :brainard.store/schedules}
+ [:duct/const :brainard/schedules-api]
+ {:store #ig/ref :brainard.stores/schedules}
 
  ;; stores
- [:brainard.store/notes :brainard/notes-store]
- {:datascript-conn #ig/ref :brainard.datascript/conn}
+ [:brainard.stores/notes :brainard/notes-store]
+ {:ds-client #ig/ref :brainard.ds/client}
 
- [:brainard.store/schedules :brainard/schedules-store]
- {:datascript-conn #ig/ref :brainard.datascript/conn}
+ [:brainard.stores/schedules :brainard/schedules-store]
+ {:ds-client #ig/ref :brainard.ds/client}
 
  ;; infra
- [:brainard.datascript/conn :brainard/datascript-conn]
- {:logger #ig/ref :brainard.datascript/logger}
+ :brainard.ds/client
+ {:logger #ig/ref :brainard.ds/ILogger}
 
  ;; env
  [:cfg/server-port :duct/const]
- #duct/env ["SERVER_PORT" Int :or 1165]}
+ #duct/env ["SERVER_PORT" Int :or 1165]
+
+ [:cfg.ds/db-name :duct/const]
+ #duct/env ["DATASCRIPT_DB_NAME" :or "brainard"]}

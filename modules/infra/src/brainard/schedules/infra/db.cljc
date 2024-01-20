@@ -14,13 +14,13 @@
                     :schedules/week-index])
     :in $])
 
-(defn ^:private save! [{:keys [datascript-conn]} schedule]
-  (ds/transact! datascript-conn [schedule]))
+(defn ^:private save! [{:keys [ds-client]} schedule]
+  (ds/transact! ds-client [schedule]))
 
-(defn ^:private delete! [{:keys [datascript-conn]} schedule-id]
-  (ds/transact! datascript-conn [[:db/retractEntity [:schedules/id schedule-id]]]))
+(defn ^:private delete! [{:keys [ds-client]} schedule-id]
+  (ds/transact! ds-client [[:db/retractEntity [:schedules/id schedule-id]]]))
 
-(defn ^:private get-schedules [{:keys [datascript-conn]} filters]
+(defn ^:private get-schedules [{:keys [ds-client]} filters]
   (let [{:schedules/keys [after-timestamp before-timestamp day month week-index weekday]} filters
         query (into select
                     '[?weekday ?month ?day ?week-idx ?after ?before
@@ -38,7 +38,7 @@
                       [(<= ?ats ?after)]
                       [(get-else $ ?e :schedules/before-timestamp ?before) ?bts]
                       [(>= ?bts ?before)]])]
-    (map first (ds/query datascript-conn
+    (map first (ds/query ds-client
                          query
                          weekday
                          month
@@ -47,8 +47,8 @@
                          after-timestamp
                          before-timestamp))))
 
-(defn ^:private get-by-note-id [{:keys [datascript-conn]} note-id]
-  (->> (ds/query datascript-conn
+(defn ^:private get-by-note-id [{:keys [ds-client]} note-id]
+  (->> (ds/query ds-client
                  (into select
                        '[?note-id
                          :where

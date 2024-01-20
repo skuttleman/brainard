@@ -2,6 +2,7 @@
   (:require
     [brainard.api.utils.uuids :as uuids]
     [brainard.infra.db.datascript :as-alias ds]
+    [brainard.infra.routes.core :as routes]
     [duct.core :as duct]
     [integrant.core :as ig])
   (:import
@@ -11,12 +12,16 @@
   [_ {:keys [db-name]}]
   {::ds/db-name  db-name
    ::ds/log-file "/dev/null"
-   ::ds/writer   NullWriter/NULL_WRITER
+   ::ds/writer   NullWriter/INSTANCE
    ::ds/lock     (Object.)})
 
 (defmethod ig/init-key :brainard.test/db-name
   [_ _]
   (str (uuids/random)))
+
+(defmethod ig/init-key :brainard.web/test-handler
+  [_ _]
+  routes/be-handler)
 
 (defmacro with-system [[sys-binding opts] & body]
   (let [sys (gensym)

@@ -5,12 +5,12 @@
     #?(:clj [clojure.java.io :as io])
     [brainard.infra.utils.edn :as edn]
     [brainard.api.utils.logger :as log]
-    [brainard.infra.db.config :as cfg]
+    [brainard.db :as db]
     [datascript.core :as d]))
 
 (defn file-logger [db-name]
   #?(:cljs {::db-name db-name}
-     :clj  (let [file-name (format "resources/private/.ds.%s.log" db-name)]
+     :clj  (let [file-name (format "resources/.ds.%s.log" db-name)]
              {::db-name  db-name
               ::writer   (io/writer (io/file file-name) :append true)
               ::lock     (Object.)
@@ -33,7 +33,7 @@
 (defn connect!
   "Connects a client to a database."
   [logger]
-  (with-meta [(d/create-conn cfg/schema)] logger))
+  (with-meta [(d/create-conn db/schema)] logger))
 
 (defn close!
   "Closes a client's connection to a database."

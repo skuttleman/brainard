@@ -1,5 +1,6 @@
 (ns brainard.test.integration.core-test
   (:require
+    [brainard :as-alias b]
     [brainard.api.utils.uuids :as uuids]
     [brainard.test.http :as thttp]
     [brainard.test.system :as tsys]
@@ -7,7 +8,7 @@
     brainard.infra.system))
 
 (deftest notes-integration-test
-  (tsys/with-system [{:brainard/keys [apis]} nil]
+  (tsys/with-system [{::b/keys [apis]} nil]
     (letfn [(http [request]
               (thttp/request request apis))]
       (testing "when creating a note"

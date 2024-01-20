@@ -1,4 +1,4 @@
-(ns brainard.infra.db.config)
+(ns brainard.db)
 
 (def schema
   {;; notes

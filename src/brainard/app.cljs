@@ -11,15 +11,14 @@
     brainard.infra.store.events
     brainard.infra.store.queries))
 
-(defn on-rendered
-  "call after the reagent app is rendered"
-  [store]
+(defn ^:private store->comp [store]
   (async/go
     (async/<! (async/timeout 15000))
-    (defacto/dispatch! store [::res/poll! 15000 [::specs/notes#buzz]])))
+    (defacto/dispatch! store [::res/poll! 15000 [::specs/notes#buzz]]))
+  [pages/root store])
 
 (defn ^:export init!
   "Called when the DOM finishes loading."
   []
   (enable-console-print!)
-  (w/render-ui rte/all-routes pages/root on-rendered))
+  (w/render-ui rte/all-routes store->comp))

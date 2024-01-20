@@ -23,14 +23,15 @@
                                  (fn []
                                    (log/info "stopping nREPL server")
                                    (nrepl/stop-server nrepl-server)))))
-    (alter-var-root #'routes/handler
-                    ring.rel/wrap-reload
-                    {:dirs ["src"
-                            "modules/api/src"
-                            "modules/infra/src"]})
-    (def system (sys/start! "duct.edn"))
+    (def system (sys/start! "duct/dev.edn"))
     (duct/await-daemons system)))
 
+(defmethod ig/init-key :brainard.web/dev-handler
+  [_ _]
+  (ring.rel/wrap-reload #'routes/handler {:dirs ["src"
+                                                 "modules/api/src"
+                                                 "modules/infra/src"]}))
+
 (comment
-  (def system (sys/start! "duct.edn"))
+  (def system (sys/start! "duct/dev.edn"))
   (ig/halt! system))

@@ -15,13 +15,13 @@
   (select-keys db #{}))
 
 (defn ^:private add-dev-logger! [store]
-  (doto store
-    (-> (defacto/subscribe [::all])
-        (add-watch (gensym)
-                   (fn [_ _ _ db]
-                     (when (seq db)
-                       (print "NEW DB ")
-                       (pp/pprint db)))))))
+  (-> store
+      (defacto/subscribe [::all])
+      (add-watch (gensym)
+                 (fn [_ _ _ db]
+                   (when (seq db)
+                     (print "NEW DB ")
+                     (pp/pprint db))))))
 
 (defmethod defacto/event-reducer ::reset
   [_ [_ new-db]]
@@ -35,12 +35,11 @@
               (fn []
                 (store/emit! *store* [::reset db-value])))))
 
-(defn ^:private after-render [store]
+(defn ^:private with-dev [store]
   (set! *store* store)
-  (add-dev-logger! store)
-  (app/on-rendered store))
+  (doto store add-dev-logger!))
 
 (defn init!
   "Called when the DOM finishes loading."
   []
-  (w/render-ui rte/all-routes pages/root after-render))
+  (w/render-ui rte/all-routes (comp app/store->comp with-dev)))

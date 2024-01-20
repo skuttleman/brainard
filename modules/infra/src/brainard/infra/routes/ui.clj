@@ -1,5 +1,6 @@
 (ns brainard.infra.routes.ui
   (:require
+    [brainard :as-alias b]
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.routes.core :as routes]
     [brainard.infra.routes.interfaces :as iroutes]
@@ -34,7 +35,7 @@
           :type "text/css"}])
 
 (defmethod iroutes/handler [:get :routes/ui]
-  [{::w/keys [route] :brainard/keys [apis] :as req}]
+  [{::w/keys [route] ::b/keys [apis] :as req}]
   (let [template (-> route
                      (w/into-template (fn [req]
                                         (-> req

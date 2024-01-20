@@ -5,11 +5,12 @@
     [clojure.test :refer [deftest is testing]]
     brainard.infra.store.commands
     brainard.infra.store.events
-    brainard.infra.store.queries))
+    brainard.infra.store.queries
+    [defacto.core :as defacto]))
 
 (deftest toast-test
   (testing "when creating a toast"
-    (let [store (store/create)]
+    (let [store (defacto/create {} {})]
       (store/dispatch! store [:toasts/create! :success [:div "toast body"]])
       (testing "and when querying the db"
         (let [{toast-id :id} (first (store/query store [:toasts/?:toasts]))

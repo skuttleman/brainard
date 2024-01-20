@@ -35,7 +35,7 @@
 #?(:clj
    (def be-handler
      "Handles all HTTP requests through the webserver."
-     (-> #'handler
+     (-> handler
          ring.kw-params/wrap-keyword-params
          ring.params/wrap-params
          mw/with-error-handling
