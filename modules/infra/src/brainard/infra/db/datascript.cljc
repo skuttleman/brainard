@@ -34,7 +34,7 @@
                  (doseq [line (line-seq reader)]
                    (d/transact (first conn) (edn/read-string line))))))
      :cljs (let [{::keys [db-name state]} (meta conn)]
-             (vreset! state (edn/read-string (.getItem js/localStorage db-name))))))
+             (vreset! state (or (edn/read-string (.getItem js/localStorage db-name)) [])))))
 
 (defn connect!
   "Connects a client to a database."

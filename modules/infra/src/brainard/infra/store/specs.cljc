@@ -6,7 +6,8 @@
     [clojure.set :as set]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
-    [defacto.resources.core :as res]))
+    [defacto.resources.core :as res]
+    [whet.core :as w]))
 
 (defn ^:private with-msgs [m k params spec]
   (if-let [v (seq (concat (get spec k) (get params k) (get-in spec [:params k])))]
@@ -116,5 +117,5 @@
           :err-commands [[:toasts/fail!]]}))
 
 (defmethod res/->request-spec ::local
-  [[_ api :as spec] params]
-  {:params (assoc params ::api api ::spec spec)})
+  [spec params]
+  {:params (assoc params ::w/type spec ::spec spec)})
