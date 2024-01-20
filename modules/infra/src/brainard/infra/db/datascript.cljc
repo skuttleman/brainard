@@ -28,13 +28,17 @@
      :cljs (.setItem js/localStorage db-name (pr-str (vswap! state conj data)))))
 
 (defn ^:private load-log! [conn]
-  #?(:clj  (let [{::keys [lock log-file]} (meta conn)]
-             (locking lock
-               (with-open [reader (io/reader (io/file log-file))]
-                 (doseq [line (line-seq reader)]
-                   (d/transact (first conn) (edn/read-string line))))))
-     :cljs (let [{::keys [db-name state]} (meta conn)]
-             (vreset! state (or (edn/read-string (.getItem js/localStorage db-name)) [])))))
+  (let [logger (meta conn)
+        conn (first conn)]
+    #?(:clj  (let [{::keys [lock log-file]} logger]
+               (locking lock
+                 (with-open [reader (io/reader (io/file log-file))]
+                   (doseq [line (line-seq reader)]
+                     (d/transact conn (edn/read-string line))))))
+       :cljs (let [{::keys [db-name state]} logger]
+               (->> (or (edn/read-string (.getItem js/localStorage db-name)) [])
+                    (vreset! state)
+                    (run! (partial d/transact! conn)))))))
 
 (defn connect!
   "Connects a client to a database."

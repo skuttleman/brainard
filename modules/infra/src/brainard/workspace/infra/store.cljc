@@ -1,6 +1,7 @@
 (ns brainard.workspace.infra.store
   (:require
     [brainard.infra.store.specs :as-alias specs]
+    [brainard.resources.system :as-alias res.sys]
     [brainard.workspace.api.core :as api.work]
     [clojure.core.async :as async]
     [defacto.forms.core :as forms]
@@ -32,6 +33,6 @@
       (catch #?(:cljs :default :default Throwable) ex
         [::res/err (ex-data ex)]))))
 
-(defmethod ig/init-key :duct/const
+(defmethod ig/init-key ::res.sys/const
   [_ cfg]
   cfg)

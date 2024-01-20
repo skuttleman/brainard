@@ -118,4 +118,4 @@
 
 (defmethod res/->request-spec ::local
   [spec params]
-  {:params (assoc params ::w/type spec ::spec spec)})
+  (assoc params :params (assoc params ::w/type spec ::spec spec)))

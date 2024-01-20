@@ -10,20 +10,51 @@
     [defacto.resources.core :as-alias res]
     [whet.utils.reagent :as r]))
 
+(declare tree-list)
+
+(defn ^:private ->form-id [node-id]
+  [::forms+/std [::specs/local ::specs/workspace#create! node-id]])
+
+(defn ^:private new-node-form [*:store node-id]
+  (r/with-let [form-id (->form-id node-id)
+               sub:form+ (do (store/dispatch! *:store [::forms/ensure! form-id
+                                                       (when node-id {:workspace-nodes/parent-id node-id})])
+                             (store/subscribe *:store [::forms+/?:form+ form-id]))]
+    (let [form+ @sub:form+]
+      [ctrls/form {:*:store      *:store
+                   :form+        form+
+                   :params       {:ok-commands [[::res/submit! [::specs/local ::specs/workspace#fetch]]]}
+                   :resource-key form-id}
+       [ctrls/input (-> {:label   "Data"
+                         :class   ["inline"]
+                         :*:store *:store}
+                        (ctrls/with-attrs form+ [:workspace-nodes/data]))]])
+    (finally
+      (store/emit! *:store [::forms/destroyed form-id]))))
+
+(defn ^:private tree-node [*:store {:workspace-nodes/keys [id data nodes]}]
+  [:div {:style {:margin-left "8px"}}
+   [:p data]
+   [tree-list *:store nodes]
+   [new-node-form *:store id]])
+
+(defn ^:private tree-list [*:store nodes]
+  (when (seq nodes)
+    [:ul.layout--stack-between
+     (for [node (sort-by :workspace-nodes/id nodes)]
+       ^{:key (:workspace-nodes/id node)}
+       [:li [tree-node *:store node]])]))
+
+(defn ^:private root [*:store [root-nodes]]
+  [:div
+   [:h2.subtitle "Welcome to your workspace"]
+   [tree-list *:store root-nodes]
+   [new-node-form *:store nil]])
+
 (defmethod ipages/page :routes.ui/workspace
   [{:keys [*:store]}]
   (r/with-let [sub:data (do #?(:cljs (store/dispatch! *:store [::res/submit! [::specs/local ::specs/workspace#fetch]]))
-                            (store/subscribe *:store [::res/?:resource [::specs/local ::specs/workspace#fetch]]))
-               sub:form+ (do (store/dispatch! *:store [::forms/ensure! [::forms+/std [::specs/local ::specs/workspace#create!]]])
-                             (store/subscribe *:store [::forms+/?:form+ [::forms+/std [::specs/local ::specs/workspace#create!]]]))]
-    (let [form+ @sub:form+]
-      [:div "welcome to the workspace"
-       [comp/pprint @sub:data]
-       [ctrls/form {:*:store      *:store
-                    :form+        form+
-                    :resource-key [::forms+/std [::specs/local ::specs/workspace#create!]]}
-        [ctrls/input (-> {:label   "Data"
-                          :*:store *:store}
-                         (ctrls/with-attrs form+ [:workspace-nodes/data]))]]])
+                            (store/subscribe *:store [::res/?:resource [::specs/local ::specs/workspace#fetch]]))]
+    [comp/with-resources [sub:data] [root *:store]]
     (finally
-      (store/emit! *:store [::forms/destroyed [::forms+/std [::specs/local ::specs/workspace#create!]]]))))
+      (store/emit! *:store [::res/destroyed [::specs/local ::specs/workspace#fetch]]))))

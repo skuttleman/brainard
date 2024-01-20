@@ -3,17 +3,17 @@
     [integrant.core :as ig]))
 
 (def config
-  {[:duct/const :brainard/apis]
+  {[::const :brainard/apis]
    {:notes     (ig/ref :brainard/notes-api)
     :schedules (ig/ref :brainard/schedules-api)}
 
-   [:duct/const :brainard/notes-api]
+   [::const :brainard/notes-api]
    {:store (ig/ref :brainard.stores/notes)}
 
-   [:duct/const :brainard/schedules-api]
+   [::const :brainard/schedules-api]
    {:store (ig/ref :brainard.stores/schedules)}
 
-   [:duct/const :brainard/workspace-api]
+   [::const :brainard/workspace-api]
    {:store (ig/ref :brainard.stores/workspace)}
 
    ;; stores
