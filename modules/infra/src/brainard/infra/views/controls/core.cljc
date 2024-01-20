@@ -51,11 +51,12 @@
         (->> (conj [component]))
         (into args))))
 
-(defn ^:private form-field-label [{:keys [id label label-small?]}]
+(defn ^:private form-field-label [{:keys [id inline? label label-small?]}]
   (when label
     [:label.label
      (cond-> {:html-for id}
-       label-small? (assoc :class ["small"]))
+       label-small? (assoc :class ["small"])
+       inline? (assoc-in [:style :margin-right] "8px"))
      label]))
 
 (defn ^:private form-field-meta-list
@@ -71,13 +72,15 @@
         [:li {:class [(name type)]}
          item])])))
 
-(defn ^:private form-field [{:keys [changed? errors form-field-class warnings] :as attrs} & body]
+(defn ^:private form-field [{:keys [changed? errors form-field-class inline? warnings] :as attrs} & body]
   (let [errors (seq (remove nil? errors))]
     [:div.form-field
-     {:class (into [(when errors "errors")
-                    (when warnings "warnings")
-                    (when changed? "is-changed")]
-                   form-field-class)}
+     (cond-> {:class (cond-> (into [] form-field-class)
+                       errors (conj "errors")
+                       warnings (conj "warnings")
+                       changed? (conj "is-changed")
+                       inline? (conj "flex" "row"))}
+       inline? (assoc :style {:align-items :center}))
      [:<>
       [form-field-label attrs]
       (into [:div.form-field-control] body)]
@@ -206,7 +209,7 @@
     buttons
     (into buttons)))
 
-(defn plain-form [{:keys [disabled form+ horizontal?] :as attrs} & fields]
+(defn plain-form [{:keys [disabled form+ inline-buttons? horizontal?] :as attrs} & fields]
   (let [changed? (forms/changed? form+)
         errors (when (res/error? form+)
                  (res/payload form+))
@@ -215,23 +218,28 @@
                       local-errors)
         requesting? (res/requesting? form+)
         init? (res/init? form+)
-        any-errors? (and errors (not init?))]
+        any-errors? (and errors (not init?))
+        button-attrs (assoc attrs
+                            :attempted? (and (not init?) (not changed?) errors)
+                            :disabled (or disabled requesting?)
+                            :requesting? requesting?)
+        form-attrs (-> (select-keys attrs #{:class :style :on-submit})
+                       (update :on-submit comp dom/prevent-default!)
+                       (cond->
+                         any-errors? (update :class conj "errors")
+                         changed? (update :class conj "is-changed")))]
     [:form.form
-     (-> (select-keys attrs #{:class :style :on-submit})
-         (update :on-submit comp dom/prevent-default!)
-         (cond->
-           any-errors? (update :class conj "errors")
-           changed? (update :class conj "is-changed")))
-     (into [:div {:class [(if horizontal?
-                            "layout--space-between"
-                            "layout--stack-between")]}]
-           fields)
+     form-attrs
+     (cond-> (into [:div {:class [(cond
+                                    inline-buttons? "layout--room-between"
+                                    horizontal? "layout--space-between"
+                                    :else "layout--stack-between")]}]
+                   fields)
+       inline-buttons? (conj [form-button-row button-attrs]))
      (when (and form-errors (not init?))
        [form-field-meta-list :error form-errors true])
-     [form-button-row (assoc attrs
-                             :attempted? (and (not init?) (not changed?) errors)
-                             :disabled (or disabled requesting?)
-                             :requesting? requesting?)]]))
+     (when-not inline-buttons?
+       [form-button-row button-attrs])]))
 
 (defn form [{:keys [*:store params resource-key] :as attrs} & fields]
   (into [plain-form (assoc attrs

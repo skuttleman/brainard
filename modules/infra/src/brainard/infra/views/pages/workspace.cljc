@@ -21,12 +21,13 @@
                                                        (when node-id {:workspace-nodes/parent-id node-id})])
                              (store/subscribe *:store [::forms+/?:form+ form-id]))]
     (let [form+ @sub:form+]
-      [ctrls/form {:*:store      *:store
-                   :form+        form+
-                   :params       {:ok-commands [[::res/submit! [::specs/local ::specs/workspace#fetch]]]}
-                   :resource-key form-id}
+      [ctrls/form {:*:store         *:store
+                   :inline-buttons? true
+                   :form+           form+
+                   :params          {:ok-commands [[::res/submit! [::specs/local ::specs/workspace#fetch]]]}
+                   :resource-key    form-id}
        [ctrls/input (-> {:label   "Data"
-                         :class   ["inline"]
+                         :inline? true
                          :*:store *:store}
                         (ctrls/with-attrs form+ [:workspace-nodes/data]))]])
     (finally
