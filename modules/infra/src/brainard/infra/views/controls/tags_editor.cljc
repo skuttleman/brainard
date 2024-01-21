@@ -9,6 +9,7 @@
     [brainard.infra.views.controls.type-ahead :as type-ahead]
     [clojure.string :as string]
     [defacto.forms.core :as forms]
+    [defacto.forms.plus :as forms+]
     [whet.utils.reagent :as r]))
 
 (def ^:private ^:const tag-re #"([a-z][a-z0-9-\.]*/)?[a-z][a-z0-9-]*")
@@ -34,12 +35,12 @@
   (r/with-let [sub:form (do (store/emit! *:store [::forms/created form-id])
                             (store/subscribe *:store [::forms/?:form form-id]))
                on-change (->update-form *:store form-id)]
-    (let [form @sub:form
-          form-data (forms/data form)]
+    (let [form+ (forms+/->form+ @sub:form @(:sub:items attrs))
+          form-data (forms/data form+)]
       [:div.tags-editor
        [:div.field.has-addons
         [type-ahead/control (-> attrs
-                                (shared/with-attrs (merge form @(:sub:items attrs)) [:value])
+                                (shared/with-attrs form+ [:value])
                                 (assoc :placeholder "Add tag..."
                                        :on-change on-change))]
         [:button.button.is-link {:tab-index -1

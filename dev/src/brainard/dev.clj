@@ -32,6 +32,7 @@
   (ring.rel/wrap-reload #'routes/be-handler {:dirs ["src"
                                                     "modules/api/src"
                                                     "modules/infra/src"
+                                                    "../defacto"
                                                     "../whet"
                                                     "dev"]}))
 

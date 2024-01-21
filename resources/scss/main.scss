@@ -113,3 +113,14 @@ textarea {
     border-radius: 4px;
     background-color: rgba(220, 220, 255, 0.25);
 }
+
+.tree-list {
+    li:not(:first-child) {
+        margin-top: 12px;
+        &:last-child {
+            margin-bottom: -8px;
+        }
+    }
+
+    margin-bottom: 8px;
+}

@@ -13,7 +13,6 @@
   (->> (ds/query ds-client
                  '[:find (pull ?e [:workspace-nodes/id
                                    :workspace-nodes/parent-id
-                                   :workspace-nodes/relative-order
                                    :workspace-nodes/data
                                    :workspace-nodes/nodes])
                    :where
@@ -25,7 +24,6 @@
   (->> (ds/query ds-client
                  '[:find (pull ?e [:workspace-nodes/id
                                    :workspace-nodes/parent-id
-                                   :workspace-nodes/relative-order
                                    :workspace-nodes/data
                                    :workspace-nodes/nodes])
                    :in $ ?id
