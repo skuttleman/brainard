@@ -29,11 +29,11 @@
 
 (defmethod ig/init-key :brainard.web/dev-handler
   [_ _]
-  (ring.rel/wrap-reload #'routes/be-handler {:dirs ["src"
+  (ring.rel/wrap-reload #'routes/be-handler {:dirs ["../defacto"
+                                                    "../whet"
+                                                    "src"
                                                     "modules/api/src"
                                                     "modules/infra/src"
-                                                    "../defacto"
-                                                    "../whet"
                                                     "dev"]}))
 
 (comment

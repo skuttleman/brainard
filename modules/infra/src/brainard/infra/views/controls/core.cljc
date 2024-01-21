@@ -9,6 +9,7 @@
     [brainard.infra.store.core :as store]
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.core :as comp]
+    [brainard.infra.views.components.shared :as scomp]
     [brainard.infra.views.controls.dropdown :as dd]
     [brainard.infra.views.controls.shared :as shared]
     [brainard.infra.views.controls.tags-editor :as tags-editor]
@@ -89,13 +90,14 @@
 
 (def ^{:arglists '([attrs])} input
   (with-id
-    (with-emit-on-change
-      (with-trim-blur
-        (with-disabled-compat
-          (fn [attrs]
-            [form-field
-             attrs
-             [comp/plain-input attrs]]))))))
+    (scomp/with-auto-focus
+      (with-emit-on-change
+        (with-trim-blur
+          (with-disabled-compat
+            (fn [attrs]
+              [form-field
+               attrs
+               [comp/plain-input attrs]])))))))
 
 (defn ^:private to-iso [date]
   #?(:cljs (letfn [(pad [num]
@@ -108,29 +110,31 @@
 
 (def ^{:arglists '([attrs])} datetime
   (with-id
-    (with-emit-on-change
-      (with-disabled-compat
-        (fn [attrs]
-          (let [attrs' (-> attrs
-                           (assoc :type :datetime-local)
-                           #?@(:cljs [(maps/update-when :value to-iso)
-                                      (update :on-change comp #(some-> % not-empty js/Date.))]))]
-            [form-field
-             attrs
-             [comp/plain-input attrs']]))))))
+    (scomp/with-auto-focus
+      (with-emit-on-change
+        (with-disabled-compat
+          (fn [attrs]
+            (let [attrs' (-> attrs
+                             (assoc :type :datetime-local)
+                             #?@(:cljs [(maps/update-when :value to-iso)
+                                        (update :on-change comp #(some-> % not-empty js/Date.))]))]
+              [form-field
+               attrs
+               [comp/plain-input attrs']])))))))
 
 (def ^{:arglists '([attrs])} textarea
   (with-id
-    (with-emit-on-change
-      (with-trim-blur
-        (with-disabled-compat
-          (fn [{:keys [on-change value] :as attrs}]
-            [form-field
-             attrs
-             [:textarea.textarea
-              (-> {:value     value
-                   :on-change (comp on-change dom/target-value)}
-                  (merge (select-keys attrs #{:class :disabled :id :on-blur :ref})))]]))))))
+    (scomp/with-auto-focus
+      (with-emit-on-change
+        (with-trim-blur
+          (with-disabled-compat
+            (fn [{:keys [on-change value] :as attrs}]
+              [form-field
+               attrs
+               [:textarea.textarea
+                (-> {:value     value
+                     :on-change (comp on-change dom/target-value)}
+                    (merge (select-keys attrs #{:class :disabled :id :on-blur :ref})))]])))))))
 
 (def ^{:arglists '([attrs options])} select
   (with-id

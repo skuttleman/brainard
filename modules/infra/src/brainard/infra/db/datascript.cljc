@@ -59,7 +59,7 @@
   (log/with-duration [{:keys [duration]} (doto conn
                                            (-> meta (write! tx))
                                            (-> first (d/transact! tx)))]
-    (log/debug "datascript transaction:" (str "[" duration "ms]"))))
+    #?(:clj (log/debug "datascript transaction:" (str "[" duration "ms]")))))
 
 (defn query
   "Executes a datalog query on the current database value."
@@ -70,4 +70,4 @@
   "Initializes the in-memory datascript store with previously transacted data."
   [conn]
   (log/with-duration [{:keys [duration]} (doto conn load-log!)]
-    (log/info "datascript initialization:" (str "[" duration "ms]"))))
+    #?(:clj (log/info "datascript initialization:" (str "[" duration "ms]")))))

@@ -23,7 +23,13 @@
 
 (defmethod connect-api ::specs/workspace#create!
   [params sys]
-  (with-api sys :brainard/workspace-api api.work/create! (::forms/data params)))
+  (with-api sys :brainard/workspace-api api.work/create! (::forms/data params))
+  nil)
+
+(defmethod connect-api ::specs/workspace#delete!
+  [params sys]
+  (with-api sys :brainard/workspace-api api.work/remove! (:workspace-nodes/id params))
+  nil)
 
 (defmethod iwhet/handle-request ::specs/local
   [_ {:brainard/keys [sys]} params]

@@ -122,5 +122,15 @@ textarea {
         }
     }
 
+    .button.form-toggle {
+        &.focus, &.is-focus, &:focus {
+            background-color: #f9f9f9;
+        }
+    }
+
     margin-bottom: 8px;
+}
+
+.fas.is-danger {
+    color: $red;
 }

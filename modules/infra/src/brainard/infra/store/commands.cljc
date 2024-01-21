@@ -67,7 +67,7 @@
   (let [toast-id (->sortable-id)
         body [:span.layout--align-center
               "a"
-              [:button.button.is-test.is-ghost
+              [:button.button.is-ghost
                {:on-click (fn [_]
                             ;; TODO - why does :a not work here?
                             (nav/navigate! nav :routes.ui/note (select-keys note #{:notes/id})))}

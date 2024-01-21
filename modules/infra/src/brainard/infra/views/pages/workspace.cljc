@@ -33,7 +33,9 @@
       [ctrls/plain-form {:form+           form+
                          :inline-buttons? true
                          :on-submit       on-submit}
-       [ctrls/input (ctrls/with-attrs {:*:store *:store} form+ [:workspace-nodes/data])]])
+       [ctrls/input (-> {:*:store     *:store
+                         :auto-focus? true}
+                        (ctrls/with-attrs form+ [:workspace-nodes/data]))]])
     (finally
       (store/emit! *:store [::forms+/recreated form-id]))))
 
@@ -44,18 +46,28 @@
       [:div.flex.layout--room-between
        {:style (when-not open? {:margin-top    "-2px"
                                 :margin-bottom "-16px"})}
-       [comp/plain-toggle {:class     ["is-white" "is-small"]
-                           :value     open?
-                           :on-change on-change}]
+       [comp/plain-toggle {:class     ["form-toggle" "is-white" "is-small"]
+                           :on-change on-change
+                           :value     open?}]
        (when open?
          ^{:key (or node-id "new")}
          [new-node-form *:store on-change node-id])])))
 
-(defn ^:private tree-node [*:store {:workspace-nodes/keys [id data nodes]}]
-  [:div (cond-> {:style {:margin-left "8px"}}
-          (empty? nodes) (assoc :class ["flex" "row"]))
-   [:p data]
-   [tree-list *:store nodes id]])
+(defn ^:private tree-node [*:store {:workspace-nodes/keys [id data nodes] :as node}]
+  (let [modal [:modals/sure?
+               {:description  "Delete this sub tree?"
+                :yes-commands [[::res/submit! [::specs/local ::specs/workspace#delete!]
+                                (assoc node
+                                       :ok-commands [[::res/submit! [::specs/local ::specs/workspace#fetch]]])]]}]]
+    [:div (cond-> {:style {:margin-left "8px"}}
+            (empty? nodes) (assoc :class ["flex" "row"]))
+     [:div.flex.row
+      [:p data]
+      [comp/plain-button {:class    ["is-white" "is-small"]
+                          :on-click (fn [_]
+                                      (store/dispatch! *:store [:modals/create! modal]))}
+       [comp/icon {:class ["is-danger"]} :trash]]]
+     [tree-list *:store nodes id]]))
 
 (defn ^:private tree-list [*:store nodes node-id]
   [:ul.tree-list.layout--stack-between

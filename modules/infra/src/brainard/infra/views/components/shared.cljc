@@ -1,6 +1,8 @@
 (ns brainard.infra.views.components.shared
   (:require
-    [brainard.api.utils.maps :as maps]))
+    [brainard.api.utils.maps :as maps]
+    [brainard.infra.stubs.dom :as dom]
+    [whet.utils.reagent :as r]))
 
 (defn plain-button [attrs & content]
   (let [disabled #?(:clj true :default (:disabled attrs))]
@@ -30,4 +32,25 @@
   ([icon-class]
    (icon {} icon-class))
   ([attrs icon-class]
-   [:i.fas (update attrs :class conj (str "fa-" (name icon-class)))]))
+   (let [attrs (-> attrs
+                   (select-keys #{:class :style})
+                   (update :class conj (str "fa-" (name icon-class))))]
+     [:i.fas attrs])))
+
+(defn with-auto-focus [component]
+  (fn [{:keys [auto-focus?]} & _]
+    (let [vnode (volatile! nil)
+          ref (fn [node] (some->> node (vreset! vnode)))]
+      (r/create-class
+        {:component-did-mount
+         (fn [this]
+           (when-let [node @vnode]
+             (let [attrs (second (r/argv this))]
+               (when (and auto-focus? (not (:disabled attrs)))
+                 (vreset! vnode nil)
+                 (dom/focus! node)))))
+         :reagent-render
+         (fn [attrs & args]
+           (into [component (cond-> attrs
+                              auto-focus? (assoc :ref ref :auto-focus true))]
+                 args))}))))
