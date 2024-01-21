@@ -195,8 +195,9 @@
            attrs
            [dd/control (dd/singleable attrs)]])))))
 
-(defn ^:private form-button-row [{:keys [attempted? buttons disabled requesting?] :as attrs}]
-  (cond-> [:div.button-row.layout--room-between
+(defn ^:private form-button-row [{:keys [attempted? inline-buttons? buttons disabled requesting?] :as attrs}]
+  (cond-> [:div.layout--room-between
+           {:class [(when-not inline-buttons? "button-row")] }
            [comp/plain-button
             {:class    ["is-primary" "submit" (when attempted? "disabled")]
              :type     :submit

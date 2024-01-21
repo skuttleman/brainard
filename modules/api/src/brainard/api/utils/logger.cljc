@@ -32,6 +32,16 @@
 (defmacro report [& args]
   (log* &form :report args))
 
+(defmacro spy [form]
+  `(let [[ok?# result#] (try
+                          [true ~form]
+                          (catch ~(if (:ns &env) :default `Throwable) ex#
+                            [false ex#]))]
+     (println "*** SPY ***" '~form "=>" ok?#)
+     (println result#)
+     (when-not ok?# (throw result#))
+     result#))
+
 (defmacro with-duration
   "Handles a call and binds the `result` (if successful), `ex` (if exceptional),
    and `duration` of the run time in milliseconds to `ctx-binding` and executives

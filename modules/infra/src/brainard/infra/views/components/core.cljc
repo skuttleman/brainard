@@ -40,6 +40,20 @@
        (update :on-change comp dom/target-value)
        (maps/assoc-defaults :type :text))])
 
+(defn plain-toggle [{:keys [value on-change] :as attrs}]
+  (let [disabled #?(:clj true :default (:disabled attrs))]
+    [:button.button
+     (-> attrs
+         (select-keys #{:id :type :disabled :style :class})
+         (update :style assoc :color (if value :red :blue))
+         (cond-> disabled (update :class (fnil conj []) "is-disabled"))
+         (maps/assoc-defaults :type :button)
+         (assoc :on-click
+                (fn [_]
+                  (when on-change
+                    (on-change (not value))))))
+     [icon attrs (if value :minus :plus)]]))
+
 (def ^:private level->class
   {:error "is-danger"})
 

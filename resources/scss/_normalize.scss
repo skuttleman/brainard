@@ -3,6 +3,10 @@
     margin-block-end: 0;
 }
 
-ul:not(.bullets) {
+ul {
     list-style: none;
+
+    &.bullets {
+        list-style: revert-layer;
+    }
 }

@@ -5,7 +5,7 @@
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.pages.interfaces :as ipages]
-    [defacto.forms.core :as-alias forms]
+    [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
     [defacto.resources.core :as-alias res]
     [whet.utils.reagent :as r]))
@@ -26,31 +26,38 @@
                    :form+           form+
                    :params          {:ok-commands [[::res/submit! [::specs/local ::specs/workspace#fetch]]]}
                    :resource-key    form-id}
-       [ctrls/input (-> {:label   "Data"
-                         :inline? true
-                         :*:store *:store}
-                        (ctrls/with-attrs form+ [:workspace-nodes/data]))]])
+       [ctrls/input (ctrls/with-attrs {:*:store *:store} form+ [:workspace-nodes/data])]])
     (finally
       (store/emit! *:store [::forms/destroyed form-id]))))
+
+(defn ^:private new-node-li [*:store node-id]
+  (r/with-let [*:open? (r/atom false)
+               on-change (partial reset! *:open?)]
+    (let [open? @*:open?]
+      [:div.flex.layout--room-between
+       {:style (when-not open? {:margin-bottom "-16px"})}
+       [comp/plain-toggle {:class     ["is-white" "is-small"]
+                           :value     open?
+                           :on-change on-change}]
+       (when open?
+         [new-node-form *:store node-id])])))
 
 (defn ^:private tree-node [*:store {:workspace-nodes/keys [id data nodes]}]
   [:div {:style {:margin-left "8px"}}
    [:p data]
-   [tree-list *:store nodes]
-   [new-node-form *:store id]])
+   [tree-list *:store nodes id]])
 
-(defn ^:private tree-list [*:store nodes]
-  (when (seq nodes)
-    [:ul.layout--stack-between
-     (for [node (sort-by :workspace-nodes/id nodes)]
-       ^{:key (:workspace-nodes/id node)}
-       [:li [tree-node *:store node]])]))
+(defn ^:private tree-list [*:store nodes node-id]
+  [:ul.bullets.layout--stack-between
+   (for [node (sort-by :workspace-nodes/id nodes)]
+     ^{:key (:workspace-nodes/id node)}
+     [:li [tree-node *:store node]])
+   [:li [new-node-li *:store node-id]]])
 
 (defn ^:private root [*:store [root-nodes]]
   [:div
    [:h2.subtitle "Welcome to your workspace"]
-   [tree-list *:store root-nodes]
-   [new-node-form *:store nil]])
+   [tree-list *:store root-nodes nil]])
 
 (defmethod ipages/page :routes.ui/workspace
   [{:keys [*:store]}]
