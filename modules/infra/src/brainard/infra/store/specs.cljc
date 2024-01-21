@@ -117,5 +117,28 @@
           :err-commands [[:toasts/fail!]]}))
 
 (defmethod res/->request-spec ::local
-  [spec params]
-  (assoc params :params (assoc params ::w/type spec ::spec spec)))
+  [[_ spec-key :as spec] input]
+  (-> input
+      (assoc :params input)
+      (merge (when (get (methods res/->request-spec) spec-key)
+               (res/->request-spec [spec-key] input)))
+      (update :params assoc ::w/type spec)))
+
+(defmethod res/->request-spec ::workspace#create!
+  [_ params]
+  {:params      (::forms/data params)
+   :ok-commands [[::res/submit! [::local ::workspace#fetch]]]})
+
+(defmethod res/->request-spec ::workspace#remove!
+  [_ params]
+  {:params      (select-keys params #{:workspace-nodes/id})
+   :ok-commands [[::res/submit! [::local ::workspace#fetch]]]})
+
+(defmethod res/->request-spec ::workspace#move!
+  [_ params]
+  {:params      (-> params
+                    (set/rename-keys {:workspace-nodes/parent-id :workspace-nodes/old-parent-id})
+                    (select-keys #{:workspace-nodes/id
+                                   :workspace-nodes/new-parent-id
+                                   :workspace-nodes/old-parent-id}))
+   :ok-commands [[::res/submit! [::local ::workspace#fetch]]]})

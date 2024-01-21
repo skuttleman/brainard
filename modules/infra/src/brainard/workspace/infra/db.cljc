@@ -54,9 +54,11 @@
 
 (defn ^:private move-node! [{:keys [ds-client]} old-parent-id new-parent-id node-id]
   (let [child (get-child ds-client node-id)]
-    (ds/transact! ds-client [[:db/retract [:workspace-nodes/id old-parent-id] :workspace-nodes/nodes child]
-                             {:workspace-nodes/id new-parent-id :workspace-nodes/nodes child}
-                             {:workspace-nodes/id node-id :workspace-nodes/parent-id new-parent-id}])))
+    (ds/transact! ds-client
+                  (cond-> [{:workspace-nodes/id new-parent-id :workspace-nodes/nodes child}
+                           {:workspace-nodes/id node-id :workspace-nodes/parent-id new-parent-id}]
+                    old-parent-id
+                    (conj [:db/retract [:workspace-nodes/id old-parent-id] :workspace-nodes/nodes (:db/id child)])))))
 
 (defn create-store
   "Creates a workspace store which implements the interfaces in [[iwork]]."

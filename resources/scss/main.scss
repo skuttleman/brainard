@@ -129,6 +129,10 @@ textarea {
     }
 
     margin-bottom: 8px;
+
+    .target {
+        background-color: $light-grey;
+    }
 }
 
 .fas.is-danger {

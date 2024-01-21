@@ -4,8 +4,6 @@
     [brainard.resources.system :as-alias res.sys]
     [brainard.workspace.api.core :as api.work]
     [clojure.core.async :as async]
-    [defacto.forms.core :as forms]
-    [defacto.forms.plus :as-alias forms+]
     [defacto.resources.core :as-alias res]
     [integrant.core :as ig]
     [whet.core :as w]
@@ -23,12 +21,18 @@
 
 (defmethod connect-api ::specs/workspace#create!
   [params sys]
-  (with-api sys :brainard/workspace-api api.work/create! (::forms/data params))
+  (with-api sys :brainard/workspace-api api.work/create! params)
   nil)
 
-(defmethod connect-api ::specs/workspace#delete!
+(defmethod connect-api ::specs/workspace#remove!
   [params sys]
   (with-api sys :brainard/workspace-api api.work/remove! (:workspace-nodes/id params))
+  nil)
+
+(defmethod connect-api ::specs/workspace#move!
+  [{:workspace-nodes/keys [id new-parent-id old-parent-id]} sys]
+  (println "MOVING")
+  (with-api sys :brainard/workspace-api api.work/move! old-parent-id new-parent-id id)
   nil)
 
 (defmethod iwhet/handle-request ::specs/local

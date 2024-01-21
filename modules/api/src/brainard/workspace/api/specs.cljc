@@ -14,5 +14,6 @@
 
 (def move
   [:map
+   [:workspace-nodes/id uuid?]
    [:workspace-nodes/old-parent-id {:optional true} uuid?]
    [:workspace-nodes/new-parent-id uuid?]])

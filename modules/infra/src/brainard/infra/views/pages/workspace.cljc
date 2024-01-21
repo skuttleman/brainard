@@ -2,6 +2,7 @@
   (:require
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as specs]
+    [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.pages.interfaces :as ipages]
@@ -12,15 +13,42 @@
 
 (declare tree-list)
 
+;; componentize dragon-drop
+(defn ^:private on-drop-fn [*:store *:dnd-state]
+  (let [{::keys [node target]} @*:dnd-state]
+    (store/dispatch! *:store [::res/submit! [::specs/local ::specs/workspace#move!]
+                              (assoc node :workspace-nodes/new-parent-id (:workspace-nodes/id target))])
+    (swap! *:dnd-state dissoc ::node ::target)))
+
+(defn ^:private on-drag-fn [*:dnd-state node]
+  (swap! *:dnd-state assoc ::node node))
+
+(defn ^:private drag-n-drop [*:store *:dnd-state node node->content]
+  [:p {:draggable     true
+       :style         (when (= node (::target @*:dnd-state)) {:color :blue})
+       :class         [(when (= node (::target @*:dnd-state)) "target")]
+       :on-drag-end   #(swap! *:dnd-state dissoc ::target)
+       :on-drag-over  (fn [e]
+                        (dom/prevent-default! e)
+                        (swap! *:dnd-state assoc ::target node))
+       :on-drag-leave #(swap! *:dnd-state dissoc ::node)
+       :on-drag       (partial on-drag-fn *:dnd-state node)
+       :on-drop       (partial on-drop-fn *:store *:dnd-state)}
+   (node->content node)])
+
+
+
+
+
+
+
+
 (defn ^:private ->form-id [node-id]
   [::forms+/std [::specs/local ::specs/workspace#create! node-id]])
 
-(def ^:private ^:const submit-params
-  {:ok-commands [[::res/submit! [::specs/local ::specs/workspace#fetch]]]})
-
 (defn ^:private ->on-submit [*:store close-form form-id]
   (fn [_]
-    (store/dispatch! *:store [::forms+/submit! form-id submit-params])
+    (store/dispatch! *:store [::forms+/submit! form-id])
     (close-form)))
 
 (defn ^:private new-node-form [*:store close-form node-id]
@@ -53,35 +81,34 @@
          ^{:key (or node-id "new")}
          [new-node-form *:store on-change node-id])])))
 
-(defn ^:private tree-node [*:store {:workspace-nodes/keys [id data nodes] :as node}]
-  (let [modal [:modals/sure?
-               {:description  "Delete this sub tree?"
-                :yes-commands [[::res/submit! [::specs/local ::specs/workspace#delete!]
-                                (assoc node
-                                       :ok-commands [[::res/submit! [::specs/local ::specs/workspace#fetch]]])]]}]]
+(defn ^:private tree-node [*:store *:dnd-state {:workspace-nodes/keys [id nodes] :as node}]
+  (r/with-let [modal [:modals/sure?
+                      {:description  "Delete this sub tree?"
+                       :yes-commands [[::res/submit! [::specs/local ::specs/workspace#remove!] node]]}]]
     [:div (cond-> {:style {:margin-left "8px"}}
             (empty? nodes) (assoc :class ["flex" "row"]))
      [:div.flex.row
-      [:p data]
+      [drag-n-drop *:store *:dnd-state node :workspace-nodes/data]
       [comp/plain-button {:class    ["is-white" "is-small"]
                           :on-click (fn [_]
                                       (store/dispatch! *:store [:modals/create! modal]))}
        [comp/icon {:class ["is-danger"]} :trash]]]
-     [tree-list *:store nodes id]]))
+     [tree-list *:store *:dnd-state nodes id]]))
 
-(defn ^:private tree-list [*:store nodes node-id]
+(defn ^:private tree-list [*:store *:dnd-state nodes node-id]
   [:ul.tree-list.layout--stack-between
    {:class [(when (seq nodes) "bullets")]}
    (for [node (sort-by :workspace-nodes/id nodes)]
      ^{:key (:workspace-nodes/id node)}
-     [:li [tree-node *:store node]])
+     [:li [tree-node *:store *:dnd-state node]])
    ^{:key (or node-id "new")}
    [:li [new-node-li *:store node-id]]])
 
 (defn ^:private root [*:store [root-nodes]]
-  [:div
-   [:h2.subtitle "Welcome to your workspace"]
-   [tree-list *:store root-nodes nil]])
+  (r/with-let [*:dnd-state (r/atom nil)]
+    [:div
+     [:h2.subtitle "Welcome to your workspace"]
+     [tree-list *:store *:dnd-state root-nodes nil]]))
 
 (defmethod ipages/page :routes.ui/workspace
   [{:keys [*:store]}]
