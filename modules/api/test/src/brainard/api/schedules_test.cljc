@@ -1,7 +1,6 @@
 (ns brainard.api.schedules-test
   (:require
     [brainard.api.core :as api]
-    [brainard.notes.api.interfaces :as inotes]
     [brainard.schedules.api.interfaces :as isched]
     [clojure.test :refer [deftest is testing]]))
 
@@ -15,11 +14,7 @@
                    (deliver query filters)
                    [{:schedules/note-id 1}
                     {:schedules/note-id 2}
-                    {:schedules/note-id 3}])
-
-                 inotes/IReadNotes
-                 (get-notes [_ {:notes/keys [ids]}]
-                   (map (partial hash-map :notes/id) ids)))
+                    {:schedules/note-id 3}]))
           results (api/relevant-notes {:schedules {:store mock} :notes {:store mock}} timestamp)]
       (testing "sends a query to the schedule store"
         (is (= {:schedules/after-timestamp  timestamp

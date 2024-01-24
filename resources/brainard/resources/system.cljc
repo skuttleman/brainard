@@ -8,7 +8,7 @@
     :schedules (ig/ref :brainard/schedules-api)}
 
    [::const :brainard/notes-api]
-   {:store (ig/ref :brainard.stores/notes)}
+   {:store (ig/ref :brainard.ds/store)}
 
    [::const :brainard/schedules-api]
    {:store (ig/ref :brainard.stores/schedules)}
@@ -18,9 +18,6 @@
 
    ;; stores
    :brainard.ds/store
-   {:ds-client (ig/ref :brainard.ds/client)}
-
-   [:brainard.stores/notes :brainard/notes-store]
    {:ds-client (ig/ref :brainard.ds/client)}
 
    [:brainard.stores/schedules :brainard/schedules-store]

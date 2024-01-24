@@ -49,10 +49,6 @@
   [_ {:keys [ds-client]}]
   (ds/->DSStore ds-client))
 
-(defmethod ig/init-key :brainard.stores/notes
-  [_ deps]
-  (stores.notes/create-store deps))
-
 (defmethod ig/init-key :brainard.stores/schedules
   [_ deps]
   (stores.sched/create-store deps))

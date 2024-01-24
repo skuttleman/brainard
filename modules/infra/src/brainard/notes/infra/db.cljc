@@ -1,7 +1,7 @@
 (ns brainard.notes.infra.db
   (:require
-    [brainard.infra.db.datascript :as ds]
-    [brainard.notes.api.interfaces :as inotes]))
+    [brainard.notes.api.core :as api.notes]
+    [brainard.storage.interfaces :as istorage]))
 
 (def ^:private select
   '[:find (pull ?e [:notes/id
@@ -11,24 +11,28 @@
                     :notes/timestamp])
     :in $])
 
-(defn ^:private save! [{:keys [ds-client]} note]
+(defmethod istorage/->input ::api.notes/save!
+  [note]
   (let [{note-id :notes/id retract-tags :notes/tags!remove} note]
-    (ds/transact! ds-client
-                  (into [(dissoc note :notes/tags!remove)]
-                        (map (partial conj [:db/retract [:notes/id note-id] :notes/tags]))
-                        retract-tags))))
+    (into [(select-keys note #{:notes/id
+                               :notes/context
+                               :notes/body
+                               :notes/tags
+                               :notes/timestamp})]
+          (map (partial conj [:db/retract [:notes/id note-id] :notes/tags]))
+          retract-tags)))
 
-(defn ^:private get-contexts [{:keys [ds-client]}]
-  (->> (ds/query ds-client
-                 '[:find ?context
-                   :where [_ :notes/context ?context]])
-       (map first)))
+(defmethod istorage/->input ::api.notes/get-contexts
+  [_]
+  {:query '[:find ?context
+            :where [_ :notes/context ?context]]
+   :xform (map first)})
 
-(defn ^:private get-tags [{:keys [ds-client]}]
-  (->> (ds/query ds-client
-                 '[:find ?tag
-                   :where [_ :notes/tags ?tag]])
-       (map first)))
+(defmethod istorage/->input ::api.notes/get-tags
+  [_]
+  {:query '[:find ?tag
+            :where [_ :notes/tags ?tag]]
+   :xform (map first)})
 
 (defn ^:private notes-query [{:notes/keys [context tags ids]}]
   (cond-> select
@@ -47,26 +51,16 @@
     (seq tags)
     (into (map (partial conj '[?e :notes/tags])) tags)))
 
-(defn ^:private get-notes [{:keys [ds-client]} {:notes/keys [ids] :as params}]
-  (let [query (notes-query params)
-        result (if (seq ids)
-                 (ds/query ds-client query ids)
-                 (ds/query ds-client query))]
-    (map first result)))
+(defmethod istorage/->input ::api.notes/get-notes
+  [params]
+  {:query (notes-query params)
+   :args  (:notes/ids params)
+   :xform (map first)})
 
-(defn ^:private get-note [{:keys [ds-client]} note-id]
-  (-> (ds/query ds-client
-                (into select '[?note-id
-                               :where [?e :notes/id ?note-id]])
-                note-id)
-      ffirst))
-
-(defn create-store
-  "Creates a notes store which implements the interfaces in [[inotes]]."
-  [this]
-  (with-meta this
-             {`inotes/save!            #'save!
-              `inotes/get-contexts     #'get-contexts
-              `inotes/get-tags         #'get-tags
-              `inotes/get-notes        #'get-notes
-              `inotes/get-note         #'get-note}))
+(defmethod istorage/->input ::api.notes/get-note
+  [{:notes/keys [id]}]
+  {:query (into select '[?note-id
+                         :where [?e :notes/id ?note-id]])
+   :args  [id]
+   :only? true
+   :xform (map first)})

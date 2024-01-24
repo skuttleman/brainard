@@ -12,13 +12,13 @@
   :schedules #ig/ref :brainard/schedules-api}
 
  [:duct/const :brainard/notes-api]
- {:store #ig/ref :brainard.stores/notes}
+ {:store #ig/ref :brainard.ds/store}
 
  [:duct/const :brainard/schedules-api]
  {:store #ig/ref :brainard.stores/schedules}
 
  ;; stores
- [:brainard.stores/notes :brainard/notes-store]
+ :brainard.ds/store
  {:ds-client #ig/ref :brainard.ds/client}
 
  [:brainard.stores/schedules :brainard/schedules-store]
