@@ -9,7 +9,7 @@
     (-> attrs
         (maps/assoc-defaults :type :button)
         (cond-> disabled (update :class (fnil conj []) "is-disabled"))
-        (select-keys #{:id :disabled :on-click :style :class})
+        (select-keys #{:id :disabled :on-click :style :class :ref})
         (->> (conj [:button.button]))
         (into content))))
 
