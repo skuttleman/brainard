@@ -4,7 +4,8 @@
     [brainard.api.utils.uuids :as uuids]
     [brainard.ds :as-alias bds]
     [brainard.infra.db.datascript :as ds]
-    [brainard.stores :as-alias bst]
+    [brainard.notes.api.core :as api.notes]
+    [brainard.storage.core :as storage]
     [brainard.test.system :as tsys]
     [clojure.test :refer [deftest is testing]]
     brainard.infra.system)
@@ -12,11 +13,12 @@
     (java.util Date)))
 
 (deftest save!-test
-  (tsys/with-system [{::bds/keys [client] ::b/keys [notes-store]} nil]
+  (tsys/with-system [{::bds/keys [client] ::b/keys [storage]} nil]
     (testing "when saving a note"
       (let [note-id (uuids/random)
             date-time (Date.)]
-        #_(inotes/save! notes-store {:notes/id        note-id
+        (storage/execute! storage {::storage/type   ::api.notes/save!
+                                   :notes/id        note-id
                                    :notes/body      "some body"
                                    :notes/context   "A Context"
                                    :notes/tags      #{:one :two :three}
@@ -40,7 +42,8 @@
                     :notes/timestamp date-time}
                    note))))
         (testing "and when updating and retracting tags"
-          #_(inotes/save! notes-store {:notes/id          note-id
+          (storage/execute! storage {::storage/type     ::api.notes/save!
+                                     :notes/id          note-id
                                      :notes/context     "different context"
                                      :notes/tags!remove #{:one :two}
                                      :notes/tags        #{:four :five :six}})
@@ -65,7 +68,7 @@
 
 (deftest get-notes-test
   (testing "when there are saved notes"
-    (tsys/with-system [{::bds/keys [client] ::b/keys [notes-store]} nil]
+    (tsys/with-system [{::bds/keys [client] ::b/keys [storage]} nil]
       (let [[id-1 id-2 id-3 id-4] (repeatedly uuids/random)]
         (ds/transact! client [{:notes/id      id-1
                                :notes/context "a"
@@ -83,7 +86,8 @@
           (testing "finds notes by context"
             (let [results (into #{}
                                 (map #(update % :notes/tags set))
-                                #_(inotes/get-notes notes-store {:notes/context "a"}))]
+                                (storage/query storage {::storage/type ::api.notes/get-notes
+                                                        :notes/context "a"}))]
               (is (= #{{:notes/id      id-1
                         :notes/context "a"
                         :notes/tags    #{:a :b :d}}
@@ -94,7 +98,8 @@
           (testing "finds notes by tags"
             (let [results (into #{}
                                 (map #(update % :notes/tags set))
-                                #_(inotes/get-notes notes-store {:notes/tags #{:c :d}}))]
+                                (storage/query storage {::storage/type ::api.notes/get-notes
+                                                        :notes/tags    #{:c :d}}))]
               (is (= #{{:notes/id      id-3
                         :notes/context "b"
                         :notes/tags    #{:b :c :d}}}
@@ -102,8 +107,9 @@
           (testing "finds notes by context and tags"
             (let [results (into #{}
                                 (map #(update % :notes/tags set))
-                                #_(inotes/get-notes notes-store {:notes/context "b"
-                                                               :notes/tags    #{:b}}))]
+                                (storage/query storage {::storage/type ::api.notes/get-notes
+                                                        :notes/context "b"
+                                                        :notes/tags    #{:b}}))]
               (is (= #{{:notes/id      id-3
                         :notes/context "b"
                         :notes/tags    #{:b :c :d}}}
@@ -111,4 +117,5 @@
 
         (testing "and when querying a note that doesn't exist"
           (testing "returns nil"
-            #_(is (nil? (inotes/get-note notes-store (uuids/random))))))))))
+            (is (nil? (storage/query storage {::storage/type ::api.notes/get-note
+                                              :notes/id      (uuids/random)})))))))))

@@ -8,19 +8,15 @@
     :schedules (ig/ref :brainard/schedules-api)}
 
    [::const :brainard/notes-api]
-   {:store (ig/ref :brainard.ds/store)}
+   {:store (ig/ref :brainard/storage)}
 
    [::const :brainard/schedules-api]
-   {:store (ig/ref :brainard.stores/schedules)}
+   {:store (ig/ref :brainard/storage)}
 
    [::const :brainard/workspace-api]
-   {:store (ig/ref :brainard.ds/store)}
+   {:store (ig/ref :brainard/storage)}
 
-   ;; stores
-   :brainard.ds/store
-   {:ds-client (ig/ref :brainard.ds/client)}
-
-   [:brainard.stores/schedules :brainard/schedules-store]
+   :brainard/storage
    {:ds-client (ig/ref :brainard.ds/client)}
 
    :brainard.ds/client

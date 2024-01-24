@@ -84,7 +84,7 @@
 (defn ^:private tree-node [*:store *:dnd-state {:workspace-nodes/keys [id nodes] :as node}]
   (r/with-let [modal [:modals/sure?
                       {:description  "Delete this sub tree?"
-                       :yes-commands [[::res/submit! [::specs/local ::specs/workspace#remove!] node]]}]]
+                       :yes-commands [[::res/submit! [::specs/local ::specs/workspace#delete!] node]]}]]
     [:div (cond-> {:style {:margin-left "8px"}}
             (empty? nodes) (assoc :class ["flex" "row"]))
      [:div.flex.row

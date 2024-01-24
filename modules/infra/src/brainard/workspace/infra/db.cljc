@@ -39,7 +39,7 @@
                        :workspace-nodes/data
                        :workspace-nodes/nodes})])
 
-(defmethod istorage/->input ::api.work/remove-by-id!
+(defmethod istorage/->input ::api.work/delete-by-id!
   [{:workspace-nodes/keys [id]}]
   [[:db/retractEntity [:workspace-nodes/id id]]])
 

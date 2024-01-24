@@ -129,7 +129,7 @@
   {:params      (::forms/data params)
    :ok-commands [[::res/submit! [::local ::workspace#fetch]]]})
 
-(defmethod res/->request-spec ::workspace#remove!
+(defmethod res/->request-spec ::workspace#delete!
   [_ params]
   {:params      (select-keys params #{:workspace-nodes/id})
    :ok-commands [[::res/submit! [::local ::workspace#fetch]]]})

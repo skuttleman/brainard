@@ -2,23 +2,25 @@
   (:require
     [brainard :as-alias b]
     [brainard.api.utils.uuids :as uuids]
-    [brainard.schedules.api.interfaces :as isched]
+    [brainard.schedules.api.core :as api.sched]
+    [brainard.storage.core :as storage]
     [brainard.test.system :as tsys]
     [clojure.test :refer [deftest is testing]]
     brainard.infra.system))
 
 (deftest get-schedules-test
-  (tsys/with-system [{::b/keys [schedules-store]} nil]
+  (tsys/with-system [{::b/keys [storage]} nil]
     (testing "when saving a schedule"
       (let [[s1 s2 s3 s4 s5 s6 s7] (repeatedly uuids/random)
             timestamp #inst "2023-12-09T20:31:04.197Z"
-            filters {:schedules/after-timestamp  timestamp
+            filters {::storage/type              ::api.sched/schedules
+                     :schedules/after-timestamp  timestamp
                      :schedules/before-timestamp timestamp
                      :schedules/day              9
                      :schedules/month            :december
                      :schedules/week-index       1
                      :schedules/weekday          :saturday}]
-        (run! (partial isched/save! schedules-store)
+        (storage/execute! storage
               [{:schedules/id      s1
                 :schedules/weekday :saturday}
                {:schedules/id    s2
@@ -39,13 +41,13 @@
                 :schedules/after-timestamp  timestamp
                 :schedules/before-timestamp timestamp}])
         (testing "and when getting schedules"
-          (let [results (isched/get-schedules schedules-store filters)]
+          (let [results (storage/query storage filters)]
             (testing "matches all schedules"
               (is (= #{s1 s2 s3 s4 s5 s6 s7}
                      (into #{} (map :schedules/id) results)))))
 
           (testing "and when updating schedules with non-matching characteristics"
-            (run! (partial isched/save! schedules-store)
+            (storage/execute! storage
                   [{:schedules/id    s1
                     :schedules/month :january}
                    {:schedules/id  s2
@@ -59,6 +61,6 @@
                    {:schedules/id      s6
                     :schedules/weekday :wednesday}])
             (testing "only matches the relevant schedule"
-              (let [results (isched/get-schedules schedules-store filters)]
+              (let [results (storage/query storage filters)]
                 (testing "matches all schedules"
                   (is (= #{s7} (into #{} (map :schedules/id) results))))))))))))

@@ -18,10 +18,10 @@
     (storage/execute! (:store workspace-api) (assoc data ::storage/type ::save!))
     node))
 
-(defn remove!
+(defn delete!
   "Removes a workspace node"
   [workspace-api node-id]
-  (storage/execute! (:store workspace-api) {::storage/type      ::remove!
+  (storage/execute! (:store workspace-api) {::storage/type      ::delete!
                                             :workspace-nodes/id node-id}))
 
 (defn move!

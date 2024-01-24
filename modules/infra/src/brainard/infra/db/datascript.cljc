@@ -82,7 +82,6 @@
 (deftype DSStore [conn]
   istorage/IRead
   (read [_ params]
-    (println params)
     (query! conn params))
 
   istorage/IWrite

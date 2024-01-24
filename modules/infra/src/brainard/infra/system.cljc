@@ -5,10 +5,10 @@
     [brainard.api.utils.logger :as log]
     [brainard.infra.db.datascript :as ds]
     [brainard.infra.routes.core :as routes]
-    [brainard.notes.infra.db :as stores.notes]
-    [brainard.schedules.infra.db :as stores.sched]
     [integrant.core :as ig]
+    brainard.notes.infra.db
     brainard.notes.infra.routes
+    brainard.schedules.infra.db
     brainard.schedules.infra.routes
     brainard.workspace.infra.db))
 
@@ -45,10 +45,6 @@
   [_ conn]
   (ds/close! conn))
 
-(defmethod ig/init-key :brainard.ds/store
+(defmethod ig/init-key :brainard/storage
   [_ {:keys [ds-client]}]
   (ds/->DSStore ds-client))
-
-(defmethod ig/init-key :brainard.stores/schedules
-  [_ deps]
-  (stores.sched/create-store deps))
