@@ -7,10 +7,10 @@
     [brainard.infra.routes.core :as routes]
     [brainard.notes.infra.db :as stores.notes]
     [brainard.schedules.infra.db :as stores.sched]
-    [brainard.workspace.infra.db :as stores.work]
     [integrant.core :as ig]
     brainard.notes.infra.routes
-    brainard.schedules.infra.routes))
+    brainard.schedules.infra.routes
+    brainard.workspace.infra.db))
 
 #?(:clj
    (defmethod ig/init-key :brainard.web/handler
@@ -45,6 +45,10 @@
   [_ conn]
   (ds/close! conn))
 
+(defmethod ig/init-key :brainard.ds/store
+  [_ {:keys [ds-client]}]
+  (ds/->DSStore ds-client))
+
 (defmethod ig/init-key :brainard.stores/notes
   [_ deps]
   (stores.notes/create-store deps))
@@ -52,7 +56,3 @@
 (defmethod ig/init-key :brainard.stores/schedules
   [_ deps]
   (stores.sched/create-store deps))
-
-(defmethod ig/init-key :brainard.stores/workspace
-  [_ deps]
-  (stores.work/create-store deps))

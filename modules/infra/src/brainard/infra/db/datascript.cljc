@@ -3,9 +3,10 @@
   #?(:cljs (:require-macros brainard.infra.db.datascript))
   (:require
     #?(:clj [clojure.java.io :as io])
-    [brainard.infra.utils.edn :as edn]
     [brainard.api.utils.logger :as log]
+    [brainard.infra.utils.edn :as edn]
     [brainard.resources.db :as db]
+    [brainard.storage.interfaces :as istorage]
     [datascript.core :as d]))
 
 #?(:clj
@@ -71,3 +72,19 @@
   [conn]
   (log/with-duration [{:keys [duration]} (doto conn load-log!)]
     #?(:clj (log/info "datascript initialization:" (str "[" duration "ms]")))))
+
+;; TODO rename
+(defn ^:private query! [conn {:keys [args only? xform] :as params}]
+  (cond-> (sequence (or xform identity)
+                    (apply query conn (:query params) args))
+    only? first))
+
+(deftype DSStore [conn]
+  istorage/IRead
+  (read [_ params]
+    (println params)
+    (query! conn params))
+
+  istorage/IWrite
+  (write! [_ tx]
+    (transact! conn tx)))

@@ -1,7 +1,7 @@
 (ns brainard.workspace.infra.db
   (:require
-    [brainard.infra.db.datascript :as ds]
-    [brainard.workspace.api.interfaces :as iwork]
+    [brainard.storage.interfaces :as istorage]
+    [brainard.workspace.api.core :as api.work]
     [clojure.walk :as walk]))
 
 (defn ^:private remove-db-ids [result]
@@ -9,64 +9,57 @@
                    (cond-> x (map? x) (dissoc :db/id)))
                  result))
 
-(defn ^:private get-all [{:keys [ds-client]}]
-  (->> (ds/query ds-client
-                 '[:find (pull ?e [:workspace-nodes/id
-                                   :workspace-nodes/parent-id
-                                   :workspace-nodes/data
-                                   :workspace-nodes/nodes])
-                   :where
-                   [?e :workspace-nodes/id]
-                   [(missing? $ ?e :workspace-nodes/parent-id)]])
-       (map (comp remove-db-ids first))))
+(defmethod istorage/->input ::api.work/get-workspace
+  [_]
+  {:query '[:find (pull ?e [:workspace-nodes/id
+                            :workspace-nodes/parent-id
+                            :workspace-nodes/data
+                            :workspace-nodes/nodes])
+            :where
+            [?e :workspace-nodes/id]
+            [(missing? $ ?e :workspace-nodes/parent-id)]]
+   :xform (map (comp remove-db-ids first))})
 
-(defn ^:private get-by-id [{:keys [ds-client]} node-id]
-  (->> (ds/query ds-client
-                 '[:find (pull ?e [:workspace-nodes/id
-                                   :workspace-nodes/parent-id
-                                   :workspace-nodes/data
-                                   :workspace-nodes/nodes])
-                   :in $ ?id
-                   :where [?e :workspace-nodes/id ?id]]
-                 node-id)
-       (map (comp remove-db-ids first))
-       first))
+(defmethod istorage/->input ::api.work/get-by-id
+  [{:workspace-nodes/keys [id]}]
+  {:query '[:find (pull ?e [:workspace-nodes/id
+                            :workspace-nodes/parent-id
+                            :workspace-nodes/data
+                            :workspace-nodes/nodes])
+            :in $ ?id
+            :where [?e :workspace-nodes/id ?id]]
+   :args [id]
+   :only? true
+   :xform (map (comp remove-db-ids first))})
 
-(defn ^:private save! [{:keys [ds-client]} node]
-  (ds/transact! ds-client [node]))
+(defmethod istorage/->input ::api.work/save!
+  [node]
+  [(select-keys node #{:workspace-nodes/id
+                       :workspace-nodes/parent-id
+                       :workspace-nodes/data
+                       :workspace-nodes/nodes})])
 
-(defn ^:private delete! [{:keys [ds-client]} node-id]
-  (ds/transact! ds-client [[:db/retractEntity [:workspace-nodes/id node-id]]]))
+(defmethod istorage/->input ::api.work/remove-by-id!
+  [{:workspace-nodes/keys [id]}]
+  [[:db/retractEntity [:workspace-nodes/id id]]])
 
-(defn ^:private get-child [ds-client node-id]
-  (ffirst (ds/query ds-client
-                    '[:find (pull ?e [:db/id :workspace-nodes/parent-id])
-                      :in $ ?id
-                      :where [?e :workspace-nodes/id ?id]]
-                    node-id)))
+(defmethod istorage/->input ::api.work/get-ref
+  [{:workspace-nodes/keys [id]}]
+  {:query '[:find (pull ?e [:db/id :workspace-nodes/parent-id])
+            :in $ ?id
+            :where [?e :workspace-nodes/id ?id]]
+   :args  [id]
+   :only? true
+   :xform (map (comp :db/id first))})
 
-(defn ^:private detach-node! [{:keys [ds-client]} node-id]
-  (let [{parent-id :workspace-nodes/parent-id child-id :db/id} (get-child ds-client node-id)
-        tx (cond-> [[:db/retract [:workspace-nodes/id parent-id] :workspace-nodes/nodes child-id]]
-             parent-id
-             (conj [:db/retract [:workspace-nodes/id node-id] :workspace-nodes/parent-id parent-id]))]
-    (ds/transact! ds-client tx)))
+(defmethod istorage/->input ::api.work/detach!
+  [{:workspace-nodes/keys [id parent-id ref]}]
+  [[:db/retract [:workspace-nodes/id parent-id] :workspace-nodes/nodes ref]
+   [:db/retract [:workspace-nodes/id id] :workspace-nodes/parent-id parent-id]])
 
-(defn ^:private move-node! [{:keys [ds-client]} old-parent-id new-parent-id node-id]
-  (let [child (get-child ds-client node-id)]
-    (ds/transact! ds-client
-                  (cond-> [{:workspace-nodes/id new-parent-id :workspace-nodes/nodes child}
-                           {:workspace-nodes/id node-id :workspace-nodes/parent-id new-parent-id}]
-                    old-parent-id
-                    (conj [:db/retract [:workspace-nodes/id old-parent-id] :workspace-nodes/nodes (:db/id child)])))))
-
-(defn create-store
-  "Creates a workspace store which implements the interfaces in [[iwork]]."
-  [this]
-  (with-meta this
-             {`iwork/save!        #'save!
-              `iwork/delete!      #'delete!
-              `iwork/detach-node! #'detach-node!
-              `iwork/move-node!   #'move-node!
-              `iwork/get-all      #'get-all
-              `iwork/get-by-id    #'get-by-id}))
+(defmethod istorage/->input ::api.work/attach!
+  [{:workspace-nodes/keys [id old-parent-id new-parent-id ref]}]
+  (cond-> [{:workspace-nodes/id new-parent-id :workspace-nodes/nodes ref}
+           {:workspace-nodes/id id :workspace-nodes/parent-id new-parent-id}]
+    old-parent-id
+    (conj [:db/retract [:workspace-nodes/id old-parent-id] :workspace-nodes/nodes (:db/id ref)])))

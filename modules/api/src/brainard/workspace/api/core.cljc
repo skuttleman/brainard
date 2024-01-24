@@ -1,45 +1,59 @@
 (ns brainard.workspace.api.core
   (:require
-    [brainard.api.utils.uuids :as uuids]
-    [brainard.workspace.api.interfaces :as iwork]))
+    [brainard.storage.core :as storage]
+    [brainard.api.utils.uuids :as uuids]))
 
 (defn create!
   "Creates a workspace node"
   [workspace-api {:workspace-nodes/keys [parent-id data]}]
-  (let [parent (some->> parent-id (iwork/get-by-id (:store workspace-api)))
+  (let [parent (when parent-id
+                 (storage/query (:store workspace-api)
+                                {::storage/type      ::get-by-id
+                                 :workspace-nodes/id parent-id}))
         node (cond-> {:workspace-nodes/id   (uuids/random)
                       :workspace-nodes/data data}
-               parent (assoc :workspace-nodes/parent-id parent-id))]
-    (if parent
-      (iwork/save! (:store workspace-api) {:workspace-nodes/id    parent-id
-                                           :workspace-nodes/nodes [node]})
-      (iwork/save! (:store workspace-api) node))
+               parent (assoc :workspace-nodes/parent-id parent-id))
+        data (cond-> node
+               parent (->> vector (hash-map :workspace-nodes/id parent-id :workspace-nodes/nodes)))]
+    (storage/execute! (:store workspace-api) (assoc data ::storage/type ::save!))
     node))
 
 (defn remove!
   "Removes a workspace node"
   [workspace-api node-id]
-  (iwork/delete! (:store workspace-api) node-id))
+  (storage/execute! (:store workspace-api) {::storage/type      ::remove!
+                                            :workspace-nodes/id node-id}))
 
 (defn move!
   "Nests a node under a parent"
   ([workspace-api parent-id root-node-id]
    (move! workspace-api nil parent-id root-node-id))
   ([workspace-api old-parent-id new-parent-id node-id]
-   (let [child (iwork/get-by-id (:store workspace-api) node-id)]
+   (let [child (storage/query (:store workspace-api) {::storage/type ::get-by-id
+                                                      :workspace-nodes/id node-id})
+         ref (storage/query (:store workspace-api) {::storage/type      ::get-ref
+                                                    :workspace-nodes/id node-id})]
      (when-not (= old-parent-id (:workspace-nodes/parent-id child))
        (throw (ex-info "child not found on parent" {:child-id node-id :parent-id old-parent-id})))
-     (iwork/move-node! (:store workspace-api)
-                       old-parent-id
-                       new-parent-id
-                       node-id))))
+     (storage/execute! (:store workspace-api)
+                       {::storage/type             ::detach!
+                        :workspace-nodes/id        node-id
+                        :workspace-nodes/parent-id old-parent-id
+                        :workspace-nodes/ref       ref})
+     (storage/execute! (:store workspace-api)
+                       {::storage/type                 ::attach!
+                        :workspace-nodes/id            node-id
+                        :workspace-nodes/old-parent-id old-parent-id
+                        :workspace-nodes/new-parent-id new-parent-id
+                        :workspace-nodes/ref           ref}))))
 
 (defn detach!
   "Moves a subtree to the root of the workspace."
   [workspace-api node-id]
-  (iwork/detach-node! (:store workspace-api) node-id))
+  (storage/execute! (:store workspace-api) {::storage/type      ::detach!
+                                            :workspace-nodes/id node-id}))
 
 (defn get-workspace
   "Retrieves the workspace tree"
   [workspace-api]
-  (iwork/get-all (:store workspace-api)))
+  (storage/query (:store workspace-api) {::storage/type ::get-workspace}))

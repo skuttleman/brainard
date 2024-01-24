@@ -14,16 +14,16 @@
    {:store (ig/ref :brainard.stores/schedules)}
 
    [::const :brainard/workspace-api]
-   {:store (ig/ref :brainard.stores/workspace)}
+   {:store (ig/ref :brainard.ds/store)}
 
    ;; stores
+   :brainard.ds/store
+   {:ds-client (ig/ref :brainard.ds/client)}
+
    [:brainard.stores/notes :brainard/notes-store]
    {:ds-client (ig/ref :brainard.ds/client)}
 
    [:brainard.stores/schedules :brainard/schedules-store]
-   {:ds-client (ig/ref :brainard.ds/client)}
-
-   [:brainard.stores/workspace :brainard/workspace-store]
    {:ds-client (ig/ref :brainard.ds/client)}
 
    :brainard.ds/client

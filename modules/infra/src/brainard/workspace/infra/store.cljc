@@ -31,7 +31,6 @@
 
 (defmethod connect-api ::specs/workspace#move!
   [{:workspace-nodes/keys [id new-parent-id old-parent-id]} sys]
-  (println "MOVING")
   (with-api sys :brainard/workspace-api api.work/move! old-parent-id new-parent-id id)
   nil)
 
