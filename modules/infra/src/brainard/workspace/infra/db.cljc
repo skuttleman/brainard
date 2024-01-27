@@ -32,13 +32,15 @@
   [[:db/retractEntity [:workspace-nodes/id id]]])
 
 (defmethod istorage/->input ::api.work/detach!
-  [{:workspace-nodes/keys [id parent-id ref]}]
-  [[:db/retract [:workspace-nodes/id parent-id] :workspace-nodes/nodes ref]
-   [:db/retract [:workspace-nodes/id id] :workspace-nodes/parent-id parent-id]])
+  [{:workspace-nodes/keys [id parent-id] :as params}]
+  (let [{:brainard/keys [ref]} params]
+    [[:db/retract [:workspace-nodes/id parent-id] :workspace-nodes/nodes ref]
+     [:db/retract [:workspace-nodes/id id] :workspace-nodes/parent-id parent-id]]))
 
 (defmethod istorage/->input ::api.work/attach!
-  [{:workspace-nodes/keys [id old-parent-id new-parent-id ref]}]
-  (cond-> [{:workspace-nodes/id new-parent-id :workspace-nodes/nodes ref}
-           {:workspace-nodes/id id :workspace-nodes/parent-id new-parent-id}]
-    old-parent-id
-    (conj [:db/retract [:workspace-nodes/id old-parent-id] :workspace-nodes/nodes ref])))
+  [{:workspace-nodes/keys [id old-parent-id new-parent-id] :as params}]
+  (let [{:brainard/keys [ref]} params]
+    (cond-> [{:workspace-nodes/id new-parent-id :workspace-nodes/nodes ref}
+             {:workspace-nodes/id id :workspace-nodes/parent-id new-parent-id}]
+      old-parent-id
+      (conj [:db/retract [:workspace-nodes/id old-parent-id] :workspace-nodes/nodes ref]))))

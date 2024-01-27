@@ -46,19 +46,19 @@
                          {::storage/type             ::detach!
                           :workspace-nodes/id        node-id
                           :workspace-nodes/parent-id old-parent-id
-                          :workspace-nodes/ref       ref}
+                          :brainard/ref              ref}
                          {::storage/type                 ::attach!
                           :workspace-nodes/id            node-id
                           :workspace-nodes/old-parent-id old-parent-id
                           :workspace-nodes/new-parent-id new-parent-id
-                          :workspace-nodes/ref           ref})))))
+                          :brainard/ref                  ref})))))
 
 (defn detach!
   "Moves a subtree to the root of the workspace."
-  [workspace-api old-parent-id node-id]
-  (storage/execute! (:store workspace-api) {::storage/type             ::detach!
-                                            :workspace-nodes/id        node-id
-                                            :workspace-nodes/parent-id old-parent-id}))
+  [workspace-api node-id]
+  (let [node (storage/query (:store workspace-api) {::storage/type      ::get-by-id
+                                                    :workspace-nodes/id node-id})]
+    (storage/execute! (:store workspace-api) (assoc node ::storage/type ::detach!))))
 
 (defn get-workspace
   "Retrieves the workspace tree"

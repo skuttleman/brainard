@@ -1,6 +1,5 @@
 (ns brainard.infra.views.pages.workspace
   (:require
-    [brainard.api.utils.logger :as log]
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as specs]
     [brainard.infra.stubs.dom :as dom]
@@ -15,12 +14,11 @@
 ;; TODO - component-ize dragon-drop
 (defn ^:private on-drop-fn [*:store *:dnd-state]
   (let [{::keys [node target]} @*:dnd-state]
-    (when (not= node target)
-      (if target
+    (when (and target (not= node target))
+      (if (= target {:workspace-nodes/id ::root})
+        (store/dispatch! *:store [::res/submit! [::specs/local ::specs/workspace#detach!] node])
         (store/dispatch! *:store [::res/submit! [::specs/local ::specs/workspace#move!]
-                                  (assoc node :workspace-nodes/new-parent-id (:workspace-nodes/id target))])
-        ;; TODO - implement me
-        (:detach :node)))
+                                  (assoc node :workspace-nodes/new-parent-id (:workspace-nodes/id target))])))
     (swap! *:dnd-state dissoc ::node ::target)))
 
 (defn ^:private on-drag-fn [*:dnd-state node]
@@ -114,9 +112,20 @@
 
 (defn ^:private root [*:store [root-nodes]]
   (r/with-let [*:dnd-state (r/atom nil)]
-    [:div
-     [:h2.subtitle "Welcome to your workspace"]
-     [tree-list *:store *:dnd-state root-nodes nil]]))
+    (let [{::keys [target node]} @*:dnd-state
+          target? (= {:workspace-nodes/id ::root} target)]
+      [:div.tree-root
+       [:h2.subtitle "Welcome to your workspace"]
+       [tree-list *:store *:dnd-state root-nodes nil]
+       (when node
+         [:div {:style        {:margin-top "24px"}
+                :class        [(when target? "target")]
+                :on-drag-end  #(swap! *:dnd-state dissoc ::target)
+                :on-drag-over (fn [e]
+                                (dom/prevent-default! e)
+                                (swap! *:dnd-state assoc ::target {:workspace-nodes/id ::root}))
+                :on-drop      (partial on-drop-fn *:store *:dnd-state)}
+          "top level"])])))
 
 (defmethod ipages/page :routes.ui/workspace
   [{:keys [*:store]}]

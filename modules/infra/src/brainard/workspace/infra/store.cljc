@@ -35,6 +35,11 @@
   (with-api sys :brainard/workspace-api api.work/move! old-parent-id new-parent-id id)
   nil)
 
+(defmethod connect-api ::specs/workspace#detach!
+  [{:workspace-nodes/keys [id]} sys]
+  (with-api sys :brainard/workspace-api api.work/detach! id)
+  nil)
+
 (defmethod iwhet/handle-request ::specs/local
   [_ {:brainard/keys [sys]} params]
   (async/go
