@@ -7,6 +7,8 @@
     [brainard.infra.utils.edn :as edn]
     [brainard.resources.db :as db]
     [brainard.storage.interfaces :as istorage]
+    [clojure.set :as set]
+    [clojure.walk :as walk]
     [datascript.core :as d]))
 
 #?(:clj
@@ -73,16 +75,18 @@
   (log/with-duration [{:keys [duration]} (doto conn load-log!)]
     #?(:clj (log/info "datascript initialization:" (str "[" duration "ms]")))))
 
-;; TODO rename
-(defn ^:private query! [conn {:keys [args only? xform] :as params}]
-  (cond-> (sequence (or xform identity)
-                    (apply query conn (:query params) args))
+(defn ^:private do-query [conn {:keys [args only? xform] :as params}]
+  (cond-> (->> (apply query conn (:query params) args)
+               (walk/postwalk (fn [x]
+                                (cond-> x
+                                  (map? x) (set/rename-keys {:db/id :brainard/ref}))))
+               (sequence (or xform identity)))
     only? first))
 
 (deftype DSStore [conn]
   istorage/IRead
   (read [_ params]
-    (query! conn params))
+    (do-query conn params))
 
   istorage/IWrite
   (write! [_ tx]

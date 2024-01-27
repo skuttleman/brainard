@@ -1,5 +1,6 @@
 (ns brainard.infra.routes.middleware
   (:require
+    [brainard.api.utils.maps :as maps]
     [brainard.infra.routes.errors :as routes.err]
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.api.utils.logger :as log]
@@ -61,5 +62,7 @@
      (fn [req]
        (try (handler req)
             (catch Throwable ex
-              (log/error ex (ex-message ex) (ex-data ex))
-              (routes.err/ex->response (ex-data ex)))))))
+              (let [msg (ex-message ex)
+                    data (ex-data ex)]
+                (log/error ex msg data)
+                (routes.err/ex->response (maps/assoc-defaults data :message msg))))))))

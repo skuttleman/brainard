@@ -1,5 +1,6 @@
 (ns brainard.infra.store.commands
   (:require
+    [brainard.api.utils.logger :as log]
     [brainard.infra.store.core :as store]
     [whet.utils.navigation :as nav]
     [clojure.core.async :as async]
@@ -45,8 +46,9 @@
   (store/dispatch! store [:toasts/create! :success message]))
 
 (defmethod defacto/command-handler :toasts/fail!
-  [{::defacto/keys [store]} _ _]
-  (store/dispatch! store [:toasts/create! :error "An error occurred"]))
+  [{::defacto/keys [store]} [_ err] _]
+  (log/debug err)
+  (store/dispatch! store [:toasts/create! :error (:message err "An error occurred")]))
 
 (defmethod defacto/command-handler :toasts/hide!
   [_ [_ toast-id] emit-cb]

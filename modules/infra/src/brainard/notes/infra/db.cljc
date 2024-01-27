@@ -4,11 +4,7 @@
     [brainard.storage.interfaces :as istorage]))
 
 (def ^:private select
-  '[:find (pull ?e [:notes/id
-                    :notes/context
-                    :notes/body
-                    :notes/tags
-                    :notes/timestamp])
+  '[:find (pull ?e [*])
     :in $])
 
 (defmethod istorage/->input ::api.notes/save!

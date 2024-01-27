@@ -8,6 +8,7 @@
     [whet.core :as w]))
 
 (def ^:dynamic *store*)
+(def ^:dynamic *system*)
 
 (defmethod defacto/query-responder ::all
   [db _]
@@ -41,4 +42,5 @@
 (defn init!
   "Called when the DOM finishes loading."
   []
-  (app/initialize-app (comp app/store->comp with-dev)))
+  (set! *system* (app/->system))
+  (app/start! *system* (comp app/store->comp with-dev)))

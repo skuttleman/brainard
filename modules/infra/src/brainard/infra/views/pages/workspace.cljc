@@ -1,5 +1,6 @@
 (ns brainard.infra.views.pages.workspace
   (:require
+    [brainard.api.utils.logger :as log]
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as specs]
     [brainard.infra.stubs.dom :as dom]
@@ -11,30 +12,36 @@
     [defacto.resources.core :as-alias res]
     [whet.utils.reagent :as r]))
 
-(declare tree-list)
-
-;; componentize dragon-drop
+;; TODO - component-ize dragon-drop
 (defn ^:private on-drop-fn [*:store *:dnd-state]
   (let [{::keys [node target]} @*:dnd-state]
-    (store/dispatch! *:store [::res/submit! [::specs/local ::specs/workspace#move!]
-                              (assoc node :workspace-nodes/new-parent-id (:workspace-nodes/id target))])
+    (when (not= node target)
+      (if target
+        (store/dispatch! *:store [::res/submit! [::specs/local ::specs/workspace#move!]
+                                  (assoc node :workspace-nodes/new-parent-id (:workspace-nodes/id target))])
+        ;; TODO - implement me
+        (:detach :node)))
     (swap! *:dnd-state dissoc ::node ::target)))
 
 (defn ^:private on-drag-fn [*:dnd-state node]
   (swap! *:dnd-state assoc ::node node))
 
 (defn ^:private drag-n-drop [*:store *:dnd-state node node->content]
-  [:p {:draggable     true
-       :style         (when (= node (::target @*:dnd-state)) {:color :blue})
-       :class         [(when (= node (::target @*:dnd-state)) "target")]
-       :on-drag-end   #(swap! *:dnd-state dissoc ::target)
-       :on-drag-over  (fn [e]
-                        (dom/prevent-default! e)
-                        (swap! *:dnd-state assoc ::target node))
-       :on-drag-leave #(swap! *:dnd-state dissoc ::node)
-       :on-drag       (partial on-drag-fn *:dnd-state node)
-       :on-drop       (partial on-drop-fn *:store *:dnd-state)}
-   (node->content node)])
+  (let [dnd-state @*:dnd-state
+        target? (and (= node (::target dnd-state))
+                     (not= node (::node dnd-state)))]
+    [:div {:draggable     true
+           :style         (when target? {:color :blue})
+           :class         [(when target? "target")]
+           :on-drag-end   #(swap! *:dnd-state dissoc ::target)
+           :on-drag-over  (fn [e]
+                            (dom/prevent-default! e)
+                            (when-not (= node (::node dnd-state))
+                              (swap! *:dnd-state assoc ::target node)))
+           :on-drag-leave #(swap! *:dnd-state dissoc ::node)
+           :on-drag       (partial on-drag-fn *:dnd-state node)
+           :on-drop       (partial on-drop-fn *:store *:dnd-state)}
+     (node->content node)]))
 
 
 
@@ -42,6 +49,7 @@
 
 
 
+(declare tree-list)
 
 (defn ^:private ->form-id [node-id]
   [::forms+/std [::specs/local ::specs/workspace#create! node-id]])

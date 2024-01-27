@@ -1,5 +1,6 @@
 (ns brainard.workspace.infra.store
   (:require
+    [brainard.api.utils.maps :as maps]
     [brainard.infra.store.specs :as-alias specs]
     [brainard.resources.system :as-alias res.sys]
     [brainard.workspace.api.core :as api.work]
@@ -40,7 +41,7 @@
     (try
       [::res/ok (connect-api params sys)]
       (catch #?(:cljs :default :default Throwable) ex
-        [::res/err (ex-data ex)]))))
+        [::res/err (maps/assoc-defaults (ex-data ex) :message (ex-message ex))]))))
 
 (defmethod ig/init-key ::res.sys/const
   [_ cfg]

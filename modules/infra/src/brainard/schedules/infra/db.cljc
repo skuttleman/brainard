@@ -5,14 +5,7 @@
     [brainard.storage.interfaces :as istorage]))
 
 (def ^:private select
-  '[:find (pull ?e [:schedules/id
-                    :schedules/note-id
-                    :schedules/before-timestamp
-                    :schedules/after-timestamp
-                    :schedules/month
-                    :schedules/day
-                    :schedules/weekday
-                    :schedules/week-index])
+  '[:find (pull ?e [*])
     :in $])
 
 (defn ^:private save! [{:keys [ds-client]} schedule]
