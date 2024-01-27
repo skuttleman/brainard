@@ -17,7 +17,7 @@
     brainard.infra.views.pages.workspace))
 
 (defmethod ipages/page :default
-  [_]
+  [_ _]
   [:div "Not found"])
 
 (defn ^:private header []
@@ -33,7 +33,7 @@
    {:class [(when (= token route) "is-active")]}
    (into [:a.navbar-item {:href (nav/path-for rte/all-routes route)}] body)])
 
-(defn ^:private navbar [{:keys [*:store token]}]
+(defn ^:private navbar [*:store {:keys [token]}]
   (r/with-let [sub:buzz (store/subscribe *:store [::res/?:resource [::specs/notes#buzz]])]
     (let [resource @sub:buzz
           buzzes (if (res/error? resource)
@@ -55,14 +55,14 @@
            (when (pos? buzzes)
              [:span.tag.is-info.space--left buzzes])]]]]])))
 
-(defn page [{:keys [*:store] :as attrs}]
+(defn page [*:store route]
   [:div.container
    [header]
-   [navbar attrs]
-   [ipages/page attrs]
+   [navbar *:store route]
+   [ipages/page *:store route]
    [comp/toasts *:store]
    [comp/modals *:store]])
 
 (defn root [*:store]
   (r/with-let [router (store/subscribe *:store [::w/?:route])]
-    [page (assoc @router :*:store *:store)]))
+    [page *:store @router]))

@@ -20,7 +20,7 @@
     (defacto/dispatch! [::res/submit! [::specs/notes#buzz]])
     (defacto/dispatch! [::res/submit! [::specs/tags#select]])
     (defacto/dispatch! [::res/submit! [::specs/contexts#select]]))
-  [pages/page (assoc route :*:store store)])
+  [pages/page store route])
 
 (def ^:private ^:const font-awesome
   [:link {:rel         "stylesheet"

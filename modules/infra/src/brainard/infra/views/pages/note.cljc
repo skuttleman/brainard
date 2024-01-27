@@ -68,7 +68,7 @@
       (store/emit! *:store [::forms+/destroyed update-note-key]))))
 
 (defmethod ipages/page :routes.ui/note
-  [{:keys [route-params *:store]}]
+  [*:store {:keys [route-params]}]
   (let [resource-key [::specs/notes#find (:notes/id route-params)]]
     (r/with-let [sub:note (do (store/dispatch! *:store [::res/ensure! resource-key])
                               (store/subscribe *:store [::res/?:resource resource-key]))]

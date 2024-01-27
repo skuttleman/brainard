@@ -1,5 +1,6 @@
 (ns brainard.infra.views.pages.interfaces)
 
-(defmulti ^{:arglists '([route])} page
+(defmulti ^{:arglists '([*:store route])} page
           "Implements a page from routing info."
-          :token)
+          (fn [_ {:keys [token]}]
+            token))

@@ -9,7 +9,7 @@
     [whet.utils.reagent :as r]))
 
 (defmethod ipages/page :routes.ui/buzz
-  [{:keys [*:store] :as route-info}]
+  [*:store route-info]
   (r/with-let [sub:notes (store/subscribe *:store [::res/?:resource [::specs/notes#buzz]])]
     (let [resource @sub:notes]
       [:div
