@@ -12,34 +12,38 @@
     [whet.utils.reagent :as r]))
 
 ;; TODO - component-ize dragon-drop
-(defn ^:private on-drop-fn [*:store *:dnd-state]
-  (let [{::keys [node target]} @*:dnd-state]
+(defn ^:private on-drop-fn [*:store sub:form _]
+  (let [{:keys [node target] :as dnd-state} (forms/data @sub:form)]
     (when (and target (not= node target))
       (if (= target {:workspace-nodes/id ::root})
         (store/dispatch! *:store [::res/submit! [::specs/local ::specs/workspace#detach!] node])
         (store/dispatch! *:store [::res/submit! [::specs/local ::specs/workspace#move!]
-                                  (assoc node :workspace-nodes/new-parent-id (:workspace-nodes/id target))])))
-    (swap! *:dnd-state dissoc ::node ::target)))
+                                  (assoc node :workspace-nodes/new-parent-id (:workspace-nodes/id target))]))))
+  (store/emit! *:store [::forms/changed ::form [:target] nil]))
 
-(defn ^:private on-drag-fn [*:dnd-state node]
-  (swap! *:dnd-state assoc ::node node))
+(defn ^:private on-drag-end [*:store _]
+  (store/emit! *:store [::forms/changed ::form [:target] nil]))
 
-(defn ^:private drag-n-drop [*:store *:dnd-state node node->content]
-  (let [dnd-state @*:dnd-state
-        target? (and (= node (::target dnd-state))
-                     (not= node (::node dnd-state)))]
+(defn ^:private on-drag-over [*:store sub:form curr-node e]
+  (let [dnd-state (forms/data @sub:form)]
+    (dom/prevent-default! e)
+    (when-not (= curr-node (:node dnd-state))
+      (store/emit! *:store [::forms/changed ::form [:target] curr-node]))))
+
+(defn ^:private drag-n-drop [*:store sub:form curr-node node->content]
+  (let [dnd-state (forms/data @sub:form)
+        target? (and (= curr-node (:target dnd-state))
+                     (not= curr-node (:node dnd-state)))]
     [:div {:draggable     true
            :style         (when target? {:color :blue})
            :class         [(when target? "target")]
-           :on-drag-end   #(swap! *:dnd-state dissoc ::target)
-           :on-drag-over  (fn [e]
-                            (dom/prevent-default! e)
-                            (when-not (= node (::node dnd-state))
-                              (swap! *:dnd-state assoc ::target node)))
-           :on-drag-leave #(swap! *:dnd-state dissoc ::node)
-           :on-drag       (partial on-drag-fn *:dnd-state node)
-           :on-drop       (partial on-drop-fn *:store *:dnd-state)}
-     (node->content node)]))
+           :on-drag-end   (partial on-drag-end *:store)
+           :on-drag-over  (partial on-drag-over *:store sub:form curr-node)
+           :on-drag       #(when-not (= (:node dnd-state) curr-node)
+                             (println "DRAGGING")
+                             (store/emit! *:store [::forms/changed ::form [:node] curr-node]))
+           :on-drop       (partial on-drop-fn *:store sub:form)}
+     (node->content curr-node)]))
 
 
 
@@ -87,44 +91,44 @@
          ^{:key (or node-id "new")}
          [new-node-form *:store on-change node-id])])))
 
-(defn ^:private tree-node [*:store *:dnd-state {:workspace-nodes/keys [id nodes] :as node}]
+(defn ^:private tree-node [*:store sub:dnd {:workspace-nodes/keys [id nodes] :as node}]
   (r/with-let [modal [:modals/sure?
                       {:description  "Delete this sub tree?"
                        :yes-commands [[::res/submit! [::specs/local ::specs/workspace#delete!] node]]}]]
     [:div (cond-> {:style {:margin-left "8px"}}
             (empty? nodes) (assoc :class ["flex" "row"]))
      [:div.flex.row
-      [drag-n-drop *:store *:dnd-state node :workspace-nodes/data]
+      [drag-n-drop *:store sub:dnd node :workspace-nodes/data]
       [comp/plain-button {:class    ["is-white" "is-small"]
                           :on-click (fn [_]
                                       (store/dispatch! *:store [:modals/create! modal]))}
        [comp/icon {:class ["is-danger"]} :trash]]]
-     [tree-list *:store *:dnd-state nodes id]]))
+     [tree-list *:store sub:dnd nodes id]]))
 
-(defn ^:private tree-list [*:store *:dnd-state nodes node-id]
+(defn ^:private tree-list [*:store sub:dnd nodes node-id]
   [:ul.tree-list.layout--stack-between
    {:class [(when (seq nodes) "bullets")]}
    (for [node (sort-by :workspace-nodes/id nodes)]
      ^{:key (:workspace-nodes/id node)}
-     [:li [tree-node *:store *:dnd-state node]])
+     [:li [tree-node *:store sub:dnd node]])
    ^{:key (or node-id "new")}
    [:li [new-node-li *:store node-id]]])
 
 (defn ^:private root [*:store [root-nodes]]
-  (r/with-let [*:dnd-state (r/atom nil)]
-    (let [{::keys [target node]} @*:dnd-state
+  (r/with-let [sub:dnd (do (store/emit! *:store [::forms/created ::form])
+                            (store/subscribe *:store [::forms/?:form ::form]))]
+    (let [form @sub:dnd
+          {:keys [target node] :as dnd-state} (forms/data form)
           target? (= {:workspace-nodes/id ::root} target)]
       [:div.tree-root
        [:h2.subtitle "Welcome to your workspace"]
-       [tree-list *:store *:dnd-state root-nodes nil]
+       [tree-list *:store sub:dnd root-nodes nil]
        (when node
          [:div {:style        {:margin-top "24px"}
                 :class        [(when target? "target")]
-                :on-drag-end  #(swap! *:dnd-state dissoc ::target)
-                :on-drag-over (fn [e]
-                                (dom/prevent-default! e)
-                                (swap! *:dnd-state assoc ::target {:workspace-nodes/id ::root}))
-                :on-drop      (partial on-drop-fn *:store *:dnd-state)}
+                :on-drag-end  (partial on-drag-end *:store)
+                :on-drag-over (partial on-drag-over *:store sub:dnd {:workspace-nodes/id ::root})
+                :on-drop      (partial on-drop-fn *:store sub:dnd)}
           "top level"])])))
 
 (defmethod ipages/page :routes.ui/workspace
