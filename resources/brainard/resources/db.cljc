@@ -63,6 +63,10 @@
     :db/unique      :db.unique/identity
     :db/doc         "the unique id of the workspace node"}
 
+   :workspace-nodes/index
+   {:db/cardinality :db.cardinality/one
+    :db/doc         "The ordinal position of the node amongst its peers"}
+
    :workspace-nodes/parent-id
    {:db/cardinality :db.cardinality/one
     :db/doc         "the parent-id of the workspace node"}

@@ -1,6 +1,6 @@
 (ns brainard.workspace.infra.db
   (:require
-    [brainard.storage.interfaces :as istorage]
+    [brainard.api.storage.interfaces :as istorage]
     [brainard.workspace.api.core :as api.work]))
 
 (defmethod istorage/->input ::api.work/get-workspace
@@ -20,9 +20,20 @@
    :only? true
    :xform (map first)})
 
+(defmethod istorage/->input ::api.work/get-by-parent-id
+  [{:workspace-nodes/keys [parent-id]}]
+  {:query (cond-> '[:find (pull ?e [:workspace-nodes/id
+                                    :workspace-nodes/index])
+                    :in $
+                    :where [?e :workspace-nodes/id]]
+            parent-id (conj ['?e :workspace-nodes/parent-id parent-id])
+            (nil? parent-id) (conj '[(missing? $ ?e :workspace-nodes/parent-id)]))
+   :xform (map first)})
+
 (defmethod istorage/->input ::api.work/save!
   [node]
   [(select-keys node #{:workspace-nodes/id
+                       :workspace-nodes/index
                        :workspace-nodes/parent-id
                        :workspace-nodes/data
                        :workspace-nodes/nodes})])
@@ -38,9 +49,12 @@
      [:db/retract [:workspace-nodes/id id] :workspace-nodes/parent-id parent-id]]))
 
 (defmethod istorage/->input ::api.work/attach!
-  [{:workspace-nodes/keys [id old-parent-id new-parent-id] :as params}]
+  [{:workspace-nodes/keys [id index new-parent-id old-parent-id] :as params}]
   (let [{:brainard/keys [ref]} params]
-    (cond-> [{:workspace-nodes/id new-parent-id :workspace-nodes/nodes ref}
-             {:workspace-nodes/id id :workspace-nodes/parent-id new-parent-id}]
+    (cond-> [{:workspace-nodes/id    new-parent-id
+              :workspace-nodes/nodes ref}
+             {:workspace-nodes/id        id
+              :workspace-nodes/parent-id new-parent-id
+              :workspace-nodes/index     index}]
       old-parent-id
       (conj [:db/retract [:workspace-nodes/id old-parent-id] :workspace-nodes/nodes ref]))))

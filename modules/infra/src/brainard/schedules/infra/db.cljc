@@ -2,7 +2,7 @@
   (:require
     [brainard.infra.db.datascript :as ds]
     [brainard.schedules.api.core :as api.sched]
-    [brainard.storage.interfaces :as istorage]))
+    [brainard.api.storage.interfaces :as istorage]))
 
 (def ^:private select
   '[:find (pull ?e [*])

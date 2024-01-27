@@ -13,12 +13,13 @@
 
 ;; TODO - component-ize dragon-drop
 (defn ^:private on-drop-fn [*:store sub:form _]
-  (let [{:keys [node target] :as dnd-state} (forms/data @sub:form)]
+  (let [{:keys [node target]} (forms/data @sub:form)]
     (when (and target (not= node target))
       (if (= target {:workspace-nodes/id ::root})
         (store/dispatch! *:store [::res/submit! [::specs/local ::specs/workspace#detach!] node])
         (store/dispatch! *:store [::res/submit! [::specs/local ::specs/workspace#move!]
                                   (assoc node :workspace-nodes/new-parent-id (:workspace-nodes/id target))]))))
+  (store/emit! *:store [::forms/changed ::form [:node] nil])
   (store/emit! *:store [::forms/changed ::form [:target] nil]))
 
 (defn ^:private on-drag-end [*:store _]
@@ -108,7 +109,7 @@
 (defn ^:private tree-list [*:store sub:dnd nodes node-id]
   [:ul.tree-list.layout--stack-between
    {:class [(when (seq nodes) "bullets")]}
-   (for [node (sort-by :workspace-nodes/id nodes)]
+   (for [node (sort-by :workspace-nodes/index nodes)]
      ^{:key (:workspace-nodes/id node)}
      [:li [tree-node *:store sub:dnd node]])
    ^{:key (or node-id "new")}
@@ -117,8 +118,7 @@
 (defn ^:private root [*:store [root-nodes]]
   (r/with-let [sub:dnd (do (store/emit! *:store [::forms/created ::form])
                             (store/subscribe *:store [::forms/?:form ::form]))]
-    (let [form @sub:dnd
-          {:keys [target node] :as dnd-state} (forms/data form)
+    (let [{:keys [target node]} (forms/data @sub:dnd)
           target? (= {:workspace-nodes/id ::root} target)]
       [:div.tree-root
        [:h2.subtitle "Welcome to your workspace"]

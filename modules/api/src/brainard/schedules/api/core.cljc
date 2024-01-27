@@ -2,7 +2,7 @@
   (:require
     [brainard.api.utils.uuids :as uuids]
     [brainard.schedules.api.relevancy :as relevancy]
-    [brainard.storage.core :as storage]))
+    [brainard.api.storage.core :as storage]))
 
 (defn ^:private clean-schedule [schedule schedule-id]
   (-> schedule

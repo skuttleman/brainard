@@ -1,12 +1,21 @@
 (ns brainard.workspace.api.core
   (:require
-    [brainard.api.utils.logger :as log]
-    [brainard.storage.core :as storage]
-    [brainard.api.utils.uuids :as uuids]
-    [brainard.storage.interfaces :as istorage]))
+    [brainard.api.storage.core :as storage]
+    [brainard.api.utils.uuids :as uuids]))
+
+(def ^:private ^:const insertion-index
+  #?(:cljs js/Number.MAX_SAFE_INTEGER :default Long/MAX_VALUE))
 
 (defn ^:private collect-ids [tree]
   (into #{(:workspace-nodes/id tree)} (mapcat collect-ids) (:workspace-nodes/nodes tree)))
+
+(defn ^:private reorder [workspace-api parent-id]
+  (->> {::storage/type             ::get-by-parent-id
+        :workspace-nodes/parent-id parent-id}
+       (storage/query (:store workspace-api))
+       (sort-by :workspace-nodes/index)
+       (map-indexed (fn [idx node]
+                      (assoc node ::storage/type ::save! :workspace-nodes/index idx)))))
 
 (defn create!
   "Creates a workspace node"
@@ -15,18 +24,21 @@
                  (storage/query (:store workspace-api)
                                 {::storage/type      ::get-by-id
                                  :workspace-nodes/id parent-id}))
-        node (cond-> {:workspace-nodes/id   (uuids/random)
-                      :workspace-nodes/data data}
+        node (cond-> {:workspace-nodes/id    (uuids/random)
+                      :workspace-nodes/index insertion-index
+                      :workspace-nodes/data  data}
                parent (assoc :workspace-nodes/parent-id parent-id))
         data (cond-> node
                parent (->> vector (hash-map :workspace-nodes/id parent-id :workspace-nodes/nodes)))]
-    (storage/execute! (:store workspace-api) (assoc data ::storage/type ::save!))
+    (storage/execute! (:store workspace-api)
+                      (assoc data ::storage/type ::save!))
+    (apply storage/execute! (:store workspace-api) (reorder workspace-api parent-id))
     node))
 
 (defn delete!
   "Removes a workspace node"
   [workspace-api node-id]
-  (storage/execute! (:store workspace-api) {::storage/type      ::delete!
+  (storage/execute! (:store workspace-api) {::storage/type      ::delete-by-id!
                                             :workspace-nodes/id node-id}))
 
 (defn move!
@@ -49,16 +61,25 @@
                           :brainard/ref              ref}
                          {::storage/type                 ::attach!
                           :workspace-nodes/id            node-id
+                          :workspace-nodes/index insertion-index
                           :workspace-nodes/old-parent-id old-parent-id
                           :workspace-nodes/new-parent-id new-parent-id
-                          :brainard/ref                  ref})))))
+                          :brainard/ref                  ref})
+       (apply storage/execute!
+              (:store workspace-api)
+              (concat (reorder workspace-api old-parent-id)
+                      (reorder workspace-api new-parent-id)))))))
 
 (defn detach!
   "Moves a subtree to the root of the workspace."
   [workspace-api node-id]
   (let [node (storage/query (:store workspace-api) {::storage/type      ::get-by-id
                                                     :workspace-nodes/id node-id})]
-    (storage/execute! (:store workspace-api) (assoc node ::storage/type ::detach!))))
+    (storage/execute! (:store workspace-api) (assoc node ::storage/type ::detach!))
+    (apply storage/execute!
+           (:store workspace-api)
+           (reorder workspace-api (:workspace-nodes/parent-id node)))
+    (dissoc node :workspace-nodes/parent-id)))
 
 (defn get-workspace
   "Retrieves the workspace tree"

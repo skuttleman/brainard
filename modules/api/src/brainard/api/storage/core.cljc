@@ -1,7 +1,7 @@
-(ns brainard.storage.core
+(ns brainard.api.storage.core
   (:refer-clojure :exclude [read])
   (:require
-    [brainard.storage.interfaces :as istorage]))
+    [brainard.api.storage.interfaces :as istorage]))
 
 (defn query [this params]
   (istorage/read this (istorage/->input params)))

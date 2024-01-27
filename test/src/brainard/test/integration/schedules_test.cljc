@@ -3,7 +3,7 @@
     [brainard :as-alias b]
     [brainard.api.utils.uuids :as uuids]
     [brainard.schedules.api.core :as api.sched]
-    [brainard.storage.core :as storage]
+    [brainard.api.storage.core :as storage]
     [brainard.test.system :as tsys]
     [clojure.test :refer [deftest is testing]]
     brainard.infra.system))

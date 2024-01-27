@@ -6,7 +6,7 @@
     [brainard.api.utils.logger :as log]
     [brainard.infra.utils.edn :as edn]
     [brainard.resources.db :as db]
-    [brainard.storage.interfaces :as istorage]
+    [brainard.api.storage.interfaces :as istorage]
     [clojure.set :as set]
     [clojure.walk :as walk]
     [datascript.core :as d]))
@@ -60,8 +60,8 @@
   "Transacts an arg-map to datascript."
   [conn tx]
   (log/with-duration [{:keys [duration]} (doto conn
-                                           (-> meta (write! tx))
-                                           (-> first (d/transact! tx)))]
+                                           (-> first (d/transact! tx))
+                                           (-> meta (write! tx)))]
     #?(:clj (log/debug "datascript transaction:" (str "[" duration "ms]")))))
 
 (defn query

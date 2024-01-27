@@ -1,8 +1,7 @@
 (ns brainard.notes.api.core
   (:require
-    [brainard.api.utils.logger :as log]
     [brainard.api.utils.uuids :as uuids]
-    [brainard.storage.core :as storage])
+    [brainard.api.storage.core :as storage])
   #?(:clj
      (:import
        (java.util Date))))

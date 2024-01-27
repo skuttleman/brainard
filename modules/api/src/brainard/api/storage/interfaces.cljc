@@ -1,16 +1,18 @@
-(ns brainard.storage.interfaces
+(ns brainard.api.storage.interfaces
   (:refer-clojure :exclude [read]))
 
 (defprotocol IRead
   ""
   :extend-via-metadata true
-  (read [this input]))
+  (read [this input]
+    ""))
 
 (defprotocol IWrite
   ""
   :extend-via-metadata true
-  (write! [this input]))
+  (write! [this input]
+    ""))
 
 (defmulti ^{:arglists '([params])} ->input
           ""
-          :brainard.storage.core/type)
+          :brainard.api.storage.core/type)

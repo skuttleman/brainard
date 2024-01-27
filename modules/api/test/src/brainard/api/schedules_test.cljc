@@ -2,8 +2,8 @@
   (:require
     [brainard.api.core :as api]
     [brainard.schedules.api.core :as-alias api.sched]
-    [brainard.storage.interfaces :as istorage]
-    [brainard.storage.core :as storage]
+    [brainard.api.storage.interfaces :as istorage]
+    [brainard.api.storage.core :as storage]
     [clojure.test :refer [deftest is testing]]))
 
 (defmethod istorage/->input :default

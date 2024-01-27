@@ -5,7 +5,7 @@
     [brainard.ds :as-alias bds]
     [brainard.infra.db.datascript :as ds]
     [brainard.notes.api.core :as api.notes]
-    [brainard.storage.core :as storage]
+    [brainard.api.storage.core :as storage]
     [brainard.test.system :as tsys]
     [clojure.test :refer [deftest is testing]]
     brainard.infra.system)
