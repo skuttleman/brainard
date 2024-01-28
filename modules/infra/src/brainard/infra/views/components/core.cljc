@@ -5,6 +5,7 @@
     [brainard.api.utils.maps :as maps]
     [brainard.infra.store.core :as store]
     [brainard.infra.stubs.dom :as dom]
+    [brainard.infra.views.components.drag-n-drop :as dnd]
     [brainard.infra.views.components.interfaces :as icomp]
     [brainard.infra.views.components.modals :as comp.modals]
     [brainard.infra.views.components.shared :as scomp]
@@ -159,3 +160,15 @@
                                (run! (partial store/dispatch! *:store) no-commands)
                                (close! e))}
      "Cancel"]]])
+
+(def ^{:arglists '([*:store])} clear-data!
+  dnd/clear-data!)
+
+(def ^{:arglists '([*:store dnd-state curr-node & content])} drop-target
+  dnd/drop-target)
+
+(def ^{:arglists '([*:store dnd-state curr-node & content])} drag-n-drop-target
+  dnd/drag-n-drop-target)
+
+(def ^{:arglists '([*:store])} dragging?
+  dnd/dragging?)

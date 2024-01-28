@@ -6,6 +6,7 @@
     [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.pages.interfaces :as ipages]
+    [defacto.forms.core :as forms]
     [defacto.resources.core :as res]
     [whet.core :as w]
     [whet.utils.navigation :as nav]
@@ -56,7 +57,8 @@
              [:span.tag.is-info.space--left buzzes])]]]]])))
 
 (defn page [*:store route]
-  [:div.container
+  [:div.container {:on-drag-end (fn [_]
+                                  (comp/clear-data! *:store))}
    [header]
    [navbar *:store route]
    [ipages/page *:store route]
@@ -64,5 +66,6 @@
    [comp/modals *:store]])
 
 (defn root [*:store]
-  (r/with-let [router (store/subscribe *:store [::w/?:route])]
+  (r/with-let [router (store/subscribe *:store [::w/?:route])
+               _ (store/emit! *:store [::forms/created :brainard/drag-n-drop])]
     [page *:store @router]))
