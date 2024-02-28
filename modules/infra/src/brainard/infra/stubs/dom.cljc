@@ -12,12 +12,15 @@
    :key-codes/esc   27
    :key-codes/enter 13
    :key-codes/up    38
+   :key-codes/left  37
+   :key-codes/right 39
    :key-codes/down  40})
 
 (def ^:private code->key (set/map-invert key->code))
 (defn event->key [e]
   #?(:cljs
-     (some-> e .-keyCode code->key)))
+     (when-let [key-code (some-> e .-keyCode)]
+       (code->key key-code key-code))))
 
 (def ^{:arglists '([e])} prevent-default! wdom/prevent-default!)
 (def ^{:arglists '([e])} stop-propagation! wdom/stop-propagation!)

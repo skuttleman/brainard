@@ -136,18 +136,31 @@
    :ok-commands  [[::res/submit! [::local ::workspace#fetch]]]
    :err-commands [[:toasts/fail!]]})
 
-(defmethod res/->request-spec ::workspace#move!
-  [_ params]
-  {:params       (-> params
-                     (set/rename-keys {:workspace-nodes/parent-id :workspace-nodes/old-parent-id})
-                     (select-keys #{:workspace-nodes/id
-                                    :workspace-nodes/new-parent-id
-                                    :workspace-nodes/old-parent-id}))
-   :ok-commands  [[::res/submit! [::local ::workspace#fetch]]]
-   :err-commands [[:toasts/fail!]]})
 
-(defmethod res/->request-spec ::workspace#detach!
+(defmethod res/->request-spec ::workspace#up!
   [_ params]
   {:params       (select-keys params #{:workspace-nodes/id})
    :ok-commands  [[::res/submit! [::local ::workspace#fetch]]]
+   :ok-events    [[::forms/created (:forms/id params)]]
+   :err-commands [[:toasts/fail!]]})
+
+(defmethod res/->request-spec ::workspace#down!
+  [_ params]
+  {:params       (select-keys params #{:workspace-nodes/id})
+   :ok-commands  [[::res/submit! [::local ::workspace#fetch]]]
+   :ok-events    [[::forms/created (:forms/id params)]]
+   :err-commands [[:toasts/fail!]]})
+
+(defmethod res/->request-spec ::workspace#unnest!
+  [_ params]
+  {:params       (select-keys params #{:workspace-nodes/id})
+   :ok-commands  [[::res/submit! [::local ::workspace#fetch]]]
+   :ok-events    [[::forms/created (:forms/id params)]]
+   :err-commands [[:toasts/fail!]]})
+
+(defmethod res/->request-spec ::workspace#nest!
+  [_ params]
+  {:params       (select-keys params #{:workspace-nodes/id})
+   :ok-commands  [[::res/submit! [::local ::workspace#fetch]]]
+   :ok-events    [[::forms/created (:forms/id params)]]
    :err-commands [[:toasts/fail!]]})

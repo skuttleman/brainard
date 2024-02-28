@@ -30,15 +30,26 @@
   (with-api sys :brainard/workspace-api api.work/delete! (:workspace-nodes/id params))
   nil)
 
-(defmethod connect-api ::specs/workspace#move!
-  [{:workspace-nodes/keys [id new-parent-id old-parent-id]} sys]
-  (with-api sys :brainard/workspace-api api.work/move! old-parent-id new-parent-id id)
+(defmethod connect-api ::specs/workspace#up!
+  [params sys]
+  (with-api sys :brainard/workspace-api api.work/up-order! (:workspace-nodes/id params))
   nil)
 
-(defmethod connect-api ::specs/workspace#detach!
-  [{:workspace-nodes/keys [id]} sys]
-  (with-api sys :brainard/workspace-api api.work/detach! id)
+(defmethod connect-api ::specs/workspace#down!
+  [params sys]
+  (with-api sys :brainard/workspace-api api.work/down-order! (:workspace-nodes/id params))
   nil)
+
+(defmethod connect-api ::specs/workspace#nest!
+  [params sys]
+  (with-api sys :brainard/workspace-api api.work/nest! (:workspace-nodes/id params))
+  nil)
+
+(defmethod connect-api ::specs/workspace#unnest!
+  [params sys]
+  (with-api sys :brainard/workspace-api api.work/unnest! (:workspace-nodes/id params))
+  nil)
+
 
 (defmethod iwhet/handle-request ::specs/local
   [_ {:brainard/keys [sys]} params]

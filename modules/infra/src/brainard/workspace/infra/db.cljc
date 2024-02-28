@@ -38,23 +38,19 @@
                        :workspace-nodes/data
                        :workspace-nodes/nodes})])
 
+(defmethod istorage/->input ::api.work/de-root!
+  [{ref :brainard/ref :workspace-nodes/keys [id parent-id]}]
+  [[:db/retract [:workspace-nodes/id id] :workspace-nodes/parent-id parent-id]
+   [:db/retract [:workspace-nodes/id parent-id] :workspace-nodes/nodes ref]])
+
+(defmethod istorage/->input ::api.work/move-root!
+  [{ref :brainard/ref :workspace-nodes/keys [id old-parent-id new-parent-id]}]
+  [[:db/retract [:workspace-nodes/id old-parent-id] :workspace-nodes/nodes ref]
+   {:workspace-nodes/id    new-parent-id
+    :workspace-nodes/nodes [ref]}
+   {:workspace-nodes/id    id
+    :workspace-nodes/parent-id new-parent-id}])
+
 (defmethod istorage/->input ::api.work/delete-by-id!
   [{:workspace-nodes/keys [id]}]
   [[:db/retractEntity [:workspace-nodes/id id]]])
-
-(defmethod istorage/->input ::api.work/detach!
-  [{:workspace-nodes/keys [id parent-id] :as params}]
-  (let [{:brainard/keys [ref]} params]
-    [[:db/retract [:workspace-nodes/id parent-id] :workspace-nodes/nodes ref]
-     [:db/retract [:workspace-nodes/id id] :workspace-nodes/parent-id parent-id]]))
-
-(defmethod istorage/->input ::api.work/attach!
-  [{:workspace-nodes/keys [id index new-parent-id old-parent-id] :as params}]
-  (let [{:brainard/keys [ref]} params]
-    (cond-> [{:workspace-nodes/id    new-parent-id
-              :workspace-nodes/nodes ref}
-             {:workspace-nodes/id        id
-              :workspace-nodes/parent-id new-parent-id
-              :workspace-nodes/index     index}]
-      old-parent-id
-      (conj [:db/retract [:workspace-nodes/id old-parent-id] :workspace-nodes/nodes ref]))))
