@@ -64,9 +64,9 @@
       [:div (cond-> {:style {:margin-left "8px"}}
               (empty? nodes) (assoc :class ["flex" "row"]))
        [:div.flex.row
-        [comp/plain-input {:class    ["button"  "tab-item"
+        [comp/plain-input {:class    ["button" "tab-item"
                                       (if selected? "is-outlined" "is-white")]
-                           :style {:width :unset}
+                           :style    {:width :unset}
                            :type     :button
                            :on-click (fn [_]
                                        (if selected?

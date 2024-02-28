@@ -18,7 +18,7 @@
   [:pre (with-out-str (pp/pprint data))])
 
 (def ^{:arglists '([attrs & content])} plain-button
-  scomp/plain-button)
+  (scomp/with-auto-focus scomp/plain-button))
 
 (def ^{:arglists '([heading body & tabs])} tile
   scomp/tile)
@@ -151,6 +151,7 @@
    [:p description]
    [:div.layout--room-between
     [plain-button {:class    ["is-info"]
+                   :auto-focus? true
                    :on-click (fn [e]
                                (run! (partial store/dispatch! *:store) yes-commands)
                                (close! e))}
