@@ -43,6 +43,15 @@
                     (vreset! state)
                     (run! (partial d/transact! conn)))))))
 
+(defn ^:private transact! [conn tx]
+  (log/with-duration [{:keys [duration]} (doto conn
+                                           (-> first (d/transact! tx))
+                                           (-> meta (write! tx)))]
+    #?(:clj (log/debug "datascript transaction:" (str "[" duration "ms]")))))
+
+(defn ^:private query [conn query & args]
+  (apply d/q query (d/db (first conn)) args))
+
 (defn connect!
   "Connects a client to a database."
   [logger]
@@ -55,19 +64,6 @@
              (locking lock
                (.close writer)))
      :cljs (vreset! (::state (meta conn)) [])))
-
-(defn transact!
-  "Transacts an arg-map to datascript."
-  [conn tx]
-  (log/with-duration [{:keys [duration]} (doto conn
-                                           (-> first (d/transact! tx))
-                                           (-> meta (write! tx)))]
-    #?(:clj (log/debug "datascript transaction:" (str "[" duration "ms]")))))
-
-(defn query
-  "Executes a datalog query on the current database value."
-  [conn query & args]
-  (apply d/q query (d/db (first conn)) args))
 
 (defn init!
   "Initializes the in-memory datascript store with previously transacted data."

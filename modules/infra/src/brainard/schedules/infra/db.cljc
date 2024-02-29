@@ -1,6 +1,5 @@
 (ns brainard.schedules.infra.db
   (:require
-    [brainard.infra.db.datascript :as ds]
     [brainard.schedules.api.core :as api.sched]
     [brainard.api.storage.interfaces :as istorage]))
 
@@ -8,11 +7,20 @@
   '[:find (pull ?e [*])
     :in $])
 
-(defn ^:private save! [{:keys [ds-client]} schedule]
-  (ds/transact! ds-client [schedule]))
+(defmethod istorage/->input ::api.sched/save!
+  [schedule]
+  [(select-keys schedule #{:schedules/id
+                           :schedules/note-id
+                           :schedules/before-timestamp
+                           :schedules/after-timestamp
+                           :schedules/month
+                           :schedules/day
+                           :schedules/weekday
+                           :schedules/week-index})])
 
-(defn ^:private delete! [{:keys [ds-client]} schedule-id]
-  (ds/transact! ds-client [[:db/retractEntity [:schedules/id schedule-id]]]))
+(defmethod istorage/->input ::api.sched/delete!
+  [{schedule-id :schedules/id}]
+  [[:db/retractEntity [:schedules/id schedule-id]]])
 
 (defmethod istorage/->input ::api.sched/schedules
   [{:schedules/keys [after-timestamp before-timestamp day month week-index weekday]}]

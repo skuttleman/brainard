@@ -30,15 +30,6 @@
           results (api/relevant-notes {:schedules {:store mock}
                                        :notes     {:store mock}}
                                       timestamp)]
-      (testing "sends a query to the schedule store"
-        (is (= {::storage/type ::api.sched/schedules
-                :schedules/after-timestamp  timestamp
-                :schedules/before-timestamp timestamp
-                :schedules/day              17
-                :schedules/month            :april
-                :schedules/weekday          :wednesday
-                :schedules/week-index       2}
-               @query)))
 
       (testing "returns the results from the notes store"
         (is (= [{:notes/id   1

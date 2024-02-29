@@ -1,6 +1,7 @@
 (ns brainard.test.integration.notes-test
   (:require
     [brainard :as-alias b]
+    [brainard.api.storage.interfaces :as istorage]
     [brainard.api.utils.uuids :as uuids]
     [brainard.ds :as-alias bds]
     [brainard.infra.db.datascript :as ds]
@@ -24,15 +25,15 @@
                                    :notes/tags      #{:one :two :three}
                                    :notes/timestamp date-time})
         (testing "saves the note to datascript"
-          (let [note (-> client
-                         (ds/query '[:find (pull ?e [:notes/id
-                                                     :notes/body
-                                                     :notes/context
-                                                     :notes/tags
-                                                     :notes/timestamp])
-                                     :in $ ?id
-                                     :where [?e :notes/id ?id]]
-                                   note-id)
+          (let [note (-> storage
+                         (istorage/read {:query '[:find (pull ?e [:notes/id
+                                                                  :notes/body
+                                                                  :notes/context
+                                                                  :notes/tags
+                                                                  :notes/timestamp])
+                                                  :in $ ?id
+                                                  :where [?e :notes/id ?id]]
+                                         :args [note-id]})
                          ffirst
                          (update :notes/tags set))]
             (is (= {:notes/id        note-id
@@ -48,15 +49,15 @@
                                      :notes/tags!remove #{:one :two}
                                      :notes/tags        #{:four :five :six}})
           (testing "updates the note in datascript"
-            (let [note (-> client
-                           (ds/query '[:find (pull ?e [:notes/id
-                                                       :notes/body
-                                                       :notes/context
-                                                       :notes/tags
-                                                       :notes/timestamp])
-                                       :in $ ?id
-                                       :where [?e :notes/id ?id]]
-                                     note-id)
+            (let [note (-> storage
+                           (istorage/read {:query '[:find (pull ?e [:notes/id
+                                                               :notes/body
+                                                               :notes/context
+                                                               :notes/tags
+                                                               :notes/timestamp])
+                                               :in $ ?id
+                                               :where [?e :notes/id ?id]]
+                                      :args  [note-id]})
                            ffirst
                            (update :notes/tags set))]
               (is (= {:notes/id        note-id
@@ -70,7 +71,8 @@
   (testing "when there are saved notes"
     (tsys/with-system [{::bds/keys [client] ::b/keys [storage]} nil]
       (let [[id-1 id-2 id-3 id-4] (repeatedly uuids/random)]
-        (ds/transact! client [{:notes/id      id-1
+        (istorage/write! storage
+                         [{:notes/id      id-1
                                :notes/context "a"
                                :notes/tags    #{:a :b :d}}
                               {:notes/id      id-2
@@ -85,7 +87,7 @@
         (testing "and when querying notes"
           (testing "finds notes by context"
             (let [results (into #{}
-                                (map #(update % :notes/tags set))
+                                (map #(-> % (update :notes/tags set) (dissoc ::b/ref)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/context "a"}))]
               (is (= #{{:notes/id      id-1
@@ -97,7 +99,7 @@
                      results))))
           (testing "finds notes by tags"
             (let [results (into #{}
-                                (map #(update % :notes/tags set))
+                                (map #(-> % (update :notes/tags set) (dissoc ::b/ref)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/tags    #{:c :d}}))]
               (is (= #{{:notes/id      id-3
@@ -106,7 +108,7 @@
                      results))))
           (testing "finds notes by context and tags"
             (let [results (into #{}
-                                (map #(update % :notes/tags set))
+                                (map #(-> % (update :notes/tags set) (dissoc ::b/ref)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/context "b"
                                                         :notes/tags    #{:b}}))]

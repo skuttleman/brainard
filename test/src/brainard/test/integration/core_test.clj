@@ -103,7 +103,7 @@
                                              :notes/timestamp   "ignored"
                                              :notes/tags        #{:two}
                                              :notes/tags!remove #{:one}}})
-                    note (-> response :body :data)]
+                    note (-> response :body :data (dissoc ::b/ref))]
                 (testing "returns the updated note"
                   (is (thttp/success? response))
                   (is (= {:notes/id        note1-id

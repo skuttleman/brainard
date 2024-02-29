@@ -50,7 +50,7 @@
 (defmethod istorage/->input ::api.notes/get-notes
   [params]
   {:query (notes-query params)
-   :args  (:notes/ids params)
+   :args  (some-> (:notes/ids params) vector)
    :xform (map first)})
 
 (defmethod istorage/->input ::api.notes/get-note
