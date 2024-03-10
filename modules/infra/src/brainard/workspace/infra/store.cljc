@@ -25,6 +25,11 @@
   (with-api sys :brainard/workspace-api api.work/create! params)
   nil)
 
+(defmethod connect-api ::specs/workspace#update!
+  [params sys]
+  (with-api sys :brainard/workspace-api api.work/modify! params)
+  nil)
+
 (defmethod connect-api ::specs/workspace#delete!
   [params sys]
   (with-api sys :brainard/workspace-api api.work/delete! (:workspace-nodes/id params))

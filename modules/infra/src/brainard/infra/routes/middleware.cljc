@@ -5,6 +5,7 @@
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.api.utils.logger :as log]
     [brainard.infra.validations :as valid]
+    [clojure.pprint :as pp]
     [clojure.string :as string]))
 
 (defn ^:private success? [status]
@@ -64,5 +65,6 @@
             (catch Throwable ex
               (let [msg (ex-message ex)
                     data (ex-data ex)]
-                (log/error ex msg data)
+                #_(log/error ex msg data)
+                (pp/pprint ex)
                 (routes.err/ex->response (maps/assoc-defaults data :message msg))))))))

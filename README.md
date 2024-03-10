@@ -16,3 +16,77 @@ their thoughts now, so they can forget them later.
 ```bash
 $ foreman start
 ```
+
+
+
+- tree
+  - edit node text
+- errors framework
+- cleanup localstorage script
+- save commands/events to datascript for debugging
+  - rewind store
+- web (split middleware) framework
+
+
+
+
+
+
+
+
+
+
+
+- ^{:arglists '([{:as attrs}])}
+- whet framework
+- whet tests
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# CLJ + CLJS = GOAT
+- libs
+  - core.async!
+  - bidi
+  - malli *
+  - timbre *
+  - re-frame (defacto)
+  - hiccup | reagent †
+  - those not seen here
+    - camel-snake-kebab
+    - medley
+    - integrant
+    - core.match
+    - clj-http | cljs-http
+    - transit-clj | transit-cljs
+      +- meet brainard
+  - utils
+  - nREPLs
+  - EDN!!!
+    +- specs
+    +- routing
+  - change on the fly
+    +- hydrating
+  - hiccup + reagent
+  - stubs
+  - limitations
+    - cljc-friendly components
+    - hiccup+reagent-friendly components
+      - life cycle ---> initial page render

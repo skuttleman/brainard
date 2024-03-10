@@ -22,14 +22,12 @@
     (defacto/dispatch! [::res/submit! [::specs/contexts#select]]))
   [pages/page store route])
 
-(def ^:private ^:const font-awesome
+(def ^:private ^:const icon-lib
   [:link {:rel         "stylesheet"
-          :href        "https://use.fontawesome.com/releases/v5.6.3/css/all.css"
-          :integrity   "sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/"
-          :crossorigin "anonymous"
+          :href        "https://cdn.lineicons.com/4.0/lineicons.css"
           :type        "text/css"}])
 
-(def ^:private ^:const bulma
+(def ^:private ^:const css-lib
   [:link {:rel  "stylesheet"
           :href "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css"
           :type "text/css"}])
@@ -43,7 +41,7 @@
                                             (assoc :brainard/apis apis)
                                             routes/handler))
                                       (partial store->tree route))
-                     (w/with-html-heads font-awesome bulma))]
+                     (w/with-html-heads icon-lib css-lib))]
     (routes.res/->response 200
                            (w/render-template template)
                            {"content-type" "text/html"})))

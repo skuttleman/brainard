@@ -103,7 +103,7 @@
           [comp/plain-button {:class    ["is-danger" "is-light" "is-small"]
                               :on-click (fn [_]
                                           (store/dispatch! *:store [:modals/create! modal]))}
-           [comp/icon :trash]]
+           [comp/icon :trash-can]]
           [schedule-display sched]])]]
      [:p [:em "no related schedules"]])])
 
