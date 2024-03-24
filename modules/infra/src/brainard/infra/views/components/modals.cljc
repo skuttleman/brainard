@@ -32,7 +32,7 @@
            [scomp/plain-button
             {:class    ["is-white" "is-light"]
              :on-click stop-and-close!}
-            [scomp/icon :times]]]
+            [scomp/icon :close]]]
           [:div [icomp/modal-body *:store attrs]]]])
       (finally
         (dom/remove-listener! listener)))))

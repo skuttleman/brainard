@@ -34,8 +34,8 @@
   ([attrs icon-class]
    (let [attrs (-> attrs
                    (select-keys #{:class :style})
-                   (update :class conj (str "fa-" (name icon-class))))]
-     [:i.fas attrs])))
+                   (update :class conj (str "lni-" (name icon-class))))]
+     [:i.lni attrs])))
 
 (defn with-auto-focus [component]
   (fn [{:keys [auto-focus?]} & _]

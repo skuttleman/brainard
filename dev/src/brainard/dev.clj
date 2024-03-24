@@ -37,5 +37,5 @@
                                                     "dev"]}))
 
 (comment
-  (def system (sys/start! "duct/dev.edn"))
+  (def system (sys/start! "duct/dev.edn") [:duct.profile/base :duct.profile/prod])
   (ig/halt! system))

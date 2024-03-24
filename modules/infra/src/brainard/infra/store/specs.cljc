@@ -130,6 +130,12 @@
    :ok-commands  [[::res/submit! [::local ::workspace#fetch]]]
    :err-commands [[:toasts/fail!]]})
 
+(defmethod res/->request-spec ::workspace#update!
+  [_ params]
+  {:params       (::forms/data params)
+   :ok-commands  [[::res/submit! [::local ::workspace#fetch]]]
+   :err-commands [[:toasts/fail!]]})
+
 (defmethod res/->request-spec ::workspace#delete!
   [_ params]
   {:params       (select-keys params #{:workspace-nodes/id})

@@ -10,13 +10,13 @@
 (def ^:dynamic *store*)
 (def ^:dynamic *system*)
 
-(defmethod defacto/query-responder ::all
+(defmethod defacto/query-responder ::spy
   [db _]
   (select-keys db #{}))
 
 (defn ^:private add-dev-logger! [store]
   (-> store
-      (defacto/subscribe [::all])
+      (defacto/subscribe [::spy])
       (add-watch (gensym)
                  (fn [_ _ _ db]
                    (when (seq db)

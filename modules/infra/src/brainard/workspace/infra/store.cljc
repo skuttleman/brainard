@@ -12,44 +12,48 @@
 
 (defmulti ^:private connect-api (fn [{[_ type] ::w/type} _] type))
 
-(defn ^:private with-api [sys k f & args]
-  (let [api (val (ig/find-derived-1 sys k))]
+(defn ^:private with-api [sys f & args]
+  (let [api (val (ig/find-derived-1 sys :brainard/workspace-api))]
     (apply f api args)))
 
 (defmethod connect-api ::specs/workspace#fetch
   [_ sys]
-  (with-api sys :brainard/workspace-api api.work/get-workspace))
+  (with-api sys api.work/get-workspace))
 
 (defmethod connect-api ::specs/workspace#create!
   [params sys]
-  (with-api sys :brainard/workspace-api api.work/create! params)
+  (with-api sys api.work/create! params)
+  nil)
+
+(defmethod connect-api ::specs/workspace#update!
+  [params sys]
+  (with-api sys api.work/modify! params)
   nil)
 
 (defmethod connect-api ::specs/workspace#delete!
   [params sys]
-  (with-api sys :brainard/workspace-api api.work/delete! (:workspace-nodes/id params))
+  (with-api sys api.work/delete! (:workspace-nodes/id params))
   nil)
 
 (defmethod connect-api ::specs/workspace#up!
   [params sys]
-  (with-api sys :brainard/workspace-api api.work/up-order! (:workspace-nodes/id params))
+  (with-api sys api.work/up-order! (:workspace-nodes/id params))
   nil)
 
 (defmethod connect-api ::specs/workspace#down!
   [params sys]
-  (with-api sys :brainard/workspace-api api.work/down-order! (:workspace-nodes/id params))
+  (with-api sys api.work/down-order! (:workspace-nodes/id params))
   nil)
 
 (defmethod connect-api ::specs/workspace#nest!
   [params sys]
-  (with-api sys :brainard/workspace-api api.work/nest! (:workspace-nodes/id params))
+  (with-api sys api.work/nest! (:workspace-nodes/id params))
   nil)
 
 (defmethod connect-api ::specs/workspace#unnest!
   [params sys]
-  (with-api sys :brainard/workspace-api api.work/unnest! (:workspace-nodes/id params))
+  (with-api sys api.work/unnest! (:workspace-nodes/id params))
   nil)
-
 
 (defmethod iwhet/handle-request ::specs/local
   [_ {:brainard/keys [sys]} params]

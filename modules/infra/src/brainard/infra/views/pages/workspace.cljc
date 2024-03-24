@@ -16,7 +16,7 @@
 (def ^:private ^:const tree-form-id
   [::forms+/std [::specs/local ::specs/workspace#modify!]])
 
-(defn ^:private ->form-id [node-id]
+(defn ^:private ->new-form-id [node-id]
   [::forms+/std [::specs/local ::specs/workspace#create! node-id]])
 
 (defn ^:private ->on-submit [*:store close-form form-id]
@@ -24,11 +24,8 @@
     (store/dispatch! *:store [::forms+/submit! form-id])
     (close-form)))
 
-(defn ^:private new-node-form [*:store close-form node-id]
-  (r/with-let [form-id (->form-id node-id)
-               sub:form+ (do (store/dispatch! *:store [::forms/ensure! form-id
-                                                       (when node-id
-                                                         {:workspace-nodes/parent-id node-id})])
+(defn ^:private node-form [*:store close-form form-id data]
+  (r/with-let [sub:form+ (do (store/dispatch! *:store [::forms/ensure! form-id data])
                              (store/subscribe *:store [::forms+/?:form+ form-id]))
                on-submit (->on-submit *:store close-form form-id)]
     (let [form+ @sub:form+]
@@ -53,7 +50,7 @@
                            :value     open?}]
        (when open?
          ^{:key (or node-id "new")}
-         [new-node-form *:store on-change node-id])])))
+         [node-form *:store on-change (->new-form-id node-id) (when node-id {:workspace-nodes/parent-id node-id})])])))
 
 (defn ^:private tree-node [*:store sub:form+ {:workspace-nodes/keys [id nodes] :as node}]
   (r/with-let [modal [:modals/sure?
@@ -76,7 +73,7 @@
         [comp/plain-button {:class    ["is-white" "is-small" "tab-item"]
                             :on-click (fn [_]
                                         (store/dispatch! *:store [:modals/create! modal]))}
-         [comp/icon {:class ["is-danger"]} :trash]]]
+         [comp/icon {:class ["is-danger"]} :trash-can]]]
        [tree-list *:store sub:form+ nodes id]])))
 
 (defn ^:private tree-list [*:store sub:form+ nodes node-id]
