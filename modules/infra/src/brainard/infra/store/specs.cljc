@@ -134,6 +134,7 @@
   [_ params]
   {:params       (::forms/data params)
    :ok-commands  [[::res/submit! [::local ::workspace#fetch]]]
+   :ok-events    [[::forms/destroyed (forms/id (::forms/form params))]]
    :err-commands [[:toasts/fail!]]})
 
 (defmethod res/->request-spec ::workspace#delete!

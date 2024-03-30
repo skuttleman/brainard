@@ -37,14 +37,16 @@
 
 (defn modify!
   "Modifies a workspace node"
-  [workspace-api {:workspace-nodes/keys [id data]}]
+  [workspace-api {:workspace-nodes/keys [id] :as params}]
   (let [node (storage/query (:store workspace-api)
                             {::storage/type      ::get-by-id
                              :workspace-nodes/id id})]
     (when-not node
       (throw (ex-info "cannot modify non-existing node" {:workspace-nodes/id id})))
     (storage/execute! (:store workspace-api)
-                      (assoc data ::storage/type ::save!))
+                      (-> params
+                          (select-keys #{:workspace-nodes/id :workspace-nodes/data})
+                          (assoc ::storage/type ::save!)))
     (apply storage/execute!
            (:store workspace-api)
            (reorder workspace-api (:workspace-nodes/parent-id node)))

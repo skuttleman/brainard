@@ -1,12 +1,12 @@
 (ns brainard.app
   (:require
-    [brainard.infra.store.specs :as specs]
+    [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.pages.core :as pages]
     [brainard.resources.system :as res.sys]
     [clojure.core.async :as async]
     [defacto.core :as defacto]
-    [defacto.resources.core :as res]
+    [defacto.resources.core :as-alias res]
     [integrant.core :as ig]
     [whet.core :as w]
     brainard.infra.store.commands
