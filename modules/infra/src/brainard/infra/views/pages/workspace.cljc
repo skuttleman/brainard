@@ -61,11 +61,31 @@
            ^{:key (or node-id "new")}
            [node-form *:store on-change form-id init false]))])))
 
+(defn ^:private tree-node-view [*:store node selected?]
+  (r/with-let [delete-modal [:modals/sure?
+                             {:description  "Delete this sub tree?"
+                              :yes-commands [[::res/submit! [::specs/local ::specs/workspace#delete!] node]]}]]
+    [:div.flex.row
+     [comp/plain-input {:class    ["button" "tab-item"
+                                   (if selected? "is-outlined" "is-white")]
+                        :style    {:width :unset}
+                        :type     :button
+                        :on-click (fn [_]
+                                    (if selected?
+                                      (store/emit! *:store [::forms/changed tree-form-id [:selected] nil])
+                                      (store/emit! *:store [::forms/changed tree-form-id [:selected] node])))
+                        :value    (:workspace-nodes/data node)}]
+     [comp/plain-button {:class    ["is-white" "is-small" "tab-item"]
+                         :on-click (fn [_]
+                                     (store/emit! *:store [::forms/changed tree-form-id [:editing] node]))}
+      [comp/icon :pencil]]
+     [comp/plain-button {:class    ["is-white" "is-small" "tab-item"]
+                         :on-click (fn [_]
+                                     (store/dispatch! *:store [:modals/create! delete-modal]))}
+      [comp/icon {:class ["is-danger"]} :trash-can]]]))
+
 (defn ^:private tree-node [*:store sub:form+ {:workspace-nodes/keys [id nodes] :as node}]
   (r/with-let [edit-form-id (->edit-form-id id)
-               delete-modal [:modals/sure?
-                             {:description  "Delete this sub tree?"
-                              :yes-commands [[::res/submit! [::specs/local ::specs/workspace#delete!] node]]}]
                on-edit-close (fn []
                                (store/emit! *:store [::forms/changed tree-form-id [:editing] nil]))]
     (let [{:keys [editing selected]} (forms/data @sub:form+)
@@ -81,24 +101,7 @@
                                    (on-edit-close)))}
             ^{:key id}
             [node-form *:store on-edit-close edit-form-id init true]])
-         [:div.flex.row
-          [comp/plain-input {:class    ["button" "tab-item"
-                                        (if selected? "is-outlined" "is-white")]
-                             :style    {:width :unset}
-                             :type     :button
-                             :on-click (fn [_]
-                                         (if selected?
-                                           (store/emit! *:store [::forms/changed tree-form-id [:selected] nil])
-                                           (store/emit! *:store [::forms/changed tree-form-id [:selected] node])))
-                             :value    (:workspace-nodes/data node)}]
-          [comp/plain-button {:class    ["is-white" "is-small" "tab-item"]
-                              :on-click (fn [_]
-                                          (store/emit! *:store [::forms/changed tree-form-id [:editing] node]))}
-           [comp/icon :pencil]]
-          [comp/plain-button {:class    ["is-white" "is-small" "tab-item"]
-                              :on-click (fn [_]
-                                          (store/dispatch! *:store [:modals/create! delete-modal]))}
-           [comp/icon {:class ["is-danger"]} :trash-can]]])
+         [tree-node-view *:store node selected?])
        (when (seq nodes)
          [tree-list *:store sub:form+ nodes id])])))
 

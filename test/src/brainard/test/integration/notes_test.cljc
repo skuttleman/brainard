@@ -4,7 +4,6 @@
     [brainard.api.storage.interfaces :as istorage]
     [brainard.api.utils.uuids :as uuids]
     [brainard.ds :as-alias bds]
-    [brainard.infra.db.datascript :as ds]
     [brainard.notes.api.core :as api.notes]
     [brainard.api.storage.core :as storage]
     [brainard.test.system :as tsys]

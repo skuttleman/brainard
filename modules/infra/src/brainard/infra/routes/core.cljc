@@ -8,8 +8,9 @@
     [brainard.infra.routes.response :as routes.res]
     [whet.core :as w]))
 
-(defn ^:private asset? [req]
-  (re-matches #"^/(js|css|img|favicon).*$" (:uri req)))
+#?(:clj
+   (defn ^:private asset? [req]
+     (re-matches #"^/(js|css|img|favicon).*$" (:uri req))))
 
 (defmethod iroutes/req->input :default
   [{::w/keys [route] :as req}]
