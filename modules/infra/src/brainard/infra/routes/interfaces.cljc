@@ -16,7 +16,6 @@
       (derive :routes.ui/main :routes/ui)
       (derive :routes.ui/search :routes/ui)
       (derive :routes.ui/note :routes/ui)
-      (derive :routes.ui/workspace :routes/ui)
       (derive :routes.ui/not-found :routes/ui)))
 
 (defn router [{:keys [request-method] ::w/keys [route]}]

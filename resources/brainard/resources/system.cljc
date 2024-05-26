@@ -13,9 +13,6 @@
    [::const :brainard/schedules-api]
    {:store (ig/ref :brainard/storage)}
 
-   [::const :brainard/workspace-api]
-   {:store (ig/ref :brainard/storage)}
-
    :brainard/storage
    {:ds-client (ig/ref :brainard.ds/client)}
 

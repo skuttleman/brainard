@@ -4,8 +4,7 @@
   (:require
     [duct.core :as duct]
     [integrant.core :as ig]
-    brainard.infra.system
-    brainard.workspace.infra.store))
+    brainard.infra.system))
 
 (defn start!
   "Starts a duct component system from a configuration expressed in an `edn` file."

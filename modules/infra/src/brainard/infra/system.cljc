@@ -9,8 +9,7 @@
     brainard.notes.infra.db
     brainard.notes.infra.routes
     brainard.schedules.infra.db
-    brainard.schedules.infra.routes
-    brainard.workspace.infra.db))
+    brainard.schedules.infra.routes))
 
 #?(:clj
    (defmethod ig/init-key :brainard.web/handler

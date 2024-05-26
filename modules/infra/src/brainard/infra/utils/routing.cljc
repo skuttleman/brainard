@@ -42,8 +42,7 @@
        ["/favicon.ico" :routes.resources/not-found]]])
 
 (def ^:private ui-routes
-  ["" [["/" :routes.ui/workspace]
-       ["/note" :routes.ui/main]
+  ["" [["/" :routes.ui/main]
        ["/buzz" :routes.ui/buzz]
        ["/search" :routes.ui/search]
        [["/notes/" [uuids/regex :notes/id]] :routes.ui/note]
