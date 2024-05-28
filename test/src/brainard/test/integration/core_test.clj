@@ -102,7 +102,8 @@
                                     :body   {:notes/id          "ignored"
                                              :notes/timestamp   "ignored"
                                              :notes/tags        #{:two}
-                                             :notes/tags!remove #{:one}}})
+                                             :notes/tags!remove #{:one}
+                                             :notes/pinned?     true}})
                     note (-> response :body :data (dissoc ::b/ref))]
                 (testing "returns the updated note"
                   (is (thttp/success? response))
@@ -110,8 +111,23 @@
                           :notes/context   "Context1"
                           :notes/body      "body of note1"
                           :notes/tags      #{:three :two}
+                          :notes/pinned?   true
                           :notes/timestamp (:notes/timestamp note1)}
-                         note))))
+                         note)))
+
+                (testing "and when searching for pinned notes"
+                  (let [response (http {:method :get
+                                        :uri    "/api/notes?pinned=true"})
+                        notes (-> response :body :data (->> (map #(dissoc % :brainard/ref))))]
+                    (testing "returns pinned notes"
+                      (is (thttp/success? response))
+                      (is (= [{:notes/id        note1-id
+                               :notes/context   "Context1"
+                               :notes/body      "body of note1"
+                               :notes/tags      #{:three :two}
+                               :notes/pinned?   true
+                               :notes/timestamp (:notes/timestamp note1)}]
+                             notes))))))
 
               (testing "and when attempting an invalid update"
                 (let [response (http {:method :patch

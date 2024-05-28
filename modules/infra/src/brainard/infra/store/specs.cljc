@@ -6,8 +6,7 @@
     [clojure.set :as set]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
-    [defacto.resources.core :as res]
-    [whet.core :as w]))
+    [defacto.resources.core :as res]))
 
 (defn ^:private with-msgs [m k params spec]
   (if-let [v (seq (concat (get spec k) (get params k) (get-in spec [:params k])))]
@@ -87,6 +86,19 @@
           :ok-commands  (cond-> [[:toasts/succeed! {:message "note updated"}]]
                           fetch?
                           (conj [::res/submit! [::notes#find (:notes/id note)]]))
+          :err-commands [[:toasts/fail!]]}))
+
+(defmethod forms+/re-init ::notes#pin [_ _ result] (select-keys result #{:notes/id :notes/pinned?}))
+(defmethod res/->request-spec ::notes#pin
+  [_ {::forms/keys [data]}]
+  (->req {:route        :routes.api/note
+          :params       (select-keys data #{:notes/id})
+          :method       :patch
+          :body         (select-keys data #{:notes/pinned?})
+          :ok-events    [[:api.notes/saved]]
+          :ok-commands  [[:toasts/succeed! {:message (if (:notes/pinned? data)
+                                                       "note pinned"
+                                                       "note unpinned")}]]
           :err-commands [[:toasts/fail!]]}))
 
 (defmethod res/->request-spec ::notes#buzz

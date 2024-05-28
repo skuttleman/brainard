@@ -16,6 +16,9 @@
 (def ^:private ^:const form-id ::forms/edit-note)
 (def ^:private ^:const update-note-key [::forms+/std [::specs/notes#update form-id]])
 
+(def ^:private ^:const pinned-form-id ::forms/pin-note)
+(def ^:private ^:const pin-note-key [::forms+/std [::specs/notes#pin pinned-form-id]])
+
 (defn ^:private tag-editor [{:keys [*:store sub:form+ sub:tags note]}]
   (let [form+ @sub:form+]
     [ctrls/form {:*:store      *:store
@@ -48,6 +51,22 @@
                  (store/emit! *:store [::forms/changed update-note-key [::editing?] true]))}
     "edit tags"]])
 
+(defn ^:private pin-toggle [*:store note]
+  (r/with-let [init-form (select-keys note #{:notes/id :notes/pinned?})
+               sub:form+ (do (store/dispatch! *:store [::forms/ensure! pin-note-key init-form])
+                             (store/subscribe *:store [::forms+/?:form+ pin-note-key]))]
+    (let [form+ @sub:form+]
+      [:div
+       [ctrls/autosave-form {:*:store      *:store
+                             :form+        form+
+                             :horizontal?  true
+                             :resource-key pin-note-key}
+        [ctrls/toggle (-> {:label   "Pinned"
+                           :inline? true
+                           :*:store *:store}
+                          (ctrls/with-attrs form+ [:notes/pinned?]))]]])
+    (finally
+      (store/emit! *:store [::forms+/destroyed pin-note-key]))))
 
 (defn ^:private root* [{:keys [*:store]} [note]]
   (r/with-let [init-form (select-keys note #{:notes/tags})
@@ -63,6 +82,7 @@
                     :sub:tags  sub:tags
                     :note      note}]
        [tag-list *:store note])
+     [pin-toggle *:store note]
      [sched.views/editor *:store note]]
     (finally
       (store/emit! *:store [::forms+/destroyed update-note-key]))))

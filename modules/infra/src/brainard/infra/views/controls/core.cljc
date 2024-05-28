@@ -163,6 +163,19 @@
                   (assoc attrs :value str-option)
                   label])]]]))))))
 
+(def ^{:arglists '([attrs])} toggle
+  (with-id
+    (with-emit-on-change
+      (with-disabled-compat
+        (fn [{:keys [on-change value] :as attrs}]
+          [form-field
+           attrs
+           [:input.checkbox
+            (-> {:checked   (boolean value)
+                 :type      :checkbox
+                 :on-change #(on-change (not value))}
+                (merge (select-keys attrs #{:class :disabled :id :on-blur :ref})))]])))))
+
 (def ^{:arglists '([attrs])} tags-editor
   (with-id
     (with-emit-on-change
@@ -252,6 +265,19 @@
                            (fn [_]
                              (store/dispatch! *:store [::forms+/submit! resource-key params])))]
         fields))
+
+(defn autosave-form [{:keys [*:store form+ horizontal? params resource-key]} & fields]
+  (let [requesting? (res/requesting? form+)]
+    [:form.form {:on-change (fn [_]
+                              (store/dispatch! *:store [::forms+/submit! resource-key params]))}
+     (into [:div {:class [(if horizontal?
+                            "layout--space-between"
+                            "layout--stack-between")]}]
+           (map (fn [field]
+                  (update-in field [1 :disabled] #(or % requesting?))))
+           fields)
+     (when requesting?
+       [comp/spinner])]))
 
 (def ^{:arglists '([attrs form+ path])} with-attrs
   "Prepares common form attributes used by controls in [[brainard.infra.views.controls.core]]. "

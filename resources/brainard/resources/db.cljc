@@ -19,6 +19,10 @@
    {:db/cardinality :db.cardinality/many
     :db/doc         "Associated tags"}
 
+   :notes/pinned?
+   {:db/cardinality :db.cardinality/one
+    :db/doc         "Is the note pinned to the workspace"}
+
    :notes/timestamp
    {:db/cardinality :db.cardinality/one
     :db/doc         "The time the note was recorded"}

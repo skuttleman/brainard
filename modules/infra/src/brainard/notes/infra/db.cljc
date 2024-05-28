@@ -14,6 +14,7 @@
                                :notes/context
                                :notes/body
                                :notes/tags
+                               :notes/pinned?
                                :notes/timestamp})]
           (map (partial conj [:db/retract [:notes/id note-id] :notes/tags]))
           retract-tags)))
@@ -30,7 +31,7 @@
             :where [_ :notes/tags ?tag]]
    :xform (map first)})
 
-(defn ^:private notes-query [{:notes/keys [context tags ids]}]
+(defn ^:private notes-query [{:notes/keys [context ids pinned? tags]}]
   (cond-> select
     (seq ids)
     (conj '[?id ...])
@@ -45,7 +46,10 @@
     (conj ['?e :notes/context context])
 
     (seq tags)
-    (into (map (partial conj '[?e :notes/tags])) tags)))
+    (into (map (partial conj '[?e :notes/tags])) tags)
+
+    pinned?
+    (conj ['?e :notes/pinned? true])))
 
 (defmethod istorage/->input ::api.notes/get-notes
   [params]

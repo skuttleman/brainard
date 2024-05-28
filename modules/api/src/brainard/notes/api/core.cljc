@@ -11,7 +11,7 @@
 
 (defn ^:private clean-note [note note-id]
   (-> note
-      (select-keys #{:notes/body :notes/context :notes/tags :notes/tags!remove})
+      (select-keys #{:notes/body :notes/context :notes/tags :notes/tags!remove :notes/pinned?})
       tag-set
       (assoc :notes/id note-id)))
 
