@@ -176,6 +176,20 @@
                  :on-change #(on-change (not value))}
                 (merge (select-keys attrs #{:class :disabled :id :on-blur :ref})))]])))))
 
+(def ^{:arglists '([attrs])} icon-toggle
+  (with-id
+    (with-emit-on-change
+      (with-disabled-compat
+        (fn [{:keys [icon on-change value] :as attrs}]
+          [form-field
+           attrs
+           [comp/plain-button
+            (-> attrs
+                (select-keys #{:class :disabled :id :on-blur :ref})
+                (assoc :on-click #(on-change (not value)))
+                (update :class conj (when value "is-info")))
+            [comp/icon icon]]])))))
+
 (def ^{:arglists '([attrs])} tags-editor
   (with-id
     (with-emit-on-change
@@ -227,7 +241,7 @@
     buttons
     (into buttons)))
 
-(defn plain-form [{:keys [disabled form+ inline-buttons? horizontal?] :as attrs} & fields]
+(defn plain-form [{:keys [disabled form+ no-buttons? inline-buttons? horizontal?] :as attrs} & fields]
   (let [changed? (forms/changed? form+)
         errors (when (res/error? form+)
                  (res/payload form+))
@@ -253,10 +267,10 @@
                                     horizontal? "layout--space-between"
                                     :else "layout--stack-between")]}]
                    fields)
-       inline-buttons? (conj [form-button-row button-attrs]))
+       (and (not no-buttons?) inline-buttons?) (conj [form-button-row button-attrs]))
      (when (and form-errors (not init?))
        [form-field-meta-list :error form-errors true])
-     (when-not inline-buttons?
+     (when-not (or no-buttons? inline-buttons?)
        [form-button-row button-attrs])]))
 
 (defn form [{:keys [*:store params resource-key] :as attrs} & fields]
@@ -265,19 +279,6 @@
                            (fn [_]
                              (store/dispatch! *:store [::forms+/submit! resource-key params])))]
         fields))
-
-(defn autosave-form [{:keys [*:store form+ horizontal? params resource-key]} & fields]
-  (let [requesting? (res/requesting? form+)]
-    [:form.form {:on-change (fn [_]
-                              (store/dispatch! *:store [::forms+/submit! resource-key params]))}
-     (into [:div {:class [(if horizontal?
-                            "layout--space-between"
-                            "layout--stack-between")]}]
-           (map (fn [field]
-                  (update-in field [1 :disabled] #(or % requesting?))))
-           fields)
-     (when requesting?
-       [comp/spinner])]))
 
 (def ^{:arglists '([attrs form+ path])} with-attrs
   "Prepares common form attributes used by controls in [[brainard.infra.views.controls.core]]. "

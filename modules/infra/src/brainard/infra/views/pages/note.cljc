@@ -57,14 +57,15 @@
                              (store/subscribe *:store [::forms+/?:form+ pin-note-key]))]
     (let [form+ @sub:form+]
       [:div
-       [ctrls/autosave-form {:*:store      *:store
-                             :form+        form+
-                             :horizontal?  true
-                             :resource-key pin-note-key}
-        [ctrls/toggle (-> {:label   "Pinned"
-                           :inline? true
-                           :*:store *:store}
-                          (ctrls/with-attrs form+ [:notes/pinned?]))]]])
+       [ctrls/form {:*:store      *:store
+                    :form+        form+
+                    :horizontal?  true
+                    :no-buttons?  true
+                    :resource-key pin-note-key}
+        [ctrls/icon-toggle (-> {:*:store *:store
+                                :icon    :paperclip
+                                :class ["is-small"]}
+                               (ctrls/with-attrs form+ [:notes/pinned?]))]]])
     (finally
       (store/emit! *:store [::forms+/destroyed pin-note-key]))))
 
@@ -74,7 +75,9 @@
                              (store/subscribe *:store [::forms+/?:form+ update-note-key]))
                sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])]
     [:div.layout--stack-between
-     [:h1 [:strong (:notes/context note)]]
+     [:div.layout--row
+      [:h1.layout--space-after [:strong (:notes/context note)]]
+      [pin-toggle *:store note]]
      [:p (:notes/body note)]
      (if (::editing? (forms/data @sub:form+))
        [tag-editor {:*:store   *:store
@@ -82,7 +85,6 @@
                     :sub:tags  sub:tags
                     :note      note}]
        [tag-list *:store note])
-     [pin-toggle *:store note]
      [sched.views/editor *:store note]]
     (finally
       (store/emit! *:store [::forms+/destroyed update-note-key]))))
