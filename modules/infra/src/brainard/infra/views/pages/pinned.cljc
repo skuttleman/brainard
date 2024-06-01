@@ -9,9 +9,14 @@
     [whet.utils.reagent :as r]))
 
 (defn ^:private root [*store route-info notes]
-  (if (seq notes)
-    [notes.views/search-results route-info notes]
-    [:em "No pinned notes"]))
+  [:div
+   (if (seq notes)
+     (for [[context group] (group-by :notes/context notes)]
+       ^{:key context}
+       [comp/collapsible
+        [:strong context]
+        [notes.views/search-results (assoc route-info :skip-context? true) group]])
+     [:em "No pinned notes"])])
 
 (defmethod ipages/page :routes.ui/pinned
   [*:store route-info]

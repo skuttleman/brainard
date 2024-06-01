@@ -78,9 +78,9 @@
 
 (defn control [{:keys [options] :as attrs}]
   (let [options-by-id (or (:options-by-id attrs) (into {} options))]
-    [comp/openable openable-dropdown (assoc attrs :options-by-id options-by-id)]))
+    [comp/openable {:listeners? true} openable-dropdown (assoc attrs :options-by-id options-by-id)]))
 
-(defn singleable [{:keys [value] :as attrs}]
+(defn ->single [{:keys [value] :as attrs}]
   (let [value (if (nil? value) #{} #{value})]
     (-> attrs
         (assoc :value value ::single? true)

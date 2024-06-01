@@ -89,11 +89,12 @@
 (defn ^:private single-resource [_opts comp [value]]
   (conj comp value))
 
-(defn openable [component & args]
+(defn openable [{:keys [listeners?]} component & args]
   (r/with-let [open? (r/atom false)
                ref (volatile! nil)
-               listeners [(dom/add-listener! dom/window :click (opener-click ref open?))
-                          (dom/add-listener! dom/window :keydown (opener-keydown open?) true)]
+               listeners (when listeners?
+                           [(dom/add-listener! dom/window :click (opener-click ref open?))
+                            (dom/add-listener! dom/window :keydown (opener-keydown open?) true)])
                on-toggle (fn [_]
                            (swap! open? not))
                ref-fn (fn [node]
@@ -143,6 +144,16 @@
                                        :on-click  (fn [e]
                                                     (dom/prevent-default! e)
                                                     (on-change (disj value tag)))}])])])
+
+(defn ^:private collapsible* [{:keys [open? on-toggle]} label & body]
+  (cond-> [:div [:div.layout--row
+                 [:div.layout--space-after label]
+                 [plain-button {:on-click on-toggle :class ["is-small" "is-white"]}
+                  [icon (if open? :chevron-up :chevron-down)]]]]
+    open? (into body)))
+
+(defn collapsible [label & body]
+  (into [openable {} collapsible* label] body))
 
 (def ^{:arglists '([*:store])} modals comp.modals/root)
 

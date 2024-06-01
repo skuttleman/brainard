@@ -224,7 +224,7 @@
         (fn [attrs]
           [form-field
            attrs
-           [dd/control (dd/singleable attrs)]])))))
+           [dd/control (dd/->single attrs)]])))))
 
 (defn ^:private form-button-row [{:keys [attempted? inline-buttons? buttons disabled requesting?] :as attrs}]
   (cond-> [:div.layout--room-between
