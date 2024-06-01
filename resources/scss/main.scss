@@ -140,3 +140,9 @@ textarea {
 .lni.is-danger {
     color: $red;
 }
+
+.search-results {
+    li:nth-child(odd) {
+        background-color: rgba(225, 225, 225, 0.25);
+    }
+}

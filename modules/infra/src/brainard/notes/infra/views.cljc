@@ -4,7 +4,7 @@
     [brainard.infra.views.components.core :as comp]
     [whet.utils.navigation :as nav]))
 
-(defn search-results [{:keys [anchor skip-context?]} notes]
+(defn note-list [{:keys [anchor skip-context?]} notes]
   (if-not (seq notes)
     [:span.search-results
      [comp/alert :info "No search results"]]

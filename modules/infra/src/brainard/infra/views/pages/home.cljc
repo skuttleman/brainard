@@ -34,7 +34,7 @@
    (if (seq notes)
      [:<>
       [:h3.subtitle [:em "Some related notes..."]]
-      [notes.views/search-results route-info notes]]
+      [notes.views/note-list route-info notes]]
      [:em "Brand new topic!"])])
 
 (defn ^:private root [{:keys [*:store form+ sub:contexts sub:tags]}]

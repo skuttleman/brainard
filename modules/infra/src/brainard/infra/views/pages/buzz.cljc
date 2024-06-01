@@ -15,5 +15,5 @@
       [:div
        [:h2.subtitle "What's relevant now?"]
        (if (or (res/requesting? resource) (res/success? resource))
-         [notes.views/search-results route-info (res/payload resource)]
+         [notes.views/note-list route-info (res/payload resource)]
          [comp/spinner])])))

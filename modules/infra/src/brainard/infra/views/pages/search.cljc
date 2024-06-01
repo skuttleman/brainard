@@ -63,7 +63,7 @@
                    :query-params query-params}
       contexts
       tags]
-     [comp/with-resource sub:form+ [notes.views/search-results (assoc route-info :hide-init? true)]]]
+     [comp/with-resource sub:form+ [notes.views/note-list (assoc route-info :hide-init? true)]]]
     (finally
       (store/emit! *:store [::forms+/destroyed form-key]))))
 

@@ -59,8 +59,8 @@
          :else
          [comp/alert :info "No results"])]]]))
 
-(defn ^:private dropdown* [{:keys [button-control open? options-by-id value]
-                            :or   {button-control button} :as attrs}]
+(defn ^:private dropdown [{:keys [button-control open? options-by-id value]
+                            :or  {button-control button} :as attrs}]
   (let [selected (seq (map options-by-id value))]
     [:div.dropdown
      {:class [(when open? "is-active")]}
@@ -73,12 +73,12 @@
              open? (update :class conj "is-focused")))]]
      [dropdown-menu attrs]]))
 
-(defn ^:private openable-dropdown [attrs attrs']
-  [dropdown* (merge attrs attrs')])
+(defn ^:private control* [attrs attrs']
+  [dropdown (merge attrs attrs')])
 
 (defn control [{:keys [options] :as attrs}]
   (let [options-by-id (or (:options-by-id attrs) (into {} options))]
-    [comp/openable {:listeners? true} openable-dropdown (assoc attrs :options-by-id options-by-id)]))
+    [comp/openable {:listeners? true} control* (assoc attrs :options-by-id options-by-id)]))
 
 (defn ->single [{:keys [value] :as attrs}]
   (let [value (if (nil? value) #{} #{value})]
