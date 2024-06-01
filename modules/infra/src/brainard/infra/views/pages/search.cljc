@@ -50,9 +50,6 @@
       [:div.flex-grow
        [tag-filter attrs tags]]]]))
 
-(defn ^:private search-results [route-info [notes]]
-  [notes.views/search-results route-info notes])
-
 (defn ^:private root [*:store {:keys [query-params] :as route-info} [contexts tags]]
   (r/with-let [form-key [::forms+/valid [::specs/notes#select form-id] query-params]
                sub:form+ (let [loaded? (boolean (store/query *:store [::forms/?:form form-key]))]
@@ -66,7 +63,7 @@
                    :query-params query-params}
       contexts
       tags]
-     [comp/with-resources [sub:form+] [search-results (assoc route-info :hide-init? true)]]]
+     [comp/with-resource sub:form+ [notes.views/search-results (assoc route-info :hide-init? true)]]]
     (finally
       (store/emit! *:store [::forms+/destroyed form-key]))))
 

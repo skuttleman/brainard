@@ -86,6 +86,9 @@
       (:key-codes/tab :key-codes/esc) (reset! open? false)
       nil)))
 
+(defn ^:private single-resource [_opts comp [value]]
+  (conj comp value))
+
 (defn openable [component & args]
   (r/with-let [open? (r/atom false)
                ref (volatile! nil)
@@ -124,6 +127,10 @@
         (res/error? data-or-res) (when-not (::forms/errors (res/payload data-or-res))
                                    [:div.error [alert :error "An error occurred."]])
         :else [spinner opts]))))
+
+(defn with-resource [sub:resource comp]
+  (let [[_ opts :as comp] (colls/wrap-vector comp)]
+    [with-resources [sub:resource] [single-resource opts comp]]))
 
 (defn tag-list [{:keys [on-change value]}]
   [:div.tag-list.field.is-grouped.is-grouped-multiline.layout--space-between

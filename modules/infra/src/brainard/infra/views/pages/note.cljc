@@ -69,7 +69,7 @@
     (finally
       (store/emit! *:store [::forms+/destroyed pin-note-key]))))
 
-(defn ^:private root [{:keys [*:store]} [note]]
+(defn ^:private root [{:keys [*:store]} note]
   (r/with-let [init-form (select-keys note #{:notes/tags})
                sub:form+ (do (store/dispatch! *:store [::forms/ensure! update-note-key init-form])
                              (store/subscribe *:store [::forms+/?:form+ update-note-key]))
@@ -94,6 +94,6 @@
   (let [resource-key [::specs/notes#find (:notes/id route-params)]]
     (r/with-let [sub:note (do (store/dispatch! *:store [::res/ensure! resource-key])
                               (store/subscribe *:store [::res/?:resource resource-key]))]
-      [comp/with-resources [sub:note] [root {:*:store *:store}]]
+      [comp/with-resource sub:note [root {:*:store *:store}]]
       (finally
         (store/emit! *:store [::res/destroyed resource-key])))))

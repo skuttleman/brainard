@@ -70,7 +70,7 @@
                           (dom/focus! (:ref @*:state)))}
         (str match)])]]])
 
-(defn ^:private control* [{:keys [value] :as attrs} [items]]
+(defn ^:private control* [{:keys [value] :as attrs} items]
   (r/with-let [*:state (r/atom {:selected?    false
                                 :focussed?    false
                                 :selected-idx nil})]
@@ -92,4 +92,4 @@
        [type-ahead-dd sub-attrs]])))
 
 (defn control [attrs]
-  [comp/with-resources [(:sub:items attrs)] [control* attrs]])
+  [comp/with-resource (:sub:items attrs) [control* attrs]])
