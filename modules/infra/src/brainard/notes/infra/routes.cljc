@@ -13,6 +13,11 @@
   {:status 200
    :body   {:data (api/relevant-notes apis #?(:cljs (js/Date.) :default (Date.)))}})
 
+(defmethod iroutes/handler [:get :routes.api/notes?pinned]
+  [{::b/keys [apis]}]
+  {:status 200
+   :body   {:data (api/get-notes apis {:notes/pinned? true})}})
+
 (defmethod iroutes/req->input [:get :routes.api/notes]
   [{::w/keys [route]}]
   (let [{:keys [context pinned tags]} (:query-params route)

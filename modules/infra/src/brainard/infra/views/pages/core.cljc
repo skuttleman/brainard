@@ -13,6 +13,7 @@
     brainard.infra.views.pages.buzz
     brainard.infra.views.pages.home
     brainard.infra.views.pages.note
+    brainard.infra.views.pages.pinned
     brainard.infra.views.pages.search))
 
 (defmethod ipages/page :default
@@ -45,6 +46,8 @@
          [:ul.navbar-start.oversize.tabs
           [navbar-item :routes.ui/main token
            "Home"]
+          [navbar-item :routes.ui/pinned token
+           "Pinned"]
           [navbar-item :routes.ui/search token
            "Search"]
           [navbar-item :routes.ui/buzz token

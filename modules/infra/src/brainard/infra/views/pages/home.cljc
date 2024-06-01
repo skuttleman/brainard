@@ -37,7 +37,7 @@
       [notes.views/search-results route-info notes]]
      [:em "Brand new topic!"])])
 
-(defn ^:private root* [{:keys [*:store form+ sub:contexts sub:tags]}]
+(defn ^:private root [{:keys [*:store form+ sub:contexts sub:tags]}]
   [ctrls/form {:*:store      *:store
                :form+        form+
                :params       {:pre-events [[::res/destroyed select-notes-key]]}
@@ -65,10 +65,10 @@
                sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
                sub:notes (store/subscribe *:store [::res/?:resource select-notes-key])]
     [:div
-     [root* {:*:store      *:store
-             :form+        @sub:form+
-             :sub:contexts sub:contexts
-             :sub:tags     sub:tags}]
+     [root {:*:store      *:store
+            :form+        @sub:form+
+            :sub:contexts sub:contexts
+            :sub:tags     sub:tags}]
      [comp/with-resources [sub:notes] [search-results (assoc route-info :hide-init? true)]]]
     (finally
       (store/emit! *:store [::forms+/destroyed create-note-key])

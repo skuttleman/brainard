@@ -101,6 +101,11 @@
                                                        "note unpinned")}]]
           :err-commands [[:toasts/fail!]]}))
 
+(defmethod res/->request-spec ::notes#pinned
+  [_ _]
+  (->req {:route  :routes.api/notes?pinned
+          :method :get}))
+
 (defmethod res/->request-spec ::notes#buzz
   [_ _]
   (->req {:route  :routes.api/notes?scheduled

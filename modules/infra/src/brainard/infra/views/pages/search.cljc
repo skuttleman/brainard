@@ -53,7 +53,7 @@
 (defn ^:private search-results [route-info [notes]]
   [notes.views/search-results route-info notes])
 
-(defn ^:private root* [*:store {:keys [query-params] :as route-info} [contexts tags]]
+(defn ^:private root [*:store {:keys [query-params] :as route-info} [contexts tags]]
   (r/with-let [form-key [::forms+/valid [::specs/notes#select form-id] query-params]
                sub:form+ (let [loaded? (boolean (store/query *:store [::forms/?:form form-key]))]
                            (store/emit! *:store [::forms/created form-key
@@ -76,4 +76,4 @@
                sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])]
     [comp/with-resources [sub:contexts sub:tags]
      ^{:key (pr-str query-params)}
-     [root* *:store route-info]]))
+     [root *:store route-info]]))

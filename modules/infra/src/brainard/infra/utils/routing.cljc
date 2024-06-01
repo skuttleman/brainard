@@ -28,6 +28,7 @@
 (def ^:private api-routes
   ["/api" [["/notes" [["" :routes.api/notes]
                       [["/" [uuids/regex :notes/id]] :routes.api/note]
+                      ["/pinned" :routes.api/notes?pinned]
                       ["/scheduled" :routes.api/notes?scheduled]]]
            ["/schedules" [["" :routes.api/schedules]
                           [["/" [uuids/regex :schedules/id]] :routes.api/schedule]]]
@@ -44,8 +45,9 @@
 (def ^:private ui-routes
   ["" [["/" :routes.ui/main]
        ["/buzz" :routes.ui/buzz]
-       ["/search" :routes.ui/search]
+       ["/pinned" :routes.ui/pinned]
        [["/notes/" [uuids/regex :notes/id]] :routes.ui/note]
+       ["/search" :routes.ui/search]
        [true :routes.ui/not-found]]])
 
 (def all-routes
