@@ -4,6 +4,7 @@
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.stubs.dom :as dom]
+    [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.pages.interfaces :as ipages]
@@ -11,6 +12,7 @@
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
     [defacto.resources.core :as res]
+    [whet.utils.navigation :as nav]
     [whet.utils.reagent :as r]))
 
 (def ^:private ^:const form-id ::forms/edit-note)
@@ -41,16 +43,22 @@
                             (ctrls/with-attrs form+ [:notes/tags]))]]))
 
 (defn ^:private tag-list [*:store note]
-  [:div.layout--stack-between
-   (if-let [tags (not-empty (:notes/tags note))]
-     [comp/tag-list {:value tags}]
-     [:em "no tags"])
-   [:div
-    [:button.button.is-info
-     {:disabled #?(:clj true :default false)
-      :on-click (fn [_]
-                  (store/emit! *:store [::forms/changed update-note-key [::editing?] true]))}
-     "Edit tags"]]])
+  (let [modal [:modals/sure?
+               {:description  "This note and all related schedules will be deleted"
+                :yes-commands [[::res/submit! [::specs/notes#destroy (:notes/id note)]]]}]]
+    [:div.layout--stack-between
+     (if-let [tags (not-empty (:notes/tags note))]
+       [comp/tag-list {:value tags}]
+       [:em "no tags"])
+     [:div.button-row
+      [comp/plain-button {:class ["is-info"]
+                          :on-click (fn [_]
+                                      (store/emit! *:store [::forms/changed update-note-key [::editing?] true]))}
+       "Edit tags"]
+      [comp/plain-button {:class    ["is-danger"]
+                          :on-click (fn [_]
+                                      (store/dispatch! *:store [:modals/create! modal]))}
+       "Delete note"]]]))
 
 (defn ^:private pin-toggle [*:store note]
   (r/with-let [init-form (select-keys note #{:notes/id :notes/pinned?})
@@ -100,6 +108,19 @@
     (r/with-let [sub:note (-> *:store
                               (store/dispatch! [::res/ensure! resource-key])
                               (store/subscribe [::res/?:resource resource-key]))]
-      [comp/with-resource sub:note [root {:*:store *:store}]]
+      (let [resource @sub:note]
+        (cond
+          (res/success? resource)
+          [root {:*:store *:store} (res/payload resource)]
+
+          (res/error? resource)
+          [comp/alert :warn
+           [:div
+            "Note not found. Try "
+            [:a.link {:href (nav/path-for rte/all-routes :routes.ui/main)} "creating one"]
+            "."]]
+
+          :else
+          [comp/spinner]))
       (finally
         (store/emit! *:store [::res/destroyed resource-key])))))

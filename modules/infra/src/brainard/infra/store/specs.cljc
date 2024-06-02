@@ -101,6 +101,15 @@
                                                        "note unpinned")}]]
           :err-commands [[:toasts/fail!]]}))
 
+(defmethod res/->request-spec ::notes#destroy
+  [[_ note-id] _]
+  (->req {:route        :routes.api/note
+          :params       {:notes/id note-id}
+          :method       :delete
+          :ok-commands  [[:toasts/succeed! {:message "note deleted"}]
+                         [:nav/navigate! {:token :routes.ui/main}]]
+          :err-commands [[:toasts/fail!]]}))
+
 (defmethod res/->request-spec ::notes#pinned
   [_ _]
   (->req {:route  :routes.api/notes?pinned

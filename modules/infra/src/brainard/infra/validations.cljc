@@ -18,6 +18,7 @@
   {[:get :routes.api/notes]       snotes/query
    [:post :routes.api/notes]      snotes/create
    [:get :routes.api/note]        [:map [:notes/id uuid?]]
+   [:delete :routes.api/note]     [:map [:notes/id uuid?]]
    [:patch :routes.api/note]      snotes/modify
 
    [:post :routes.api/schedules]  ssched/create

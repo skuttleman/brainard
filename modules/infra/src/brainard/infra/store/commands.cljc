@@ -78,3 +78,7 @@
     (emit-cb [:toasts/created toast-id {:state :init
                                         :level :success
                                         :body  body}])))
+
+(defmethod defacto/command-handler :nav/navigate!
+  [{::w/keys [nav]} [_ {:keys [token query-params route-params]}]]
+  (nav/navigate! nav token route-params query-params))

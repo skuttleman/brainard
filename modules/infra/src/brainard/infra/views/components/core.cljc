@@ -57,7 +57,8 @@
          [icon attrs (if value :minus :plus)]]))))
 
 (def ^:private level->class
-  {:error "is-danger"})
+  {:warn "is-warning"
+   :error "is-danger"})
 
 (defn alert [level body]
   [:div.message

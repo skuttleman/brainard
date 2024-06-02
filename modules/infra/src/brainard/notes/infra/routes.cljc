@@ -66,6 +66,12 @@
                         :code    :UNKNOWN_RESOURCE}]}}))
 
 
+(defmethod iroutes/handler [:delete :routes.api/note]
+  [{::b/keys [apis input]}]
+  (api/delete-note! apis (:notes/id input))
+  {:status 204})
+
+
 (defmethod iroutes/handler [:get :routes.api/tags]
   [{::b/keys [apis]}]
   {:status 200

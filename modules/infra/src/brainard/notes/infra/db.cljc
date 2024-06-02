@@ -39,6 +39,10 @@
           (map (partial conj [:db/retract [:notes/id note-id] :notes/tags]))
           retract-tags)))
 
+(defmethod istorage/->input ::api.notes/delete!
+  [{note-id :notes/id}]
+  [[:db/retractEntity [:notes/id note-id]]])
+
 (defmethod istorage/->input ::api.notes/get-contexts
   [_]
   {:query '[:find ?context

@@ -11,10 +11,7 @@
 
 (defmethod defacto/query-responder ::spy
   [db _]
-  (-> db
-      (select-keys #{:defacto.forms.core/-forms :defacto.resources.core/-resources})
-      (update :defacto.forms.core/-forms keys)
-      (update :defacto.resources.core/-resources keys)))
+  (select-keys db #{}))
 
 (defn ^:private add-dev-logger! [store]
   (-> store

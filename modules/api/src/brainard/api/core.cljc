@@ -9,6 +9,10 @@
 (defn update-note! [apis note-id note]
   (api.notes/update! (:notes apis) note-id note))
 
+(defn delete-note! [apis note-id]
+  (api.notes/delete! (:notes apis) note-id)
+  (api.sched/delete-for-note! (:schedules apis) note-id))
+
 (defn get-notes [apis params]
   (api.notes/get-notes (:notes apis) params))
 

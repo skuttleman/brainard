@@ -30,6 +30,14 @@
                               {::storage/type ::get-note
                                :notes/id      note-id})))))
 
+(defn delete!
+  "Deletes a note by id"
+  [notes-api note-id]
+  (storage/execute! (:store notes-api)
+                    {::storage/type ::delete!
+                     :notes/id      note-id})
+  nil)
+
 (defn create!
   "Creates a note in the store and returns the created note."
   [notes-api note]
