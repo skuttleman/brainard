@@ -11,7 +11,10 @@
 
 (defmethod defacto/query-responder ::spy
   [db _]
-  (select-keys db #{}))
+  (-> db
+      (select-keys #{:defacto.forms.core/-forms :defacto.resources.core/-resources})
+      (update :defacto.forms.core/-forms keys)
+      (update :defacto.resources.core/-resources keys)))
 
 (defn ^:private add-dev-logger! [store]
   (-> store
@@ -36,7 +39,9 @@
 
 (defn ^:private with-dev [store]
   (set! *store* store)
-  (doto store add-dev-logger!))
+  (doto store
+    (store/emit! [::w/in-env :dev])
+    add-dev-logger!))
 
 (defn init!
   "Called when the DOM finishes loading."

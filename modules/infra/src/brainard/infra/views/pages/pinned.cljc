@@ -51,7 +51,7 @@
                        :expand    [::forms/changed form-id [::expanded] next-context]}
           [:strong context]
           [:div {:style {:margin-left "12px"}}
-           [notes.views/note-list {:skip-context? true} note-group]]])
+           [notes.views/note-list {:hide-context? true} note-group]]])
        [:em "No pinned notes"])]))
 
 (defmethod ipages/page :routes.ui/pinned

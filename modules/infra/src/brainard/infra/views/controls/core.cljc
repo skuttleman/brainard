@@ -57,7 +57,7 @@
     [:label.label
      (cond-> {:html-for id}
        label-small? (assoc :class ["small"])
-       inline? (assoc-in [:style :margin-right] "8px"))
+       inline? (update :style merge {:margin-right "8px" :margin-bottom "16px"}))
      label]))
 
 (defn ^:private form-field-meta-list

@@ -9,7 +9,7 @@
     (-> attrs
         (maps/assoc-defaults :type :button)
         (cond-> disabled (update :class (fnil conj []) "is-disabled"))
-        (select-keys #{:auto-focus :id :disabled :on-click :style :class :ref})
+        (select-keys #{:auto-focus :id :disabled :on-click :style :class :ref :type})
         (->> (conj [:button.button]))
         (into content))))
 

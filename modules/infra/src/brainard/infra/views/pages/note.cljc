@@ -41,15 +41,16 @@
                             (ctrls/with-attrs form+ [:notes/tags]))]]))
 
 (defn ^:private tag-list [*:store note]
-  [:div.layout--space-between
+  [:div.layout--stack-between
    (if-let [tags (not-empty (:notes/tags note))]
      [comp/tag-list {:value tags}]
      [:em "no tags"])
-   [:button.button.is-info
-    {:disabled #?(:clj true :default false)
-     :on-click (fn [_]
-                 (store/emit! *:store [::forms/changed update-note-key [::editing?] true]))}
-    "edit tags"]])
+   [:div
+    [:button.button.is-info
+     {:disabled #?(:clj true :default false)
+      :on-click (fn [_]
+                  (store/emit! *:store [::forms/changed update-note-key [::editing?] true]))}
+     "Edit tags"]]])
 
 (defn ^:private pin-toggle [*:store note]
   (r/with-let [init-form (select-keys note #{:notes/id :notes/pinned?})
