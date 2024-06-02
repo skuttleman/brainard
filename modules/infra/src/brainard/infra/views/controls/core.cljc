@@ -185,7 +185,7 @@
            attrs
            [comp/plain-button
             (-> attrs
-                (select-keys #{:class :disabled :id :on-blur :ref})
+                (select-keys #{:class :disabled :id :on-blur :ref :type})
                 (assoc :on-click #(on-change (not value)))
                 (update :class conj (when value "is-info")))
             [comp/icon icon]]])))))

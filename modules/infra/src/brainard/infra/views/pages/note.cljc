@@ -10,7 +10,7 @@
     [brainard.schedules.infra.views :as sched.views]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
-    [defacto.resources.core :as-alias res]
+    [defacto.resources.core :as res]
     [whet.utils.reagent :as r]))
 
 (def ^:private ^:const form-id ::forms/edit-note)
@@ -63,9 +63,11 @@
                     :horizontal?  true
                     :no-buttons?  true
                     :resource-key pin-note-key}
-        [ctrls/icon-toggle (-> {:*:store *:store
-                                :icon    :paperclip
-                                :class ["is-small"]}
+        [ctrls/icon-toggle (-> {:*:store  *:store
+                                :class    ["is-small"]
+                                :disabled (res/requesting? form+)
+                                :icon     :paperclip
+                                :type     :submit}
                                (ctrls/with-attrs form+ [:notes/pinned?]))]]])
     (finally
       (store/emit! *:store [::forms+/destroyed pin-note-key]))))
@@ -77,7 +79,7 @@
                sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])]
     [:div.layout--stack-between
      [:div.layout--row
-      [:h1.layout--space-after [:strong (:notes/context note)]]
+      [:h1.layout--space-after.flex-grow [:strong (:notes/context note)]]
       [pin-toggle *:store note]]
      [:p (:notes/body note)]
      (if (::editing? (forms/data @sub:form+))

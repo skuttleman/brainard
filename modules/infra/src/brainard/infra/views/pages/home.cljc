@@ -43,15 +43,17 @@
                :params       {:pre-events [[::res/destroyed select-notes-key]]}
                :resource-key create-note-key}
    [:strong "Create a note"]
-   [ctrls/icon-toggle (-> {:*:store   *:store
-                           :label     "Pinned"
-                           :icon      :paperclip}
-                          (ctrls/with-attrs form+ [:notes/pinned?]))]
-   [ctrls/type-ahead (-> {:*:store   *:store
-                          :label     "Topic"
-                          :sub:items sub:contexts
-                          :on-blur   (->context-blur *:store)}
-                         (ctrls/with-attrs form+ [:notes/context]))]
+   [:div.layout--space-between
+    [:div.flex-grow
+     [ctrls/type-ahead (-> {:*:store   *:store
+                            :label     "Topic"
+                            :sub:items sub:contexts
+                            :on-blur   (->context-blur *:store)}
+                           (ctrls/with-attrs form+ [:notes/context]))]]
+    [ctrls/icon-toggle (-> {:*:store *:store
+                            :label   "Pinned"
+                            :icon    :paperclip}
+                           (ctrls/with-attrs form+ [:notes/pinned?]))]]
    [ctrls/textarea (-> {:label   "Body"
                         :*:store *:store}
                        (ctrls/with-attrs form+ [:notes/body]))]
