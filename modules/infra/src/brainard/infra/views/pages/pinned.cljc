@@ -26,6 +26,7 @@
     [ctrls/multi-dropdown (-> {:*:store       *:store
                                :inline?       true
                                :label         "Filter by tags"
+                               :label-style   {:margin-bottom "16px"}
                                :options       options
                                :options-by-id options-by-id}
                               (ctrls/with-attrs form [::tag-filters]))]))

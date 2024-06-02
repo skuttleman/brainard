@@ -12,6 +12,8 @@
     [clojure.pprint :as pp]
     [defacto.forms.core :as forms]
     [defacto.resources.core :as res]
+    [nextjournal.markdown :as md]
+    [nextjournal.markdown.transform :as md.trans]
     [whet.utils.reagent :as r]))
 
 (defn pprint [data]
@@ -146,15 +148,9 @@
                                                     (dom/prevent-default! e)
                                                     (on-change (disj value tag)))}])])])
 
-(defn ^:private collapsible* [{:keys [open? on-toggle]} label & body]
-  (cond-> [:div [:div.layout--row
-                 [:div.layout--space-after label]
-                 [plain-button {:on-click on-toggle :class ["is-small" "is-white"]}
-                  [icon (if open? :chevron-up :chevron-down)]]]]
-    open? (into body)))
-
-(defn collapsible [label & body]
-  (into [openable {} collapsible* label] body))
+(defn markdown [content]
+  [:div.content
+   (some-> content md/parse md.trans/->hiccup)])
 
 (def ^{:arglists '([*:store])} modals comp.modals/root)
 

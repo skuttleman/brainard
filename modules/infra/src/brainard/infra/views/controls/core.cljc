@@ -52,12 +52,13 @@
         (->> (conj [component]))
         (into args))))
 
-(defn ^:private form-field-label [{:keys [id inline? label label-small?]}]
+(defn ^:private form-field-label [{:keys [id inline? label label-small? label-style]}]
   (when label
     [:label.label
-     (cond-> {:html-for id}
+     (cond-> {:html-for id
+              :style label-style}
        label-small? (assoc :class ["small"])
-       inline? (update :style merge {:margin-right "8px" :margin-bottom "16px"}))
+       inline? (assoc-in [:style :margin-right] "8px"))
      label]))
 
 (defn ^:private form-field-meta-list
@@ -134,7 +135,7 @@
                [:textarea.textarea
                 (-> {:value     value
                      :on-change (comp on-change dom/target-value)}
-                    (merge (select-keys attrs #{:class :disabled :id :on-blur :ref})))]])))))))
+                    (merge (select-keys attrs #{:class :disabled :id :on-blur :ref :style})))]])))))))
 
 (def ^{:arglists '([attrs options])} select
   (with-id

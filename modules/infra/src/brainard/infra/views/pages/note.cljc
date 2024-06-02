@@ -91,7 +91,7 @@
      [:div.layout--row
       [:h1.layout--space-after.flex-grow [:strong (:notes/context note)]]
       [pin-toggle *:store note]]
-     [:p (:notes/body note)]
+     [comp/markdown (:notes/body note)]
      (if (::editing? (forms/data @sub:form+))
        [tag-editor {:*:store   *:store
                     :sub:form+ sub:form+

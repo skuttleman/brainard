@@ -38,30 +38,41 @@
      [:em "Brand new topic!"])])
 
 (defn ^:private root [{:keys [*:store form+ sub:contexts sub:tags]}]
-  [ctrls/form {:*:store      *:store
-               :form+        form+
-               :params       {:pre-events [[::res/destroyed select-notes-key]]}
-               :resource-key create-note-key}
-   [:strong "Create a note"]
-   [:div.layout--space-between
-    [:div.flex-grow
-     [ctrls/type-ahead (-> {:*:store   *:store
-                            :label     "Topic"
-                            :sub:items sub:contexts
-                            :on-blur   (->context-blur *:store)}
-                           (ctrls/with-attrs form+ [:notes/context]))]]
-    [ctrls/icon-toggle (-> {:*:store *:store
-                            :label   "Pinned"
-                            :icon    :paperclip}
-                           (ctrls/with-attrs form+ [:notes/pinned?]))]]
-   [ctrls/textarea (-> {:label   "Body"
-                        :*:store *:store}
-                       (ctrls/with-attrs form+ [:notes/body]))]
-   [ctrls/tags-editor (-> {:*:store   *:store
-                           :form-id   [::tags form-id]
-                           :label     "Tags"
-                           :sub:items sub:tags}
-                          (ctrls/with-attrs form+ [:notes/tags]))]])
+  (let [form-data (forms/data form+)]
+    [ctrls/form {:*:store      *:store
+                 :form+        form+
+                 :params       {:pre-events [[::res/destroyed select-notes-key]]}
+                 :resource-key create-note-key}
+     [:strong "Create a note"]
+     [:div.layout--space-between
+      [:div.flex-grow
+       [ctrls/type-ahead (-> {:*:store   *:store
+                              :label     "Topic"
+                              :sub:items sub:contexts
+                              :on-blur   (->context-blur *:store)}
+                             (ctrls/with-attrs form+ [:notes/context]))]]
+      [ctrls/icon-toggle (-> {:*:store *:store
+                              :label   "Pinned"
+                              :icon    :paperclip}
+                             (ctrls/with-attrs form+ [:notes/pinned?]))]]
+     [:div.layout--row
+      [:label.label.layout--space-after "Body"]
+      [ctrls/toggle (-> {:label   [:span.is-small "Preview"]
+                         :inline? true
+                         :*:store *:store}
+                        (ctrls/with-attrs form+ [::preview?]))]]
+     [:div {:style {:margin-top 0}}
+      (if (::preview? form-data)
+        [comp/markdown (:notes/body form-data)]
+        [ctrls/textarea (-> {:style   {:font-family :monospace
+                                       :min-height  "250px"}
+                             :*:store *:store}
+                            (ctrls/with-attrs form+ [:notes/body]))])]
+     [ctrls/tags-editor (-> {:*:store   *:store
+                             :form-id   [::tags form-id]
+                             :label     "Tags"
+                             :sub:items sub:tags}
+                            (ctrls/with-attrs form+ [:notes/tags]))]]))
 
 (defmethod ipages/page :routes.ui/main
   [*:store _route-info]

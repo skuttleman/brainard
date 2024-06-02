@@ -64,7 +64,10 @@
   [_ {::forms/keys [data] :keys [pre-events ok-events]}]
   (->req {:route        :routes.api/notes
           :method       :post
-          :body         data
+          :body         (select-keys data #{:notes/context
+                                            :notes/pinned?
+                                            :notes/body
+                                            :notes/tags})
           :pre-events   pre-events
           :ok-events    (conj ok-events [:api.notes/saved])
           :ok-commands  [[:toasts.notes/succeed!]]
