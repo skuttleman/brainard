@@ -19,3 +19,6 @@
 
 (defn success? [response]
   (<= 200 (:status response) 399))
+
+(defn client-error? [response]
+  (<= 400 (:status response) 499))

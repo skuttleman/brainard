@@ -148,7 +148,19 @@
                             :notes/tags    #{:two :three}
                             :notes/body    "body of note1"}
                            (select-keys (-> response :body :data)
-                                        #{:notes/context :notes/tags :notes/body}))))))))))
+                                        #{:notes/context :notes/tags :notes/body}))))))
+
+              (testing "and when deleting the note by id"
+                (let [response (http {:method :delete
+                                      :uri    (str "/api/notes/" note1-id)})]
+                  (testing "deletes the note"
+                    (is (thttp/success? response))))
+
+                (testing "and when fetching the note by id"
+                  (let [response (http {:method :get
+                                        :uri    (str "/api/notes/" note1-id)})]
+                    (testing "does not find the note"
+                      (is (thttp/client-error? response))))))))))
 
       (testing "when creating an invalid note"
         (let [response (http {:method :post

@@ -141,7 +141,7 @@
             (let [results (into #{}
                                 (map #(-> % (update :notes/tags set) (dissoc ::b/ref)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
-                                                        :notes/pinned?    true}))]
+                                                        :notes/pinned? true}))]
               (is (= #{{:notes/id      id-3
                         :notes/context "b"
                         :notes/pinned? true
@@ -150,7 +150,16 @@
                         :notes/context "XYZ"
                         :notes/pinned? true
                         :notes/tags    #{}}}
-                     results)))))
+                     results))))
+
+          (testing "and when deleting a note"
+            (storage/execute! storage
+                              {::storage/type ::api.notes/delete!
+                               :notes/id      id-1})
+            (testing "and when querying for a deleted note"
+              (testing "does not find the note"
+                (is (nil? (storage/query storage {::storage/type ::api.notes/get-note
+                                                  :notes/id      id-1})))))))
 
         (testing "and when querying a note that doesn't exist"
           (testing "returns nil"

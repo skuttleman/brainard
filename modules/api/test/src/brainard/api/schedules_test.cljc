@@ -13,12 +13,10 @@
 
 (deftest relevant-notes-test
   (testing "when querying relevant notes"
-    (let [query (promise)
-          timestamp #inst "2024-04-17T07:11:31.715Z"
+    (let [timestamp #inst "2024-04-17T07:11:31.715Z"
           mock (reify
                  istorage/IRead
                  (read [_ filters]
-                   (deliver query filters)
                    (if (= ::api.sched/schedules (::storage/type filters))
                      [{:schedules/note-id 1}
                       {:schedules/note-id 2}
