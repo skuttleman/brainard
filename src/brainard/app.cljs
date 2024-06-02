@@ -1,6 +1,8 @@
 (ns brainard.app
   (:require
+    [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as-alias specs]
+    [brainard.infra.stubs.dom :as dom]
     [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.pages.core :as pages]
     [clojure.core.async :as async]
@@ -18,6 +20,11 @@
   (async/go
     (async/<! (async/timeout 15000))
     (defacto/dispatch! store [::res/poll! 15000 [::specs/notes#buzz]]))
+  (dom/add-listener! js/navigation
+                     :navigate
+                     (fn [^js/NavigateEvent e]
+                       (when (= "traverse" (.-navigationType e))
+                         (store/dispatch! store [:modals/remove-all!]))))
   [pages/root store])
 
 (defn start! [store->comp]

@@ -7,6 +7,26 @@
   '[:find (pull ?e [*])
     :in $])
 
+(defn ^:private notes-query [{:notes/keys [context ids pinned? tags]}]
+  (cond-> select
+    (seq ids)
+    (conj '[?id ...])
+
+    :always
+    (conj :where)
+
+    (seq ids)
+    (conj '[?e :notes/id ?id])
+
+    (some? context)
+    (conj ['?e :notes/context context])
+
+    (seq tags)
+    (into (map (partial conj '[?e :notes/tags])) tags)
+
+    pinned?
+    (conj ['?e :notes/pinned? true])))
+
 (defmethod istorage/->input ::api.notes/save!
   [note]
   (let [{note-id :notes/id retract-tags :notes/tags!remove} note]
@@ -30,26 +50,6 @@
   {:query '[:find ?tag
             :where [_ :notes/tags ?tag]]
    :xform (map first)})
-
-(defn ^:private notes-query [{:notes/keys [context ids pinned? tags]}]
-  (cond-> select
-    (seq ids)
-    (conj '[?id ...])
-
-    :always
-    (conj :where)
-
-    (seq ids)
-    (conj '[?e :notes/id ?id])
-
-    (some? context)
-    (conj ['?e :notes/context context])
-
-    (seq tags)
-    (into (map (partial conj '[?e :notes/tags])) tags)
-
-    pinned?
-    (conj ['?e :notes/pinned? true])))
 
 (defmethod istorage/->input ::api.notes/get-notes
   [params]
