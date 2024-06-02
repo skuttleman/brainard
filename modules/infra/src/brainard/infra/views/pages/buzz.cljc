@@ -9,11 +9,11 @@
     [whet.utils.reagent :as r]))
 
 (defmethod ipages/page :routes.ui/buzz
-  [*:store route-info]
+  [*:store _]
   (r/with-let [sub:notes (store/subscribe *:store [::res/?:resource [::specs/notes#buzz]])]
     (let [resource @sub:notes]
       [:div
        [:h2.subtitle "What's relevant now?"]
        (if (or (res/requesting? resource) (res/success? resource))
-         [notes.views/note-list route-info (res/payload resource)]
+         [notes.views/note-list {} (res/payload resource)]
          [comp/spinner])])))

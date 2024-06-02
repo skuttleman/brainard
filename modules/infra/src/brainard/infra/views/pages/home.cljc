@@ -29,12 +29,12 @@
                       select-notes-key
                       {::forms/data {:notes/context (dom/target-value e)}}])))
 
-(defn ^:private search-results [route-info notes]
+(defn ^:private search-results [_attrs notes]
   [:div
    (if (seq notes)
      [:<>
       [:h3.subtitle [:em "Some related notes..."]]
-      [notes.views/note-list route-info notes]]
+      [notes.views/note-list {} notes]]
      [:em "Brand new topic!"])])
 
 (defn ^:private root [{:keys [*:store form+ sub:contexts sub:tags]}]
@@ -69,7 +69,7 @@
             :form+        @sub:form+
             :sub:contexts sub:contexts
             :sub:tags     sub:tags}]
-     [comp/with-resource sub:notes [search-results (assoc route-info :hide-init? true)]]]
+     [comp/with-resource sub:notes [search-results {:hide-init? true}]]]
     (finally
       (store/emit! *:store [::forms+/destroyed create-note-key])
       (store/emit! *:store [::res/destroyed select-notes-key]))))

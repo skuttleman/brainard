@@ -4,17 +4,16 @@
     [brainard.infra.views.components.core :as comp]
     [whet.utils.navigation :as nav]))
 
-(defn note-list [{:keys [anchor skip-context?]} notes]
+(defn note-list [{:keys [hide-context?]} notes]
   (if-not (seq notes)
     [:span.search-results
      [comp/alert :info "No search results"]]
     [:ul.search-results
      (for [{:notes/keys [id context body tags]} notes]
        ^{:key id}
-       [:li {:id    id
-             :class [(when (= anchor (str id)) "anchored")]}
+       [:li {:id id}
         [:div.layout--row
-         (when-not skip-context? [:strong.layout--no-shrink context])
+         (when-not hide-context? [:strong.layout--no-shrink context])
          [:span.flex-grow.space--left.truncate
           body]
          [:a.link.space--left {:href (nav/path-for rte/all-routes :routes.ui/note {:notes/id id})}

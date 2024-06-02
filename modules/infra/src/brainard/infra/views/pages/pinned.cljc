@@ -30,7 +30,7 @@
                                :options-by-id options-by-id}
                               (ctrls/with-attrs form [::tag-filters]))]))
 
-(defn ^:private root [*:store sub:form route-info [tags pinned-notes]]
+(defn ^:private root [*:store sub:form [tags pinned-notes]]
   (let [form @sub:form
         {::keys [expanded tag-filters]} (forms/data form)
         form-id (forms/id form)
@@ -51,17 +51,17 @@
                        :expand    [::forms/changed form-id [::expanded] next-context]}
           [:strong context]
           [:div {:style {:margin-left "12px"}}
-           [notes.views/note-list (assoc route-info :skip-context? true) note-group]]])
+           [notes.views/note-list {:skip-context? true} note-group]]])
        [:em "No pinned notes"])]))
 
 (defmethod ipages/page :routes.ui/pinned
-  [*:store route-info]
+  [*:store _route-info]
   (r/with-let [sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
                sub:pinned (do (store/dispatch! *:store [::res/ensure! [::specs/notes#pinned]])
                               (store/subscribe *:store [::res/?:resource [::specs/notes#pinned]]))
                sub:form (do (store/dispatch! *:store [::forms/ensure! [::expanded-group] {::tag-filters #{}}])
                             (store/subscribe *:store [::forms/?:form [::expanded-group]]))]
-    [comp/with-resources [sub:tags sub:pinned] [root *:store sub:form route-info]]
+    [comp/with-resources [sub:tags sub:pinned] [root *:store sub:form]]
     (finally
       (store/emit! *:store [::res/destroyed [::specs/notes#pinned]])
       (store/emit! *:store [::forms/destroyed [::expanded-group]]))))
