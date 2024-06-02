@@ -15,11 +15,12 @@
     brainard.infra.store.events
     brainard.infra.store.queries))
 
-(defn ^:private store->tree [route store]
+(defn ^:private store->tree [env route store]
   (doto store
     (defacto/dispatch! [::res/submit! [::specs/notes#buzz]])
     (defacto/dispatch! [::res/submit! [::specs/tags#select]])
-    (defacto/dispatch! [::res/submit! [::specs/contexts#select]]))
+    (defacto/dispatch! [::res/submit! [::specs/contexts#select]])
+    (defacto/emit! [::w/in-env (or env :prod)]))
   [pages/page store route])
 
 (def ^:private ^:const icon-lib
@@ -33,14 +34,14 @@
           :type "text/css"}])
 
 (defmethod iroutes/handler [:get :routes/ui]
-  [{::w/keys [route] ::b/keys [apis] :as req}]
-  (let [template (-> {:brainard/sys apis}
+  [{::w/keys [route] ::b/keys [apis env] :as req}]
+  (let [template (-> {::b/sys apis}
                      (w/into-template route
                                       (fn [req]
                                         (-> req
                                             (assoc :brainard/apis apis)
                                             routes/handler))
-                                      (partial store->tree route))
+                                      (partial store->tree env route))
                      (w/with-html-heads icon-lib css-lib))]
     (routes.res/->response 200
                            (w/render-template template)

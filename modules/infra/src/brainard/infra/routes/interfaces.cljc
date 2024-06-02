@@ -17,6 +17,7 @@
       (derive :routes.ui/search :routes/ui)
       (derive :routes.ui/note :routes/ui)
       (derive :routes.ui/pinned :routes/ui)
+      (derive :routes.ui/dev :routes/ui)
       (derive :routes.ui/not-found :routes/ui)))
 
 (defn router [{:keys [request-method] ::w/keys [route]}]

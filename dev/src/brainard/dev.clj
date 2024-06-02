@@ -1,13 +1,14 @@
 (ns brainard.dev
   (:require
+    [brainard :as-alias b]
     [brainard.api.utils.logger :as log]
     [brainard.core :as core]
     [brainard.infra.routes.core :as routes]
-    [brainard.infra.system :as sys]
     [duct.core :as duct]
     [integrant.core :as ig]
     [nrepl.server :as nrepl]
-    [ring.middleware.reload :as ring.rel]))
+    [ring.middleware.reload :as ring.rel]
+    brainard.pages.dev))
 
 (declare system)
 
@@ -29,13 +30,15 @@
 
 (defmethod ig/init-key :brainard.web/dev-handler
   [_ _]
-  (ring.rel/wrap-reload #'routes/be-handler {:dirs ["../defacto"
-                                                    "../whet"
-                                                    "src"
-                                                    "modules/api/src"
-                                                    "modules/infra/src"
-                                                    "dev"]}))
+  (-> #'routes/be-handler
+      ((fn [handler] (fn [req] (handler (assoc req ::b/env :dev)))))
+      (ring.rel/wrap-reload {:dirs ["../defacto"
+                                    "../whet"
+                                    "modules/api/src"
+                                    "modules/infra/src"
+                                    "src"
+                                    "dev"]})))
 
 (comment
-  (def system (sys/start! "duct/dev.edn") [:duct.profile/base :duct.profile/prod])
+  (def system (core/start! "duct/dev.edn" [:duct.profile/base :duct.profile/prod]))
   (ig/halt! system))

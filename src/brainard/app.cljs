@@ -27,8 +27,11 @@
                          (store/dispatch! store [:modals/remove-all!]))))
   [pages/root store])
 
-(defn start! [store->comp]
-  (w/render-ui (w/with-ctx {} rte/all-routes) store->comp))
+(defn start!
+  ([store->comp]
+   (start! store->comp nil))
+  ([store->comp opts]
+   (w/render-ui (w/with-ctx {} rte/all-routes) store->comp opts)))
 
 (defn ^:export init!
   "Called when the DOM finishes loading."

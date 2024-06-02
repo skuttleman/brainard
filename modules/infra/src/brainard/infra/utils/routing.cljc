@@ -48,6 +48,7 @@
        ["/pinned" :routes.ui/pinned]
        [["/notes/" [uuids/regex :notes/id]] :routes.ui/note]
        ["/search" :routes.ui/search]
+       ["/dev" :routes.ui/dev]
        [true :routes.ui/not-found]]])
 
 (def all-routes
