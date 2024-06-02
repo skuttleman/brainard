@@ -54,8 +54,9 @@
 
 (defn ^:private pin-toggle [*:store note]
   (r/with-let [init-form (select-keys note #{:notes/id :notes/pinned?})
-               sub:form+ (do (store/dispatch! *:store [::forms/ensure! pin-note-key init-form])
-                             (store/subscribe *:store [::forms+/?:form+ pin-note-key]))]
+               sub:form+ (-> *:store
+                             (store/dispatch! [::forms/ensure! pin-note-key init-form])
+                             (store/subscribe [::forms+/?:form+ pin-note-key]))]
     (let [form+ @sub:form+]
       [:div
        [ctrls/form {:*:store      *:store
@@ -74,8 +75,9 @@
 
 (defn ^:private root [{:keys [*:store]} note]
   (r/with-let [init-form (select-keys note #{:notes/tags})
-               sub:form+ (do (store/dispatch! *:store [::forms/ensure! update-note-key init-form])
-                             (store/subscribe *:store [::forms+/?:form+ update-note-key]))
+               sub:form+ (-> *:store
+                             (store/dispatch! [::forms/ensure! update-note-key init-form])
+                             (store/subscribe [::forms+/?:form+ update-note-key]))
                sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])]
     [:div.layout--stack-between
      [:div.layout--row
@@ -95,8 +97,9 @@
 (defmethod ipages/page :routes.ui/note
   [*:store {:keys [route-params]}]
   (let [resource-key [::specs/notes#find (:notes/id route-params)]]
-    (r/with-let [sub:note (do (store/dispatch! *:store [::res/ensure! resource-key])
-                              (store/subscribe *:store [::res/?:resource resource-key]))]
+    (r/with-let [sub:note (-> *:store
+                              (store/dispatch! [::res/ensure! resource-key])
+                              (store/subscribe [::res/?:resource resource-key]))]
       [comp/with-resource sub:note [root {:*:store *:store}]]
       (finally
         (store/emit! *:store [::res/destroyed resource-key])))))

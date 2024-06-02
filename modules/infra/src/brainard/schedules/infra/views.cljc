@@ -140,16 +140,17 @@
 
 (defn editor [*:store note]
   (r/with-let [schedule-create-key (->sched-create-key note)
-               sub:form+ (do (store/dispatch! *:store [::forms/ensure!
-                                                       schedule-create-key
-                                                       {:schedules/note-id (:notes/id note)}
-                                                       {:remove-nil? true}])
-                             (store/subscribe *:store [::forms+/?:form+ schedule-create-key]))]
+               sub:form+ (-> *:store
+                             (store/dispatch! [::forms/ensure!
+                                               schedule-create-key
+                                               {:schedules/note-id (:notes/id note)}
+                                               {:remove-nil? true}])
+                             (store/subscribe [::forms+/?:form+ schedule-create-key]))]
     [:div.layout--stack-between
-               [:div.flex.row
-                [:em "Add a schedule: "]
-                [:span.space--left [schedule-display (forms/data @sub:form+)]]]
-               [form {:*:store *:store :sub:form+ sub:form+}]
-               [ul *:store note]]
+     [:div.flex.row
+      [:em "Add a schedule: "]
+      [:span.space--left [schedule-display (forms/data @sub:form+)]]]
+     [form {:*:store *:store :sub:form+ sub:form+}]
+     [ul *:store note]]
     (finally
       (store/emit! *:store [::forms+/destroyed schedule-create-key]))))

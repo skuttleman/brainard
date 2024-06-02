@@ -32,8 +32,9 @@
         (store/emit! [::forms/changed form-id [:invalid?] false])))))
 
 (defn control [{:keys [*:store form-id] :as attrs}]
-  (r/with-let [sub:form (do (store/emit! *:store [::forms/created form-id])
-                            (store/subscribe *:store [::forms/?:form form-id]))
+  (r/with-let [sub:form (-> *:store
+                            (store/emit! [::forms/created form-id])
+                            (store/subscribe [::forms/?:form form-id]))
                on-change (->update-form *:store form-id)]
     (let [form+ (forms+/->form+ @sub:form @(:sub:items attrs))
           form-data (forms/data form+)]

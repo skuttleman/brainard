@@ -64,9 +64,10 @@
                           (ctrls/with-attrs form+ [:notes/tags]))]])
 
 (defmethod ipages/page :routes.ui/main
-  [*:store route-info]
-  (r/with-let [sub:form+ (do (store/dispatch! *:store [::forms/ensure! create-note-key new-note])
-                             (store/subscribe *:store [::forms+/?:form+ create-note-key]))
+  [*:store _route-info]
+  (r/with-let [sub:form+ (-> *:store
+                             (store/dispatch! [::forms/ensure! create-note-key new-note])
+                             (store/subscribe [::forms+/?:form+ create-note-key]))
                sub:contexts (store/subscribe *:store [::res/?:resource [::specs/contexts#select]])
                sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
                sub:notes (store/subscribe *:store [::res/?:resource select-notes-key])]

@@ -57,10 +57,12 @@
 (defmethod ipages/page :routes.ui/pinned
   [*:store _route-info]
   (r/with-let [sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
-               sub:pinned (do (store/dispatch! *:store [::res/ensure! [::specs/notes#pinned]])
-                              (store/subscribe *:store [::res/?:resource [::specs/notes#pinned]]))
-               sub:form (do (store/dispatch! *:store [::forms/ensure! [::expanded-group] {::tag-filters #{}}])
-                            (store/subscribe *:store [::forms/?:form [::expanded-group]]))]
+               sub:pinned (-> *:store
+                              (store/dispatch! [::res/ensure! [::specs/notes#pinned]])
+                              (store/subscribe [::res/?:resource [::specs/notes#pinned]]))
+               sub:form (-> *:store
+                            (store/dispatch! [::forms/ensure! [::expanded-group] {::tag-filters #{}}])
+                            (store/subscribe [::forms/?:form [::expanded-group]]))]
     [comp/with-resources [sub:tags sub:pinned] [root *:store sub:form]]
     (finally
       (store/emit! *:store [::res/destroyed [::specs/notes#pinned]])
