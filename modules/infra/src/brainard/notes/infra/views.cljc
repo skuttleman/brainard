@@ -16,8 +16,7 @@
                :let [expanded? (= id expanded-id)]]
            ^{:key id}
            [:li.layout--stack-between {:id    id
-                                       :style (when expanded?
-                                                {:background-color "rgba(0, 0, 127, 0.1)"})}
+                                       :class [(when expanded? "expanded")]}
             [:div {:class    [(if expanded? "layout--stack-between" "layout--row")]
                    :on-click (fn [_]
                                (reset! sub:expanded (when-not expanded? id)))

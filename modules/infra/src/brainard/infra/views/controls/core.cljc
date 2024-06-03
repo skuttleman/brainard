@@ -202,12 +202,13 @@
 
 (def ^{:arglists '([attrs])} type-ahead
   (with-id
-    (with-emit-on-change
-      (with-disabled-compat
-        (fn [attrs]
-          [form-field
-           attrs
-           [type-ahead/control attrs]])))))
+    (scomp/with-auto-focus
+      (with-emit-on-change
+        (with-disabled-compat
+          (fn [attrs]
+            [form-field
+             attrs
+             [type-ahead/control attrs]]))))))
 
 (def ^{:arglists '([attrs])} multi-dropdown
   (with-id

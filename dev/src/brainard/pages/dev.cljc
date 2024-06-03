@@ -13,7 +13,7 @@
   (::-events db))
 
 (defn ^:private display-event [*:store form event]
-  (let [{:keys [id occurred-at]} (meta event)
+  (let [{::keys [id occurred-at]} (meta event)
         form-data (forms/data form)
         expanded? (= id (::selected form-data))]
     [:div {:style    {:cursor :pointer}
@@ -56,9 +56,8 @@
        [:ul.defacto-events
         (for [event (cond->> events
                       (seq (:events (forms/data form)))
-                      (filter (comp (:events (forms/data form)) first)))
-              :let [{:keys [id]} (meta event)]]
-          ^{:key id}
+                      (filter (comp (:events (forms/data form)) first)))]
+          ^{:key (::id (meta event))}
           [:li
            [display-event *:store form event]])]])))
 

@@ -26,7 +26,7 @@
         (not (:skip-tracking? (meta event)))
         (update ::dev/-events
                 (fnil conj ())
-                (with-meta event {:id id :occurred-at occurred-at}))))))
+                (vary-meta event assoc ::dev/id id ::dev/occurred-at occurred-at))))))
 
 (defn ^:private add-dev-logger! [store]
   (-> store

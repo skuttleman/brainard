@@ -46,28 +46,30 @@
      [:strong "Create a note"]
      [:div.layout--space-between
       [:div.flex-grow
-       [ctrls/type-ahead (-> {:*:store   *:store
-                              :label     "Topic"
-                              :sub:items sub:contexts
-                              :on-blur   (->context-blur *:store)}
+       [ctrls/type-ahead (-> {:*:store     *:store
+                              :label       "Topic"
+                              :sub:items   sub:contexts
+                              :auto-focus? true
+                              :on-blur     (->context-blur *:store)}
                              (ctrls/with-attrs form+ [:notes/context]))]]
       [ctrls/icon-toggle (-> {:*:store *:store
                               :label   "Pinned"
                               :icon    :paperclip}
                              (ctrls/with-attrs form+ [:notes/pinned?]))]]
-     [:div.layout--row
-      [:label.label.layout--space-after "Body"]
-      [ctrls/toggle (-> {:label   [:span.is-small "Preview"]
-                         :inline? true
-                         :*:store *:store}
-                        (ctrls/with-attrs form+ [::preview?]))]]
+     [:label.label "Body"]
      [:div {:style {:margin-top 0}}
       (if (::preview? form-data)
-        [comp/markdown (:notes/body form-data)]
+        [:div.expanded
+         [comp/markdown (:notes/body form-data)]]
         [ctrls/textarea (-> {:style   {:font-family :monospace
                                        :min-height  "250px"}
                              :*:store *:store}
                             (ctrls/with-attrs form+ [:notes/body]))])]
+     [ctrls/toggle (-> {:label   [:span.is-small "Preview"]
+                        :style   {:margin-top 0}
+                        :inline? true
+                        :*:store *:store}
+                       (ctrls/with-attrs form+ [::preview?]))]
      [ctrls/tags-editor (-> {:*:store   *:store
                              :form-id   [::tags form-id]
                              :label     "Tags"
