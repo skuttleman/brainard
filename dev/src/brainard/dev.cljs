@@ -1,12 +1,15 @@
 (ns brainard.dev
   (:require
     [brainard.app :as app]
-    [brainard.pages.dev :as dev]
     [brainard.infra.store.core :as store]
+    [brainard.infra.store.specs :as specs]
     [brainard.infra.views.pages.core :as pages]
+    [brainard.pages.dev :as dev]
     [clojure.pprint :as pp]
     [defacto.core :as defacto]
-    [whet.core :as w]))
+    [defacto.resources.core :as-alias res]
+    [whet.core :as w]
+    #_brainard.stubbed-be))
 
 (def ^:dynamic *store*)
 
@@ -38,6 +41,10 @@
                      (pp/pprint db))))))
 
 (defn ^:private with-dev [store]
+  #_(-> store
+      (defacto/dispatch! [::res/submit! [::specs/notes#buzz]])
+      (defacto/dispatch! [::res/submit! [::specs/tags#select]])
+      (defacto/dispatch! [::res/submit! [::specs/contexts#select]]))
   (set! *store* store)
   (doto store add-dev-logger!))
 

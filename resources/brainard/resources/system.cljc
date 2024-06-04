@@ -1,23 +1,19 @@
 (ns brainard.resources.system
+  #?(:cljs (:require-macros brainard.resources.system))
   (:require
+    #?(:clj [duct.core :as duct])
     [integrant.core :as ig]))
 
-(def config
-  {[::const :brainard/apis]
-   {:notes     (ig/ref :brainard/notes-api)
-    :schedules (ig/ref :brainard/schedules-api)}
+#?(:clj
+   (def cfg
+     (duct/read-config (duct/resource "duct/base.edn"))))
 
-   [::const :brainard/notes-api]
-   {:store (ig/ref :brainard/storage)}
+(defmacro config []
+  `(let [cfg# ~cfg]
+     (assoc cfg#
+            [:brainard.ds/ILogger :brainard.ds/storage-logger]
+            {:db-name (ig/ref :cfg.ds/db-name)})))
 
-   [::const :brainard/schedules-api]
-   {:store (ig/ref :brainard/storage)}
-
-   :brainard/storage
-   {:ds-client (ig/ref :brainard.ds/client)}
-
-   :brainard.ds/client
-   {:logger (ig/ref :brainard.ds/storage-logger)}
-
-   :brainard.ds/storage-logger
-   {:db-name "brainard"}})
+(defmethod ig/init-key :duct/const
+  [_ component]
+  component)
