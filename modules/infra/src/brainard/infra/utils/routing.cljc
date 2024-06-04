@@ -2,10 +2,7 @@
   "Tokenized HTTP routing table for use with [[bidi.bidi]]"
   (:require
     [brainard.api.utils.uuids :as uuids]
-    [whet.interfaces :as iwhet])
-  #?(:clj
-     (:import
-       (java.net URLEncoder URLDecoder))))
+    [whet.interfaces :as iwhet]))
 
 (def ^:private token->coercers
   {:routes.api/note     {:notes/id uuids/->uuid}

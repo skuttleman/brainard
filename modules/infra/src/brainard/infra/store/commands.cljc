@@ -17,6 +17,10 @@
   (let [{:keys [token route-params]} (store/query store [::w/?:route])]
     (nav/navigate! nav token route-params query-params)))
 
+(defmethod defacto/command-handler :nav/navigate!
+  [{::w/keys [nav]} [_ {:keys [token query-params route-params]}]]
+  (nav/navigate! nav token route-params query-params))
+
 (defmethod defacto/command-handler :modals/create!
   [_ [_ body] emit-cb]
   (let [modal-id (->sortable-id)]
@@ -78,7 +82,3 @@
     (emit-cb [:toasts/created toast-id {:state :init
                                         :level :success
                                         :body  body}])))
-
-(defmethod defacto/command-handler :nav/navigate!
-  [{::w/keys [nav]} [_ {:keys [token query-params route-params]}]]
-  (nav/navigate! nav token route-params query-params))

@@ -33,14 +33,17 @@
           :href "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css"
           :type "text/css"}])
 
+(defn ^:private ui-handler [apis req]
+  (-> req
+      (assoc ::b/apis apis)
+      routes/handler))
+
 (defmethod iroutes/handler [:get :routes/ui]
   [{::w/keys [route] ::b/keys [apis env] :as req}]
   (let [template (-> {::b/sys apis}
-                     (w/into-template route
-                                      (fn [req]
-                                        (-> req
-                                            (assoc ::b/apis apis)
-                                            routes/handler))
+                     (w/into-template "brainard"
+                                      route
+                                      (partial ui-handler apis)
                                       (partial store->tree env route))
                      (w/with-html-heads icon-lib css-lib))]
     (routes.res/->response 200

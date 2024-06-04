@@ -11,22 +11,25 @@
                 [[path' v]])))
           m))
 
-(defn flatten [m]
+(defn flatten
   "Flattens nested maps into a map of \"paths\".
 
    (flatten {:a {:b 1 :c {:d [{:x :y}]}}})
    ;; =>  {[:a :b] 1 [:a :c :d] [{:x :y}]}"
+  [m]
   (into {} (flatten* m [])))
 
-(defn nest [m]
+(defn nest
   "Given a map of vector \"paths\" -> values, creates nested maps.
 
    (nest {[:a :b] 1 [:a :c :d] [{:x :y}]})
    ;; =>  {:a {:b 1 :c {:d [{:x :y}]}}}"
+  [m]
   (reduce-kv assoc-in {} m))
 
-(defn assoc-defaults [m & kvs]
+(defn assoc-defaults
   "Assoc values onto a map when the existing value is missing or nil."
+  [m & kvs]
   (into (or m {})
         (comp (partition-all 2)
               (remove (comp some? (partial get m) first)))

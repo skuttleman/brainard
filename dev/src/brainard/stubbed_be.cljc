@@ -18,14 +18,14 @@
 (def ^:private apis
   (val (ig/find-derived-1 system ::b/apis)))
 
-(defn ^:private success? [status]
-  (and (integer? status)
-       (<= 200 status 299)))
-
 (defn ^:private handler [{{:keys [token route-params query-params]} :route :as req}]
   (let [uri (nav/path-for rte/all-routes token route-params query-params)
         route-info (nav/match rte/all-routes uri)]
     (routes/handler (assoc req ::b/apis apis ::w/route route-info))))
+
+(defn ^:private success? [status]
+  (and (integer? status)
+       (<= 200 status 299)))
 
 (defmethod iwhet/handle-request :default
   [_ _ params]

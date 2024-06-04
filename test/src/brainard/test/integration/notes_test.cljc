@@ -13,7 +13,7 @@
     (java.util Date)))
 
 (deftest save!-test
-  (tsys/with-system [{::bds/keys [client] ::b/keys [storage]} nil]
+  (tsys/with-system [{::b/keys [storage]} nil]
     (testing "when saving a note"
       (let [note-id (uuids/random)
             date-time (Date.)]
@@ -84,7 +84,7 @@
 
 (deftest get-notes-test
   (testing "when there are saved notes"
-    (tsys/with-system [{::bds/keys [client] ::b/keys [storage]} nil]
+    (tsys/with-system [{::b/keys [storage]} nil]
       (let [[id-1 id-2 id-3 id-4 id-5] (repeatedly uuids/random)]
         (istorage/write! storage
                          [{:notes/id      id-1
@@ -106,7 +106,7 @@
         (testing "and when querying notes"
           (testing "finds notes by context"
             (let [results (into #{}
-                                (map #(-> % (update :notes/tags set) (dissoc ::b/ref)))
+                                (map #(update % :notes/tags set))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/context "a"}))]
               (is (= #{{:notes/id      id-1
@@ -118,7 +118,7 @@
                      results))))
           (testing "finds notes by tags"
             (let [results (into #{}
-                                (map #(-> % (update :notes/tags set) (dissoc ::b/ref)))
+                                (map #(update % :notes/tags set))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/tags    #{:c :d}}))]
               (is (= #{{:notes/id      id-3
@@ -128,7 +128,7 @@
                      results))))
           (testing "finds notes by context and tags"
             (let [results (into #{}
-                                (map #(-> % (update :notes/tags set) (dissoc ::b/ref)))
+                                (map #(update % :notes/tags set))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/context "b"
                                                         :notes/tags    #{:b}}))]
@@ -139,7 +139,7 @@
                      results))))
           (testing "finds pinned notes"
             (let [results (into #{}
-                                (map #(-> % (update :notes/tags set) (dissoc ::b/ref)))
+                                (map #(update % :notes/tags set))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/pinned? true}))]
               (is (= #{{:notes/id      id-3

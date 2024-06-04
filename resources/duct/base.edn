@@ -1,4 +1,4 @@
-{[:brainard/application :duct/daemon :duct/const]
+{[:duct/const :duct/daemon :brainard/application]
  #ig/ref :brainard/webserver
 
  :brainard/webserver
@@ -28,8 +28,8 @@
 
 
  ;; env
- [:cfg/server-port :duct/const]
+ [:duct/const :cfg/server-port]
  #duct/env ["SERVER_PORT" Int :or 1165]
 
- [:cfg.ds/db-name :duct/const]
+ [:duct/const :cfg.ds/db-name]
  #duct/env ["DATASCRIPT_DB_NAME" :or "brainard"]}

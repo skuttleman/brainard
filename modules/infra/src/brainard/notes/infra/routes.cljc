@@ -3,20 +3,27 @@
     [brainard :as-alias b]
     [brainard.api.core :as api]
     [brainard.infra.routes.interfaces :as iroutes]
+    [brainard.infra.routes.response :as routes.res]
     [whet.core :as w])
   #?(:clj
      (:import
        (java.util Date))))
 
+(def ^:private ^:const not-found
+  (routes.res/->response 404 {:errors [{:message "Not found"
+                                        :code    :UNKNOWN_RESOURCE}]}))
+
 (defmethod iroutes/handler [:get :routes.api/notes?scheduled]
   [{::b/keys [apis]}]
-  {:status 200
-   :body   {:data (api/relevant-notes apis #?(:cljs (js/Date.) :default (Date.)))}})
+  (let [results (api/relevant-notes apis #?(:cljs    (js/Date.)
+                                            :default (Date.)))]
+    (routes.res/->response 200
+                           {:data results})))
 
 (defmethod iroutes/handler [:get :routes.api/notes?pinned]
   [{::b/keys [apis]}]
-  {:status 200
-   :body   {:data (api/get-notes apis {:notes/pinned? true})}})
+  (let [results (api/get-notes apis {:notes/pinned? true})]
+    (routes.res/->response 200 {:data results})))
 
 (defmethod iroutes/req->input [:get :routes.api/notes]
   [{::w/keys [route]}]
@@ -32,24 +39,20 @@
 (defmethod iroutes/handler [:get :routes.api/notes]
   [{::b/keys [apis input]}]
   (let [results (api/get-notes apis input)]
-    {:status 200
-     :body   {:data results}}))
+    (routes.res/->response 200 {:data results})))
 
 
 (defmethod iroutes/handler [:post :routes.api/notes]
   [{::b/keys [apis input]}]
-  {:status 201
-   :body   {:data (api/create-note! apis input)}})
+  (let [result (api/create-note! apis input)]
+    (routes.res/->response 201 {:data result})))
 
 
 (defmethod iroutes/handler [:get :routes.api/note]
   [{::b/keys [apis input]}]
   (if-let [note (api/get-note apis (:notes/id input))]
-    {:status 200
-     :body   {:data note}}
-    {:status 404
-     :body   {:errors [{:message "Not found"
-                        :code    :UNKNOWN_RESOURCE}]}}))
+    (routes.res/->response 200 {:data note})
+    not-found))
 
 
 (defmethod iroutes/req->input [:patch :routes.api/note]
@@ -59,26 +62,23 @@
 (defmethod iroutes/handler [:patch :routes.api/note]
   [{::b/keys [apis input]}]
   (if-let [note (api/update-note! apis (:notes/id input) input)]
-    {:status 200
-     :body   {:data note}}
-    {:status 404
-     :body   {:errors [{:message "Not found"
-                        :code    :UNKNOWN_RESOURCE}]}}))
+    (routes.res/->response 200 {:data note})
+    not-found))
 
 
 (defmethod iroutes/handler [:delete :routes.api/note]
   [{::b/keys [apis input]}]
   (api/delete-note! apis (:notes/id input))
-  {:status 204})
+  (routes.res/->response 204))
 
 
 (defmethod iroutes/handler [:get :routes.api/tags]
   [{::b/keys [apis]}]
-  {:status 200
-   :body   {:data (api/get-tags apis)}})
+  (let [results (api/get-tags apis)]
+    (routes.res/->response 200 {:data results})))
 
 
 (defmethod iroutes/handler [:get :routes.api/contexts]
   [{::b/keys [apis]}]
-  {:status 200
-   :body   {:data (api/get-contexts apis)}})
+  (let [results (api/get-contexts apis)]
+    (routes.res/->response 200 {:data results})))

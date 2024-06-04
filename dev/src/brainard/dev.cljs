@@ -33,7 +33,7 @@
 
 (defn ^:private add-dev-logger! [store]
   (-> store
-      (defacto/subscribe [::spy])
+      (store/subscribe [::spy])
       (add-watch (gensym)
                  (fn [_ _ _ db]
                    (when (seq db)
@@ -42,10 +42,10 @@
 
 (defn ^:private with-dev [store]
   (set! *store* store)
-  #_(-> store
-      (defacto/dispatch! [::res/submit! [::specs/notes#buzz]])
-      (defacto/dispatch! [::res/submit! [::specs/tags#select]])
-      (defacto/dispatch! [::res/submit! [::specs/contexts#select]]))
+  #_(doto store
+    (store/dispatch! [::res/submit! [::specs/notes#buzz]])
+    (store/dispatch! [::res/submit! [::specs/tags#select]])
+    (store/dispatch! [::res/submit! [::specs/contexts#select]]))
   (doto store add-dev-logger!))
 
 (defn load!

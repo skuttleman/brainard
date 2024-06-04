@@ -104,7 +104,7 @@
                                              :notes/tags        #{:two}
                                              :notes/tags!remove #{:one}
                                              :notes/pinned?     true}})
-                    note (-> response :body :data (dissoc ::b/ref))]
+                    note (-> response :body :data)]
                 (testing "returns the updated note"
                   (is (thttp/success? response))
                   (is (= {:notes/id        note1-id
@@ -118,7 +118,7 @@
                 (testing "and when searching for pinned notes"
                   (let [response (http {:method :get
                                         :uri    "/api/notes?pinned=true"})
-                        notes (-> response :body :data (->> (map #(dissoc % :brainard/ref))))]
+                        notes (-> response :body :data)]
                     (testing "returns pinned notes"
                       (is (thttp/success? response))
                       (is (= [{:notes/id        note1-id

@@ -10,7 +10,7 @@
     [ring.middleware.reload :as ring.rel]
     brainard.pages.dev))
 
-(declare system)
+(def system nil)
 
 (defn -main
   "Entry point for building/running the `brainard` web application from the command line.
@@ -25,7 +25,8 @@
                                  (fn []
                                    (log/info "stopping nREPL server")
                                    (nrepl/stop-server nrepl-server)))))
-    (def system (core/start! "duct/dev.edn" [:duct.profile/base :duct.profile/prod]))
+    (alter-var-root #'system (constantly (core/start! "duct/dev.edn"
+                                                      [:duct.profile/base :duct.profile/dev])))
     (duct/await-daemons system)))
 
 (defmethod ig/init-key :brainard.web/dev-handler
@@ -40,5 +41,5 @@
                                     "dev"]})))
 
 (comment
-  (def system (core/start! "duct/dev.edn" [:duct.profile/base :duct.profile/prod]))
+  (def system (core/start! "duct/dev.edn" [:duct.profile/base :duct.profile/dev]))
   (ig/halt! system))

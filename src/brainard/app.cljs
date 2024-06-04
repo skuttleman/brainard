@@ -16,7 +16,9 @@
 
 (enable-console-print!)
 
-(defn store->comp [store]
+(defn store->comp
+  "Takes initialized defacto store and returns the component tree"
+  [store]
   (async/go
     (async/<! (async/timeout 15000))
     (defacto/dispatch! store [::res/poll! 15000 [::specs/notes#buzz]]))
@@ -28,6 +30,7 @@
   [pages/root store])
 
 (defn start!
+  "Starts the reagent app"
   ([store->comp]
    (start! store->comp nil))
   ([store->comp opts]
