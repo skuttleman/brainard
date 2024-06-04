@@ -41,11 +41,11 @@
                      (pp/pprint db))))))
 
 (defn ^:private with-dev [store]
+  (set! *store* store)
   #_(-> store
       (defacto/dispatch! [::res/submit! [::specs/notes#buzz]])
       (defacto/dispatch! [::res/submit! [::specs/tags#select]])
       (defacto/dispatch! [::res/submit! [::specs/contexts#select]]))
-  (set! *store* store)
   (doto store add-dev-logger!))
 
 (defn load!
