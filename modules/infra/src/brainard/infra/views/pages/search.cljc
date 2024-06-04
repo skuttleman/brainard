@@ -55,7 +55,8 @@
                sub:form+ (let [loaded? (boolean (store/query *:store [::forms/?:form form-key]))]
                            (store/emit! *:store [::forms/created form-key
                                                  (->empty-form query-params contexts tags)])
-                           (when-not loaded? (store/dispatch! *:store [::forms+/submit! form-key]))
+                           (when (and (not loaded?) (seq query-params))
+                             (store/dispatch! *:store [::forms+/submit! form-key]))
                            (store/subscribe *:store [::forms+/?:form+ form-key]))]
     [:div.layout--stack-between
      [search-form {:*:store      *:store

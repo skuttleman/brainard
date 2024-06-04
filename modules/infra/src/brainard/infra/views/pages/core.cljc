@@ -55,7 +55,7 @@
           [navbar-item :routes.ui/buzz token
            "Buzz"
            (when (pos? buzzes)
-             [:span.tag.is-info.space--left buzzes])]
+             [:span.tag.is-info.space--left.is-rounded buzzes])]
           (when dev?
             [navbar-item :routes.ui/dev token
              "Dev"])]]]])))

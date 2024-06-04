@@ -9,13 +9,15 @@
     [whet.utils.reagent :as r]))
 
 (def ^:private event-opts
-  (->> (dissoc (methods defacto/event-reducer) :default)
-       keys
-       sort
-       (map (juxt identity str))))
+  (delay
+    (->> (dissoc (methods defacto/event-reducer) :default)
+         keys
+         sort
+         (map (juxt identity str)))))
 
 (def ^:private event-opts-by-id
-  (into {} event-opts))
+  (delay
+    (into {} @event-opts)))
 
 (defmethod defacto/query-responder ::?:events
   [db _]
@@ -54,8 +56,8 @@
                                   :inline?       true
                                   :label         "Filter by event-type"
                                   :label-style   {:margin-bottom "16px"}
-                                  :options       event-opts
-                                  :options-by-id event-opts-by-id}
+                                  :options       @event-opts
+                                  :options-by-id @event-opts-by-id}
                                  (ctrls/with-attrs form [::events])
                                  (update :on-change vary-meta assoc :skip-tracking? true))]
        [:ul.defacto-events
