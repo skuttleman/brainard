@@ -20,6 +20,7 @@
 (def ^:private new-note
   {:notes/body    nil
    :notes/context nil
+   :notes/pinned? false
    :notes/tags    #{}})
 
 (defn ^:private ->context-blur [store]
@@ -37,25 +38,23 @@
       [notes.views/note-list {} notes]]
      [:em "Brand new topic!"])])
 
-(defn ^:private root [{:keys [*:store form+ sub:contexts sub:tags]}]
+(defn ^:private topic-field [{:keys [*:store form+ sub:contexts]}]
+  [:div.layout--space-between
+   [:div.flex-grow
+    [ctrls/type-ahead (-> {:*:store     *:store
+                           :label       "Topic"
+                           :sub:items   sub:contexts
+                           :auto-focus? true
+                           :on-blur     (->context-blur *:store)}
+                          (ctrls/with-attrs form+ [:notes/context]))]]
+   [ctrls/icon-toggle (-> {:*:store *:store
+                           :label   "Pinned"
+                           :icon    :paperclip}
+                          (ctrls/with-attrs form+ [:notes/pinned?]))]])
+
+(defn ^:private body-field [{:keys [*:store form+]}]
   (let [form-data (forms/data form+)]
-    [ctrls/form {:*:store      *:store
-                 :form+        form+
-                 :params       {:pre-events [[::res/destroyed select-notes-key]]}
-                 :resource-key create-note-key}
-     [:strong "Create a note"]
-     [:div.layout--space-between
-      [:div.flex-grow
-       [ctrls/type-ahead (-> {:*:store     *:store
-                              :label       "Topic"
-                              :sub:items   sub:contexts
-                              :auto-focus? true
-                              :on-blur     (->context-blur *:store)}
-                             (ctrls/with-attrs form+ [:notes/context]))]]
-      [ctrls/icon-toggle (-> {:*:store *:store
-                              :label   "Pinned"
-                              :icon    :paperclip}
-                             (ctrls/with-attrs form+ [:notes/pinned?]))]]
+    [:<>
      [:label.label "Body"]
      [:div {:style {:margin-top 0}}
       (if (::preview? form-data)
@@ -64,17 +63,26 @@
         [ctrls/textarea (-> {:style   {:font-family :monospace
                                        :min-height  "250px"}
                              :*:store *:store}
-                            (ctrls/with-attrs form+ [:notes/body]))])]
-     [ctrls/toggle (-> {:label   [:span.is-small "Preview"]
-                        :style   {:margin-top 0}
-                        :inline? true
-                        :*:store *:store}
-                       (ctrls/with-attrs form+ [::preview?]))]
-     [ctrls/tags-editor (-> {:*:store   *:store
-                             :form-id   [::tags form-id]
-                             :label     "Tags"
-                             :sub:items sub:tags}
-                            (ctrls/with-attrs form+ [:notes/tags]))]]))
+                            (ctrls/with-attrs form+ [:notes/body]))])]]))
+
+(defn ^:private root [{:keys [*:store form+ sub:tags] :as attrs}]
+  [ctrls/form {:*:store      *:store
+               :form+        form+
+               :params       {:pre-events [[::res/destroyed select-notes-key]]}
+               :resource-key create-note-key}
+   [:strong "Create a note"]
+   [topic-field attrs]
+   [body-field attrs]
+   [ctrls/toggle (-> {:label   [:span.is-small "Preview"]
+                      :style   {:margin-top 0}
+                      :inline? true
+                      :*:store *:store}
+                     (ctrls/with-attrs form+ [::preview?]))]
+   [ctrls/tags-editor (-> {:*:store   *:store
+                           :form-id   [::tags form-id]
+                           :label     "Tags"
+                           :sub:items sub:tags}
+                          (ctrls/with-attrs form+ [:notes/tags]))]])
 
 (defmethod ipages/page :routes.ui/main
   [*:store _route-info]

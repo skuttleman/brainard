@@ -4,6 +4,7 @@
 
    [input {:on-change [:my-event]}]"
   (:require
+    [brainard.api.utils.dates :as dates]
     [brainard.api.utils.fns :as fns]
     [brainard.api.utils.maps :as maps]
     [brainard.infra.store.core :as store]
@@ -100,15 +101,6 @@
                attrs
                [comp/plain-input attrs]])))))))
 
-(defn ^:private to-iso [date]
-  #?(:cljs (letfn [(pad [num]
-                     (str (when (< num 10) \0) num))]
-             (str (.getFullYear date)
-                  \- (pad (inc (.getMonth date)))
-                  \- (pad (.getDate date))
-                  \T (pad (.getHours date))
-                  \: (pad (.getMinutes date))))))
-
 (def ^{:arglists '([attrs])} datetime
   (with-id
     (scomp/with-auto-focus
@@ -117,7 +109,7 @@
           (fn [attrs]
             (let [attrs' (-> attrs
                              (assoc :type :datetime-local)
-                             #?@(:cljs [(maps/update-when :value to-iso)
+                             #?@(:cljs [(maps/update-when :value dates/to-iso-datetime-min-precision)
                                         (update :on-change comp #(some-> % not-empty js/Date.))]))]
               [form-field
                attrs

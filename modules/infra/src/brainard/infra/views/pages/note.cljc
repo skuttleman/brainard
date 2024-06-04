@@ -98,7 +98,7 @@
                     :sub:tags  sub:tags
                     :note      note}]
        [tag-list *:store note])
-     [sched.views/editor *:store note]]
+     [sched.views/schedule-editor *:store note]]
     (finally
       (store/emit! *:store [::forms+/destroyed update-note-key]))))
 

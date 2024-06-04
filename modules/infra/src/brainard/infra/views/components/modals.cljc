@@ -6,36 +6,42 @@
     [brainard.infra.views.components.shared :as scomp]
     [whet.utils.reagent :as r]))
 
-(defn modal* [*:store idx {modal-id :id :as modal}]
-  (letfn [(close! [_]
-            (store/dispatch! *:store [:modals/remove! modal-id]))]
-    (r/with-let [stop-and-close! (comp close! dom/stop-propagation!)
-                 listener (dom/add-listener! dom/window
-                                             :keydown
-                                             #(when (#{:key-codes/esc} (dom/event->key %))
-                                                (stop-and-close! %))
-                                             true)
-                 [modal-type attrs] (:body modal)
-                 attrs (assoc attrs :close! close! :modals/type modal-type)]
-      (let [inset (str (* 8 idx) "px")]
-        [:li.modal-item
-         {:class    [(case (:state modal)
-                       :init "adding"
-                       :hidden "removing"
-                       nil)]
-          :style    {:padding-left inset
-                     :padding-top  inset}
-          :on-click dom/stop-propagation!}
-         [scomp/tile
-          [:div.layout--space-between
-           [:div [icomp/modal-header *:store attrs]]
-           [scomp/plain-button
-            {:class    ["is-white" "is-light"]
-             :on-click stop-and-close!}
-            [scomp/icon :close]]]
-          [:div [icomp/modal-body *:store attrs]]]])
-      (finally
-        (dom/remove-listener! listener)))))
+(defn ^:private close-modal! [*:store modal-id]
+  (fn [_]
+    (store/dispatch! *:store [:modals/remove! modal-id])))
+
+(defn ^:private modal-tile [*:store attrs stop-and-close!]
+  [scomp/tile
+   [:div.layout--space-between
+    [:div [icomp/modal-header *:store attrs]]
+    [scomp/plain-button
+     {:class    ["is-white" "is-light"]
+      :on-click stop-and-close!}
+     [scomp/icon :close]]]
+   [:div [icomp/modal-body *:store attrs]]])
+
+(defn modal-view [*:store idx {modal-id :id :as modal}]
+  (r/with-let [close! (close-modal! *:store modal-id)
+               stop-and-close! (comp close! dom/stop-propagation!)
+               listener (dom/add-listener! dom/window
+                                           :keydown
+                                           #(when (#{:key-codes/esc} (dom/event->key %))
+                                              (stop-and-close! %))
+                                           true)
+               [modal-type attrs] (:body modal)
+               attrs (assoc attrs :close! close! :modals/type modal-type)]
+    (let [inset (str (* 8 idx) "px")]
+      [:li.modal-item
+       {:class    [(case (:state modal)
+                     :init "adding"
+                     :hidden "removing"
+                     nil)]
+        :style    {:padding-left inset
+                   :padding-top  inset}
+        :on-click dom/stop-propagation!}
+       [modal-tile *:store attrs stop-and-close!]])
+    (finally
+      (dom/remove-listener! listener))))
 
 (defn root [*:store]
   (r/with-let [sub:modals (store/subscribe *:store [:modals/?:modals])]
@@ -53,4 +59,4 @@
           [:ul.modal-list
            (for [[idx modal] (map-indexed vector modals)]
              ^{:key (:id modal)}
-             [modal* *:store idx modal])]]]))))
+             [modal-view *:store idx modal])]]]))))

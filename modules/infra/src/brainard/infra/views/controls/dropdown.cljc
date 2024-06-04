@@ -30,7 +30,7 @@
                          (on-toggle e))))}
         [item-control display]])]))
 
-(defn ^:private button [{:keys [attrs->content selected] :as attrs}]
+(defn ^:private button-control [{:keys [attrs->content selected] :as attrs}]
   (let [selected-count (count selected)
         content (if attrs->content
                   (attrs->content attrs)
@@ -43,8 +43,7 @@
      [:span.layout--space-after content]
      [comp/icon (if (:open? attrs) :chevron-up :chevron-down)]]))
 
-(defn ^:private dropdown-menu [{:keys [loading? list-control open? options]
-                                :or   {list-control option-list} :as attrs}]
+(defn ^:private dropdown-menu [{:keys [loading? open? options] :as attrs}]
   (when open?
     [:div.dropdown-menu
      [:div.dropdown-content
@@ -54,13 +53,12 @@
          [comp/spinner]
 
          (seq options)
-         [list-control attrs]
+         [option-list attrs]
 
          :else
          [comp/alert :info "No results"])]]]))
 
-(defn ^:private dropdown [{:keys [button-control open? options-by-id value]
-                            :or  {button-control button} :as attrs}]
+(defn ^:private dropdown [{:keys [open? options-by-id value] :as attrs}]
   (let [selected (seq (map options-by-id value))]
     [:div.dropdown
      {:class [(when open? "is-active")]}

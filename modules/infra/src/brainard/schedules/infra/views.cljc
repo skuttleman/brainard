@@ -80,15 +80,15 @@
                                 [:span (dates/to-iso-datetime-min-precision v)]]
     nil))
 
-(defn ^:private schedule-display [form-data]
+(defn ^:private schedule-item [form-data]
   (when-let [parts (seq (->> form-data
                              (sort-by key)
-                             reverse
                              (keep ->schedule-part)
+                             reverse
                              (interpose [:span "AND"])))]
     (into [:div.flex.layout--room-between] parts)))
 
-(defn ^:private ul [*:store note]
+(defn ^:private schedule-list [*:store note]
   [:div
    (if-let [scheds (seq (:notes/schedules note))]
      [:<>
@@ -104,10 +104,10 @@
                               :on-click (fn [_]
                                           (store/dispatch! *:store [:modals/create! modal]))}
            [comp/icon :trash-can]]
-          [schedule-display sched]])]]
+          [schedule-item sched]])]]
      [:p [:em "no related schedules"]])])
 
-(defn ^:private form [{:keys [*:store sub:form+]}]
+(defn ^:private schedule-form [{:keys [*:store sub:form+]}]
   (let [form+ @sub:form+]
     [ctrls/form {:*:store      *:store
                  :form+        form+
@@ -138,7 +138,7 @@
                           :*:store *:store}
                          (ctrls/with-attrs form+ [:schedules/before-timestamp]))]]))
 
-(defn editor [*:store note]
+(defn schedule-editor [*:store note]
   (r/with-let [schedule-create-key (->sched-create-key note)
                sub:form+ (-> *:store
                              (store/dispatch! [::forms/ensure!
@@ -149,8 +149,8 @@
     [:div.layout--stack-between
      [:div.flex.row
       [:em "Add a schedule: "]
-      [:span.space--left [schedule-display (forms/data @sub:form+)]]]
-     [form {:*:store *:store :sub:form+ sub:form+}]
-     [ul *:store note]]
+      [:span.space--left [schedule-item (forms/data @sub:form+)]]]
+     [schedule-form {:*:store *:store :sub:form+ sub:form+}]
+     [schedule-list *:store note]]
     (finally
       (store/emit! *:store [::forms+/destroyed schedule-create-key]))))
