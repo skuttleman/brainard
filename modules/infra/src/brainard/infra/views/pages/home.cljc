@@ -5,9 +5,10 @@
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.core :as comp]
-    [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.pages.interfaces :as ipages]
+    [brainard.infra.views.pages.shared :as spages]
     [brainard.notes.infra.views :as notes.views]
+    [clojure.string :as string]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
     [defacto.resources.core :as-alias res]
@@ -23,12 +24,13 @@
    :notes/pinned? false
    :notes/tags    #{}})
 
-(defn ^:private ->context-blur [store]
+(defn ^:private ->context-blur [*:store sub:form]
   (fn [e]
-    (store/dispatch! store
-                     [::res/sync!
-                      select-notes-key
-                      {::forms/data {:notes/context (dom/target-value e)}}])))
+    (when-not (string/blank? (:notes/context (forms/data @sub:form)))
+      (store/dispatch! *:store
+                       [::res/sync!
+                        select-notes-key
+                        {::forms/data {:notes/context (dom/target-value e)}}]))))
 
 (defn ^:private search-results [_attrs notes]
   [:div
@@ -38,52 +40,6 @@
       [notes.views/note-list {} notes]]
      [:em "Brand new topic!"])])
 
-(defn ^:private topic-field [{:keys [*:store form+ sub:contexts]}]
-  [:div.layout--space-between
-   [:div.flex-grow
-    [ctrls/type-ahead (-> {:*:store     *:store
-                           :label       "Topic"
-                           :sub:items   sub:contexts
-                           :auto-focus? true
-                           :on-blur     (->context-blur *:store)}
-                          (ctrls/with-attrs form+ [:notes/context]))]]
-   [ctrls/icon-toggle (-> {:*:store *:store
-                           :label   "Pinned"
-                           :icon    :paperclip}
-                          (ctrls/with-attrs form+ [:notes/pinned?]))]])
-
-(defn ^:private body-field [{:keys [*:store form+]}]
-  (let [form-data (forms/data form+)]
-    [:<>
-     [:label.label "Body"]
-     [:div {:style {:margin-top 0}}
-      (if (::preview? form-data)
-        [:div.expanded
-         [comp/markdown (:notes/body form-data)]]
-        [ctrls/textarea (-> {:style   {:font-family :monospace
-                                       :min-height  "250px"}
-                             :*:store *:store}
-                            (ctrls/with-attrs form+ [:notes/body]))])]]))
-
-(defn ^:private root [{:keys [*:store form+ sub:tags] :as attrs}]
-  [ctrls/form {:*:store      *:store
-               :form+        form+
-               :params       {:pre-events [[::res/destroyed select-notes-key]]}
-               :resource-key create-note-key}
-   [:strong "Create a note"]
-   [topic-field attrs]
-   [body-field attrs]
-   [ctrls/toggle (-> {:label   [:span.is-small "Preview"]
-                      :style   {:margin-top 0}
-                      :inline? true
-                      :*:store *:store}
-                     (ctrls/with-attrs form+ [::preview?]))]
-   [ctrls/tags-editor (-> {:*:store   *:store
-                           :form-id   [::tags form-id]
-                           :label     "Tags"
-                           :sub:items sub:tags}
-                          (ctrls/with-attrs form+ [:notes/tags]))]])
-
 (defmethod ipages/page :routes.ui/main
   [*:store _route-info]
   (r/with-let [sub:form+ (-> *:store
@@ -91,12 +47,16 @@
                              (store/subscribe [::forms+/?:form+ create-note-key]))
                sub:contexts (store/subscribe *:store [::res/?:resource [::specs/contexts#select]])
                sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
-               sub:notes (store/subscribe *:store [::res/?:resource select-notes-key])]
+               sub:notes (store/subscribe *:store [::res/?:resource select-notes-key])
+               on-context-blur (->context-blur *:store sub:form+)]
     [:div
-     [root {:*:store      *:store
-            :form+        @sub:form+
-            :sub:contexts sub:contexts
-            :sub:tags     sub:tags}]
+     [spages/note-form {:*:store         *:store
+                        :form+           @sub:form+
+                        :on-context-blur on-context-blur
+                        :params          {:pre-events [[::res/destroyed select-notes-key]]}
+                        :resource-key    create-note-key
+                        :sub:contexts    sub:contexts
+                        :sub:tags        sub:tags}]
      [comp/with-resource sub:notes [search-results {:hide-init? true}]]]
     (finally
       (store/emit! *:store [::forms+/destroyed create-note-key])

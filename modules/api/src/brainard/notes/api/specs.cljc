@@ -1,12 +1,19 @@
 (ns brainard.notes.api.specs
   (:require
+    [clojure.string :as string]
     [malli.util :as mu]))
+
+(def non-empty-string
+  [:and
+   [:string {:min 1}]
+   [:fn {:error/message "must not be a blank string"}
+    (complement string/blank?)]])
 
 (def create
   [:map
-   [:notes/context string?]
-   [:notes/body string?]
-   [:notes/pinned? {:optional true} boolean?]
+   [:notes/context non-empty-string]
+   [:notes/body non-empty-string]
+   [:notes/pinned? boolean?]
    [:notes/tags {:optional true} [:set keyword?]]])
 
 (def full
@@ -17,8 +24,8 @@
 
 (def modify
   [:map
-   [:notes/context {:optional true} string?]
-   [:notes/body {:optional true} string?]
+   [:notes/context {:optional true} non-empty-string]
+   [:notes/body {:optional true} non-empty-string]
    [:notes/tags {:optional true} [:set keyword?]]
    [:notes/tags!remove {:optional true} [:set keyword?]]
    [:notes/pinned? {:optional true} boolean?]])
@@ -27,7 +34,7 @@
   [:and
    [:map
     [:notes/ids {:optional true} [:set uuid?]]
-    [:notes/context {:optional true} string?]
+    [:notes/context {:optional true} non-empty-string]
     [:notes/tags {:optional true} [:set keyword?]]
     [:notes/pinned? {:optional true} true?]]
    [:fn {:error/message "must select at least one: ids, tag, topic, or pinned"}

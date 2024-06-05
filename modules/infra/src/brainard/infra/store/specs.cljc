@@ -80,15 +80,20 @@
 
 (defmethod forms+/re-init ::notes#update [_ _ result] (select-keys result #{:notes/tags}))
 (defmethod res/->request-spec ::notes#update
-  [_ {::forms/keys [data] :keys [note fetch?]}]
+  [_ {::forms/keys [data] :keys [fetch? prev-tags]}]
   (->req {:route        :routes.api/note
-          :params       (select-keys note #{:notes/id})
+          :params       (select-keys data #{:notes/id})
           :method       :patch
-          :body         (diff-tags (:notes/tags note) (:notes/tags data))
+          :body         (-> data
+                            (select-keys #{:notes/context
+                                           :notes/pinned?
+                                           :notes/body
+                                           :notes/tags})
+                            (merge (diff-tags prev-tags (:notes/tags data))))
           :ok-events    [[:api.notes/saved]]
           :ok-commands  (cond-> [[:toasts/succeed! {:message "note updated"}]]
                           fetch?
-                          (conj [::res/submit! [::notes#find (:notes/id note)]]))
+                          (conj [::res/submit! [::notes#find (:notes/id data)]]))
           :err-commands [[:toasts/fail!]]}))
 
 (defmethod forms+/re-init ::notes#pin [_ _ result] (select-keys result #{:notes/id :notes/pinned?}))
