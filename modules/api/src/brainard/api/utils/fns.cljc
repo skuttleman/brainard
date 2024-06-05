@@ -6,3 +6,6 @@
     (doseq [f fns
             :when f]
       (apply f args))))
+
+(defn safe-comp [& fns]
+  (apply comp (remove nil? fns)))

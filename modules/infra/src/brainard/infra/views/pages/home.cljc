@@ -3,7 +3,6 @@
   (:require
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as-alias specs]
-    [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.pages.interfaces :as ipages]
     [brainard.infra.views.pages.shared :as spages]
@@ -25,12 +24,11 @@
    :notes/tags    #{}})
 
 (defn ^:private ->context-blur [*:store sub:form]
-  (fn [e]
-    (when-not (string/blank? (:notes/context (forms/data @sub:form)))
-      (store/dispatch! *:store
-                       [::res/sync!
-                        select-notes-key
-                        {::forms/data {:notes/context (dom/target-value e)}}]))))
+  (fn [_]
+    (let [{:notes/keys [context]} (forms/data @sub:form)]
+      (when-not (string/blank? context)
+        (store/dispatch! *:store
+                         [::res/sync! select-notes-key {::forms/data {:notes/context context}}])))))
 
 (defn ^:private search-results [_attrs notes]
   [:div

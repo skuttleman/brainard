@@ -5,13 +5,20 @@
 
 (def non-empty-string
   [:and
-   [:string {:min 1}]
+   [:string]
    [:fn {:error/message "must not be a blank string"}
     (complement string/blank?)]])
 
+(def non-empty-trimmed-string
+  [:and
+   non-empty-string
+   [:fn {:error/message "must not have leading or trailing whitespace"}
+    (fn [s]
+      (= s (string/trim s)))]])
+
 (def create
   [:map
-   [:notes/context non-empty-string]
+   [:notes/context non-empty-trimmed-string]
    [:notes/body non-empty-string]
    [:notes/pinned? boolean?]
    [:notes/tags {:optional true} [:set keyword?]]])
@@ -24,7 +31,7 @@
 
 (def modify
   [:map
-   [:notes/context {:optional true} non-empty-string]
+   [:notes/context {:optional true} non-empty-trimmed-string]
    [:notes/body {:optional true} non-empty-string]
    [:notes/tags {:optional true} [:set keyword?]]
    [:notes/tags!remove {:optional true} [:set keyword?]]
@@ -34,7 +41,7 @@
   [:and
    [:map
     [:notes/ids {:optional true} [:set uuid?]]
-    [:notes/context {:optional true} non-empty-string]
+    [:notes/context {:optional true} non-empty-trimmed-string]
     [:notes/tags {:optional true} [:set keyword?]]
     [:notes/pinned? {:optional true} true?]]
    [:fn {:error/message "must select at least one: ids, tag, topic, or pinned"}

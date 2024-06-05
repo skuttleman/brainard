@@ -1,8 +1,20 @@
 (ns brainard.infra.views.pages.shared
   (:require
+    [brainard.api.utils.fns :as fns]
+    [brainard.infra.store.core :as store]
+    [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.controls.core :as ctrls]
+    [clojure.string :as string]
     [defacto.forms.core :as forms]))
+
+(defn ^:private with-trim-on-blur [{:keys [on-change] :as attrs} *:store]
+  (update attrs :on-blur fns/safe-comp (fn [e]
+                                         (let [v (dom/target-value e)
+                                               trimmed-v (not-empty (string/trim v))]
+                                           (when (not= trimmed-v v)
+                                             (store/emit! *:store (conj on-change trimmed-v)))
+                                           e))))
 
 (defn ^:private topic-field [{:keys [*:store form+ on-context-blur sub:contexts]}]
   [:div.layout--space-between
@@ -12,7 +24,8 @@
                            :sub:items   sub:contexts
                            :auto-focus? true
                            :on-blur     on-context-blur}
-                          (ctrls/with-attrs form+ [:notes/context]))]]
+                          (ctrls/with-attrs form+ [:notes/context])
+                          (with-trim-on-blur *:store))]]
    [ctrls/icon-toggle (-> {:*:store *:store
                            :label   "Pinned"
                            :icon    :paperclip}
