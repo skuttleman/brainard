@@ -4,7 +4,6 @@
     [brainard.infra.routes.errors :as routes.err]
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.api.utils.logger :as log]
-    [brainard.infra.validations :as valid]
     [clojure.string :as string]))
 
 (defn ^:private success? [status]
@@ -16,24 +15,6 @@
   [handler]
   (fn [req]
     (handler (assoc req :brainard/input (iroutes/req->input req)))))
-
-;; TODO - this is the wrong way
-(defn with-spec-validation
-  "Handles input/output spec validation for spec'd routes."
-  [handler]
-  (fn [req]
-    (let [spec-key (iroutes/router req)
-          input-spec (valid/input-specs spec-key)]
-      (some-> input-spec (valid/validate! (:brainard/input req) ::valid/input-validation))
-      (let [{:keys [body] :as response} (handler req)]
-        (when-let [output-spec (valid/output-specs spec-key)]
-          (let [validator (valid/->validator output-spec)
-                err-validator (valid/->validator valid/api-errors)]
-            (when-let [errors (and (err-validator body)
-                                   (validator body))]
-              (log/warn "returning invalid response to client:" (pr-str body))
-              (log/warn (pr-str errors)))))
-        response))))
 
 #?(:clj
    (defn ^:private log-req [{:keys [ex result duration]} {:keys [uri] :as req}]

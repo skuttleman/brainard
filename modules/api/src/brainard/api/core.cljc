@@ -1,41 +1,67 @@
 (ns brainard.api.core
   (:require
+    [brainard.api.validations :as valid]
+    [brainard.api.utils.logger :as log]
     [brainard.notes.api.core :as api.notes]
     [brainard.schedules.api.core :as api.sched]))
 
-(defn create-note! [apis note]
+(defmulti ^:private invoke-api* (fn [api _ _] api))
+
+(defmethod invoke-api* :api.notes/create!
+  [_ apis note]
   (api.notes/create! (:notes apis) note))
 
-(defn update-note! [apis note-id note]
-  (api.notes/update! (:notes apis) note-id note))
+(defmethod invoke-api* :api.notes/update!
+  [_ apis note]
+  (api.notes/update! (:notes apis) (:notes/id note) note))
 
-(defn delete-note! [apis note-id]
+(defmethod invoke-api* :api.notes/delete!
+  [_ apis {note-id :notes/id}]
   (api.notes/delete! (:notes apis) note-id)
-  (api.sched/delete-for-note! (:schedules apis) note-id))
+  (api.sched/delete-for-note! (:schedules apis) note-id)
+  nil)
 
-(defn get-notes [apis params]
+(defmethod invoke-api* :api.notes/select
+  [_ apis params]
   (api.notes/get-notes (:notes apis) params))
 
-(defn get-note [apis note-id]
+(defmethod invoke-api* :api.notes/fetch
+  [_ apis {note-id :notes/id}]
   (when-let [note (api.notes/get-note (:notes apis) note-id)]
     (let [schedules (api.sched/get-by-note-id (:schedules apis) note-id)]
       (assoc note :notes/schedules schedules))))
 
-(defn get-tags [apis]
+(defmethod invoke-api* :api.tags/select
+  [_ apis _]
   (api.notes/get-tags (:notes apis)))
 
-(defn get-contexts [apis]
+(defmethod invoke-api* :api.contexts/select
+  [_ apis _]
   (api.notes/get-contexts (:notes apis)))
 
-(defn create-schedule! [apis schedule]
+(defmethod invoke-api* :api.schedules/create!
+  [_ apis schedule]
   (api.sched/create! (:schedules apis) schedule))
 
-(defn delete-schedule! [apis schedule-id]
-  (api.sched/delete! (:schedules apis) schedule-id))
+(defmethod invoke-api* :api.schedules/delete!
+  [_ apis {schedule-id :schedules/id}]
+  (api.sched/delete! (:schedules apis) schedule-id)
+  nil)
 
-(defn relevant-notes [apis timestamp]
+(defmethod invoke-api* :api.notes/relevant
+  [_ apis {:keys [timestamp]}]
   (if-let [ids (->> (api.sched/relevant-schedules (:schedules apis) timestamp)
                     (map :schedules/note-id)
                     seq)]
     (api.notes/get-notes (:notes apis) {:notes/ids ids})
     ()))
+
+(defn invoke-api [handle apis input]
+  (let [input-spec (valid/input-specs handle)]
+    (some-> input-spec (valid/validate! input ::valid/input-validation))
+    (let [result (invoke-api* handle apis input)]
+      (when-let [output-spec (valid/output-specs handle)]
+        (let [validator (valid/->validator output-spec)]
+          (when-let [errors (validator result)]
+            (log/warn "failed to produce valid output" {:errors errors :api handle}))))
+      result)))

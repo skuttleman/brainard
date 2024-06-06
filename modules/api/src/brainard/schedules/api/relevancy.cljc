@@ -34,15 +34,12 @@
     mon/november :november
     mon/december :december))
 
-(defn ^:private ->day [dt]
-  (zdt/get-day-of-month dt))
-
 (defn from
   "Given a timestamp returns a map of relevancy characteristics to match against."
   [timestamp]
   (let [timestamp #?(:cljs (.getTime timestamp) :default (.getTime ^Date timestamp))
         dt (zdt/of-instant (inst/of-epoch-milli timestamp) (zi/system-default))
-        day (->day dt)]
+        day (zdt/get-day-of-month dt)]
     {:weekday    (->weekday dt)
      :month      (->month dt)
      :day        day

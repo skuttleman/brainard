@@ -1,6 +1,6 @@
 (ns brainard.infra.store.specs
   (:require
-    [brainard.infra.validations :as valid]
+    [brainard.api.validations :as valid]
     [brainard.notes.api.specs :as snotes]
     [brainard.schedules.api.specs :as ssched]
     [clojure.set :as set]

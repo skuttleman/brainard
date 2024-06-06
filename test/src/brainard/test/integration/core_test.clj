@@ -16,6 +16,7 @@
                               :uri    "/api/notes"
                               :body   {:notes/context "Context1"
                                        :notes/tags    #{:one :three}
+                                       :notes/pinned? false
                                        :notes/body    "body of note1"}})
               {note1-id :notes/id :as note1} (-> response :body :data)]
           (testing "returns the created note"
@@ -42,15 +43,19 @@
                           :body   %})
                   [{:notes/context "Context1"
                     :notes/tags    #{:one}
+                    :notes/pinned? false
                     :notes/body    "body of note2"}
                    {:notes/context "Context2"
                     :notes/tags    #{:one :three}
+                    :notes/pinned? false
                     :notes/body    "body of note3"}
                    {:notes/context "Context2"
                     :notes/tags    #{:three}
+                    :notes/pinned? false
                     :notes/body    "body of note4"}
                    {:notes/context "Context2"
                     :notes/tags    #{}
+                    :notes/pinned? false
                     :notes/body    "body of note5"}])
 
             (testing "and when searching for matching tags"
@@ -135,9 +140,19 @@
                                       :body   {:notes/tags #{"seven"}}})
                       errors (-> response :body :errors)]
                   (testing "throws an error"
-                    (is (not (thttp/success? response)))
+                    (is (thttp/client-error? response))
                     (is (= [{:details {:notes/tags #{["should be a keyword"]}}}]
                            (map #(select-keys % #{:details}) errors))))))
+
+              (testing "and when updating a note that does not exist"
+                (let [response (http {:method :patch
+                                      :uri    (str "/api/notes/" (uuids/random))
+                                      :body   {:notes/tags #{:tag}}})
+                      errors (-> response :body :errors)]
+                  (testing "throws an error"
+                    (is (thttp/client-error? response))
+                    (is (= [{:message "Not found" :code :UNKNOWN_RESOURCE}]
+                           errors)))))
 
               (testing "and when fetching the note by id"
                 (let [response (http {:method :get
@@ -168,9 +183,10 @@
                               :body   {:notes/tags #{:one}}})
               errors (-> response :body :errors)]
           (testing "throws an error"
-            (is (not (thttp/success? response)))
+            (is (thttp/client-error? response))
             (is (= [{:details {:notes/context ["missing required key"]
-                               :notes/body    ["missing required key"]}}]
+                               :notes/body    ["missing required key"]
+                               :notes/pinned? ["missing required key"]}}]
                    (map #(select-keys % #{:details}) errors))))))
 
       (testing "and when fetching a note by non-existing id"
@@ -178,6 +194,6 @@
                               :uri    (str "/api/notes/" (uuids/random))})
               errors (-> response :body :errors)]
           (testing "throws an error"
-            (is (not (thttp/success? response)))
+            (is (thttp/client-error? response))
             (is (= #{:UNKNOWN_RESOURCE}
                    (into #{} (map :code) errors)))))))))

@@ -8,8 +8,7 @@
     [integrant.core :as ig]
     brainard.notes.infra.db
     brainard.notes.infra.routes
-    brainard.schedules.infra.db
-    brainard.schedules.infra.routes))
+    brainard.schedules.infra.db))
 
 #?(:clj
    (defmethod ig/init-key :brainard.web/handler

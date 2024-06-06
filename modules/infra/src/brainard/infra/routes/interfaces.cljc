@@ -9,6 +9,16 @@
       (derive :put :any)
       (derive :patch :any)
       (derive :delete :any)
+
+      (derive :routes.api/notes :routes/api)
+      (derive :routes.api/note :routes/api)
+      (derive :routes.api/notes?pinned :routes/api)
+      (derive :routes.api/notes?scheduled :routes/api)
+      (derive :routes.api/schedules :routes/api)
+      (derive :routes.api/schedule :routes/api)
+      (derive :routes.api/tags :routes/api)
+      (derive :routes.api/contexts :routes/api)
+
       (derive :routes.resources/js :routes.resources/asset)
       (derive :routes.resources/css :routes.resources/asset)
       (derive :routes.resources/img :routes.resources/asset)
@@ -19,6 +29,19 @@
       (derive :routes.ui/pinned :routes/ui)
       (derive :routes.ui/dev :routes/ui)
       (derive :routes.ui/not-found :routes/ui)))
+
+(def route->handler
+  {[:get :routes.api/notes?scheduled] :api.notes/relevant
+   [:get :routes.api/notes?pinned]    :api.notes/select
+   [:get :routes.api/notes]           :api.notes/select
+   [:post :routes.api/notes]          :api.notes/create!
+   [:get :routes.api/note]            :api.notes/fetch
+   [:patch :routes.api/note]          :api.notes/update!
+   [:delete :routes.api/note]         :api.notes/delete!
+   [:get :routes.api/tags]            :api.tags/select
+   [:get :routes.api/contexts]        :api.contexts/select
+   [:post :routes.api/schedules]      :api.schedules/create!
+   [:delete :routes.api/schedule]     :api.schedules/delete!})
 
 (defn router [{:keys [request-method] ::w/keys [route]}]
   [request-method (:token route)])
