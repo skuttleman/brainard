@@ -1,5 +1,6 @@
 (ns brainard.infra.views.pages.workspace
   (:require
+    [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.components.drag-drop :as drag]
     [brainard.infra.views.pages.interfaces :as ipages]
     [whet.utils.reagent :as r]))
@@ -25,8 +26,29 @@
             :content  "bar"
             :children []}]))
 
+(defmulti ^:private drag-item (fn [_ attrs _] (:type attrs)))
+
+(defmethod drag-item :static
+  [*:store _ node]
+  [:div.layout--row
+   [:span.layout--space-after
+    [:span (:content node)]]
+   [:span.layout--space-after
+    [comp/icon :pencil]]
+   [:span.layout--space-after
+    [comp/icon :plus]]
+   [comp/icon :trash-can]])
+
+(defmethod drag-item :default
+  [_ _ node]
+  [:span (:content node)])
+
 (defmethod ipages/page :routes.ui/workspace
   [*:store _]
-  [:div
-   [:h1.subtitle "The page"]
-   [drag/control {:id ::workspace :*:store *:store :on-drop println} @tree]])
+  (r/with-let [attrs {:*:store *:store
+                      :comp [drag-item *:store]
+                      :id ::workspace
+                      :on-drop println}]
+    [:div
+     [:h1.subtitle "Welcome to your workspace"]
+     [drag/control attrs @tree]]))

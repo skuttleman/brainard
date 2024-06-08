@@ -8,26 +8,28 @@
 
 (declare node-list drag-node-list)
 
-(defn ^:private drag-node-view [*:store form node]
-  (let [{::keys [drag-id mouse]} (forms/data form)
+(defn ^:private drag-node-view [{:keys [*:coord comp sub:form] :as attrs} node]
+  (let [{::keys [drag-id]} (forms/data @sub:form)
         dragging? (= (:id node) drag-id)]
     [:div {:style (when dragging?
-                    {:position :fixed
-                     :top      (:y mouse)
-                     :left     (+ 8 (:x mouse))})}
-     [:p (:content node)]
+                    (let [{:keys [x y]} @*:coord]
+                      {:position :fixed
+                       :top      y
+                       :left     (+ 8 x)}))}
+     (conj comp {:type (if dragging? :dragged :within-drag)} node)
      (when-let [children (seq (:children node))]
-       [drag-node-list *:store form children])]))
+       [drag-node-list attrs children])]))
 
-(defn ^:private drag-node-list [*:store form nodes]
+(defn ^:private drag-node-list [attrs nodes]
   [:ul.node-list
    (for [{node-id :id :as node} nodes]
      ^{:key (str [:at node-id])}
      [:li.node-item
-      [drag-node-view *:store form node]])])
+      [drag-node-view attrs node]])])
 
-(defn ^:private node-view [*:store form {node-id :id :as node}]
-  (let [{::keys [drag-id target-id]} (forms/data form)
+(defn ^:private node-view [{:keys [*:store comp sub:form] :as attrs} {node-id :id :as node}]
+  (let [form @sub:form
+        {::keys [drag-id target-id]} (forms/data form)
         target? (= target-id [:at node-id])
         children (:children node)]
     [:div {:on-mouse-down (fn [e]
@@ -39,12 +41,17 @@
      [:div (cond-> {}
              (and drag-id target?) (assoc :class ["drop-target"])
              (empty? children) (assoc :data-target (pr-str [:at node-id])))
-      (:content node)]
+      (conj comp
+            {:type (cond
+                     (and drag-id target?) :target
+                     drag-id :dynamic
+                     :else :static)}
+            node)]
      (when (seq children)
-       [node-list *:store form (:children node)])]))
+       [node-list attrs (:children node)])]))
 
-(defn ^:private node-list [*:store form nodes]
-  (let [{::keys [drag-id target-id]} (forms/data form)]
+(defn ^:private node-list [{:keys [sub:form] :as attrs} nodes]
+  (let [{::keys [drag-id target-id]} (forms/data @sub:form)]
     [:ul.node-list
      (for [[idx {node-id :id :as node}] (map-indexed vector nodes)
            :let [dragging? (= node-id drag-id)]
@@ -59,17 +66,18 @@
        ^{:key (str target)}
        [:li {:class [(when node? "node-item")]}
         (cond
-          dragging? [drag-node-view *:store form node]
-          node? [node-view *:store form node]
+          dragging? [drag-node-view attrs node]
+          node? [node-view attrs node]
           :else [:div {:class       [(when (and drag-id target?) "drop-target")]
                        :style       {:height "4px" :width "100%"}
                        :data-target (pr-str target)}])])]))
 
-(defn control [{:keys [*:store id on-drop]} nodes]
+(defn control [{:keys [*:store id on-drop] :as attrs} nodes]
   (r/with-let [form-id [::form id]
                sub:form (-> *:store
                             (store/emit! [::forms/created form-id])
                             (store/subscribe [::forms/?:form form-id]))
+               *:coord (r/atom {:x 0 :y 0})
                mouse-up (dom/add-listener! dom/window
                                            :mouseup
                                            (fn [_]
@@ -83,26 +91,22 @@
                mouse-move (dom/add-listener! dom/window
                                              :mousemove
                                              (fn [e]
-                                               (store/emit! *:store [::forms/changed
-                                                                     form-id
-                                                                     [::mouse]
-                                                                     {:x (.-clientX e)
-                                                                      :y (.-clientY e)}])
+                                               (reset! *:coord {:x (.-clientX e)
+                                                                :y (.-clientY e)})
                                                (when-let [target (-> e .-target (.getAttribute "data-target"))]
                                                  (when (not= target (pr-str (::target-id (forms/data @sub:form))))
                                                    (store/emit! *:store [::forms/changed
                                                                          form-id
                                                                          [::target-id]
                                                                          (edn/read-string target)])))))]
-    (let [form @sub:form
-          {::keys [drag-id]} (forms/data form)]
+    (let [{::keys [drag-id]} (forms/data @sub:form)]
       [:div.drag-n-drop {:on-mouse-leave (fn [_]
                                            (when drag-id
                                              (store/emit! *:store [::forms/changed
-                                                                   (forms/id form)
+                                                                   form-id
                                                                    [::target-id]
                                                                    nil])))}
-       [node-list *:store form nodes]])
+       [node-list (assoc attrs :sub:form sub:form :*:coord *:coord) nodes]])
     (finally
       (dom/remove-listener! mouse-move)
       (dom/remove-listener! mouse-up)
