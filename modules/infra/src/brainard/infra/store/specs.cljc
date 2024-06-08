@@ -115,7 +115,7 @@
           :params       {:notes/id note-id}
           :method       :delete
           :ok-commands  [[:toasts/succeed! {:message "note deleted"}]
-                         [:nav/navigate! {:token :routes.ui/main}]]
+                         [:nav/navigate! {:token :routes.ui/home}]]
           :err-commands [[:toasts/fail!]]}))
 
 (defmethod res/->request-spec ::notes#pinned

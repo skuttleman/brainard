@@ -112,7 +112,7 @@
           [comp/alert :warn
            [:div
             "Note not found. Try "
-            [:a.link {:href (nav/path-for rte/all-routes :routes.ui/main)} "creating one"]
+            [:a.link {:href (nav/path-for rte/all-routes :routes.ui/home)} "creating one"]
             "."]]
 
           :else

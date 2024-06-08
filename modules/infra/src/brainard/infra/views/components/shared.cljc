@@ -7,6 +7,7 @@
 (defn plain-button [attrs & content]
   (let [disabled #?(:clj true :default (:disabled attrs))]
     (-> attrs
+        (assoc :disabled disabled)
         (maps/assoc-defaults :type :button)
         (cond-> disabled (update :class (fnil conj []) "is-disabled"))
         (select-keys #{:auto-focus :id :disabled :on-click :style :class :ref :type})

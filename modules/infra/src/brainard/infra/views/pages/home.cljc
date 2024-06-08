@@ -38,7 +38,7 @@
       [notes.views/note-list {} notes]]
      [:em "Brand new topic!"])])
 
-(defmethod ipages/page :routes.ui/main
+(defmethod ipages/page :routes.ui/home
   [*:store _route-info]
   (r/with-let [sub:form+ (-> *:store
                              (store/dispatch! [::forms/ensure! create-note-key new-note])

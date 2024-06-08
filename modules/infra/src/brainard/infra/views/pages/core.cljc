@@ -46,8 +46,10 @@
        [:div.navbar-start.layout--relative
         [:div#header-nav.navbar-menu
          [:ul.navbar-start.oversize.tabs
-          [navbar-item :routes.ui/main token
+          [navbar-item :routes.ui/home token
            "Home"]
+          [navbar-item :routes.ui/workspace token
+           "Workspace"]
           [navbar-item :routes.ui/pinned token
            "Pinned"]
           [navbar-item :routes.ui/search token
