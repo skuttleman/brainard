@@ -39,10 +39,10 @@
   ([node event cb options]
    #?(:cljs
       (let [key (gensym)
-            id (.addEventListener node (name event) cb (clj->js options))
-            listener {::id    id
-                      ::node  node
-                      ::event event}]
+            listener {::cb    cb
+                      ::event event
+                      ::node  node}]
+        (.addEventListener node (name event) cb (clj->js options))
         (swap! listeners assoc key listener)
         key))))
 
@@ -53,8 +53,7 @@
    (remove-listener! key)"
   [key]
   #?(:cljs
-     (when-let [{::keys [node event id]} (get @listeners key)]
+     (when-let [{::keys [cb event node]} (get @listeners key)]
        (swap! listeners dissoc key)
-       (try
-         (.removeEventListener node (name event) id)
-         (catch :default _)))))
+       (.removeEventListener node (name event) cb true)
+       (.removeEventListener node (name event) cb false))))
