@@ -14,7 +14,8 @@
     brainard.infra.views.pages.home
     brainard.infra.views.pages.note
     brainard.infra.views.pages.pinned
-    brainard.infra.views.pages.search))
+    brainard.infra.views.pages.search
+    brainard.infra.views.pages.workspace))
 
 (defmethod ipages/page :default
   [_ _]
