@@ -1,7 +1,7 @@
 (ns brainard.infra.views.pages.workspace
   (:require
     [brainard.infra.views.components.core :as comp]
-    [brainard.infra.views.components.drag-drop :as drag]
+    [brainard.infra.views.components.drag-drop :as dnd]
     [brainard.infra.views.pages.interfaces :as ipages]
     [whet.utils.reagent :as r]))
 
@@ -51,4 +51,4 @@
                       :on-drop println}]
     [:div
      [:h1.subtitle "Welcome to your workspace"]
-     [drag/control attrs @tree]]))
+     [dnd/control attrs @tree]]))
