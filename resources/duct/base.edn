@@ -3,7 +3,7 @@
 
  :brainard/webserver
  {:apis        #ig/ref :brainard/apis
-  :handler     #ig/ref :brainard/IHandler
+  :handler     #ig/ref :brainard/IWebHandler
   :server-port #ig/ref :cfg/server-port}
 
 
@@ -24,7 +24,7 @@
  {:ds-client #ig/ref :brainard.ds/client}
 
  :brainard.ds/client
- {:logger #ig/ref :brainard.ds/ILogger}
+ {:logger #ig/ref :brainard.ds/IDBLogger}
 
 
  ;; env

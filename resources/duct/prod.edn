@@ -1,6 +1,6 @@
 {:duct.profile/base #duct/include "duct/base.edn"
- :duct.profile/prod {[:brainard.ds/storage-logger :brainard.ds/ILogger]
+ :duct.profile/prod {[:brainard.ds/storage-logger :brainard.ds/IDBLogger]
                      {:db-name #ig/ref :cfg.ds/db-name}
 
-                     [:brainard.web/handler :brainard/IHandler]
+                     [:brainard.web/handler :brainard/IWebHandler]
                      {}}}

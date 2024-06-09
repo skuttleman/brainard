@@ -11,7 +11,7 @@
 (defmacro config []
   `(let [cfg# ~cfg]
      (assoc cfg#
-            [:brainard.ds/ILogger :brainard.ds/storage-logger]
+            [:brainard.ds/IDBLogger :brainard.ds/storage-logger]
             {:db-name (ig/ref :cfg.ds/db-name)})))
 
 (defmethod ig/init-key :duct/const
