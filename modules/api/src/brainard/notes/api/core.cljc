@@ -24,8 +24,8 @@
     (let [note (clean-note note note-id)]
       (storage/execute! (:store notes-api)
                         (assoc note
-                               :notes/id note-id
-                               ::storage/type ::save!))
+                               ::storage/type ::save!
+                               :notes/id note-id))
       (tag-set (storage/query (:store notes-api)
                               {::storage/type ::get-note
                                :notes/id      note-id})))))

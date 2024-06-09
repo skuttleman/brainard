@@ -25,7 +25,3 @@
     (cond-> {:notes/tags tags}
       context (assoc :notes/context context)
       (= pinned "true") (assoc :notes/pinned? true))))
-
-(defmethod iroutes/req->input [:patch :routes.api/note]
-  [{::w/keys [route] :keys [body]}]
-  (assoc body :notes/id (-> route :route-params :notes/id)))

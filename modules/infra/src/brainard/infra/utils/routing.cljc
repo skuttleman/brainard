@@ -29,6 +29,8 @@
                       ["/scheduled" :routes.api/notes?scheduled]]]
            ["/schedules" [["" :routes.api/schedules]
                           [["/" [uuids/regex :schedules/id]] :routes.api/schedule]]]
+           ["/workspace-nodes" [["" :routes.api/workspace-nodes]
+                                [["/" [uuids/regex :notes/id]] :routes.api/workspace-node]]]
            ["/tags" :routes.api/tags]
            ["/contexts" :routes.api/contexts]
            [true :routes.api/not-found]]])

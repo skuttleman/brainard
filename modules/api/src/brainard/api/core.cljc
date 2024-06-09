@@ -3,7 +3,8 @@
     [brainard.api.validations :as valid]
     [brainard.api.utils.logger :as log]
     [brainard.notes.api.core :as api.notes]
-    [brainard.schedules.api.core :as api.sched]))
+    [brainard.schedules.api.core :as api.sched]
+    [brainard.workspace.api.core :as api.ws]))
 
 (defmulti ^:private invoke-api* (fn [api _ _] api))
 
@@ -55,6 +56,22 @@
                     seq)]
     (api.notes/get-notes (:notes apis) {:notes/ids ids})
     ()))
+
+(defmethod invoke-api* :api.workspace-nodes/select-tree
+  [_ apis _]
+  (api.ws/get-tree (:workspace apis)))
+
+(defmethod invoke-api* :api.workspace-nodes/create!
+  [_ apis node]
+  (api.ws/create! (:workspace apis) node))
+
+(defmethod invoke-api* :api.workspace-nodes/delete!
+  [_ apis node]
+  (api.ws/delete! (:workspace apis) (:workspace-nodes/id node)))
+
+(defmethod invoke-api* :api.workspace-nodes/update!
+  [_ apis node]
+  (api.ws/update! (:workspace apis) (:workspace-nodes/id node) node))
 
 (defn invoke-api [handle apis input]
   (let [input-spec (valid/input-specs handle)]

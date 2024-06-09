@@ -3,18 +3,23 @@
   (:require
     [brainard.notes.api.specs :as snotes]
     [brainard.schedules.api.specs :as ssched]
+    [brainard.workspace.api.specs :as sws]
     [malli.core :as m]
     [malli.error :as me]))
 
 (def input-specs
-  {:api.notes/select      snotes/query
-   :api.notes/create!     snotes/create
-   :api.notes/fetch       [:map [:notes/id uuid?]]
-   :api.notes/delete!     [:map [:notes/id uuid?]]
-   :api.notes/update!     snotes/modify
+  {:api.notes/select            snotes/query
+   :api.notes/create!           snotes/create
+   :api.notes/fetch             [:map [:notes/id uuid?]]
+   :api.notes/delete!           [:map [:notes/id uuid?]]
+   :api.notes/update!           snotes/modify
 
-   :api.schedules/create! ssched/create
-   :api.schedules/delete! [:map [:schedules/id uuid?]]})
+   :api.schedules/create!       ssched/create
+   :api.schedules/delete!       [:map [:schedules/id uuid?]]
+
+   :api.workspace-nodes/create! sws/create
+   :api.workspace-nodes/delete! [:map [:workspace-nodes/id uuid?]]
+   :api.workspace-nodes/update! sws/modify})
 
 (def output-specs
   {:api.notes/select      [:sequential snotes/full]
@@ -24,7 +29,9 @@
    :api.tags/select       [:set keyword?]
    :api.contexts/select   [:set string?]
 
-   :api.schedules/create! ssched/full})
+   :api.schedules/create! ssched/full
+
+   :api.workspace-nodes/select-tree sws/full})
 
 (defn ^:private throw! [type params]
   (throw (ex-info "failed spec validation" (assoc params ::type type))))

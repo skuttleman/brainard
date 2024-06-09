@@ -59,4 +59,28 @@
 
    :schedules/week-index
    {:db/cardinality :db.cardinality/one
-    :db/doc         "The week index (i.e. first week = 0, second week = 1, etc.) when the schedule applies"}})
+    :db/doc         "The week index (i.e. first week = 0, second week = 1, etc.) when the schedule applies"}
+
+   ;; workspace
+   :workspace-nodes/id
+   {:db/cardinality :db.cardinality/one
+    :db/unique      :db.unique/identity
+    :db/doc         "The external id of the workspace-node"}
+
+   :workspace-nodes/index
+   {:db/cardinality :db.cardinality/one
+    :db/doc         "The ordinal position within its parents children"}
+
+   :workspace-nodes/parent-id
+   {:db/cardinality :db.cardinality/one
+    :db/doc         "The node's parent-id"}
+
+   :workspace-nodes/content
+   {:db/cardinality :db.cardinality/one
+    :db/doc         "The node's content"}
+
+   :workspace-nodes/children
+   {:db/cardinality :db.cardinality/many
+    :db/valueType   :db.type/ref
+    :db/isComponent true
+    :db/doc         "The node's children"}})

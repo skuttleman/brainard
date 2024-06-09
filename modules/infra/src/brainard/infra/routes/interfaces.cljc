@@ -18,6 +18,8 @@
       (derive :routes.api/schedule :routes/api)
       (derive :routes.api/tags :routes/api)
       (derive :routes.api/contexts :routes/api)
+      (derive :routes.api/workspace-nodes :routes/api)
+      (derive :routes.api/workspace-node :routes/api)
 
       (derive :routes.resources/js :routes.resources/asset)
       (derive :routes.resources/css :routes.resources/asset)
@@ -39,10 +41,17 @@
    [:get :routes.api/note]            :api.notes/fetch
    [:patch :routes.api/note]          :api.notes/update!
    [:delete :routes.api/note]         :api.notes/delete!
+
    [:get :routes.api/tags]            :api.tags/select
    [:get :routes.api/contexts]        :api.contexts/select
+
    [:post :routes.api/schedules]      :api.schedules/create!
-   [:delete :routes.api/schedule]     :api.schedules/delete!})
+   [:delete :routes.api/schedule]     :api.schedules/delete!
+
+   [:get :routes.api/workspace-nodes] :api.workspace-nodes/select-tree
+   [:post :routes.api/workspace-nodes] :api.workspace-nodes/create!
+   [:delete :routes.api/workspace-node] :api.workspace-nodes/delete!
+   [:patch :routes.api/workspace-node] :api.workspace-nodes/update!})
 
 (defn router [{:keys [request-method] ::w/keys [route]}]
   [request-method (:token route)])

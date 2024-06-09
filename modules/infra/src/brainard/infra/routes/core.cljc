@@ -19,9 +19,9 @@
 
 (defmethod iroutes/req->input :default
   [{::w/keys [route] :as req}]
-  (or (:body req)
-      (merge (:route-params route)
-             (:query-params route))))
+  (merge (:body req)
+         (:route-params route)
+         (:query-params route)))
 
 (defmethod iroutes/handler :default
   [_]

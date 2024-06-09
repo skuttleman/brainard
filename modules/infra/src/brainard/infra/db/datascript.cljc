@@ -75,7 +75,7 @@
   (cond-> (->> (apply query conn (:query params) args)
                (walk/postwalk (fn [x]
                                 (cond-> x
-                                  (map? x) (dissoc :db/id))))
+                                  (map? x) (set/rename-keys {:db/id :brainard/ref}))))
                (sequence (or xform identity)))
     only? first))
 
