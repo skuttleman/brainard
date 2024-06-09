@@ -1,7 +1,8 @@
 @import 'variables';
 @import 'normalize';
-@import 'controls';
+
 @import 'dropdown';
+@import 'forms';
 @import 'layout';
 @import 'modals';
 @import 'toast';
@@ -23,117 +24,10 @@
     display: block;
 }
 
-.blue {
-    color: $blue !important;
-}
-
-.green {
-    color: $green !important;
-}
-
-.red {
-    color: $red !important;
-}
-
-.red {
-    color: $yellow !important;
-}
-
-.form {
-    &.errors {
-        &.is-changed {
-            .form-error-list {
-                color: $orange;
-            }
-        }
-
-        .form-error-list {
-            transition: color 0.5s ease-out;
-            color: $red;
-        }
-
-        .button.submit {
-            &.disabled {
-                background-color: $orange;
-                border-color: $orange;
-            }
-        }
-    }
-}
-
-.form-field {
-    &.errors {
-        .button-group, .input, .select, .textarea, .dropdown-trigger > .button {
-            border-color: $red;
-
-            &:focus {
-                box-shadow: 0 0 0 0.125rem rgba($red, 0.25);
-            }
-        }
-
-        &.is-changed {
-            .error-list {
-                color: $orange;
-            }
-        }
-
-        .error-list {
-            transition: color 0.5s ease-out;
-            color: $red;
-        }
-    }
-
-    &.warnings {
-        .button-group, .input, .select, .textarea, .dropdown-trigger > .button {
-            border-color: $yellow;
-
-            &:focus {
-                box-shadow: 0 0 0 0.125rem rgba($red, 0.25);
-            }
-        }
-
-        .warning-list {
-            color: $yellow;
-        }
-    }
-}
-
 .tag-list {
     .tags:last-child {
         margin-bottom: 1rem;
     }
-}
-
-textarea {
-  resize: none !important;
-  margin-bottom: 24px;
-}
-
-.tree-list {
-    li:not(:first-child) {
-        margin-top: 12px;
-        &:last-child {
-            margin-bottom: -8px;
-        }
-    }
-
-    .button.tab-item {
-        &.focus, &.is-focus, &:focus {
-            background-color: #f0f0f0;
-        }
-    }
-
-    margin-bottom: 8px;
-}
-
-.tree-root {
-    .target {
-        background-color: $light-grey;
-    }
-}
-
-.lni.is-danger {
-    color: $red;
 }
 
 .search-results {

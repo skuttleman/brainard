@@ -37,6 +37,10 @@
   (storage/query (:store ws-api) {::storage/type ::fetch-by-id
                                   ::ws/id        node-id}))
 
+(defn ^:private get-nodes [ws-api]
+  (storage/query (:store ws-api)
+                 {::storage/type ::select-by-parent-id}))
+
 (defn create!
   "Creates a workspace node"
   [ws-api {::ws/keys [parent-id content]}]
@@ -56,10 +60,6 @@
       (when-let [txs (seq (reorder ws-api parent-id))]
         (apply storage/execute! (:store ws-api) txs))
       (->node (get-node ws-api (::ws/id node))))))
-
-(defn ^:private get-nodes [ws-api]
-  (storage/query (:store ws-api)
-                 {::storage/type ::select-by-parent-id}))
 
 (defn get-tree
   "Fetches the workspace tree"

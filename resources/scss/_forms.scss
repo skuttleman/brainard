@@ -1,0 +1,72 @@
+.form {
+    &.errors {
+        &.is-changed {
+            .form-error-list {
+                color: $orange;
+            }
+        }
+
+        .form-error-list {
+            transition: color 0.5s ease-out;
+            color: $red;
+        }
+
+        .button.submit {
+            &.disabled {
+                background-color: $orange;
+                border-color: $orange;
+            }
+        }
+    }
+}
+
+.form-field {
+    &.errors {
+        .button-group, .input, .select, .textarea, .dropdown-trigger > .button {
+            border-color: $red;
+
+            &:focus {
+                box-shadow: 0 0 0 0.125rem rgba($red, 0.25);
+            }
+        }
+
+        &.is-changed {
+            .error-list {
+                color: $orange;
+            }
+        }
+
+        .error-list {
+            transition: color 0.5s ease-out;
+            color: $red;
+        }
+    }
+
+    &.warnings {
+        .button-group, .input, .select, .textarea, .dropdown-trigger > .button {
+            border-color: $yellow;
+
+            &:focus {
+                box-shadow: 0 0 0 0.125rem rgba($red, 0.25);
+            }
+        }
+
+        .warning-list {
+            color: $yellow;
+        }
+    }
+}
+
+.label.small {
+    font-size: 0.8em;
+    font-weight: normal;
+}
+
+textarea {
+  resize: none !important;
+  margin-bottom: 24px;
+}
+
+.lni.is-danger {
+    color: $red;
+}
