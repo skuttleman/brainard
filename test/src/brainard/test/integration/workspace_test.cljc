@@ -153,6 +153,26 @@
                      (clean-tree (api.ws/get-tree workspace-api)
                                  #{::ws/id ::ws/parent-id}))))
 
+            (testing "and when moving the node to its current parent"
+              (api.ws/update! workspace-api id3 {::ws/parent-id id5})
+              (testing "keeps the node in teh same position"
+                (is (= [{::ws/id       id1
+                         ::ws/content  "root"
+                         ::ws/children [{::ws/id        id2
+                                         ::ws/parent-id id1
+                                         ::ws/content   "sub1"}
+                                        {::ws/id        id5
+                                         ::ws/parent-id id1
+                                         ::ws/content   "sub3"
+                                         ::ws/children [{::ws/id        id3
+                                                         ::ws/parent-id id5
+                                                         ::ws/content   "new content"
+                                                         ::ws/children  [{::ws/content   "sub-sub"
+                                                                          ::ws/id        id4
+                                                                          ::ws/parent-id id3}]}]}]}]
+                       (clean-tree (api.ws/get-tree workspace-api)
+                                   #{::ws/id ::ws/parent-id})))))
+
             (testing "and when moving to be the child of its ancestor"
               (testing "causes an error"
                 (let [ex (is (thrown? #?(:cljs :default :default Throwable)
