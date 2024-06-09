@@ -1,7 +1,6 @@
 (ns brainard.workspace.api.core
   (:require
     [brainard.api.storage.core :as storage]
-    [brainard.api.utils.logger :as log]
     [brainard.api.utils.maps :as maps]
     [brainard.api.utils.uuids :as uuids]
     [workspace-nodes :as-alias ws]))
@@ -57,11 +56,14 @@
     (reorder! ws-api parent-id)
     node))
 
+(defn ^:private get-nodes [ws-api]
+  (storage/query (:store ws-api)
+                 {::storage/type ::select-by-parent-id}))
+
 (defn get-tree
   "Fetches the workspace tree"
   [ws-api]
-  (->nodes (storage/query (:store ws-api)
-                          {::storage/type ::select-by-parent-id})))
+  (->nodes (get-nodes ws-api)))
 
 (defn delete!
   "Deletes a workspace node and any children recursively"
@@ -81,7 +83,7 @@
       (throw (ex-info "cyclic workflows not allowed" {})))
     (let [same-parent? (= ::same parent-id)
           next-parent (cond
-                        (nil? parent-id) {::ws/children (get-tree ws-api)}
+                        (nil? parent-id) {::ws/children (get-nodes ws-api)}
                         (not same-parent?) (get-node ws-api parent-id)
                         :else (get-node ws-api curr-parent-id))
           next-parent-id (::ws/id next-parent)

@@ -5,9 +5,10 @@
     [whet.interfaces :as iwhet]))
 
 (def ^:private token->coercers
-  {:routes.api/note     {:notes/id uuids/->uuid}
-   :routes.ui/note      {:notes/id uuids/->uuid}
-   :routes.api/schedule {:schedules/id uuids/->uuid}})
+  {:routes.api/note           {:notes/id uuids/->uuid}
+   :routes.ui/note            {:notes/id uuids/->uuid}
+   :routes.api/schedule       {:schedules/id uuids/->uuid}
+   :routes.api/workspace-node {:workspace-nodes/id uuids/->uuid}})
 
 (defn ^:private coerce-params [token params]
   (let [coercers (token->coercers token)]
@@ -21,6 +22,7 @@
 (defmethod iwhet/coerce-route-params :routes.api/note [token params] (coerce-params token params))
 (defmethod iwhet/coerce-route-params :routes.ui/note [token params] (coerce-params token params))
 (defmethod iwhet/coerce-route-params :routes.api/schedule [token params] (coerce-params token params))
+(defmethod iwhet/coerce-route-params :routes.api/workspace-node [token params] (coerce-params token params))
 
 (def ^:private api-routes
   ["/api" [["/notes" [["" :routes.api/notes]
@@ -30,7 +32,7 @@
            ["/schedules" [["" :routes.api/schedules]
                           [["/" [uuids/regex :schedules/id]] :routes.api/schedule]]]
            ["/workspace-nodes" [["" :routes.api/workspace-nodes]
-                                [["/" [uuids/regex :notes/id]] :routes.api/workspace-node]]]
+                                [["/" [uuids/regex :workspace-nodes/id]] :routes.api/workspace-node]]]
            ["/tags" :routes.api/tags]
            ["/contexts" :routes.api/contexts]
            [true :routes.api/not-found]]])

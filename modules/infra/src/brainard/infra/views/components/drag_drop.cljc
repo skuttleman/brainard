@@ -65,7 +65,7 @@
         {::keys [drag-id target-id]} (forms/data form)
         target? (= target-id [:at node-id])
         children (:children node)]
-    [:div {:on-mouse-down (->mouse-down *:store form node-id)}
+    [:div
      [:div (cond-> {}
              (and drag-id target?) (assoc :class ["drop-target"])
              (empty? children) (assoc :data-target (pr-str [:at node-id])))
@@ -73,7 +73,8 @@
             {:type (cond
                      (and drag-id target?) :target
                      drag-id :dynamic
-                     :else :static)}
+                     :else :static)
+             :on-drag-begin (->mouse-down *:store form node-id)}
             node)]
      (when (seq children)
        [node-list attrs (:children node)])]))

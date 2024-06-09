@@ -3,6 +3,7 @@
     [brainard.api.validations :as valid]
     [brainard.notes.api.specs :as snotes]
     [brainard.schedules.api.specs :as ssched]
+    [brainard.workspace.api.specs :as sws]
     [clojure.set :as set]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
@@ -149,3 +150,51 @@
           :ok-commands  [[:toasts/succeed! {:message "schedule deleted"}]]
           :err-events   [[::res/destroyed [::schedules#destroy resource-id]]]
           :err-commands [[:toasts/fail!]]}))
+
+(defmethod res/->request-spec ::workspace#select
+  [_ _]
+  (->req {:route        :routes.api/workspace-nodes
+          :method       :get
+          :err-commands [[:toasts/fail!]]}))
+
+(let [vld (valid/->validator sws/create)]
+  (defmethod forms+/validate ::workspace#create [_ data] (vld data)))
+(defmethod res/->request-spec ::workspace#create
+  [_ {::forms/keys [data] :keys [ok-commands]}]
+  (->req {:route        :routes.api/workspace-nodes
+          :method       :post
+          :body         data
+          :ok-commands  [[::res/submit! [::workspace#select]]]
+          :err-commands [[:toasts/fail!]]}
+         {:ok-commands ok-commands}))
+
+(let [vld (valid/->validator sws/modify)]
+  (defmethod forms+/validate ::workspace#modify [_ data] (vld data)))
+(defmethod res/->request-spec ::workspace#modify
+  [[_ resource-id] {::forms/keys [data] :keys [ok-commands]}]
+  (->req {:route        :routes.api/workspace-node
+          :method       :patch
+          :params       {:workspace-nodes/id resource-id}
+          :body         data
+          :ok-commands  [[::res/submit! [::workspace#select]]]
+          :err-commands [[:toasts/fail!]]}
+         {:ok-commands ok-commands}))
+
+(defmethod res/->request-spec ::workspace#move
+  [[_ resource-id] {:keys [body ok-commands]}]
+  (->req {:route        :routes.api/workspace-node
+          :method       :patch
+          :params       {:workspace-nodes/id resource-id}
+          :body         body
+          :ok-commands  [[::res/submit! [::workspace#select]]]
+          :err-commands [[:toasts/fail!]]}
+         {:ok-commands ok-commands}))
+
+(defmethod res/->request-spec ::workspace#destroy
+  [[_ resource-id] {:keys [ok-commands]}]
+  (->req {:route        :routes.api/workspace-node
+          :method       :delete
+          :params       {:workspace-nodes/id resource-id}
+          :ok-commands  [[::res/submit! [::workspace#select]]]
+          :err-commands [[:toasts/fail!]]}
+         {:ok-commands ok-commands}))
