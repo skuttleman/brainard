@@ -28,12 +28,8 @@
  {:conn #ig/ref :brainard.ds/conn}
 
  :brainard.ds/conn
- {:client  #ig/ref :brainard.ds/client
-  :db-name #ig/ref :cfg.ds/db-name
+ {:db-name #ig/ref :cfg.ds/db-name
   :schema  #ig/ref :cfg.ds/schema}
-
- :brainard.ds/client
- {}
 
  [:duct/const :cfg.ds/schema]
  #duct/include "schema.edn"

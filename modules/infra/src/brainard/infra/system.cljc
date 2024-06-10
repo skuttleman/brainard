@@ -35,9 +35,5 @@
   (ds/->DSStore conn))
 
 (defmethod ig/init-key :brainard.ds/conn
-  [_ {:keys [client db-name schema]}]
-  (ds/->conn client db-name schema))
-
-(defmethod ig/init-key :brainard.ds/client
-  [_ {:keys [storage-dir]}]
-  (ds/->client storage-dir))
+  [_ input]
+  (ds/connect! input))

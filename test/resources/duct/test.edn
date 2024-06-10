@@ -1,9 +1,7 @@
 {:duct.profile/base #duct/include "duct/base.edn"
  :duct.profile/test {:brainard.ds/conn
-                     ^:promote {:db-name #ig/ref :brainard.test/db-name}
-
-                     :brainard.ds/client
-                     ^:promote {:storage-dir :mem}
+                     ^:promote {:db-name     #ig/ref :brainard.test/db-name
+                                :storage-dir :mem}
 
                      :brainard.test/db-name
                      {}
