@@ -37,8 +37,7 @@
 
 (defmethod ig/init-key :brainard.ds/client
   [_ {:keys [logger]}]
-  (doto (ds/connect! logger)
-    ds/init!))
+  (ds/connect! logger))
 
 (defmethod ig/halt-key! :brainard.ds/client
   [_ conn]

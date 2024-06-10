@@ -11,6 +11,7 @@
             :where [?e ::ws/id ?node-id]]
    :args  [id]
    :only? true
+   :ref?  true
    :xform (map first)})
 
 (defmethod istorage/->input ::api.ws/select-by-parent-id

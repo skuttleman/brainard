@@ -22,7 +22,7 @@
 (defn ^:private ->node [node]
   (-> node
       (maps/update-when ::ws/children ->nodes)
-      (dissoc ::ws/index)))
+      (dissoc :brainard/ref ::ws/index)))
 
 (defn ^:private ->nodes [nodes]
   (->> nodes
