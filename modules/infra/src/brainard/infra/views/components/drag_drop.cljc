@@ -95,7 +95,7 @@
        ^{:key (str target)}
        [:li {:class [(when node? "node-item")]}
         (cond
-          dragging? [drag-node-view attrs node]
+          dragging? [:div.drag-group [drag-node-view attrs node]]
           node? [node-view attrs node]
           :else [:div {:class       [(when (and drag-id target?) "drop-target")]
                        :style       {:height "4px" :width "100%"}

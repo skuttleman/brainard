@@ -47,10 +47,12 @@
        [ctrls/input (-> {:*:store     *:store
                          :auto-focus? true
                          :label       "Content"}
-                        (ctrls/with-attrs form+ [::ws/content]))]])))
+                        (ctrls/with-attrs form+ [::ws/content]))]])
+    (finally
+      (store/emit! *:store [::forms+/destroyed resource-key]))))
 
 (def ^:private create-modal
-  [::edit! {:header "Create new item in your workspace"
+  [::edit! {:header       "Create new item in your workspace"
             :resource-key create-node-key}])
 
 (def ^:private modify-modal
@@ -60,12 +62,12 @@
   [comp/plain-button {:on-click (fn [_]
                                   (store/dispatch! *:store [:modals/create! modal]))
                       :class    ["is-small" "is-ghost"]
-                      :style    {:padding 0 :height "1.5em"}}
-   [comp/icon icon]])
+                      :style    {:padding 0 :height "2em"}}
+   [comp/icon (when (= :trash-can icon) {:class ["is-danger"]}) icon]])
 
 (defmethod drag-item :static
   [*:store {:keys [on-drag-begin]} node]
-  (let [create-modal (update create-modal 1 merge {:init-data {::ws/parent-id (:id node)}
+  (let [create-modal (update create-modal 1 merge {:init-data    {::ws/parent-id (:id node)}
                                                    :resource-key create-node-key})
         modify-modal (update modify-modal 1 merge {:init-data    (select-keys node #{::ws/id ::ws/content})
                                                    :resource-key (->modify-node-key (::ws/id node))})
@@ -74,12 +76,12 @@
                        :yes-commands [[::res/submit! [::specs/workspace#destroy (::ws/id node)]]]}]]
     [:div.layout--row
      [:span.layout--space-after {:on-mouse-down on-drag-begin}
-      [:span (::ws/content node)]]
+      [:span {:style {:cursor :grab}} (::ws/content node)]]
      [:span.layout--space-after
       [icon-button *:store modify-modal :pencil]]
      [:span.layout--space-after
-      [icon-button *:store create-modal :plus]]
-     [icon-button *:store delete-modal :trash-can]]))
+      [icon-button *:store delete-modal :trash-can]]
+     [icon-button *:store create-modal :plus]]))
 
 (defmethod drag-item :default
   [_ _ node]
@@ -101,12 +103,14 @@
                           :on-drop (->on-drop *:store)}]
     [:div
      [:h1.subtitle "Welcome to your workspace"]
-     [icon-button *:store create-modal :plus]
-     [dnd/control dnd-attrs (->tree ws-nodes)]]))
+     [dnd/control dnd-attrs (->tree ws-nodes)]
+     [icon-button *:store create-modal :plus]]))
 
 (defmethod ipages/page :routes.ui/workspace
   [*:store _]
   (r/with-let [sub:tree (-> *:store
                             (store/dispatch! [::res/ensure! fetch-ws-key])
                             (store/subscribe [::res/?:resource fetch-ws-key]))]
-    [comp/with-resource sub:tree [root *:store]]))
+    [comp/with-resource sub:tree [root *:store]]
+    (finally
+      (store/emit! *:store [::res/destroyed fetch-ws-key]))))
