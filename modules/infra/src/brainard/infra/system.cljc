@@ -39,11 +39,6 @@
   [_ {:keys [logger]}]
   (ds/connect! logger))
 
-#?(:clj
-   (defmethod ig/halt-key! :brainard.ds/client
-     [_ conn]
-     (ds/close! conn)))
-
 (defmethod ig/init-key :brainard/storage
   [_ {:keys [ds-client]}]
   (ds/->DSStore ds-client))

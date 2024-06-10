@@ -8,7 +8,7 @@
 (declare ->nodes)
 
 (def ^:private ^:const insertion-index
-  #?(:cljs js/Number.MAX_SAFE_INTEGER :default Long/MAX_VALUE))
+  #?(:cljs js/Number.MAX_SAFE_INTEGER :default Double/MAX_VALUE))
 
 (defn ^:private reorder [ws-api parent-id]
   (->> (storage/query (:store ws-api) {::storage/type ::select-by-parent-id
@@ -17,7 +17,7 @@
        (map-indexed (fn [idx {::ws/keys [id]}]
                       {::storage/type ::save!
                        ::ws/id        id
-                       ::ws/index     idx}))))
+                       ::ws/index     (double idx)}))))
 
 (defn ^:private ->node [node]
   (-> node
@@ -105,7 +105,7 @@
                                ::ws/parent-id!remove curr-parent-id)
 
                         (and (nil? sibling) (not same-parent?))
-                        (assoc ::ws/index -1)
+                        (assoc ::ws/index -1.0)
 
                         (some? sibling)
                         (assoc ::ws/index (+ (::ws/index sibling) 0.5))
@@ -113,7 +113,7 @@
                         (nil? next-parent-id)
                         (dissoc ::ws/parent-id))
             txs (cond-> []
-                  (and (some? curr-parent-id) (not same-parent?))
+                  (and (some? curr-parent-id) (not same-parent?) (not= curr-parent-id parent-id))
                   (conj {::storage/type ::remove-from-parent!
                          ::ws/parent-id curr-parent-id
                          :brainard/ref  (:brainard/ref node)})

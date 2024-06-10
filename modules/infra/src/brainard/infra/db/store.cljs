@@ -33,17 +33,6 @@
 (defn ^:private query [conn query & args]
   (apply d/q query (d/db (first conn)) args))
 
-(defn ^:private init!
-  "Initializes the in-memory datascript store with previously transacted data."
-  [conn]
-  (doto conn load-log!))
-
-(defn connect!
-  "Connects a client to a database."
-  [logger]
-  (doto (with-meta [(d/create-conn db/schema)] logger)
-    init!))
-
 (defn ^:private do-query [conn {:keys [args only? xform ref?] :as params}]
   (cond-> (->> (apply query conn (:query params) args)
                (walk/postwalk (fn [x]
@@ -53,6 +42,12 @@
                                              (not ref?) (dissoc :db/id)))))
                (sequence (or xform identity)))
     only? first))
+
+(defn connect!
+  "Connects a client to a database."
+  [logger]
+  (doto (with-meta [(d/create-conn (db/schema))] logger)
+    load-log!))
 
 (deftype DSStore [conn]
   istorage/IRead

@@ -4,16 +4,12 @@
     [brainard.infra.db.store :as-alias ds]
     [brainard.infra.routes.core :as routes]
     [duct.core :as duct]
-    [integrant.core :as ig])
-  (:import
-    (org.apache.commons.io.output NullWriter)))
+    [integrant.core :as ig]))
 
 (defmethod ig/init-key :brainard.test/null-logger
   [_ {:keys [db-name]}]
   {::ds/db-name  db-name
-   ::ds/log-file "/dev/null"
-   ::ds/writer   NullWriter/INSTANCE
-   ::ds/lock     (Object.)})
+   ::ds/storage-dir :mem})
 
 (defmethod ig/init-key :brainard.test/db-name
   [_ _]
