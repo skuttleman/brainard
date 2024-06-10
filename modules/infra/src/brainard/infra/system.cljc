@@ -30,15 +30,14 @@
      (log/info "shutting down webserver")
      (web/stop server)))
 
-(defmethod ig/init-key :brainard.ds/storage-logger
-  [_ params]
-  #?(:clj  (ds/file-logger (:db-name params))
-     :cljs (ds/local-storage-logger (:db-name params))))
+(defmethod ig/init-key :brainard/storage
+  [_ {:keys [conn]}]
+  (ds/->DSStore conn))
+
+(defmethod ig/init-key :brainard.ds/conn
+  [_ {:keys [client db-name schema]}]
+  (ds/->conn client db-name schema))
 
 (defmethod ig/init-key :brainard.ds/client
-  [_ {:keys [logger]}]
-  (ds/connect! logger))
-
-(defmethod ig/init-key :brainard/storage
-  [_ {:keys [ds-client]}]
-  (ds/->DSStore ds-client))
+  [_ {:keys [storage-dir]}]
+  (ds/->client storage-dir))

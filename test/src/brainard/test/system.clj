@@ -2,22 +2,12 @@
   (:require
     [brainard.api.utils.uuids :as uuids]
     [brainard.infra.db.store :as-alias ds]
-    [brainard.infra.routes.core :as routes]
     [duct.core :as duct]
     [integrant.core :as ig]))
-
-(defmethod ig/init-key :brainard.test/null-logger
-  [_ {:keys [db-name]}]
-  {::ds/db-name  db-name
-   ::ds/storage-dir :mem})
 
 (defmethod ig/init-key :brainard.test/db-name
   [_ _]
   (str (uuids/random)))
-
-(defmethod ig/init-key :brainard.web/test-handler
-  [_ _]
-  routes/be-handler)
 
 (defmacro with-system [[sys-binding opts] & body]
   (let [sys (gensym)
