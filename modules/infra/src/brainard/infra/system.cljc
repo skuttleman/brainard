@@ -3,7 +3,7 @@
     #?@(:clj [[immutant.web :as web]
               brainard.infra.routes.ui])
     [brainard.api.utils.logger :as log]
-    [brainard.infra.db.datascript :as ds]
+    [brainard.infra.db.store :as ds]
     [brainard.infra.routes.core :as routes]
     [integrant.core :as ig]
     brainard.notes.infra.db
@@ -39,9 +39,10 @@
   [_ {:keys [logger]}]
   (ds/connect! logger))
 
-(defmethod ig/halt-key! :brainard.ds/client
-  [_ conn]
-  (ds/close! conn))
+#?(:clj
+   (defmethod ig/halt-key! :brainard.ds/client
+     [_ conn]
+     (ds/close! conn)))
 
 (defmethod ig/init-key :brainard/storage
   [_ {:keys [ds-client]}]
