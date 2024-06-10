@@ -1,5 +1,5 @@
-(ns brainard.resources.system
-  #?(:cljs (:require-macros brainard.resources.system))
+(ns brainard.stubbed.system
+  #?(:cljs (:require-macros brainard.stubbed.system))
   (:require
     #?(:clj [duct.core :as duct])
     [integrant.core :as ig]))

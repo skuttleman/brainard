@@ -9,7 +9,7 @@
     [defacto.core :as defacto]
     [defacto.resources.core :as-alias res]
     [whet.core :as w]
-    #_brainard.stubbed-be))
+    #_brainard.stubbed.api))
 
 (def ^:dynamic *store*)
 

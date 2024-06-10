@@ -1,9 +1,9 @@
-(ns brainard.stubbed-be
+(ns brainard.stubbed.api
   (:require
     [brainard :as-alias b]
     [brainard.infra.routes.core :as routes]
     [brainard.infra.utils.routing :as rte]
-    [brainard.resources.system :as sys]
+    [brainard.stubbed.system :as sys]
     [clojure.core.async :as async]
     [defacto.resources.core :as-alias res]
     [integrant.core :as ig]
