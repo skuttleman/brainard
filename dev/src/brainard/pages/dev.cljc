@@ -6,6 +6,7 @@
     [brainard.infra.views.pages.interfaces :as ipages]
     [defacto.core :as defacto]
     [defacto.forms.core :as forms]
+    [defacto.resources.core :as-alias res]
     [whet.utils.reagent :as r]))
 
 (def ^:private event-opts
@@ -70,7 +71,12 @@
 
 (defmethod ipages/page :routes.ui/dev
   [*:store _route-info]
-  (r/with-let [sub:events (store/subscribe *:store [::?:events])]
+  (r/with-let [sub:events (store/subscribe *:store [::?:events])
+               sub:forms (store/subscribe *:store [::forms/?:forms])
+               sub:res (store/subscribe *:store [::res/?:resources])]
     [:div
      [:h1.title "Dev Station"]
+     [:div.layout--row
+      [:span.layout--space-after [:strong (count @sub:forms)] " active forms"]
+      [:span [:strong (count @sub:res)] " active resources"]]
      [event-viewer *:store @sub:events]]))
