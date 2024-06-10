@@ -31,7 +31,7 @@
 
    :api.schedules/create! ssched/full
 
-   :api.workspace-nodes/select-tree sws/full})
+   :api.workspace-nodes/select-tree [:sequential sws/full]})
 
 (defn ^:private throw! [type params]
   (throw (ex-info "failed spec validation" (assoc params ::type type))))
