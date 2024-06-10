@@ -2,7 +2,7 @@
   (:require
     [brainard.app :as app]
     [brainard.infra.store.core :as store]
-    [brainard.infra.store.specs :as specs]
+    [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.views.pages.core :as pages]
     [brainard.pages.dev :as dev]
     [clojure.pprint :as pp]

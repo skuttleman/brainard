@@ -4,15 +4,9 @@
     #?(:clj [duct.core :as duct])
     [integrant.core :as ig]))
 
-#?(:clj
-   (def cfg
-     (duct/read-config (duct/resource "duct/base.edn"))))
-
-(defmacro config []
-  `(let [cfg# ~cfg]
-     (assoc cfg#
-            [:brainard.ds/IDBLogger :brainard.ds/storage-logger]
-            {:db-name (ig/ref :cfg.ds/db-name)})))
+(defmacro config [config-file]
+  `(let [cfg# ~(duct/read-config (duct/resource config-file))]
+     cfg#))
 
 (defmethod ig/init-key :duct/const
   [_ component]

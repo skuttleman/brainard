@@ -17,23 +17,23 @@
                       {::storage/type ::api.ws/save!
                        ::ws/id        id1
                        ::ws/content   "root"
-                       ::ws/index     0
+                       ::ws/index     0.0
                        ::ws/children  [{::ws/id        id2
                                         ::ws/parent-id id1
                                         ::ws/content   "sub1"
-                                        ::ws/index     0}
+                                        ::ws/index     0.0}
                                        {::ws/id        id3
                                         ::ws/parent-id id1
                                         ::ws/content   "sub2"
-                                        ::ws/index     1
+                                        ::ws/index     1.0
                                         ::ws/children  [{::ws/id        id4
                                                          ::ws/parent-id id3
                                                          ::ws/content   "sub-sub"
-                                                         ::ws/index     0}]}
+                                                         ::ws/index     0.0}]}
                                        {::ws/id        id5
                                         ::ws/parent-id id1
                                         ::ws/content   "sub3"
-                                        ::ws/index     2}]})
+                                        ::ws/index     2.0}]})
     [id1 id2 id3 id4 id5]))
 
 (defn ^:private clean-tree

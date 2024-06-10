@@ -1,27 +1,13 @@
 (ns brainard.test.system
   (:require
     [brainard.api.utils.uuids :as uuids]
-    [brainard.infra.db.datascript :as-alias ds]
-    [brainard.infra.routes.core :as routes]
+    [brainard.infra.db.store :as-alias ds]
     [duct.core :as duct]
-    [integrant.core :as ig])
-  (:import
-    (org.apache.commons.io.output NullWriter)))
-
-(defmethod ig/init-key :brainard.test/null-logger
-  [_ {:keys [db-name]}]
-  {::ds/db-name  db-name
-   ::ds/log-file "/dev/null"
-   ::ds/writer   NullWriter/INSTANCE
-   ::ds/lock     (Object.)})
+    [integrant.core :as ig]))
 
 (defmethod ig/init-key :brainard.test/db-name
   [_ _]
   (str (uuids/random)))
-
-(defmethod ig/init-key :brainard.web/test-handler
-  [_ _]
-  routes/be-handler)
 
 (defmacro with-system [[sys-binding opts] & body]
   (let [sys (gensym)

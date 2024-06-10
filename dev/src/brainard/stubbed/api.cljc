@@ -13,7 +13,7 @@
     brainard.infra.system))
 
 (def ^:private system
-  (ig/init (sys/config) [::b/apis]))
+  (ig/init (sys/config "duct/base.edn") [::b/apis]))
 
 (def ^:private apis
   (val (ig/find-derived-1 system ::b/apis)))

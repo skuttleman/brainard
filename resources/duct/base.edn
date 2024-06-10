@@ -25,15 +25,18 @@
 
  ;; infra
  :brainard/storage
- {:ds-client #ig/ref :brainard.ds/client}
+ {:conn #ig/ref :brainard.ds/conn}
 
- :brainard.ds/client
- {:logger #ig/ref :brainard.ds/IDBLogger}
+ :brainard.ds/conn
+ {:db-name #ig/ref :cfg.ds/db-name
+  :schema  #ig/ref :cfg.ds/schema}
 
+ [:duct/const :cfg.ds/schema]
+ #duct/include "schema.edn"
 
  ;; env
  [:duct/const :cfg/server-port]
  #duct/env ["SERVER_PORT" Int :or 1165]
 
  [:duct/const :cfg.ds/db-name]
- #duct/env ["DATASCRIPT_DB_NAME" :or "brainard"]}
+ #duct/env ["DB_NAME" :or "brainard"]}
