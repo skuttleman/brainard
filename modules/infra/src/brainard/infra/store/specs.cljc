@@ -17,7 +17,7 @@
 (defn ^:private ->req
   ([params]
    (->req params nil))
-  ([{:keys [route] :as params} input]
+  ([{:keys [route] :as params} spec]
    (let [{:keys [query-params] :as route-params} (:params params)]
      (-> {:params {:request-method (:method params)
                    :route          {:token        route
@@ -26,175 +26,175 @@
                    :body           (:body params)}
           :->ok   :data
           :->err  :errors}
-         (with-msgs :pre-events params input)
-         (with-msgs :pre-commands params input)
-         (with-msgs :ok-events params input)
-         (with-msgs :ok-commands params input)
-         (with-msgs :err-events params input)
-         (with-msgs :err-commands params input)))))
+         (with-msgs :pre-events params spec)
+         (with-msgs :pre-commands params spec)
+         (with-msgs :ok-events params spec)
+         (with-msgs :ok-commands params spec)
+         (with-msgs :err-events params spec)
+         (with-msgs :err-commands params spec)))))
 
 (defmethod res/->request-spec ::tags#select
-  [_ _]
+  [_ spec]
   (->req {:route  :routes.api/tags
-          :method :get}))
+          :method :get}
+         spec))
 
 (defmethod res/->request-spec ::contexts#select
-  [_ _]
+  [_ spec]
   (->req {:route  :routes.api/contexts
-          :method :get}))
+          :method :get}
+         spec))
 
 (let [vld (valid/->validator snotes/query)]
   (defmethod forms+/validate ::notes#select [_ data] (vld data)))
 (defmethod forms+/re-init ::notes#select [_ form _] (forms/data form))
 (defmethod res/->request-spec ::notes#select
-  [_ {::forms/keys [data] :keys [pre-commands]}]
+  [_ {::forms/keys [data] :as spec}]
   (->req {:route  :routes.api/notes
           :method :get
           :params {:query-params data}}
-         {:pre-commands pre-commands}))
+         spec))
 
 (defmethod res/->request-spec ::notes#find
-  [[_ resource-id] _]
+  [[_ resource-id] spec]
   (->req {:route  :routes.api/note
           :method :get
-          :params {:notes/id resource-id}}))
+          :params {:notes/id resource-id}}
+         spec))
 
 (let [vld (valid/->validator snotes/create)]
   (defmethod forms+/validate ::notes#create [_ data] (vld data)))
 (defmethod res/->request-spec ::notes#create
-  [_ {::forms/keys [data] :keys [pre-events ok-events]}]
+  [_ {::forms/keys [data] :as spec}]
   (->req {:route        :routes.api/notes
           :method       :post
           :body         (select-keys data #{:notes/context
                                             :notes/pinned?
                                             :notes/body
                                             :notes/tags})
-          :pre-events   pre-events
-          :ok-events    (conj ok-events [:api.notes/saved])
+          :ok-events    [[:api.notes/saved]]
           :ok-commands  [[:toasts.notes/succeed!]]
-          :err-commands [[:toasts/fail!]]}))
+          :err-commands [[:toasts/fail!]]}
+         spec))
 
-(defn ^:private diff-tags [old new]
-  (let [removals (set/difference old new)]
+(defn ^:private diff-tags [old curr]
+  (let [removals (set/difference old curr)]
     {:notes/tags!remove removals
-     :notes/tags        new}))
+     :notes/tags        curr}))
 
-(defmethod forms+/re-init ::notes#update [_ _ result] (select-keys result #{:notes/tags}))
+(defmethod forms+/re-init ::notes#update [_ _ result] result)
 (defmethod res/->request-spec ::notes#update
-  [_ {::forms/keys [data] :keys [fetch? prev-tags]}]
+  [_ {::forms/keys [data] :keys [prev-tags] :as spec}]
   (->req {:route        :routes.api/note
           :params       (select-keys data #{:notes/id})
           :method       :patch
           :body         (-> data
                             (select-keys #{:notes/context
                                            :notes/pinned?
-                                           :notes/body
-                                           :notes/tags})
+                                           :notes/body})
                             (merge (diff-tags prev-tags (:notes/tags data))))
           :ok-events    [[:api.notes/saved]]
-          :ok-commands  (cond-> [[:toasts/succeed! {:message "note updated"}]]
-                          fetch?
-                          (conj [::res/submit! [::notes#find (:notes/id data)]]))
-          :err-commands [[:toasts/fail!]]}))
+          :ok-commands  [[:toasts/succeed! {:message "note updated"}]]
+          :err-commands [[:toasts/fail!]]}
+         spec))
 
 (defmethod forms+/re-init ::notes#pin [_ _ result] (select-keys result #{:notes/id :notes/pinned?}))
 (defmethod res/->request-spec ::notes#pin
-  [_ {::forms/keys [data]}]
+  [_ {::forms/keys [data] :as spec}]
   (->req {:route        :routes.api/note
           :params       (select-keys data #{:notes/id})
           :method       :patch
           :body         (select-keys data #{:notes/pinned?})
           :ok-events    [[:api.notes/saved]]
-          :ok-commands  [[:toasts/succeed! {:message (if (:notes/pinned? data)
-                                                       "note pinned"
-                                                       "note unpinned")}]]
-          :err-commands [[:toasts/fail!]]}))
+          :err-commands [[:toasts/fail!]]}
+         spec))
 
 (defmethod res/->request-spec ::notes#destroy
-  [[_ note-id] _]
+  [[_ note-id] spec]
   (->req {:route        :routes.api/note
           :params       {:notes/id note-id}
           :method       :delete
-          :ok-commands  [[:toasts/succeed! {:message "note deleted"}]
-                         [:nav/navigate! {:token :routes.ui/home}]]
-          :err-commands [[:toasts/fail!]]}))
+          :ok-commands  [[:toasts/succeed! {:message "note deleted"}]]
+          :err-commands [[:toasts/fail!]]}
+         spec))
 
 (defmethod res/->request-spec ::notes#pinned
-  [_ _]
+  [_ spec]
   (->req {:route  :routes.api/notes?pinned
-          :method :get}))
+          :method :get}
+         spec))
 
 (defmethod res/->request-spec ::notes#buzz
-  [_ _]
+  [_ spec]
   (->req {:route  :routes.api/notes?scheduled
-          :method :get}))
+          :method :get}
+         spec))
 
 (let [vld (valid/->validator ssched/create)]
   (defmethod forms+/validate ::schedules#create [_ data] (vld data)))
 (defmethod res/->request-spec ::schedules#create
-  [_ {::forms/keys [data]}]
+  [_ {::forms/keys [data] :as spec}]
   (->req {:route        :routes.api/schedules
           :method       :post
           :body         data
           :ok-events    [[:api.schedules/saved (:schedules/note-id data)]]
           :ok-commands  [[:toasts/succeed! {:message "schedule created"}]]
-          :err-commands [[:toasts/fail!]]}))
+          :err-commands [[:toasts/fail!]]}
+         spec))
 
 (defmethod res/->request-spec ::schedules#destroy
-  [[_ resource-id] params]
+  [[_ resource-id :as resource-key] spec]
   (->req {:route        :routes.api/schedule
           :method       :delete
           :params       {:schedules/id resource-id}
-          :ok-events    [[:api.schedules/deleted resource-id (:notes/id params)]
-                         [::res/destroyed [::schedules#destroy resource-id]]]
+          :ok-events    [[:api.schedules/deleted resource-id (:notes/id spec)]
+                         [::res/destroyed resource-key]]
           :ok-commands  [[:toasts/succeed! {:message "schedule deleted"}]]
-          :err-events   [[::res/destroyed [::schedules#destroy resource-id]]]
-          :err-commands [[:toasts/fail!]]}))
+          :err-events   [[::res/destroyed resource-key]]
+          :err-commands [[:toasts/fail!]]}
+         spec))
 
 (defmethod res/->request-spec ::workspace#select
-  [_ _]
+  [_ spec]
   (->req {:route        :routes.api/workspace-nodes
           :method       :get
-          :err-commands [[:toasts/fail!]]}))
+          :err-commands [[:toasts/fail!]]}
+         spec))
 
 (let [vld (valid/->validator sws/create)]
   (defmethod forms+/validate ::workspace#create [_ data] (vld data)))
 (defmethod res/->request-spec ::workspace#create
-  [_ {::forms/keys [data] :keys [ok-commands]}]
+  [_ {::forms/keys [data] :as spec}]
   (->req {:route        :routes.api/workspace-nodes
           :method       :post
           :body         data
-          :ok-commands  [[::res/submit! [::workspace#select]]]
           :err-commands [[:toasts/fail!]]}
-         {:ok-commands ok-commands}))
+         spec))
 
 (let [vld (valid/->validator sws/modify)]
   (defmethod forms+/validate ::workspace#modify [_ data] (vld data)))
 (defmethod res/->request-spec ::workspace#modify
-  [[_ resource-id] {::forms/keys [data] :keys [ok-commands]}]
+  [[_ resource-id] {::forms/keys [data] :as spec}]
   (->req {:route        :routes.api/workspace-node
           :method       :patch
           :params       {:workspace-nodes/id resource-id}
           :body         data
-          :ok-commands  [[::res/submit! [::workspace#select]]]
           :err-commands [[:toasts/fail!]]}
-         {:ok-commands ok-commands}))
+         spec))
 
 (defmethod res/->request-spec ::workspace#move
-  [[_ resource-id] {:keys [body ok-commands]}]
+  [[_ resource-id] {:keys [body] :as spec}]
   (->req {:route        :routes.api/workspace-node
           :method       :patch
           :params       {:workspace-nodes/id resource-id}
           :body         body
-          :ok-commands  [[::res/submit! [::workspace#select]]]
           :err-commands [[:toasts/fail!]]}
-         {:ok-commands ok-commands}))
+         spec))
 
 (defmethod res/->request-spec ::workspace#destroy
-  [[_ resource-id] {:keys [ok-commands]}]
+  [[_ resource-id] spec]
   (->req {:route        :routes.api/workspace-node
           :method       :delete
           :params       {:workspace-nodes/id resource-id}
-          :ok-commands  [[::res/submit! [::workspace#select]]]
           :err-commands [[:toasts/fail!]]}
-         {:ok-commands ok-commands}))
+         spec))

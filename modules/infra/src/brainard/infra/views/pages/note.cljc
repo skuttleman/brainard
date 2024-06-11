@@ -16,11 +16,8 @@
     [whet.utils.navigation :as nav]
     [whet.utils.reagent :as r]))
 
-(def ^:private ^:const form-id ::forms/edit-note)
-(def ^:private ^:const update-note-key [::forms+/std [::specs/notes#update form-id]])
-
-(def ^:private ^:const pinned-form-id ::forms/pin-note)
-(def ^:private ^:const pin-note-key [::forms+/std [::specs/notes#pin pinned-form-id]])
+(def ^:private ^:const update-note-key [::forms+/std [::specs/notes#update ::forms/edit-note]])
+(def ^:private ^:const pin-note-key [::forms+/std [::specs/notes#pin ::forms/pin-note]])
 
 (defn ^:private tag-list [note]
   (if-let [tags (not-empty (:notes/tags note))]
@@ -36,9 +33,9 @@
       [:div
        [ctrls/form {:*:store      *:store
                     :form+        form+
-                    :horizontal?  true
                     :no-buttons?  true
-                    :resource-key pin-note-key}
+                    :resource-key pin-note-key
+                    :params {:ok-commands [[::res/swap! [::specs/notes#find (:notes/id note)]]]}}
         [ctrls/icon-toggle (-> {:*:store  *:store
                                 :class    ["is-small"]
                                 :disabled (res/requesting? form+)
@@ -51,7 +48,9 @@
 (defn ^:private note-view [*:store note]
   (r/with-let [modal [:modals/sure?
                       {:description  "This note and all related schedules will be deleted"
-                       :yes-commands [[::res/submit! [::specs/notes#destroy (:notes/id note)]]]}]]
+                       :yes-commands [[::res/submit!
+                                       [::specs/notes#destroy (:notes/id note)]
+                                       {:ok-commands [[:nav/navigate! {:token :routes.ui/home}]]}]]}]]
     [:div.layout--stack-between
      [:div.layout--row
       [:h1.layout--space-after.flex-grow [:strong (:notes/context note)]]
@@ -79,20 +78,20 @@
                sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
                sub:contexts (store/subscribe *:store [::res/?:resource [::specs/contexts#select]])]
     (if (::editing? (forms/data @sub:form+))
-      [spages/note-form {:*:store     *:store
-                        :form+        @sub:form+
-                        :params       {:prev-tags (:notes/tags note)
-                                       :fetch?    true}
-                        :resource-key update-note-key
-                        :sub:contexts sub:contexts
-                        :sub:tags     sub:tags
-                        :submit/body  "Save"
-                        :buttons      [[:button.button.is-cancel
-                                        {:on-click (fn [e]
-                                                     (dom/prevent-default! e)
-                                                     (store/emit! *:store
-                                                                  [::forms/created update-note-key note]))}
-                                        "Cancel"]]}]
+      [spages/note-form
+       {:*:store      *:store
+        :form+        @sub:form+
+        :params       {:prev-tags (:notes/tags note)
+                       :ok-commands [[::res/swap! [::specs/notes#find (:notes/id note)]]]}
+        :resource-key update-note-key
+        :sub:contexts sub:contexts
+        :sub:tags     sub:tags
+        :submit/body  "Save"
+        :buttons      [[:button.button.is-cancel
+                        {:on-click (fn [e]
+                                     (dom/prevent-default! e)
+                                     (store/emit! *:store [::forms/created update-note-key note]))}
+                        "Cancel"]]}]
       [note-view *:store note])
     (finally
       (store/emit! *:store [::forms+/destroyed update-note-key]))))

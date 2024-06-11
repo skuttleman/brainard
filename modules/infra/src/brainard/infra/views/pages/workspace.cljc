@@ -67,13 +67,14 @@
 
 (defmethod drag-item :static
   [*:store {:keys [on-drag-begin]} node]
-  (let [create-modal (update create-modal 1 merge {:init-data    {::ws/parent-id (:id node)}
-                                                   :resource-key create-node-key})
+  (let [create-modal (update create-modal 1 assoc :init-data {::ws/parent-id (:id node)})
         modify-modal (update modify-modal 1 merge {:init-data    (select-keys node #{::ws/id ::ws/content})
                                                    :resource-key (->modify-node-key (::ws/id node))})
         delete-modal [:modals/sure?
                       {:description  "This node and all ancestors will be deleted"
-                       :yes-commands [[::res/submit! [::specs/workspace#destroy (::ws/id node)]]]}]]
+                       :yes-commands [[::res/submit!
+                                       [::specs/workspace#destroy (::ws/id node)]
+                                       {:ok-commands [[::res/submit! [::workspace#select]]]}]]}]]
     [:div.layout--row
      [:span.layout--space-after {:on-mouse-down on-drag-begin}
       [:span {:style {:cursor :grab}} (::ws/content node)]]
