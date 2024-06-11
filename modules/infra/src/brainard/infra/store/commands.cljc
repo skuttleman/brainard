@@ -2,6 +2,7 @@
   (:require
     [brainard.api.utils.logger :as log]
     [brainard.infra.store.core :as store]
+    [brainard.infra.utils.routing :as rte]
     [whet.utils.navigation :as nav]
     [clojure.core.async :as async]
     [defacto.core :as defacto]
@@ -69,14 +70,13 @@
                                         :body  body}])))
 
 (defmethod defacto/command-handler :toasts.notes/succeed!
-  [{::w/keys [nav]} [_ note] emit-cb]
+  [_ [_ note] emit-cb]
   (let [toast-id (->sortable-id)
+        href (nav/path-for rte/all-routes :routes.ui/note (select-keys note #{:notes/id}))
         body [:span.layout--align-center
-              "a"
-              [:button.button.is-ghost
-               {:on-click (fn [_]
-                            ;; TODO - why does :a not work here?
-                            (nav/navigate! nav :routes.ui/note (select-keys note #{:notes/id})))}
+              [:span.layout--space-after
+               "a"]
+              [:a.link.layout--space-after {:href href}
                "new note"]
               "was created"]]
     (emit-cb [:toasts/created toast-id {:state :init
