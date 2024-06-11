@@ -5,7 +5,6 @@
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.pages.interfaces :as ipages]
-    [brainard.infra.views.pages.shared :as spages]
     [brainard.notes.infra.views :as notes.views]
     [clojure.string :as string]
     [defacto.forms.core :as forms]
@@ -48,13 +47,14 @@
                sub:notes (store/subscribe *:store [::res/?:resource select-notes-key])
                on-context-blur (->context-blur *:store sub:form+)]
     [:div
-     [spages/note-form {:*:store         *:store
-                        :form+           @sub:form+
-                        :on-context-blur on-context-blur
-                        :params          {:pre-events [[::res/destroyed select-notes-key]]}
-                        :resource-key    create-note-key
-                        :sub:contexts    sub:contexts
-                        :sub:tags        sub:tags}]
+     [notes.views/note-form
+      {:*:store         *:store
+       :form+           @sub:form+
+       :on-context-blur on-context-blur
+       :params          {:pre-events [[::res/destroyed select-notes-key]]}
+       :resource-key    create-note-key
+       :sub:contexts    sub:contexts
+       :sub:tags        sub:tags}]
      [comp/with-resource sub:notes [search-results {:hide-init? true}]]]
     (finally
       (store/emit! *:store [::forms+/destroyed create-note-key])

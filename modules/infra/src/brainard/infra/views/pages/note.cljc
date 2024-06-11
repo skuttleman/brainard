@@ -8,7 +8,7 @@
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.pages.interfaces :as ipages]
-    [brainard.infra.views.pages.shared :as spages]
+    [brainard.notes.infra.views :as notes.views]
     [brainard.schedules.infra.views :as sched.views]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
@@ -78,7 +78,7 @@
                sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
                sub:contexts (store/subscribe *:store [::res/?:resource [::specs/contexts#select]])]
     (if (::editing? (forms/data @sub:form+))
-      [spages/note-form
+      [notes.views/note-form
        {:*:store      *:store
         :form+        @sub:form+
         :params       {:prev-tags (:notes/tags note)
