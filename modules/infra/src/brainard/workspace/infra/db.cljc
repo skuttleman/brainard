@@ -7,13 +7,13 @@
     [workspace-nodes :as-alias ws]))
 
 (defmethod istorage/->input ::api.ws/save!
-    [{::ws/keys [id parent-id!remove] :as node}]
-    (cond-> [(select-keys node #{::ws/id
-                                 ::ws/index
-                                 ::ws/parent-id
-                                 ::ws/content
-                                 ::ws/children})]
-      parent-id!remove (conj [:db/retract [::ws/id id] ::ws/parent-id parent-id!remove])))
+  [{::ws/keys [id parent-id!remove] :as node}]
+  (cond-> [(select-keys node #{::ws/id
+                               ::ws/index
+                               ::ws/parent-id
+                               ::ws/content
+                               ::ws/children})]
+    parent-id!remove (conj [:db/retract [::ws/id id] ::ws/parent-id parent-id!remove])))
 
 
 
@@ -147,12 +147,15 @@
 
 (defmethod istorage/->input ::api.ws/create!
   [node]
-  `[[insert-sibling ~node]])
+  [#?(:clj  `[insert-sibling ~node]
+      :cljs [:db.fn/call insert-sibling node])])
 
 (defmethod istorage/->input ::api.ws/update!
   [node]
-  `[[update-node ~node]])
+  [#?(:clj  `[update-node ~node]
+      :cljs [:db.fn/call update-node node])])
 
 (defmethod istorage/->input ::api.ws/delete!
   [{::ws/keys [id]}]
-  `[[delete-and-reindex ~id]])
+  [#?(:clj  `[delete-and-reindex ~id]
+      :cljs [:db.fn/call delete-and-reindex id])])
