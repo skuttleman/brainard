@@ -12,7 +12,6 @@
 
       (derive :routes.api/notes :routes/api)
       (derive :routes.api/note :routes/api)
-      (derive :routes.api/notes?pinned :routes/api)
       (derive :routes.api/notes?scheduled :routes/api)
       (derive :routes.api/schedules :routes/api)
       (derive :routes.api/schedule :routes/api)
@@ -35,7 +34,6 @@
 
 (def route->handler
   {[:get :routes.api/notes?scheduled] :api.notes/relevant
-   [:get :routes.api/notes?pinned]    :api.notes/select
    [:get :routes.api/notes]           :api.notes/select
    [:post :routes.api/notes]          :api.notes/create!
    [:get :routes.api/note]            :api.notes/fetch

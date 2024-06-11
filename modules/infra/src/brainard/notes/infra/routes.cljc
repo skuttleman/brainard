@@ -11,10 +11,6 @@
   [_]
   {:timestamp #?(:cljs (js/Date.) :default (Date.))})
 
-(defmethod iroutes/req->input [:get :routes.api/notes?pinned]
-  [_]
-  {:notes/pinned? true})
-
 (defmethod iroutes/req->input [:get :routes.api/notes]
   [{::w/keys [route]}]
   (let [{:keys [context pinned tags]} (:query-params route)

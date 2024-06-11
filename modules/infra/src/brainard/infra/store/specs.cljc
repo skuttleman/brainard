@@ -21,7 +21,7 @@
    (let [{:keys [query-params] :as route-params} (:params params)]
      (-> {:params {:request-method (:method params)
                    :route          {:token        route
-                                    :route-params route-params
+                                    :route-params (dissoc route-params :query-params)
                                     :query-params query-params}
                    :body           (:body params)}
           :->ok   :data
@@ -120,8 +120,9 @@
 
 (defmethod res/->request-spec ::notes#pinned
   [_ spec]
-  (->req {:route  :routes.api/notes?pinned
-          :method :get}
+  (->req {:route  :routes.api/notes
+          :method :get
+          :params {:query-params {:pinned true}}}
          spec))
 
 (defmethod res/->request-spec ::notes#buzz
