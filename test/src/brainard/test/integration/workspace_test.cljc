@@ -177,4 +177,24 @@
               (testing "causes an error"
                 (let [ex (is (thrown? #?(:cljs :default :default Throwable)
                                       (api.ws/update! workspace-api id3 {::ws/parent-id id4})))]
-                  (is (= "cyclic workflows not allowed" (ex-message ex))))))))))))
+                  (is (= "cyclic workflows not allowed" (ex-message ex)))))))))
+
+      (testing "when updating a top-level node's content"
+        (api.ws/update! workspace-api id1 {::ws/content "altered root"})
+        (testing "changes the node in place"
+          (is (= [{::ws/id       id1
+                   ::ws/content  "altered root"
+                   ::ws/children [{::ws/id        id2
+                                   ::ws/parent-id id1
+                                   ::ws/content   "sub1"}
+                                  {::ws/id        id5
+                                   ::ws/parent-id id1
+                                   ::ws/content   "sub3"
+                                   ::ws/children [{::ws/id        id3
+                                                   ::ws/parent-id id5
+                                                   ::ws/content   "new content"
+                                                   ::ws/children  [{::ws/content   "sub-sub"
+                                                                    ::ws/id        id4
+                                                                    ::ws/parent-id id3}]}]}]}]
+                 (clean-tree (api.ws/get-tree workspace-api)
+                             #{::ws/id ::ws/parent-id}))))))))

@@ -86,11 +86,12 @@
       (when (and curr-parent-id (has-ancestor? node parent-id))
         (throw (ex-info "cyclic workflows not allowed" {})))
       (let [same-parent? (= ::same parent-id)
-            next-parent (cond
-                          (nil? parent-id) {::ws/children (get-nodes ws-api)}
-                          (not same-parent?) (get-node ws-api parent-id)
-                          :else (get-node ws-api curr-parent-id))
-            next-parent-id (::ws/id next-parent)
+            next-parent-id (if same-parent?
+                             curr-parent-id
+                             parent-id)
+            next-parent (if (nil? next-parent-id)
+                          {::ws/children (get-nodes ws-api)}
+                          (get-node ws-api next-parent-id))
             sibling (when prev-sibling-id
                       (->> (::ws/children next-parent)
                            (filter (comp #{prev-sibling-id} ::ws/id))
@@ -121,11 +122,10 @@
                   (some? next-parent-id)
                   (conj {::storage/type ::save!
                          ::ws/id        next-parent-id
-                         ::ws/children  [(select-keys next-node
-                                                      #{::ws/id
-                                                        ::ws/content
-                                                        ::ws/parent-id
-                                                        ::ws/index})]})
+                         ::ws/children  [(select-keys next-node #{::ws/id
+                                                                  ::ws/content
+                                                                  ::ws/parent-id
+                                                                  ::ws/index})]})
 
                   (nil? next-parent-id)
                   (conj next-node))]
