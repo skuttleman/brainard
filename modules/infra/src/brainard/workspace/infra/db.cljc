@@ -10,6 +10,43 @@
   (or (= ancestor-id (::ws/id node))
       (boolean (some #(has-ancestor? % ancestor-id) (::ws/children node)))))
 
+(defn ^:private reordered-siblings [input curr-parent next-parent]
+  (let [{node-id ::ws/id ::ws/keys [content prev-sibling-id]} input
+        curr-parent-id (::ws/id curr-parent)
+        next-parent-id (::ws/id next-parent)
+        same-parent? (= curr-parent-id next-parent-id)
+        sibling (when prev-sibling-id
+                  (->> (::ws/children next-parent)
+                       (filter (comp #{prev-sibling-id} ::ws/id))
+                       first))
+        next-node (cond-> {::ws/id node-id}
+                    content (assoc ::ws/content content)
+                    (some? next-parent-id) (assoc ::ws/parent-id next-parent-id))]
+    (concat (when-not same-parent?
+              (->> (::ws/children curr-parent)
+                   (remove (comp #{node-id} ::ws/id))
+                   (sort-by ::ws/index)
+                   (map-indexed (fn [idx {::ws/keys [id]}]
+                                  {::ws/id id ::ws/index idx}))))
+            (cond
+              sibling (->> (::ws/children next-parent)
+                           (remove (comp #{node-id} ::ws/id))
+                           (sort-by ::ws/index)
+                           (map #(select-keys % #{::ws/id}))
+                           (mapcat (fn [node]
+                                     (cond-> [node]
+                                       (= prev-sibling-id (::ws/id node))
+                                       (conj next-node))))
+                           (map-indexed (fn [idx node]
+                                          (assoc node ::ws/index idx))))
+              same-parent? [next-node]
+              :else (->> (::ws/children next-parent)
+                         (sort-by ::ws/index)
+                         (map #(select-keys % #{::ws/id}))
+                         (cons next-node)
+                         (map-indexed (fn [idx node]
+                                        (assoc node ::ws/index idx))))))))
+
 (defn delete-and-reindex [db id]
   (when-let [node (ds/query db (istorage/->input {::storage/type ::api.ws/fetch-by-id
                                                   ::ws/id        id}))]
@@ -39,74 +76,31 @@
         ::ws/children [node]}]
       [node])))
 
-(defn update-node [db {::ws/keys [content id parent-id prev-sibling-id]}]
-  (let [same-parent? (= :same parent-id)]
+(defn update-node [db {node-id ::ws/id ::ws/keys [parent-id] :as input}]
+  (let [same? (= :same parent-id)]
     (when-let [node (ds/query db (istorage/->input {::storage/type ::api.ws/fetch-by-id
-                                                    ::ws/id        id}))]
-      (when (or (nil? parent-id) same-parent? (not (has-ancestor? node parent-id)))
+                                                    ::ws/id        node-id}))]
+      (when (or (nil? parent-id) same? (not (has-ancestor? node parent-id)))
         (let [curr-parent-id (::ws/parent-id node)
               root-nodes (when (or (nil? curr-parent-id) (nil? parent-id))
                            (ds/query db (istorage/->input {::storage/type ::api.ws/select-by-parent-id})))
+              next-parent-id (if same?
+                               curr-parent-id
+                               parent-id)
+              same-parent? (= curr-parent-id next-parent-id)
               curr-parent (if (nil? curr-parent-id)
                             {::ws/children root-nodes}
                             (ds/query db (istorage/->input {::storage/type ::api.ws/fetch-by-id
                                                             ::ws/id        curr-parent-id})))
-              next-parent-id (if same-parent?
-                               curr-parent-id
-                               parent-id)
               next-parent (cond
-                            same-parent?
-                            curr-parent
-
-                            (nil? next-parent-id)
-                            {::ws/children root-nodes}
-
-                            :else
-                            (ds/query db (istorage/->input {::storage/type ::api.ws/fetch-by-id
-                                                            ::ws/id        next-parent-id})))
-              same-parent? (= curr-parent-id next-parent-id)
-              sibling (when prev-sibling-id
-                        (->> (::ws/children next-parent)
-                             (filter (comp #{prev-sibling-id} ::ws/id))
-                             first))
-              next-node (cond-> {::ws/id id}
-                          content
-                          (assoc ::ws/content content)
-
-                          (some? next-parent-id)
-                          (assoc ::ws/parent-id next-parent-id))
-              reorder-old (when-not same-parent?
-                            (->> (::ws/children curr-parent)
-                                 (remove (comp #{id} ::ws/id))
-                                 (sort-by ::ws/index)
-                                 (map-indexed (fn [idx {::ws/keys [id]}]
-                                                {::ws/id id ::ws/index idx}))))
-              reorder-new (cond
-                            sibling
-                            (->> (::ws/children next-parent)
-                                 (remove (comp #{id} ::ws/id))
-                                 (sort-by ::ws/index)
-                                 (map #(select-keys % #{::ws/id}))
-                                 (mapcat (fn [node]
-                                           (cond-> [node]
-                                             (= prev-sibling-id (::ws/id node))
-                                             (conj next-node))))
-                                 (map-indexed (fn [idx node]
-                                                (assoc node ::ws/index idx))))
-
-                            same-parent?
-                            [next-node]
-
-                            :else
-                            (->> (::ws/children next-parent)
-                                 (sort-by ::ws/index)
-                                 (map #(select-keys % #{::ws/id}))
-                                 (cons next-node)
-                                 (map-indexed (fn [idx node]
-                                                (assoc node ::ws/index idx)))))]
-          (cond-> (into [] (concat reorder-old reorder-new))
-            (and curr-parent-id (not= curr-parent-id next-parent-id))
-            (-> (conj [:db/retract [::ws/id id] ::ws/parent-id curr-parent-id]
+                            same? curr-parent
+                            (nil? next-parent-id) {::ws/children root-nodes}
+                            :else (ds/query db (istorage/->input {::storage/type ::api.ws/fetch-by-id
+                                                                  ::ws/id        next-parent-id})))
+              txs (into [] (reordered-siblings input curr-parent next-parent))]
+          (cond-> txs
+            (and curr-parent-id (not same-parent?))
+            (-> (conj [:db/retract [::ws/id node-id] ::ws/parent-id curr-parent-id]
                       [:db/retract [::ws/id curr-parent-id] ::ws/children (:brainard/ref node)]))
 
             (and next-parent-id (not same-parent?))
