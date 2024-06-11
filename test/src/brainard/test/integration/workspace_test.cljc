@@ -17,23 +17,23 @@
                       {::storage/type ::api.ws/save!
                        ::ws/id        id1
                        ::ws/content   "root"
-                       ::ws/index     0.0
+                       ::ws/index     0
                        ::ws/children  [{::ws/id        id2
                                         ::ws/parent-id id1
                                         ::ws/content   "sub1"
-                                        ::ws/index     0.0}
+                                        ::ws/index     0}
                                        {::ws/id        id3
                                         ::ws/parent-id id1
                                         ::ws/content   "sub2"
-                                        ::ws/index     1.0
+                                        ::ws/index     1
                                         ::ws/children  [{::ws/id        id4
                                                          ::ws/parent-id id3
                                                          ::ws/content   "sub-sub"
-                                                         ::ws/index     0.0}]}
+                                                         ::ws/index     0}]}
                                        {::ws/id        id5
                                         ::ws/parent-id id1
                                         ::ws/content   "sub3"
-                                        ::ws/index     2.0}]})
+                                        ::ws/index     2}]})
     [id1 id2 id3 id4 id5]))
 
 (defn ^:private clean-tree
@@ -174,10 +174,12 @@
                                    #{::ws/id ::ws/parent-id})))))
 
             (testing "and when moving to be the child of its ancestor"
-              (testing "causes an error"
-                (let [ex (is (thrown? #?(:cljs :default :default Throwable)
-                                      (api.ws/update! workspace-api id3 {::ws/parent-id id4})))]
-                  (is (= "cyclic workflows not allowed" (ex-message ex)))))))))
+              (testing "makes no change"
+                (let [expected (clean-tree (api.ws/get-tree workspace-api)
+                                           #{::ws/id ::ws/parent-id})]
+                  (api.ws/update! workspace-api id3 {::ws/parent-id id4})
+                  (is (= expected (clean-tree (api.ws/get-tree workspace-api)
+                                              #{::ws/id ::ws/parent-id})))))))))
 
       (testing "when updating a top-level node's content"
         (api.ws/update! workspace-api id1 {::ws/content "altered root"})

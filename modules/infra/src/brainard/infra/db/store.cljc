@@ -33,14 +33,15 @@
                               (assoc :db/valueType :db.type/ref))))))
            schema)))
 
-(defn ^:private transact! [conn tx]
+(defn transact! [conn tx]
   #?(:clj  (d/transact (first conn) {:tx-data tx})
      :cljs (doto conn
              (-> first (d/transact! tx))
              (-> meta (write! conn)))))
 
-(defn ^:private query [conn {:keys [args only? query ref? xform]}]
-  (cond-> (->> (apply d/q query (d/db (first conn)) args)
+(defn query [db {:keys [args only? query ref? xform]}]
+  (cond-> (->> args
+               (apply d/q query db)
                (walk/postwalk (fn [x]
                                 (cond-> x
                                   (map? x) (cond->
@@ -67,7 +68,7 @@
 (deftype DSStore [conn]
   istorage/IRead
   (read [_ params]
-    (query conn params))
+    (query (d/db (first conn)) params))
 
   istorage/IWrite
   (write! [_ tx]

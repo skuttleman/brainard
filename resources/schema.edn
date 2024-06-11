@@ -69,7 +69,7 @@
   :db/doc         "The external id of the workspace-node"}
 
  {:db/ident       :workspace-nodes/index
-  :db/valueType   :db.type/double
+  :db/valueType   :db.type/long
   :db/cardinality :db.cardinality/one
   :db/doc         "The ordinal position within its parents children"}
 

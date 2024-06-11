@@ -74,7 +74,7 @@
                       {:description  "This node and all ancestors will be deleted"
                        :yes-commands [[::res/submit!
                                        [::specs/workspace#destroy (::ws/id node)]
-                                       {:ok-commands [[::res/submit! [::workspace#select]]]}]]}]]
+                                       {:ok-commands [[::res/submit! [::specs/workspace#select]]]}]]}]]
     [:div.layout--row
      [:span.layout--space-after {:on-mouse-down on-drag-begin}
       [:span {:style {:cursor :grab}} (::ws/content node)]]
