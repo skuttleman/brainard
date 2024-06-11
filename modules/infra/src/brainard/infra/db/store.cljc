@@ -1,10 +1,10 @@
 (ns brainard.infra.db.store
   "This uses a datomic local client"
   (:require
+    [#?(:clj datomic.client.api :default datascript.core) :as d]
     [brainard.api.storage.interfaces :as istorage]
     [clojure.set :as set]
-    [clojure.walk :as walk]
-    [#?(:clj datomic.client.api :default datascript.core) :as d]))
+    [clojure.walk :as walk]))
 
 #?(:cljs
    (defn ^:private write! [{::keys [db-name]} conn]
@@ -56,9 +56,12 @@
                                                             (System/getProperty "user.dir")))
                                    :system      "main"})]
              (d/create-database client {:db-name db-name})
-             [(doto (d/connect client {:db-name db-name})
-                (d/transact {:tx-data schema}))])
-     :cljs (doto (with-meta [(d/create-conn (->ds-schema schema))] {::db-name db-name})
+             (with-meta [(doto (d/connect client {:db-name db-name})
+                           (d/transact {:tx-data schema}))
+                         client]
+                        {::db-name db-name}))
+     :cljs (doto (with-meta [(d/create-conn (->ds-schema schema))]
+                            {::db-name db-name})
              load-log!)))
 
 (deftype DSStore [conn]

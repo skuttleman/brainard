@@ -1,3 +1,7 @@
 {:duct.profile/base #duct/include "duct/base.edn"
  :duct.profile/prod {[:brainard.web/handler :brainard/IWebHandler]
-                     {}}}
+                     {}
+
+                     [:brainard.ds/conn :brainard/IDBConn]
+                     {:db-name #ig/ref :cfg.ds/db-name
+                      :schema  #ig/ref :cfg.ds/schema}}}

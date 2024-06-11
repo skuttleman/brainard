@@ -25,11 +25,7 @@
 
  ;; infra
  :brainard/storage
- {:conn #ig/ref :brainard.ds/conn}
-
- :brainard.ds/conn
- {:db-name #ig/ref :cfg.ds/db-name
-  :schema  #ig/ref :cfg.ds/schema}
+ {:conn #ig/ref :brainard/IDBConn}
 
  [:duct/const :cfg.ds/schema]
  #duct/include "schema.edn"
