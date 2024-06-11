@@ -17,7 +17,7 @@
     (testing "when saving a note"
       (let [note-id (uuids/random)
             date-time (Date.)]
-        (storage/execute! storage {::storage/type   ::api.notes/save!
+        (storage/execute! storage {::storage/type   ::api.notes/create!
                                    :notes/id        note-id
                                    :notes/body      "some body"
                                    :notes/context   "A Context"
@@ -43,7 +43,7 @@
                     :notes/timestamp date-time}
                    note))))
         (testing "and when updating and retracting tags"
-          (storage/execute! storage {::storage/type     ::api.notes/save!
+          (storage/execute! storage {::storage/type     ::api.notes/update!
                                      :notes/id          note-id
                                      :notes/context     "different context"
                                      :notes/tags!remove #{:one :two}
@@ -67,7 +67,7 @@
                       :notes/timestamp date-time}
                      note)))))
         (testing "and when updating and pinning the note"
-          (storage/execute! storage {::storage/type ::api.notes/save!
+          (storage/execute! storage {::storage/type ::api.notes/update!
                                      :notes/id      note-id
                                      :notes/pinned? true})
           (testing "updates the note in datascript"

@@ -1,6 +1,6 @@
 (ns brainard.workspace.infra.db
   (:require
-    [brainard.api.storage.core :as storage]
+    [brainard.api.storage.core :as-alias storage]
     [brainard.api.storage.interfaces :as istorage]
     [brainard.infra.db.store :as ds]
     [brainard.workspace.api.core :as api.ws]

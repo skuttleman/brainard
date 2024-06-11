@@ -7,7 +7,7 @@
        (java.util Date))))
 
 (defn ^:private tag-set [note]
-  (update note :notes/tags set))
+  (some-> note (update :notes/tags set)))
 
 (defn ^:private clean-note [note note-id]
   (-> note
@@ -18,17 +18,13 @@
 (defn update!
   "Updates a note in the store and returns the updated note."
   [notes-api note-id note]
-  (when (storage/query (:store notes-api)
-                       {::storage/type ::get-note
-                        :notes/id      note-id})
-    (let [note (clean-note note note-id)]
-      (storage/execute! (:store notes-api)
-                        (assoc note
-                               ::storage/type ::save!
-                               :notes/id note-id))
-      (tag-set (storage/query (:store notes-api)
-                              {::storage/type ::get-note
-                               :notes/id      note-id})))))
+  (storage/execute! (:store notes-api)
+                    (assoc note
+                           ::storage/type ::update!
+                           :notes/id note-id))
+  (tag-set (storage/query (:store notes-api)
+                          {::storage/type ::get-note
+                           :notes/id      note-id})))
 
 (defn delete!
   "Deletes a note by id"
@@ -44,7 +40,7 @@
   (let [note (-> note
                  (clean-note (uuids/random))
                  (assoc :notes/timestamp #?(:cljs (js/Date.) :default (Date.))))]
-    (storage/execute! (:store notes-api) (assoc note ::storage/type ::save!))
+    (storage/execute! (:store notes-api) (assoc note ::storage/type ::create!))
     note))
 
 (defn get-tags

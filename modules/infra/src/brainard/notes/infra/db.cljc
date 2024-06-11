@@ -1,5 +1,7 @@
 (ns brainard.notes.infra.db
   (:require
+    [brainard.api.storage.core :as-alias storage]
+    [brainard.infra.db.store :as ds]
     [brainard.notes.api.core :as api.notes]
     [brainard.api.storage.interfaces :as istorage]))
 
@@ -27,17 +29,30 @@
     pinned?
     (conj ['?e :notes/pinned? true])))
 
-(defmethod istorage/->input ::api.notes/save!
-  [note]
-  (let [{note-id :notes/id retract-tags :notes/tags!remove} note]
+(defn update-note [db {note-id :notes/id retract-tags :notes/tags!remove :as note}]
+  (when (ds/query db (istorage/->input {::storage/type ::api.notes/get-note
+                                        :notes/id      note-id}))
     (into [(select-keys note #{:notes/id
                                :notes/context
                                :notes/body
                                :notes/tags
-                               :notes/pinned?
-                               :notes/timestamp})]
+                               :notes/pinned?})]
           (map (partial conj [:db/retract [:notes/id note-id] :notes/tags]))
           retract-tags)))
+
+(defmethod istorage/->input ::api.notes/create!
+  [note]
+  [(select-keys note #{:notes/id
+                       :notes/context
+                       :notes/body
+                       :notes/tags
+                       :notes/pinned?
+                       :notes/timestamp})])
+
+(defmethod istorage/->input ::api.notes/update!
+  [note]
+  [#?(:clj  `[update-note ~note]
+      :cljs [:db.fn/call update-note note])])
 
 (defmethod istorage/->input ::api.notes/delete!
   [{note-id :notes/id}]

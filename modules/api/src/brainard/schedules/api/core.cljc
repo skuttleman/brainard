@@ -40,8 +40,8 @@
            (map (fn [{:schedules/keys [id]}]
                   {::storage/type ::delete!
                    :schedules/id  id})
-                schedules)))
-  nil)
+                schedules))
+    nil))
 
 (defn relevant-schedules
   "Retrieves relevant schedules for a timestamp"
