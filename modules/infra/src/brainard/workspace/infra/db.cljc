@@ -6,17 +6,6 @@
     [brainard.workspace.api.core :as api.ws]
     [workspace-nodes :as-alias ws]))
 
-(defmethod istorage/->input ::api.ws/save!
-  [{::ws/keys [id parent-id!remove] :as node}]
-  (cond-> [(select-keys node #{::ws/id
-                               ::ws/index
-                               ::ws/parent-id
-                               ::ws/content
-                               ::ws/children})]
-    parent-id!remove (conj [:db/retract [::ws/id id] ::ws/parent-id parent-id!remove])))
-
-
-
 (defn ^:private has-ancestor? [node ancestor-id]
   (or (= ancestor-id (::ws/id node))
       (boolean (some #(has-ancestor? % ancestor-id) (::ws/children node)))))

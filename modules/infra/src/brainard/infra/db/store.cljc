@@ -33,13 +33,17 @@
                               (assoc :db/valueType :db.type/ref))))))
            schema)))
 
-(defn transact! [conn tx]
+(defn transact!
+  ""
+  [conn tx]
   #?(:clj  (d/transact (first conn) {:tx-data tx})
      :cljs (doto conn
              (-> first (d/transact! tx))
              (-> meta (write! conn)))))
 
-(defn query [db {:keys [args only? query ref? xform]}]
+(defn query
+  ""
+  [db {:keys [args only? query ref? xform]}]
   (cond-> (->> args
                (apply d/q query db)
                (walk/postwalk (fn [x]
