@@ -29,7 +29,7 @@
                                               (stop-and-close! %))
                                            true)
                [modal-type attrs] (:body modal)
-               attrs (assoc attrs :close! close! :modals/type modal-type)]
+               attrs (assoc attrs :close! close! :modals/type modal-type :modals/id modal-id)]
     (let [inset (str (* 8 idx) "px")]
       [:li.modal-item
        {:class    [(case (:state modal)

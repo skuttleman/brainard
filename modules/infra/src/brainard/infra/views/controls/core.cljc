@@ -235,7 +235,7 @@
     buttons
     (into buttons)))
 
-(defn plain-form [{:keys [disabled form+ no-buttons? inline-buttons? horizontal?] :as attrs} & fields]
+(defn plain-form [{:keys [disabled form+ no-buttons? no-errors? inline-buttons? horizontal?] :as attrs} & fields]
   (let [changed? (forms/changed? form+)
         errors (when (res/error? form+)
                  (res/payload form+))
@@ -262,7 +262,7 @@
                                     :else "layout--stack-between")]}]
                    fields)
        (and (not no-buttons?) inline-buttons?) (conj [form-button-row button-attrs]))
-     (when (and form-errors (not init?))
+     (when (and form-errors (not no-errors?) (not init?))
        [form-field-meta-list :error form-errors true])
      (when-not (or no-buttons? inline-buttons?)
        [form-button-row button-attrs])]))

@@ -6,6 +6,7 @@
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.components.core :as comp]
+    [brainard.infra.views.components.interfaces :as icomp]
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.pages.interfaces :as ipages]
     [brainard.notes.infra.views :as notes.views]
@@ -34,8 +35,10 @@
        [ctrls/form {:*:store      *:store
                     :form+        form+
                     :no-buttons?  true
+                    :no-errors?   true
                     :resource-key pin-note-key
-                    :params {:ok-commands [[::res/swap! [::specs/notes#find (:notes/id note)]]]}}
+                    :params       {:ok-events  [[::res/swapped [::specs/notes#find (:notes/id note)]]]
+                                   :err-events [[::forms/created pin-note-key init-form]]}}
         [ctrls/icon-toggle (-> {:*:store  *:store
                                 :class    ["is-small"]
                                 :disabled (res/requesting? form+)
@@ -45,12 +48,43 @@
     (finally
       (store/emit! *:store [::forms+/destroyed pin-note-key]))))
 
-(defn ^:private note-view [*:store note]
-  (r/with-let [modal [:modals/sure?
-                      {:description  "This note and all related schedules will be deleted"
-                       :yes-commands [[::res/submit!
-                                       [::specs/notes#destroy (:notes/id note)]
-                                       {:ok-commands [[:nav/navigate! {:token :routes.ui/home}]]}]]}]]
+(defmethod icomp/modal-header ::edit!
+  [_ _]
+  "Edit the note")
+
+(defmethod icomp/modal-body ::edit!
+  [*:store {modal-id :modals/id :keys [close! note]}]
+  (r/with-let [sub:form+ (-> *:store
+                             (store/dispatch! [::forms/ensure! update-note-key note])
+                             (store/subscribe [::forms+/?:form+ update-note-key]))
+               sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
+               sub:contexts (store/subscribe *:store [::res/?:resource [::specs/contexts#select]])]
+    [:div {:style {:min-width "40vw"}}
+     [notes.views/note-form
+      {:*:store      *:store
+       :form+        @sub:form+
+       :params       {:prev-tags   (:notes/tags note)
+                      :ok-commands [[:modals/remove! modal-id]]
+                      :ok-events   [[::res/swapped [::specs/notes#find (:notes/id note)]]
+                                    [::forms/created pin-note-key]]}
+       :resource-key update-note-key
+       :sub:contexts sub:contexts
+       :sub:tags     sub:tags
+       :submit/body  "Save"
+       :buttons      [[:button.button.is-cancel
+                       {:on-click (fn [e]
+                                    (dom/prevent-default! e)
+                                    (close! e))}
+                       "Cancel"]]}]]
+    (finally
+      (store/emit! *:store [::forms+/destroyed update-note-key]))))
+
+(defn ^:private root [*:store note]
+  (r/with-let [delete-modal [:modals/sure?
+                             {:description  "This note and all related schedules will be deleted"
+                              :yes-commands [[::res/submit!
+                                              [::specs/notes#destroy (:notes/id note)]
+                                              {:ok-commands [[:nav/navigate! {:token :routes.ui/home}]]}]]}]]
     [:div.layout--stack-between
      [:div.layout--row
       [:h1.layout--space-after.flex-grow [:strong (:notes/context note)]]
@@ -60,41 +94,13 @@
      [:div.button-row
       [comp/plain-button {:class    ["is-info"]
                           :on-click (fn [_]
-                                      (store/emit! *:store [::forms/changed
-                                                            update-note-key
-                                                            [::editing?]
-                                                            true]))}
+                                      (store/dispatch! *:store [:modals/create! [::edit! {:note note}]]))}
        "Edit"]
       [comp/plain-button {:class    ["is-danger"]
                           :on-click (fn [_]
-                                      (store/dispatch! *:store [:modals/create! modal]))}
+                                      (store/dispatch! *:store [:modals/create! delete-modal]))}
        "Delete note"]]
      [sched.views/schedule-editor *:store note]]))
-
-(defn ^:private root [*:store note]
-  (r/with-let [sub:form+ (-> *:store
-                             (store/dispatch! [::forms/ensure! update-note-key note])
-                             (store/subscribe [::forms+/?:form+ update-note-key]))
-               sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
-               sub:contexts (store/subscribe *:store [::res/?:resource [::specs/contexts#select]])]
-    (if (::editing? (forms/data @sub:form+))
-      [notes.views/note-form
-       {:*:store      *:store
-        :form+        @sub:form+
-        :params       {:prev-tags (:notes/tags note)
-                       :ok-commands [[::res/swap! [::specs/notes#find (:notes/id note)]]]}
-        :resource-key update-note-key
-        :sub:contexts sub:contexts
-        :sub:tags     sub:tags
-        :submit/body  "Save"
-        :buttons      [[:button.button.is-cancel
-                        {:on-click (fn [e]
-                                     (dom/prevent-default! e)
-                                     (store/emit! *:store [::forms/created update-note-key note]))}
-                        "Cancel"]]}]
-      [note-view *:store note])
-    (finally
-      (store/emit! *:store [::forms+/destroyed update-note-key]))))
 
 (defmethod ipages/page :routes.ui/note
   [*:store {:keys [route-params]}]
