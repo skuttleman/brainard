@@ -68,3 +68,7 @@
   (some-> (storage/query (:store notes-api) {::storage/type ::get-note
                                              :notes/id      note-id})
           tag-set))
+
+(defn get-note-history [notes-api note-id]
+  #?(:clj (storage/query (:store notes-api) {::storage/type ::get-note-history
+                                             :notes/id      note-id})))

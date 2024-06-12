@@ -3,6 +3,7 @@
   :db/valueType   :db.type/uuid
   :db/cardinality :db.cardinality/one
   :db/unique      :db.unique/identity
+  :db/noHistory   true
   :db/doc         "The external id of the note"}
  {:db/ident       :notes/context
   :db/valueType   :db.type/string
@@ -11,7 +12,6 @@
  {:db/ident       :notes/body
   :db/valueType   :db.type/string
   :db/cardinality :db.cardinality/one
-  :db/fulltext    true
   :db/doc         "The body of the note"}
  {:db/ident       :notes/tags
   :db/valueType   :db.type/keyword
@@ -24,6 +24,7 @@
  {:db/ident       :notes/timestamp
   :db/valueType   :db.type/instant
   :db/cardinality :db.cardinality/one
+  :db/noHistory   true
   :db/doc         "The time the note was first recorded"}
 
  ;; schedules

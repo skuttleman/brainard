@@ -165,3 +165,57 @@
           (testing "returns nil"
             (is (nil? (storage/query storage {::storage/type ::api.notes/get-note
                                               :notes/id      (uuids/random)})))))))))
+
+#?(:clj
+   (deftest get-note-history-test
+     (testing "when there is a note"
+       (tsys/with-system [{::b/keys [storage]} nil]
+         (let [note-id (uuids/random)]
+           (istorage/write! storage
+                            [{:notes/id      note-id
+                              :notes/context "a"
+                              :notes/tags    #{:a :b :c}
+                              :notes/pinned? false}])
+           (testing "and when querying the note's history"
+             (let [history (storage/query storage {::storage/type ::api.notes/get-note-history
+                                                   :notes/id      note-id})]
+               (testing "returns the history of the note"
+                 (is (= [{:notes/context {:to "a"}
+                          :notes/pinned? {:to false}
+                          :notes/tags    {:added #{:a :b :c}}
+                          :notes/id      {:to note-id}}]
+                        (map :notes/changes history))))))
+
+           (testing "and when the note changes"
+             (storage/execute! storage {::storage/type ::api.notes/update!
+                                        :notes/id      note-id
+                                        :notes/context "diff context"
+                                        :notes/pinned? false
+                                        :notes/tags    #{:a :b :c :d}})
+             (storage/execute! storage {::storage/type     ::api.notes/update!
+                                        :notes/id          note-id
+                                        :notes/tags        #{:b :d :e}
+                                        :notes/pinned?     true
+                                        :notes/tags!remove #{:a :c}})
+             (storage/execute! storage {::storage/type ::api.notes/update!
+                                        :notes/id      note-id
+                                        :notes/context "diff context"
+                                        :notes/pinned? false})
+             (testing "and when querying the note's history"
+               (let [history (storage/query storage {::storage/type ::api.notes/get-note-history
+                                                     :notes/id      note-id})]
+                 (testing "returns the history of the note"
+                   (is (= [{:notes/id      {:to note-id}
+                            :notes/context {:to "a"}
+                            :notes/pinned? {:to false}
+                            :notes/tags    {:added #{:a :b :c}}}
+                           {:notes/context {:from "a"
+                                            :to   "diff context"}
+                            :notes/tags    {:added #{:d}}}
+                           {:notes/pinned? {:from false
+                                            :to   true}
+                            :notes/tags    {:added   #{:e}
+                                            :removed #{:a :c}}}
+                           {:notes/pinned? {:from true
+                                            :to   false}}]
+                          (map :notes/changes history))))))))))))

@@ -34,7 +34,7 @@
            schema)))
 
 (defn transact!
-  ""
+  "Issue a transaction to datomic/datascript"
   [conn tx]
   #?(:clj  (d/transact (first conn) {:tx-data tx})
      :cljs (doto conn
@@ -42,17 +42,18 @@
              (-> meta (write! conn)))))
 
 (defn query
-  ""
-  [db {:keys [args only? query ref? xform]}]
+  "Make a query against a datomic/datascript db"
+  [db {:keys [args only? query history? post ref? xform]}]
   (cond-> (->> args
-               (apply d/q query db)
+               (apply d/q query (cond-> db #?@(:clj [history? d/history])))
                (walk/postwalk (fn [x]
                                 (cond-> x
                                   (map? x) (cond->
                                              ref? (set/rename-keys {:db/id :brainard/ref})
                                              (not ref?) (dissoc :db/id)))))
                (sequence (or xform identity)))
-    only? first))
+    only? first
+    post post))
 
 (defn connect! [{:keys [storage-dir db-name schema]}]
   #?(:clj  (let [client (d/client {:server-type :datomic-local

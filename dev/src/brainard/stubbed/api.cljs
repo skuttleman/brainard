@@ -12,7 +12,7 @@
     [whet.utils.navigation :as nav]
     brainard.infra.system))
 
-(def ^:private system
+(defonce system
   (ig/init (sys/config "duct/base.edn") [::b/apis]))
 
 (def ^:private apis

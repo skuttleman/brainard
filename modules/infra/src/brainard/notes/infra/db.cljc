@@ -29,6 +29,26 @@
     pinned?
     (conj ['?e :notes/pinned? true])))
 
+(defn ^:private prep-history [results]
+  (->> results
+       (sort-by (juxt first second))
+       (reduce (fn [versions [tx op attr val at cardinality]]
+                 (let [recent (peek versions)
+                       same-tx? (= tx (:notes/history-id recent))
+                       version (if same-tx?
+                                 recent
+                                 {:notes/history-id tx
+                                  :notes/saved-at   at
+                                  :notes/changes    {}})
+                       [k f] (case [cardinality op]
+                               [:db.cardinality/one false] [:from (constantly val)]
+                               [:db.cardinality/one true] [:to (constantly val)]
+                               [:db.cardinality/many false] [:removed (fnil conj #{})]
+                               [:db.cardinality/many true] [:added (fnil conj #{})])
+                       next-version (update-in version [:notes/changes attr k] f val)]
+                   (conj (cond-> versions same-tx? pop) next-version)))
+               [])))
+
 (defn update-note [db {note-id :notes/id retract-tags :notes/tags!remove :as note}]
   (when (ds/query db (istorage/->input {::storage/type ::api.notes/get-note
                                         :notes/id      note-id}))
@@ -83,3 +103,18 @@
    :args  [id]
    :only? true
    :xform (map first)})
+
+(defmethod istorage/->input ::api.notes/get-note-history
+  [{:notes/keys [id]}]
+  {:query    '[:find ?tx ?op ?attr ?val ?at ?card
+               :in $ ?id
+               :where
+               [?e :notes/id ?id]
+               [?e ?a ?val ?tx ?op]
+               [?tx :db/txInstant ?at]
+               [?a :db/ident ?attr]
+               [?a :db/cardinality ?c]
+               [?c :db/ident ?card]]
+   :args     [id]
+   :history? true
+   :post prep-history})

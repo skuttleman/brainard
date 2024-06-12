@@ -10,7 +10,7 @@
     [ring.middleware.reload :as ring.rel]
     brainard.pages.dev))
 
-(def system nil)
+(defonce system nil)
 
 (defn -main
   "Entry point for building/running the `brainard` web application from the command line.
