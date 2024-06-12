@@ -79,6 +79,16 @@
     (finally
       (store/emit! *:store [::forms+/destroyed update-note-key]))))
 
+(defmethod icomp/modal-body ::history
+  [*:store {{note-id :notes/id} :note}]
+  (r/with-let [sub:res (-> *:store
+                           (store/dispatch! [::res/submit! [::specs/note#history note-id]])
+                           (store/subscribe [::res/?:resource [::specs/note#history note-id]]))]
+    [:div {:style {:max-width "90vw"}}
+     [comp/with-resource sub:res comp/pprint]]
+    (finally
+      (store/emit! *:store [::res/destroyed [::specs/note#history note-id]]))))
+
 (defn ^:private root [*:store note]
   (r/with-let [delete-modal [:modals/sure?
                              {:description  "This note and all related schedules will be deleted"
@@ -91,15 +101,20 @@
       [pin-toggle *:store note]]
      [comp/markdown (:notes/body note)]
      [tag-list note]
-     [:div.button-row
-      [comp/plain-button {:class    ["is-info"]
+     [:div.layout--space-between
+      [:div.button-row
+       [comp/plain-button {:class    ["is-info"]
+                           :on-click (fn [_]
+                                       (store/dispatch! *:store [:modals/create! [::edit! {:note note}]]))}
+        "Edit"]
+       [comp/plain-button {:class    ["is-danger"]
+                           :on-click (fn [_]
+                                       (store/dispatch! *:store [:modals/create! delete-modal]))}
+        "Delete note"]]
+      [comp/plain-button {:class    ["is-light"]
                           :on-click (fn [_]
-                                      (store/dispatch! *:store [:modals/create! [::edit! {:note note}]]))}
-       "Edit"]
-      [comp/plain-button {:class    ["is-danger"]
-                          :on-click (fn [_]
-                                      (store/dispatch! *:store [:modals/create! delete-modal]))}
-       "Delete note"]]
+                                      (store/dispatch! *:store [:modals/create! [::history {:note note}]]))}
+       "Change history"]]
      [sched.views/schedule-editor *:store note]]))
 
 (defmethod ipages/page :routes.ui/note

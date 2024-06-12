@@ -61,7 +61,7 @@
 (defn ^:private icon-button [*:store modal icon]
   [comp/plain-button {:on-click (fn [_]
                                   (store/dispatch! *:store [:modals/create! modal]))
-                      :class    ["is-small" "is-ghost"]
+                      :class    ["is-small" "is-white"]
                       :style    {:padding 0 :height "2em"}}
    [comp/icon (when (= :trash-can icon) {:class ["is-danger"]}) icon]])
 

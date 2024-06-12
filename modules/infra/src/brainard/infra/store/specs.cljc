@@ -131,6 +131,13 @@
           :method :get}
          spec))
 
+(defmethod res/->request-spec ::note#history
+  [[_ note-id] spec]
+  (->req {:route  :routes.api/note?history
+          :method :get
+          :params {:notes/id note-id}}
+         spec))
+
 (let [vld (valid/->validator ssched/create)]
   (defmethod forms+/validate ::schedules#create [_ data] (vld data)))
 (defmethod res/->request-spec ::schedules#create
