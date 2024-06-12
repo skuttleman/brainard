@@ -73,12 +73,17 @@
   [_ apis node]
   (api.ws/update! (:workspace apis) (:workspace-nodes/id node) node))
 
-(defn invoke-api [handle apis input]
-  (let [input-spec (valid/input-specs handle)]
-    (some-> input-spec (valid/validate! input ::valid/input-validation))
-    (let [result (invoke-api* handle apis input)]
-      (when-let [output-spec (valid/output-specs handle)]
-        (let [validator (valid/->validator output-spec)]
-          (when-let [errors (validator result)]
-            (log/warn "failed to produce valid output" {:errors errors :api handle}))))
-      result)))
+(def ^:private missing-spec
+  (memoize (fn [api]
+             (log/warn "no input-spec defined for API:" api))))
+
+(defn invoke-api [api apis input]
+  (if-let [input-spec (valid/input-specs api)]
+    (valid/validate! input-spec input ::valid/input-validation)
+    (missing-spec api))
+  (let [result (invoke-api* api apis input)]
+    (when-let [output-spec (valid/output-specs api)]
+      (let [validator (valid/->validator output-spec)]
+        (when-let [errors (validator result)]
+          (log/error "failed to produce valid output" {:errors errors :api api}))))
+    result))
