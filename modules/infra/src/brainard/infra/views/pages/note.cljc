@@ -84,8 +84,10 @@
   (r/with-let [sub:res (-> *:store
                            (store/dispatch! [::res/submit! [::specs/note#history note-id]])
                            (store/subscribe [::res/?:resource [::specs/note#history note-id]]))]
-    [:div {:style {:max-width "90vw"}}
-     [comp/with-resource sub:res comp/pprint]]
+    [:div {:style {:max-width "80vw"
+                   :max-height "80vh"
+                   :overflow-y :scroll}}
+     [comp/with-resource sub:res notes.views/note-history]]
     (finally
       (store/emit! *:store [::res/destroyed [::specs/note#history note-id]]))))
 

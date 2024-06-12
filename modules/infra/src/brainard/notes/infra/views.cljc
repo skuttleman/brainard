@@ -41,6 +41,49 @@
      (when expanded?
        [edit-link id])]))
 
+(defn ^:private history-change [k {:keys [added from removed to]}]
+  [:div.layout--col
+   [:span {:style {:color :purple}} (pr-str k)]
+   [:div.layout--stack-between
+    (when (some? added)
+      [:div.layout--row
+       [:em "added"]
+       [:span.space--left.truncate.green
+        (str added)]])
+    (when (some? removed)
+      [:div.layout--row
+       [:em "removed"]
+       [:span.space--left.truncate.red
+        (str removed)]])]
+   (cond
+     (and (some? from) (some? to)) [:div.layout--row
+                                    [:em "changed"]
+                                    [:span.space--left.truncate.red {:style {:min-width "40%"}}
+                                     (str from)]
+                                    [:em.space--left "to"]
+                                    [:span.space--left.truncate.green {:style {:min-width "40%"}}
+                                     (str to)]]
+     (some? from) [:div.layout--row
+                   [:em "removed"]
+                   [:span.space--left.truncate.red
+                    (str from)]]
+     (some? to) [:div.layout--row
+                 [:em "added"]
+                 [:span.space--left.truncate.green
+                  (str to)]])])
+
+(defn note-history [entries]
+  [:ul.search-results
+   (for [{:notes/keys [changes history-id saved-at]} entries]
+     ^{:key history-id}
+     [:li.layout--stack-between
+      [:div.layout--row [:span.layout--space-after "at"] [:span {:style {:color :blue}} (pr-str saved-at)]]
+      (into [:<>]
+            (for [k [:notes/context :notes/pinned? :notes/body :notes/tags]
+                  :let [change (k changes)]
+                  :when change]
+              [history-change k change]))])])
+
 (defn ^:private with-trim-on-blur [{:keys [on-change] :as attrs} *:store]
   (update attrs :on-blur fns/safe-comp (fn [e]
                                          (let [v (dom/target-value e)
