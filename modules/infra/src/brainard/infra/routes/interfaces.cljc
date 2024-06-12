@@ -12,6 +12,7 @@
 
       (derive :routes.api/notes :routes/api)
       (derive :routes.api/note :routes/api)
+      (derive :routes.api/note?history :routes/api)
       (derive :routes.api/notes?scheduled :routes/api)
       (derive :routes.api/schedules :routes/api)
       (derive :routes.api/schedule :routes/api)
@@ -33,23 +34,24 @@
       (derive :routes.ui/not-found :routes/ui)))
 
 (def route->handler
-  {[:get :routes.api/notes?scheduled] :api.notes/relevant
-   [:get :routes.api/notes]           :api.notes/select
-   [:post :routes.api/notes]          :api.notes/create!
-   [:get :routes.api/note]            :api.notes/fetch
-   [:patch :routes.api/note]          :api.notes/update!
-   [:delete :routes.api/note]         :api.notes/delete!
+  {[:get :routes.api/notes?scheduled]   :api.notes/relevant
+   [:get :routes.api/notes]             :api.notes/select
+   [:post :routes.api/notes]            :api.notes/create!
+   [:get :routes.api/note]              :api.notes/fetch
+   [:get :routes.api/note?history]      :api.notes/fetch?history
+   [:patch :routes.api/note]            :api.notes/update!
+   [:delete :routes.api/note]           :api.notes/delete!
 
-   [:get :routes.api/tags]            :api.tags/select
-   [:get :routes.api/contexts]        :api.contexts/select
+   [:get :routes.api/tags]              :api.tags/select
+   [:get :routes.api/contexts]          :api.contexts/select
 
-   [:post :routes.api/schedules]      :api.schedules/create!
-   [:delete :routes.api/schedule]     :api.schedules/delete!
+   [:post :routes.api/schedules]        :api.schedules/create!
+   [:delete :routes.api/schedule]       :api.schedules/delete!
 
-   [:get :routes.api/workspace-nodes] :api.workspace-nodes/select-tree
-   [:post :routes.api/workspace-nodes] :api.workspace-nodes/create!
+   [:get :routes.api/workspace-nodes]   :api.workspace-nodes/select-tree
+   [:post :routes.api/workspace-nodes]  :api.workspace-nodes/create!
    [:delete :routes.api/workspace-node] :api.workspace-nodes/delete!
-   [:patch :routes.api/workspace-node] :api.workspace-nodes/update!})
+   [:patch :routes.api/workspace-node]  :api.workspace-nodes/update!})
 
 (defn router [{:keys [request-method] ::w/keys [route]}]
   [request-method (:token route)])

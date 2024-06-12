@@ -32,6 +32,10 @@
     (let [schedules (api.sched/get-by-note-id (:schedules apis) note-id)]
       (assoc note :notes/schedules schedules))))
 
+(defmethod invoke-api* :api.notes/fetch?history
+  [_ apis {note-id :notes/id}]
+  (api.notes/get-note-history (:notes apis) note-id))
+
 (defmethod invoke-api* :api.tags/select
   [_ apis _]
   (api.notes/get-tags (:notes apis)))

@@ -6,6 +6,7 @@
 
 (def ^:private token->coercers
   {:routes.api/note           {:notes/id uuids/->uuid}
+   :routes.api/note?history   {:notes/id uuids/->uuid}
    :routes.ui/note            {:notes/id uuids/->uuid}
    :routes.api/schedule       {:schedules/id uuids/->uuid}
    :routes.api/workspace-node {:workspace-nodes/id uuids/->uuid}})
@@ -20,13 +21,15 @@
             coercers)))
 
 (defmethod iwhet/coerce-route-params :routes.api/note [token params] (coerce-params token params))
+(defmethod iwhet/coerce-route-params :routes.api/note?history [token params] (coerce-params token params))
 (defmethod iwhet/coerce-route-params :routes.ui/note [token params] (coerce-params token params))
 (defmethod iwhet/coerce-route-params :routes.api/schedule [token params] (coerce-params token params))
 (defmethod iwhet/coerce-route-params :routes.api/workspace-node [token params] (coerce-params token params))
 
 (def ^:private api-routes
   ["/api" [["/notes" [["" :routes.api/notes]
-                      [["/" [uuids/regex :notes/id]] :routes.api/note]
+                      [["/" [uuids/regex :notes/id]] [["" :routes.api/note]
+                                                      ["/history" :routes.api/note?history]]]
                       ["/scheduled" :routes.api/notes?scheduled]]]
            ["/schedules" [["" :routes.api/schedules]
                           [["/" [uuids/regex :schedules/id]] :routes.api/schedule]]]

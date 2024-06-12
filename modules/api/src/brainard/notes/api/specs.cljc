@@ -29,6 +29,27 @@
              [:notes/id uuid?]
              [:notes/timestamp inst?]]))
 
+(def history
+  [:map
+   [:notes/history-id int?]
+   [:notes/saved-at inst?]
+   [:notes/changes
+    [:map
+     [:notes/id {:optional true} [:map [:to uuid?]]]
+     [:notes/timestamp {:optional true} [:map [:to inst?]]]
+     [:notes/context {:optional true} [:map
+                                       [:from {:optional true} non-empty-trimmed-string]
+                                       [:to {:optional true} non-empty-trimmed-string]]]
+     [:notes/body {:optional true} [:map
+                                    [:from {:optional true} non-empty-string]
+                                    [:to {:optional true} non-empty-string]]]
+     [:notes/pinned? {:optional true} [:map
+                                       [:from {:optional true} boolean?]
+                                       [:to {:optional true} boolean?]]]
+     [:notes/tags {:optional true} [:map
+                                    [:added {:optional true} [:set keyword?]]
+                                    [:removed {:optional true} [:set keyword?]]]]]]])
+
 (def modify
   [:map
    [:notes/context {:optional true} non-empty-trimmed-string]

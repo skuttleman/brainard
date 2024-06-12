@@ -11,6 +11,7 @@
   {:api.notes/select            snotes/query
    :api.notes/create!           snotes/create
    :api.notes/fetch             [:map [:notes/id uuid?]]
+   :api.notes/fetch?history     [:map [:notes/id uuid?]]
    :api.notes/delete!           [:map [:notes/id uuid?]]
    :api.notes/update!           snotes/modify
 
@@ -22,14 +23,15 @@
    :api.workspace-nodes/update! sws/modify})
 
 (def output-specs
-  {:api.notes/select      [:sequential snotes/full]
-   :api.notes/fetch       snotes/full
-   :api.notes/create!     snotes/full
-   :api.notes/update!     snotes/full
-   :api.tags/select       [:set keyword?]
-   :api.contexts/select   [:set string?]
+  {:api.notes/select                [:sequential snotes/full]
+   :api.notes/fetch                 snotes/full
+   :api.notes/fetch?history         [:sequential snotes/history]
+   :api.notes/create!               snotes/full
+   :api.notes/update!               snotes/full
+   :api.tags/select                 [:set keyword?]
+   :api.contexts/select             [:set string?]
 
-   :api.schedules/create! ssched/full
+   :api.schedules/create!           ssched/full
 
    :api.workspace-nodes/select-tree [:sequential sws/full]})
 
