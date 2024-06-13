@@ -21,7 +21,14 @@
         justify-content: center;
 
         .modal-list {
+            display: grid;
+            grid-template-columns: 1fr;
+
             .modal-item {
+                grid-row-start: 1;
+                grid-column-start: 1;
+                align-self: center;
+                justify-self: center;
                 margin-top: -50px;
                 transition: margin-top 0.333s ease-out,
                             opacity 0.333s ease-out;
@@ -34,6 +41,15 @@
                     opacity: 1;
                     pointer-events: auto;
                     margin-top: 0;
+                }
+
+                &:not(:last-child) {
+                    background-color: black;
+
+                    & > * {
+                        pointer-events: none;
+                        opacity: 0.5;
+                    }
                 }
             }
         }

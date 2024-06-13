@@ -5,7 +5,7 @@
 (defmethod defacto/query-responder :modals/?:modals
   [db _]
   (->> (:modals/modals db)
-       (sort-by key >)
+       (sort-by key)
        (map (fn [[modal-id modal]]
               (assoc modal :id modal-id)))))
 

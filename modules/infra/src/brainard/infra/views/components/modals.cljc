@@ -18,9 +18,10 @@
      {:class    ["is-white" "is-light"]
       :on-click stop-and-close!}
      [scomp/icon :close]]]
-   [:div {:style {:max-width  "80vw"
-                  :max-height "80vh"
-                  :overflow-y :scroll}}
+   [:div {:style {:max-height "80vh"
+                  :max-width  "80vw"
+                  :overflow-y :scroll
+                  :width "100%"}}
     [icomp/modal-body *:store attrs]]])
 
 (defn modal-view [*:store idx {modal-id :id :as modal}]
@@ -32,7 +33,7 @@
                                               (stop-and-close! %))
                                            true)
                [modal-type attrs] (:body modal)
-               attrs (assoc attrs :close! close! :modals/type modal-type :modals/id modal-id)]
+               attrs (assoc attrs :modals/close! close! :modals/type modal-type :modals/id modal-id)]
     (let [inset (str (* 8 idx) "px")]
       [:li.modal-item
        {:class    [(case (:state modal)
@@ -40,7 +41,8 @@
                      :hidden "removing"
                      nil)]
         :style    {:padding-left inset
-                   :padding-top  inset}
+                   :padding-top  inset
+                   :z-index      idx}
         :on-click dom/stop-propagation!}
        [modal-tile *:store attrs stop-and-close!]])
     (finally

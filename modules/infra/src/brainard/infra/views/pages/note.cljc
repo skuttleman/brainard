@@ -53,7 +53,7 @@
   "Edit the note")
 
 (defmethod icomp/modal-body ::edit!
-  [*:store {modal-id :modals/id :keys [close! note]}]
+  [*:store {modal-id :modals/id :modals/keys [close!] :keys [note]}]
   (r/with-let [sub:form+ (-> *:store
                              (store/dispatch! [::forms/ensure! update-note-key note])
                              (store/subscribe [::forms+/?:form+ update-note-key]))
@@ -90,8 +90,11 @@
 
 (defn ^:private note-history [*:store history]
   (let [reconstruction (->> history
-                            (reduce (fn [versions {:notes/keys [history-id changes]}]
-                                      (let [[_ prev] (peek versions)]
+                            (reduce (fn [versions {:notes/keys [changes history-id saved-at]}]
+                                      (let [[_ prev] (peek versions)
+                                            prev (assoc prev
+                                                        :notes/history-id history-id
+                                                        :notes/saved-at saved-at)]
                                         (conj versions [history-id (reconstruct prev changes)])))
                                     [])
                             (into {}))]

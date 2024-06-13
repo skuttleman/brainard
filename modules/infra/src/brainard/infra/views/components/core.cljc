@@ -161,7 +161,7 @@
   "Are you sure?")
 
 (defmethod icomp/modal-body :modals/sure?
-  [*:store {:keys [close! description no-commands yes-commands]}]
+  [*:store {:modals/keys [close!] :keys [description no-commands yes-commands]}]
   [:div.layout--stack-between
    [:p description]
    [:div.layout--room-between

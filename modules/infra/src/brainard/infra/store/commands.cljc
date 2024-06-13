@@ -35,14 +35,14 @@
   [_ [_ modal-id] emit-cb]
   (emit-cb [:modals/hidden modal-id])
   (async/go
-    (async/<! (async/timeout 500))
+    (async/<! (async/timeout 333))
     (emit-cb [:modals/destroyed modal-id])))
 
 (defmethod defacto/command-handler :modals/remove-all!
   [_ _ emit-cb]
   (emit-cb [:modals/all-hidden])
   (async/go
-    (async/<! (async/timeout 500))
+    (async/<! (async/timeout 333))
     (emit-cb [:modals/all-destroyed])))
 
 

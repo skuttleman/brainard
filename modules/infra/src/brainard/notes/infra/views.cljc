@@ -1,5 +1,6 @@
 (ns brainard.notes.infra.views
   (:require
+    [brainard.api.utils.dates :as dates]
     [brainard.api.utils.fns :as fns]
     [brainard.infra.store.core :as store]
     [brainard.infra.stubs.dom :as dom]
@@ -72,10 +73,14 @@
                  [:span.space--left.truncate.blue
                   (str to)]])])
 
+(defmethod icomp/modal-header ::view
+  [_ {:notes/keys [saved-at]}]
+  (dates/->str saved-at))
+
 (defmethod icomp/modal-body ::view
   [_ note]
   [:div.layout--stack-between
-   [:h1.layout--space-after.flex-grow [:strong (:notes/context note)]]
+   [:h1.layout--space-after [:strong (:notes/context note)]]
    [comp/markdown (:notes/body note)]
    [tag-list (:notes/tags note)]])
 
@@ -85,9 +90,9 @@
      ^{:key history-id}
      [:li.layout--stack-between
       [:div.layout--row.layout--align-center
-       [:span.layout--space-after.purple "saved at"]
-       [:span.yellow (pr-str saved-at)]
-       #_[comp/plain-button {:class ["is-small" "is-info"]
+       [:span.layout--space-after.purple ":notes/saved-at"]
+       [:span.layout--space-after.green (dates/->str saved-at)]
+       [comp/plain-button {:class    ["is-small" "is-info"]
                            :on-click (fn [_]
                                        (store/dispatch! *:store [:modals/create! [::view (get reconstruction history-id)]]))}
         "view"]]
