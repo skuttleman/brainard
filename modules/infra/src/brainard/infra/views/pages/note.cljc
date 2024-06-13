@@ -79,15 +79,34 @@
     (finally
       (store/emit! *:store [::forms+/destroyed update-note-key]))))
 
+(defn ^:private reconstruct [prev changes]
+  (reduce-kv (fn [version attr {:keys [added removed to]}]
+               (cond-> version
+                 (some? to) (assoc attr to)
+                 added (update attr (fnil into #{}) added)
+                 removed (update attr (partial apply disj) removed)))
+             prev
+             changes))
+
+(defn ^:private note-history [*:store history]
+  (let [reconstruction (->> history
+                            (reduce (fn [versions {:notes/keys [history-id changes]}]
+                                      (let [[_ prev] (peek versions)]
+                                        (conj versions [history-id (reconstruct prev changes)])))
+                                    [])
+                            (into {}))]
+    [notes.views/note-history *:store history reconstruction]))
+
+(defmethod icomp/modal-header ::history
+  [_ _]
+  "Note's change history")
+
 (defmethod icomp/modal-body ::history
   [*:store {{note-id :notes/id} :note}]
-  (r/with-let [sub:res (-> *:store
-                           (store/dispatch! [::res/submit! [::specs/note#history note-id]])
-                           (store/subscribe [::res/?:resource [::specs/note#history note-id]]))]
-    [:div {:style {:max-width "80vw"
-                   :max-height "80vh"
-                   :overflow-y :scroll}}
-     [comp/with-resource sub:res notes.views/note-history]]
+  (r/with-let [sub:history (-> *:store
+                               (store/dispatch! [::res/submit! [::specs/note#history note-id]])
+                               (store/subscribe [::res/?:resource [::specs/note#history note-id]]))]
+    [comp/with-resource sub:history [note-history *:store]]
     (finally
       (store/emit! *:store [::res/destroyed [::specs/note#history note-id]]))))
 

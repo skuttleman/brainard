@@ -18,7 +18,10 @@
      {:class    ["is-white" "is-light"]
       :on-click stop-and-close!}
      [scomp/icon :close]]]
-   [:div [icomp/modal-body *:store attrs]]])
+   [:div {:style {:max-width  "80vw"
+                  :max-height "80vh"
+                  :overflow-y :scroll}}
+    [icomp/modal-body *:store attrs]]])
 
 (defn modal-view [*:store idx {modal-id :id :as modal}]
   (r/with-let [close! (close-modal! *:store modal-id)

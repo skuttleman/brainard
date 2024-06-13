@@ -5,6 +5,7 @@
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.components.core :as comp]
+    [brainard.infra.views.components.interfaces :as icomp]
     [brainard.infra.views.controls.core :as ctrls]
     [clojure.string :as string]
     [defacto.forms.core :as forms]
@@ -71,14 +72,25 @@
                  [:span.space--left.truncate.blue
                   (str to)]])])
 
-(defn note-history [entries]
-  [:ul.note-history {:style {:max-width "100%"}}
+(defmethod icomp/modal-body ::view
+  [_ note]
+  [:div.layout--stack-between
+   [:h1.layout--space-after.flex-grow [:strong (:notes/context note)]]
+   [comp/markdown (:notes/body note)]
+   [tag-list (:notes/tags note)]])
+
+(defn note-history [*:store entries reconstruction]
+  [:ul.note-history
    (for [{:notes/keys [changes history-id saved-at]} entries]
      ^{:key history-id}
      [:li.layout--stack-between
-      [:div.layout--row
+      [:div.layout--row.layout--align-center
        [:span.layout--space-after.purple "saved at"]
-       [:span.yellow (pr-str saved-at)]]
+       [:span.yellow (pr-str saved-at)]
+       #_[comp/plain-button {:class ["is-small" "is-info"]
+                           :on-click (fn [_]
+                                       (store/dispatch! *:store [:modals/create! [::view (get reconstruction history-id)]]))}
+        "view"]]
       (into [:<>]
             (for [k [:notes/context :notes/pinned? :notes/body :notes/tags]
                   :let [change (k changes)]
