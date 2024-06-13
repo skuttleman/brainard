@@ -43,19 +43,19 @@
      (when expanded?
        [edit-link id])]))
 
-(defn ^:private history-change [k {:keys [added from removed to]}]
+(defn ^:private history-change [label {:keys [added from removed to]}]
   [:div.layout--row
-   [:span.purple (pr-str k)]
+   [:span.purple label]
    (when (some? added)
      [:<>
       [:em.space--left "added"]
       [:span.space--left.truncate.blue
-       (str added)]])
+       (apply str (interpose ", " added))]])
    (when (some? removed)
      [:<>
       [:em.space--left "removed"]
       [:span.space--left.truncate.orange
-       (str removed)]])
+       (apply str (interpose ", " removed))]])
    (cond
      (and (some? from) (some? to)) [:<>
                                     [:em.space--left "changed"]
@@ -89,18 +89,21 @@
    (for [{:notes/keys [changes history-id saved-at]} entries]
      ^{:key history-id}
      [:li.layout--stack-between
-      [:div.layout--row.layout--align-center
-       [:span.layout--space-after.purple ":notes/saved-at"]
-       [:span.layout--space-after.green (dates/->str saved-at)]
+      [:div.layout--row.layout--align-center.layout--space-between
+       [:div
+        [:span.layout--space-after.green (dates/->str saved-at)]]
        [comp/plain-button {:class    ["is-small" "is-info"]
                            :on-click (fn [_]
                                        (store/dispatch! *:store [:modals/create! [::view (get reconstruction history-id)]]))}
         "view"]]
       (into [:<>]
-            (for [k [:notes/context :notes/pinned? :notes/body :notes/tags]
+            (for [[k label] [[:notes/context "Context"]
+                             [:notes/pinned? "Pin"]
+                             [:notes/body "Body"]
+                             [:notes/tags "Tags"]]
                   :let [change (k changes)]
                   :when change]
-              [history-change k change]))])])
+              [history-change label change]))])])
 
 (defn ^:private with-trim-on-blur [{:keys [on-change] :as attrs} *:store]
   (update attrs :on-blur fns/safe-comp (fn [e]
@@ -121,7 +124,7 @@
                           (ctrls/with-attrs form+ [:notes/context])
                           (with-trim-on-blur *:store))]]
    [ctrls/icon-toggle (-> {:*:store *:store
-                           :label   "Pinned"
+                           :label   "Pin"
                            :icon    :paperclip}
                           (ctrls/with-attrs form+ [:notes/pinned?]))]])
 

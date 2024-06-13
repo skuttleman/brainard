@@ -138,7 +138,7 @@
       [comp/plain-button {:class    ["is-light"]
                           :on-click (fn [_]
                                       (store/dispatch! *:store [:modals/create! [::history {:note note}]]))}
-       "Change history"]]
+       "View history"]]
      [sched.views/schedule-editor *:store note]]))
 
 (defmethod ipages/page :routes.ui/note

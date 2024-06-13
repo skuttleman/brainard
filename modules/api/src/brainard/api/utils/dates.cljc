@@ -12,8 +12,10 @@
             \T (pad-date-segment (.getHours date))
             \: (pad-date-segment (.getMinutes date))))))
 
-(defn ->str [date]
-  #?(:cljs
-     (let [formatter (js/Intl.DateTimeFormat. "en-US" #js {:dateStyle "full"
-                                                           :timeStyle "short"})]
-       (.format formatter date))))
+(def ^{:arglists '([date])} ->str
+  (let [#?@(:cljs [formatter (js/Intl.DateTimeFormat. "en-US"
+                                                      #js {:dateStyle "full"
+                                                           :timeStyle "short"})])]
+    (fn [date]
+      #?(:cljs
+         (.format formatter date)))))
