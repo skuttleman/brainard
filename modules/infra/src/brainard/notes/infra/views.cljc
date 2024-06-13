@@ -42,42 +42,43 @@
        [edit-link id])]))
 
 (defn ^:private history-change [k {:keys [added from removed to]}]
-  [:div.layout--col
-   [:span {:style {:color :purple}} (pr-str k)]
-   [:div.layout--stack-between
-    (when (some? added)
-      [:div.layout--row
-       [:em "added"]
-       [:span.space--left.truncate.green
-        (str added)]])
-    (when (some? removed)
-      [:div.layout--row
-       [:em "removed"]
-       [:span.space--left.truncate.red
-        (str removed)]])]
+  [:div.layout--row
+   [:span.purple (pr-str k)]
+   (when (some? added)
+     [:<>
+      [:em.space--left "added"]
+      [:span.space--left.truncate.blue
+       (str added)]])
+   (when (some? removed)
+     [:<>
+      [:em.space--left "removed"]
+      [:span.space--left.truncate.orange
+       (str removed)]])
    (cond
-     (and (some? from) (some? to)) [:div.layout--row
-                                    [:em "changed"]
-                                    [:span.space--left.truncate.red {:style {:min-width "40%"}}
+     (and (some? from) (some? to)) [:<>
+                                    [:em.space--left "changed"]
+                                    [:span.space--left.truncate.orange {:style {:max-width "50%"}}
                                      (str from)]
                                     [:em.space--left "to"]
-                                    [:span.space--left.truncate.green {:style {:min-width "40%"}}
+                                    [:span.space--left.truncate.blue {:style {:max-width "50%"}}
                                      (str to)]]
-     (some? from) [:div.layout--row
-                   [:em "removed"]
-                   [:span.space--left.truncate.red
+     (some? from) [:<>
+                   [:em.space--left "removed"]
+                   [:span.space--left.truncate.orange
                     (str from)]]
-     (some? to) [:div.layout--row
-                 [:em "added"]
-                 [:span.space--left.truncate.green
+     (some? to) [:<>
+                 [:em.space--left "added"]
+                 [:span.space--left.truncate.blue
                   (str to)]])])
 
 (defn note-history [entries]
-  [:ul.search-results
+  [:ul.note-history {:style {:max-width "100%"}}
    (for [{:notes/keys [changes history-id saved-at]} entries]
      ^{:key history-id}
      [:li.layout--stack-between
-      [:div.layout--row [:span.layout--space-after "at"] [:span {:style {:color :blue}} (pr-str saved-at)]]
+      [:div.layout--row
+       [:span.layout--space-after.purple "saved at"]
+       [:span.yellow (pr-str saved-at)]]
       (into [:<>]
             (for [k [:notes/context :notes/pinned? :notes/body :notes/tags]
                   :let [change (k changes)]
