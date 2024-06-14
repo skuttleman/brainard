@@ -31,7 +31,7 @@
                                :options-by-id options-by-id}
                               (ctrls/with-attrs form [::tag-filters]))]))
 
-(defn ^:private root [*:store sub:form [tags pinned-notes]]
+(defn ^:private root [*:store sub:form route-info [tags pinned-notes]]
   (let [form @sub:form
         {::keys [expanded tag-filters]} (forms/data form)
         form-id (forms/id form)
@@ -52,19 +52,40 @@
                        :expand    [::forms/changed form-id [::expanded] next-context]}
           [:strong context]
           [:div {:style {:margin-left "12px"}}
-           [notes.views/note-list {:hide-context? true} note-group]]])
+           [notes.views/note-list
+            {:anchor        (:anchor route-info)
+             :anchor?       true
+             :hide-context? true}
+            note-group]]])
        [:em "No pinned notes"])]))
 
 (defmethod ipages/page :routes.ui/pinned
-  [*:store _route-info]
+  [*:store {:keys [query-params] :as route-info}]
   (r/with-let [sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
                sub:pinned (-> *:store
                               (store/dispatch! [::res/ensure! [::specs/notes#pinned]])
                               (store/subscribe [::res/?:resource [::specs/notes#pinned]]))
                sub:form (-> *:store
-                            (store/dispatch! [::forms/ensure! [::expanded-group] {::tag-filters #{}}])
-                            (store/subscribe [::forms/?:form [::expanded-group]]))]
-    [comp/with-resources [sub:tags sub:pinned] [root *:store sub:form]]
+                            (store/dispatch! [::forms/ensure!
+                                              [::expanded-group]
+                                              {::expanded    (:expanded query-params)
+                                               ::tag-filters #{}}])
+                            (store/subscribe [::forms/?:form [::expanded-group]])
+                            (doto
+                              (add-watch ::change
+                                         (fn [_ _ old new]
+                                           (let [old-expanded (::expanded (forms/data old))
+                                                 new-expanded (::expanded (forms/data new))
+                                                 next-route (when (not= old-expanded new-expanded)
+                                                              (assoc route-info
+                                                                     :query-params
+                                                                     (if new-expanded
+                                                                       {:expanded new-expanded}
+                                                                       {})))]
+                                             (when next-route
+                                               (store/dispatch! *:store [:nav/replace! next-route])))))))]
+    [comp/with-resources [sub:tags sub:pinned] [root *:store sub:form route-info]]
     (finally
+      (remove-watch sub:form ::change)
       (store/emit! *:store [::res/destroyed [::specs/notes#pinned]])
       (store/emit! *:store [::forms/destroyed [::expanded-group]]))))

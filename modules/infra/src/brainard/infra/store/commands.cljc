@@ -22,6 +22,10 @@
   [{::w/keys [nav]} [_ {:keys [token query-params route-params]}]]
   (nav/navigate! nav token route-params query-params))
 
+(defmethod defacto/command-handler :nav/replace!
+  [{::w/keys [nav]} [_ {:keys [token query-params route-params]}]]
+  (nav/replace! nav token route-params query-params))
+
 (defmethod defacto/command-handler :modals/create!
   [_ [_ body] emit-cb]
   (let [modal-id (->sortable-id)]
