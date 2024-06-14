@@ -50,7 +50,7 @@
       [:div.flex-grow
        [tag-filter attrs tags]]]]))
 
-(defn ^:private root [*:store {:keys [query-params]} [contexts tags]]
+(defn ^:private root [*:store {:keys [anchor query-params]} [contexts tags]]
   (r/with-let [form-key [::forms+/valid [::specs/notes#select form-id] query-params]
                sub:form+ (let [loaded? (boolean (store/query *:store [::forms/?:form form-key]))]
                            (store/emit! *:store [::forms/created form-key
@@ -64,7 +64,9 @@
                    :query-params query-params}
       contexts
       tags]
-     [comp/with-resource sub:form+ [notes.views/note-list {:hide-init? true}]]]
+     [comp/with-resource sub:form+ [notes.views/note-list {:anchor     anchor
+                                                           :anchor?    true
+                                                           :hide-init? true}]]]
     (finally
       (store/emit! *:store [::forms+/destroyed form-key]))))
 

@@ -23,15 +23,28 @@
    (when (< 8 (count tags))
      [:em.space--left "more..."])])
 
-(defn ^:private note-item [{:keys [hide-context?]} {:notes/keys [id context body tags]} *:expanded]
-  (let [expanded-id @*:expanded
+(defn ^:private note-item [{:keys [anchor anchor? hide-context?]} note *:expanded]
+  (let [{:notes/keys [id context body tags]} note
+        expanded-id @*:expanded
         expanded? (= id expanded-id)]
     [:li.layout--stack-between {:id    id
-                                :class [(when expanded? "expanded")]}
+                                :class [(when expanded? "expanded")
+                                        (when (= (str id) anchor) "anchored")]}
      [:div {:class    [(if expanded? "layout--stack-between" "layout--row")]
             :on-click (fn [_]
                         (reset! *:expanded (when-not expanded? id)))
             :style    {:cursor :pointer}}
+      (when (and anchor? (not expanded?))
+        [comp/plain-button {:class    ["is-small" "is-ghost"]
+                            :on-click (fn [e]
+                                        (dom/stop-propagation! e)
+                                        #?(:cljs (let [link (str js/location.origin
+                                                                 js/location.pathname
+                                                                 js/location.search
+                                                                 "#"
+                                                                 id)]
+                                                   (.writeText js/navigator.clipboard link))))}
+         [comp/icon :link]])
       (when-not hide-context? [:strong.layout--no-shrink context])
       (if expanded?
         [comp/markdown body]

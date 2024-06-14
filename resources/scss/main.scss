@@ -40,6 +40,10 @@
         &:nth-child(odd) {
             background-color: rgba(225, 225, 225, 0.25);
         }
+
+        &.anchored {
+            background-color: rgba(215, 185, 255, 0.25) !important;
+        }
     }
 }
 
