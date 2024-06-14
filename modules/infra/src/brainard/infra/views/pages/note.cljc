@@ -79,39 +79,21 @@
     (finally
       (store/emit! *:store [::forms+/destroyed update-note-key]))))
 
-(defn ^:private reconstruct [prev changes]
-  (reduce-kv (fn [version attr {:keys [added removed to]}]
-               (cond-> version
-                 (some? to) (assoc attr to)
-                 added (update attr (fnil into #{}) added)
-                 removed (update attr (partial apply disj) removed)))
-             prev
-             changes))
-
-(defn ^:private note-history [*:store history]
-  (let [reconstruction (->> history
-                            (reduce (fn [versions {:notes/keys [changes history-id saved-at]}]
-                                      (let [[_ prev] (peek versions)
-                                            prev (assoc prev
-                                                        :notes/history-id history-id
-                                                        :notes/saved-at saved-at)]
-                                        (conj versions [history-id (reconstruct prev changes)])))
-                                    [])
-                            (into {}))]
-    [notes.views/note-history *:store history reconstruction]))
-
 (defmethod icomp/modal-header ::history
   [_ _]
   "Note's change history")
 
 (defmethod icomp/modal-body ::history
   [*:store {{note-id :notes/id} :note}]
-  (r/with-let [sub:history (-> *:store
-                               (store/dispatch! [::res/submit! [::specs/note#history note-id]])
-                               (store/subscribe [::res/?:resource [::specs/note#history note-id]]))]
-    [comp/with-resource sub:history [note-history *:store]]
+  (r/with-let [spec [::specs/note#history note-id]
+               sub:history (-> *:store
+                               (store/dispatch! [::res/submit! spec])
+                               (store/subscribe [::res/?:resource spec]))
+               sub:reconstruction (store/subscribe *:store [:notes.history/?:reconstruction spec])]
+    [comp/with-resource sub:history
+     [notes.views/note-history *:store @sub:reconstruction]]
     (finally
-      (store/emit! *:store [::res/destroyed [::specs/note#history note-id]]))))
+      (store/emit! *:store [::res/destroyed spec]))))
 
 (defn ^:private root [*:store note]
   (r/with-let [delete-modal [:modals/sure?

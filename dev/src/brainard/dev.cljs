@@ -11,7 +11,7 @@
     [whet.core :as w]
     #_brainard.stubbed.api))
 
-(def ^:dynamic *store*)
+(defonce ^:dynamic *store* nil)
 
 (defmethod defacto/event-reducer ::reset
   [_ [_ new-db]]

@@ -80,11 +80,15 @@
 (defmethod icomp/modal-body ::view
   [_ note]
   [:div.layout--stack-between
-   [:h1.layout--space-after [:strong (:notes/context note)]]
+   [:div.layout--row
+    (when (:notes/pinned? note)
+      [comp/icon {:class ["layout--space-after"]
+                  :style {:align-self :center}} :paperclip])
+    [:h1 [:strong (:notes/context note)]]]
    [comp/markdown (:notes/body note)]
    [tag-list (:notes/tags note)]])
 
-(defn note-history [*:store entries reconstruction]
+(defn note-history [*:store reconstruction entries]
   [:ul.note-history
    (for [{:notes/keys [changes history-id saved-at]} entries]
      ^{:key history-id}
@@ -94,7 +98,10 @@
         [:span.layout--space-after.green (dates/->str saved-at)]]
        [comp/plain-button {:class    ["is-small" "is-info"]
                            :on-click (fn [_]
-                                       (store/dispatch! *:store [:modals/create! [::view (get reconstruction history-id)]]))}
+                                       (let [view (get reconstruction history-id)]
+                                         (store/dispatch! *:store
+                                                          [:modals/create!
+                                                           [::view view]])))}
         "view"]]
       (into [:<>]
             (for [[k label] [[:notes/context "Context"]
