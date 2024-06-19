@@ -89,9 +89,6 @@
       (:key-codes/tab :key-codes/esc) (reset! open? false)
       nil)))
 
-(defn ^:private single-resource [_opts comp [value]]
-  (conj comp value))
-
 (defn openable [{:keys [listeners?]} component & args]
   (r/with-let [open? (r/atom false)
                ref (volatile! nil)
@@ -131,6 +128,9 @@
         (res/error? data-or-res) (when-not (::forms/errors (res/payload data-or-res))
                                    [:div.error [alert :error "An error occurred."]])
         :else [spinner opts]))))
+
+(defn ^:private single-resource [_opts comp [value]]
+  (conj comp value))
 
 (defn with-resource [sub:resource comp]
   (let [[_ opts :as comp] (colls/wrap-vector comp)]

@@ -136,11 +136,10 @@
 (defn ^:private topic-field [{:keys [*:store form+ on-context-blur sub:contexts]}]
   [:div.layout--space-between
    [:div.flex-grow
-    [ctrls/type-ahead (-> {:*:store     *:store
-                           :label       "Topic"
-                           :sub:items   sub:contexts
-                           :auto-focus? true
-                           :on-blur     on-context-blur}
+    [ctrls/type-ahead (-> {:*:store   *:store
+                           :label     "Topic"
+                           :sub:items sub:contexts
+                           :on-blur   on-context-blur}
                           (ctrls/with-attrs form+ [:notes/context])
                           (with-trim-on-blur *:store))]]
    [ctrls/icon-toggle (-> {:*:store *:store
@@ -156,9 +155,10 @@
       (if (::preview? form-data)
         [:div.expanded
          [comp/markdown (:notes/body form-data)]]
-        [ctrls/textarea (-> {:style   {:font-family :monospace
-                                       :min-height  "250px"}
-                             :*:store *:store}
+        [ctrls/textarea (-> {:style       {:font-family :monospace
+                                           :min-height  "250px"}
+                             :*:store     *:store
+                             :auto-focus? true}
                             (ctrls/with-attrs form+ [:notes/body]))])]]))
 
 (defn note-list [attrs notes]

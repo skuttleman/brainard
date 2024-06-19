@@ -72,7 +72,7 @@
   (let [note-res (defacto/query-responder db [::res/?:resource [::specs/notes#find note-id]])]
     (cond-> db
       (res/success? note-res)
-      (-> (defacto/event-reducer [::res/submitted [::specs/notes#find note-id] (res/params note-res)])
+      (-> (defacto/event-reducer [::res/submitted [::specs/notes#find note-id]])
           (defacto/event-reducer [::res/succeeded [::specs/notes#find note-id]
                                   (update (res/payload note-res) :notes/schedules conj sched)])))))
 
@@ -81,7 +81,7 @@
   (let [note-res (defacto/query-responder db [::res/?:resource [::specs/notes#find note-id]])]
     (cond-> db
       (res/success? note-res)
-      (-> (defacto/event-reducer [::res/submitted [::specs/notes#find note-id] (res/params note-res)])
+      (-> (defacto/event-reducer [::res/submitted [::specs/notes#find note-id]])
           (defacto/event-reducer [::res/succeeded [::specs/notes#find note-id]
                                   (update (res/payload note-res) :notes/schedules
                                           (partial remove (comp #{sched-id} :schedules/id)))])))))
