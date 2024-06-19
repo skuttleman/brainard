@@ -20,13 +20,13 @@
   "Takes initialized defacto store and returns the component tree"
   [store]
   (async/go
-    (async/<! (async/timeout 15000))
+    (async/<! (async/timeout 60000))
     (defacto/dispatch! store [::res/poll! 15000 [::specs/notes#buzz]]))
   (dom/add-listener! js/navigation
                      :navigate
                      (fn [^js/NavigateEvent e]
                        (when (= "traverse" (.-navigationType e))
-                         (store/dispatch! store [:modals/remove-all!]))))
+                         (store/emit! store [:modals/all-destroyed]))))
   [pages/root store])
 
 (defn start!

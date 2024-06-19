@@ -27,7 +27,6 @@
       (derive :routes.ui/home :routes/ui)
       (derive :routes.ui/buzz :routes/ui)
       (derive :routes.ui/note :routes/ui)
-      (derive :routes.ui/pinned :routes/ui)
       (derive :routes.ui/search :routes/ui)
       (derive :routes.ui/workspace :routes/ui)
       (derive :routes.ui/dev :routes/ui)

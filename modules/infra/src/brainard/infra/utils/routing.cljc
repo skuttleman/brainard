@@ -48,7 +48,6 @@
 (def ^:private ui-routes
   ["" [["/" :routes.ui/home]
        ["/buzz" :routes.ui/buzz]
-       ["/pinned" :routes.ui/pinned]
        [["/notes/" [uuids/regex :notes/id]] :routes.ui/note]
        ["/search" :routes.ui/search]
        ["/workspace" :routes.ui/workspace]

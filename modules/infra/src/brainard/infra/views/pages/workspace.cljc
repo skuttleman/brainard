@@ -7,6 +7,7 @@
     [brainard.infra.views.components.interfaces :as icomp]
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.pages.interfaces :as ipages]
+    [brainard.notes.infra.views :as notes.views]
     [clojure.set :as set]
     [clojure.walk :as walk]
     [defacto.forms.core :as forms]
@@ -88,6 +89,26 @@
   [_ _ node]
   [:span (::ws/content node)])
 
+(defn ^:private collapsible [{:keys [*:store expanded? expand]} label & content]
+  (cond-> [:div [:div.layout--row
+                 [:div.layout--space-after label]
+                 [comp/plain-button {:class    ["is-small" "is-white"]
+                                     :on-click (fn [_]
+                                                 (store/emit! *:store expand))}
+                  [comp/icon (if expanded? :chevron-up :chevron-down)]]]]
+    expanded? (into content)))
+
+(defn ^:private tag-filter [{:keys [*:store form]} tags]
+  (r/with-let [options (map #(vector % (str %)) tags)
+               options-by-id (into {} options)]
+    [ctrls/multi-dropdown (-> {:*:store       *:store
+                               :inline?       true
+                               :label         "Filter by tags"
+                               :label-style   {:margin-bottom "16px"}
+                               :options       options
+                               :options-by-id options-by-id}
+                              (ctrls/with-attrs form [::tag-filters]))]))
+
 (defn ^:private ->on-drop [*:store]
   (fn [node-id [_ parent-id sibling-id]]
     (store/dispatch! *:store [::res/submit!
@@ -97,21 +118,79 @@
                                :ok-commands [[::res/submit! fetch-ws-key]
                                              [:modals/remove-all!]]}])))
 
-(defn root [*:store ws-nodes]
+(defn ^:private expanded-change [*:store route-info]
+  (fn [_ _ old new]
+    (let [old-expanded (::expanded (forms/data old))
+          new-expanded (::expanded (forms/data new))
+          next-route (when (not= old-expanded new-expanded)
+                       (assoc route-info :query-params (if new-expanded
+                                                         {:expanded new-expanded}
+                                                         {})))]
+      (when next-route
+        (store/dispatch! *:store [:nav/replace! next-route])))))
+
+(defn ^:private pinned [*:store {:keys [query-params] :as route-info} [tags pinned-notes]]
+  (r/with-let [sub:form (-> *:store
+                            (store/dispatch! [::forms/ensure!
+                                              [::expanded-group]
+                                              {::expanded    (:expanded query-params)
+                                               ::tag-filters #{}}])
+                            (store/subscribe [::forms/?:form [::expanded-group]])
+                            (doto (add-watch ::change (expanded-change *:store route-info))))]
+    (let [form @sub:form
+          {::keys [expanded tag-filters]} (forms/data form)
+          form-id (forms/id form)
+          filtered-notes (filter (fn [{:notes/keys [tags]}]
+                                   (set/subset? tag-filters tags))
+                                 pinned-notes)]
+      [:section
+       [:h1 {:style {:font-size "1.5rem"}} [:strong "Pinned notes"]]
+       (if (seq filtered-notes)
+         [:div
+          [tag-filter {:*:store *:store
+                       :form    form}
+           tags]
+          (for [[context note-group] (group-by :notes/context filtered-notes)
+                :let [expanded? (= context expanded)
+                      next-context (when-not expanded? context)]]
+            ^{:key context}
+            [collapsible {:*:store   *:store
+                          :expanded? expanded?
+                          :expand    [::forms/changed form-id [::expanded] next-context]}
+             [:strong context]
+             [:div {:style {:margin-left "12px"}}
+              [notes.views/note-list
+               {:anchor        (:anchor route-info)
+                :anchor?       true
+                :hide-context? true}
+               note-group]]])]
+         [:em "No pinned notes"])])
+    (finally
+      (remove-watch sub:form ::change)
+      (store/emit! *:store [::forms/destroyed [::expanded-group]]))))
+
+(defn workspace [*:store ws-nodes]
   (r/with-let [dnd-attrs {:*:store *:store
                           :comp    [drag-item *:store]
                           :id      ::workspace
                           :on-drop (->on-drop *:store)}]
-    [:div
-     [:h1.subtitle "Welcome to your workspace"]
+    [:section
+     [:h1 {:style {:font-size "1.5rem"}} [:strong "Workspace"]]
      [dnd/control dnd-attrs (->tree ws-nodes)]
      [icon-button *:store create-modal :plus]]))
 
 (defmethod ipages/page :routes.ui/workspace
-  [*:store _]
-  (r/with-let [sub:tree (-> *:store
+  [*:store route-info]
+  (r/with-let [sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
+               sub:pinned (-> *:store
+                              (store/dispatch! [::res/ensure! [::specs/notes#pinned]])
+                              (store/subscribe [::res/?:resource [::specs/notes#pinned]]))
+               sub:tree (-> *:store
                             (store/dispatch! [::res/ensure! fetch-ws-key])
                             (store/subscribe [::res/?:resource fetch-ws-key]))]
-    [comp/with-resource sub:tree [root *:store]]
+    [:div.layout--stack-between
+     [comp/with-resource sub:tree [workspace *:store]]
+     [comp/with-resources [sub:tags sub:pinned] [pinned *:store route-info]]]
     (finally
+      (store/emit! *:store [::res/destroyed [::specs/notes#pinned]])
       (store/emit! *:store [::res/destroyed fetch-ws-key]))))

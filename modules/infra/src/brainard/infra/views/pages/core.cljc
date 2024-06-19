@@ -13,7 +13,6 @@
     brainard.infra.views.pages.buzz
     brainard.infra.views.pages.home
     brainard.infra.views.pages.note
-    brainard.infra.views.pages.pinned
     brainard.infra.views.pages.search
     brainard.infra.views.pages.workspace))
 
@@ -51,8 +50,6 @@
            "Home"]
           [navbar-item :routes.ui/workspace token
            "Workspace"]
-          [navbar-item :routes.ui/pinned token
-           "Pinned"]
           [navbar-item :routes.ui/buzz token
            "Buzz"
            (when (pos? buzzes)
