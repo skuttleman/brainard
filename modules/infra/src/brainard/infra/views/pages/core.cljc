@@ -13,8 +13,7 @@
     brainard.infra.views.pages.buzz
     brainard.infra.views.pages.home
     brainard.infra.views.pages.note
-    brainard.infra.views.pages.search
-    brainard.infra.views.pages.workspace))
+    brainard.infra.views.pages.search))
 
 (defmethod ipages/page :default
   [_ _]
@@ -48,8 +47,6 @@
          [:ul.navbar-start.oversize.tabs
           [navbar-item :routes.ui/home token
            "Home"]
-          [navbar-item :routes.ui/workspace token
-           "Workspace"]
           [navbar-item :routes.ui/buzz token
            "Buzz"
            (when (pos? buzzes)

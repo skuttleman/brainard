@@ -50,7 +50,6 @@
        ["/buzz" :routes.ui/buzz]
        [["/notes/" [uuids/regex :notes/id]] :routes.ui/note]
        ["/search" :routes.ui/search]
-       ["/workspace" :routes.ui/workspace]
        ["/dev" :routes.ui/dev]
        [true :routes.ui/not-found]]])
 
