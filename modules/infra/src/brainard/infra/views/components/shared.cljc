@@ -1,13 +1,19 @@
 (ns brainard.infra.views.components.shared
   (:require
     [brainard.api.utils.maps :as maps]
+    [brainard.infra.store.core :as store]
     [brainard.infra.stubs.dom :as dom]
     [whet.utils.reagent :as r]))
 
-(defn plain-button [attrs & content]
-  (let [disabled #?(:clj true :default (:disabled attrs))]
+(defn plain-button [{:keys [*:store commands events on-click] :as attrs} & content]
+  (let [disabled #?(:clj true :default (:disabled attrs))
+        on-click (or on-click
+                     (fn [_]
+                       (as-> *:store $
+                             (reduce store/dispatch! $ commands)
+                             (reduce store/emit! $ events))))]
     (-> attrs
-        (assoc :disabled disabled)
+        (assoc :disabled disabled :on-click on-click)
         (maps/assoc-defaults :type :button)
         (cond-> disabled (update :class (fnil conj []) "is-disabled"))
         (select-keys #{:auto-focus :id :disabled :on-click :style :class :ref :type})

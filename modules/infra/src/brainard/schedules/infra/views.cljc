@@ -100,9 +100,9 @@
                            :yes-commands [[::res/submit! [::specs/schedules#destroy sched-id] note]]}]]]
          ^{:key sched-id}
          [:li.layout--room-between.layout--align-center.space--left
-          [comp/plain-button {:class    ["is-danger" "is-light" "is-small"]
-                              :on-click (fn [_]
-                                          (store/dispatch! *:store [:modals/create! modal]))}
+          [comp/plain-button {:*:store *:store
+                              :class    ["is-danger" "is-light" "is-small"]
+                              :commands [[:modals/create! modal]]}
            [comp/icon :trash-can]]
           [schedule-item sched]])]]
      [:p [:em "no related schedules"]])])

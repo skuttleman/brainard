@@ -109,17 +109,17 @@
      [tag-list note]
      [:div.layout--space-between
       [:div.button-row
-       [comp/plain-button {:class    ["is-info"]
-                           :on-click (fn [_]
-                                       (store/dispatch! *:store [:modals/create! [::edit! {:note note}]]))}
+       [comp/plain-button {:*:store  *:store
+                           :class    ["is-info"]
+                           :commands [[:modals/create! [::edit! {:note note}]]]}
         "Edit"]
-       [comp/plain-button {:class    ["is-danger"]
-                           :on-click (fn [_]
-                                       (store/dispatch! *:store [:modals/create! delete-modal]))}
+       [comp/plain-button {:*:store  *:store
+                           :class    ["is-danger"]
+                           :commands [[:modals/create! delete-modal]]}
         "Delete note"]]
-      [comp/plain-button {:class    ["is-light"]
-                          :on-click (fn [_]
-                                      (store/dispatch! *:store [:modals/create! [::history {:note note}]]))}
+      [comp/plain-button {:*:store  *:store
+                          :class    ["is-light"]
+                          :commands [[:modals/create! [::history {:note note}]]]}
        "View history"]]
      [sched.views/schedule-editor *:store note]]))
 

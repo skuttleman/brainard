@@ -103,18 +103,16 @@
 
 (defn note-history [*:store reconstruction entries]
   [:ul.note-history
-   (for [{:notes/keys [changes history-id saved-at]} entries]
+   (for [{:notes/keys [changes history-id saved-at]} entries
+         :let [view (get reconstruction history-id)]]
      ^{:key history-id}
      [:li.layout--stack-between
       [:div.layout--row.layout--align-center.layout--space-between
        [:div
         [:span.layout--space-after.green (dates/->str saved-at)]]
-       [comp/plain-button {:class    ["is-small" "is-info"]
-                           :on-click (fn [_]
-                                       (let [view (get reconstruction history-id)]
-                                         (store/dispatch! *:store
-                                                          [:modals/create!
-                                                           [::view view]])))}
+       [comp/plain-button {:*:store  *:store
+                           :class    ["is-small" "is-info"]
+                           :commands [[:modals/create! [::view view]]]}
         "view"]]
       (into [:<>]
             (for [[k label] [[:notes/context "Context"]
@@ -134,18 +132,20 @@
                                            e))))
 
 (defn ^:private topic-field [{:keys [*:store form+ on-context-blur sub:contexts]}]
-  [:div.layout--space-between
-   [:div.flex-grow
-    [ctrls/type-ahead (-> {:*:store   *:store
-                           :label     "Topic"
-                           :sub:items sub:contexts
-                           :on-blur   on-context-blur}
-                          (ctrls/with-attrs form+ [:notes/context])
-                          (with-trim-on-blur *:store))]]
-   [ctrls/icon-toggle (-> {:*:store *:store
-                           :label   "Pin"
-                           :icon    :paperclip}
-                          (ctrls/with-attrs form+ [:notes/pinned?]))]])
+  (let [form-data (forms/data form+)]
+    [:div.layout--space-between
+     [:div.flex-grow
+      [ctrls/type-ahead (-> {:*:store     *:store
+                             :label       "Topic"
+                             :sub:items   sub:contexts
+                             :on-blur     on-context-blur
+                             :auto-focus? (nil? (:notes/context form-data))}
+                            (ctrls/with-attrs form+ [:notes/context])
+                            (with-trim-on-blur *:store))]]
+     [ctrls/icon-toggle (-> {:*:store *:store
+                             :label   "Pin"
+                             :icon    :paperclip}
+                            (ctrls/with-attrs form+ [:notes/pinned?]))]]))
 
 (defn ^:private body-field [{:keys [*:store form+]}]
   (let [form-data (forms/data form+)]
@@ -158,7 +158,7 @@
         [ctrls/textarea (-> {:style       {:font-family :monospace
                                            :min-height  "250px"}
                              :*:store     *:store
-                             :auto-focus? true}
+                             :auto-focus? (some? (:notes/context form-data))}
                             (ctrls/with-attrs form+ [:notes/body]))])]]))
 
 (defn note-list [attrs notes]

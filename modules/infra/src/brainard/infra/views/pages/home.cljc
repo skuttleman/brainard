@@ -61,8 +61,8 @@
   [::edit! {:header "Edit the workspace node"}])
 
 (defn ^:private icon-button [*:store modal icon]
-  [comp/plain-button {:on-click (fn [_]
-                                  (store/dispatch! *:store [:modals/create! modal]))
+  [comp/plain-button {:*:store  *:store
+                      :commands [[:modals/create! modal]]
                       :class    ["is-small" "is-white"]
                       :style    {:padding 0 :height "2em"}}
    [comp/icon (when (= :trash-can icon) {:class ["is-danger"]}) icon]])
@@ -93,9 +93,9 @@
 (defn ^:private collapsible [{:keys [*:store expanded? expand]} label & content]
   (cond-> [:div [:div.layout--row
                  [:div.layout--space-after label]
-                 [comp/plain-button {:class    ["is-small" "is-white"]
-                                     :on-click (fn [_]
-                                                 (store/emit! *:store expand))}
+                 [comp/plain-button {:*:store *:store
+                                     :class   ["is-small" "is-white"]
+                                     :events  [expand]}
                   [comp/icon (if expanded? :chevron-up :chevron-down)]]]]
     expanded? (into content)))
 
@@ -143,7 +143,6 @@
                              (store/emit! [::forms/created create-note-key new-note])
                              (store/subscribe [::forms+/?:form+ create-note-key]))]
     [:div {:style {:min-width "50vw"}}
-     [comp/pprint params]
      [notes.views/note-form
       {:*:store      *:store
        :form+        @sub:form+
@@ -178,14 +177,12 @@
                      :form    form}
          tags]
         [comp/plain-button
-         {:class    ["is-info"]
-          :on-click (fn [_]
-                      (store/dispatch! *:store
-                                       [:modals/create!
-                                        [::new-note {:sub:contexts sub:contexts
-                                                     :sub:tags     sub:tags
-                                                     :context      expanded
-                                                     :tags         tag-filters}]]))}
+         {:*:store  *:store
+          :class    ["is-info"]
+          :commands [[:modals/create! [::new-note {:sub:contexts sub:contexts
+                                                   :sub:tags     sub:tags
+                                                   :context      expanded
+                                                   :tags         tag-filters}]]]}
          "Create note"]]
        (if (seq filtered-notes)
          (for [[context note-group] (group-by :notes/context filtered-notes)
