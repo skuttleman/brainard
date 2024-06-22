@@ -37,16 +37,18 @@
                             (store/subscribe [::forms/?:form form-id]))
                on-change (->update-form *:store form-id)]
     (let [form+ (forms+/->form+ @sub:form @(:sub:items attrs))
-          form-data (forms/data form+)]
+          form-data (forms/data form+)
+          add-tag (->add-tag attrs form-id form-data)]
       [:div.tags-editor
        [:div.field.has-addons
         [type-ahead/control (-> attrs
                                 (shared/with-attrs form+ [:value])
                                 (assoc :placeholder "Add tag..."
-                                       :on-change on-change))]
+                                       :on-change on-change
+                                       :on-add add-tag))]
         [comp/plain-button {:tab-index -1
                             :class     ["is-link"]
-                            :on-click  (->add-tag attrs form-id form-data)
+                            :on-click  add-tag
                             :disabled  #?(:clj true :default false)}
          "+"]]
        (when (:invalid? form-data)

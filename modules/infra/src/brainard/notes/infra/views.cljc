@@ -1,9 +1,11 @@
 (ns brainard.notes.infra.views
   (:require
     [brainard.api.utils.dates :as dates]
+    [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.components.interfaces :as icomp]
+    [defacto.resources.core :as-alias res]
     [whet.utils.reagent :as r]))
 
 (defn ^:private edit-link [note-id]
@@ -86,7 +88,7 @@
   (dates/->str saved-at))
 
 (defmethod icomp/modal-body ::view
-  [_ note]
+  [*:store {modal-id :modals/id :keys [last? note] :as params}]
   [:div.layout--stack-between
    [:div.layout--row
     (when (:notes/pinned? note)
@@ -94,29 +96,40 @@
                   :style {:align-self :center}} :paperclip])
     [:h1 [:strong (:notes/context note)]]]
    [comp/markdown (:notes/body note)]
-   [tag-list (:notes/tags note)]])
+   [tag-list (:notes/tags note)]
+   (when-not last?
+     [:div
+      [comp/plain-button {:*:store  *:store
+                          :class    ["is-small" "is-info"]
+                          :commands [[:modals/remove! modal-id]
+                                     [::res/submit! [::specs/notes#reinstate modal-id] params]]}
+       "reinstate"]])])
 
 (defn note-history [*:store reconstruction entries]
-  [:ul.note-history
-   (for [{:notes/keys [changes history-id saved-at]} entries
-         :let [view (get reconstruction history-id)]]
-     ^{:key history-id}
-     [:li.layout--stack-between
-      [:div.layout--row.layout--align-center.layout--space-between
-       [:div
-        [:span.layout--space-after.green (dates/->str saved-at)]]
-       [comp/plain-button {:*:store  *:store
-                           :class    ["is-small" "is-info"]
-                           :commands [[:modals/create! [::view view]]]}
-        "view"]]
-      (into [:<>]
-            (for [[k label] [[:notes/context "Context"]
-                             [:notes/pinned? "Pin"]
-                             [:notes/body "Body"]
-                             [:notes/tags "Tags"]]
-                  :let [change (k changes)]
-                  :when change]
-              [history-change label change]))])])
+  (let [entry-count (count entries)
+        prev-tags (:notes/tags (get reconstruction (:notes/history-id (last entries))))]
+    [:ul.note-history
+     (for [[idx {:notes/keys [changes history-id saved-at]}] (map-indexed vector entries)
+           :let [history-modal [::view {:last?     (= idx (dec entry-count))
+                                        :note      (get reconstruction history-id)
+                                        :prev-tags prev-tags}]]]
+       ^{:key history-id}
+       [:li.layout--stack-between
+        [:div.layout--row.layout--align-center.layout--space-between
+         [:div
+          [:span.layout--space-after.green (dates/->str saved-at)]]
+         [comp/plain-button {:*:store  *:store
+                             :class    ["is-small" "is-info"]
+                             :commands [[:modals/create! history-modal]]}
+          "view"]]
+        (into [:<>]
+              (for [[k label] [[:notes/context "Context"]
+                               [:notes/pinned? "Pin"]
+                               [:notes/body "Body"]
+                               [:notes/tags "Tags"]]
+                    :let [change (k changes)]
+                    :when change]
+                [history-change label change]))])]))
 
 (defn note-list [attrs notes]
   (r/with-let [*:expanded (r/atom nil)]

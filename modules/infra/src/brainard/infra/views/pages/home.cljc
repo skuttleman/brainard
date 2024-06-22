@@ -66,7 +66,7 @@
           edit-modal [::note-edit/modal
                       {:init         {:notes/context expanded
                                       :notes/pinned? true
-                                      :notes/tags    tags}
+                                      :notes/tags    tag-filters}
                        :header       "Create note"
                        :params       {:ok-commands [[::res/submit! [::specs/notes#pinned]]]}
                        :resource-key create-note-key}]]

@@ -13,24 +13,29 @@
               (re-find re (string/lower-case (str item))))
             items)))
 
-(defn ^:private ->type-ahead-key-handler [{:keys [*:state dd-active? matches on-change selected-idx]}]
+(defn ^:private ->type-ahead-key-handler [{:keys [*:state dd-active? matches on-add on-change selected-idx]}]
   (fn [e]
     (when-let [key (#{:key-codes/enter :key-codes/up :key-codes/down}
                     (dom/event->key e))]
-      (when dd-active?
-        (dom/prevent-default! e)
-        (dom/stop-propagation! e)
-        (case key
-          :key-codes/up (swap! *:state assoc :selected-idx
-                               (max 0 (dec (or selected-idx 1))))
-          :key-codes/down (swap! *:state assoc :selected-idx
-                                 (min (dec (count matches))
-                                      (inc (or selected-idx -1))))
-          :key-codes/enter (do (swap! *:state assoc
-                                      :selected? true
-                                      :selected-idx nil)
-                               (when selected-idx
-                                 (on-change (nth matches selected-idx)))))))))
+      (cond
+        dd-active?
+        (do
+          (dom/prevent-default! e)
+          (dom/stop-propagation! e)
+          (case key
+            :key-codes/up (swap! *:state assoc :selected-idx
+                                 (max 0 (dec (or selected-idx 1))))
+            :key-codes/down (swap! *:state assoc :selected-idx
+                                   (min (dec (count matches))
+                                        (inc (or selected-idx -1))))
+            :key-codes/enter (do (swap! *:state assoc
+                                        :selected? true
+                                        :selected-idx nil)
+                                 (when selected-idx
+                                   (on-change (nth matches selected-idx))))))
+
+        (= :key-codes/enter key)
+        (on-add e)))))
 
 (defn ^:private type-ahead-trigger [{:keys [*:state on-change] :as attrs}]
   [:div.dropdown-trigger

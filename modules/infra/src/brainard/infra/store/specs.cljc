@@ -98,6 +98,24 @@
           :err-commands [[:toasts/fail!]]}
          spec))
 
+(defmethod res/->request-spec ::notes#reinstate
+  [resource-key {:keys [note prev-tags] :as spec}]
+  (let [note-id (:notes/id note)]
+    (->req {:route        :routes.api/note
+            :params       {:notes/id note-id}
+            :method       :patch
+            :body         (-> note
+                              (select-keys #{:notes/context
+                                             :notes/pinned?
+                                             :notes/body})
+                              (merge (diff-tags prev-tags (:notes/tags note))))
+            :ok-events    [[::res/destroyed resource-key]]
+            :ok-commands  [[:toasts/succeed! {:message "previous version of note was reinstated"}]
+                           [::res/submit! [::notes#find note-id]]
+                           [::res/submit! [::note#history note-id]]]
+            :err-commands [[:toasts/fail!]]}
+           spec)))
+
 (defmethod forms+/re-init ::notes#pin [_ _ result] (select-keys result #{:notes/id :notes/pinned?}))
 (defmethod res/->request-spec ::notes#pin
   [_ {::forms/keys [data] :as spec}]
