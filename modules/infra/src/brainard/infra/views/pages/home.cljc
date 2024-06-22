@@ -6,6 +6,7 @@
     [brainard.infra.views.components.drag-drop :as dnd]
     [brainard.infra.views.components.interfaces :as icomp]
     [brainard.infra.views.controls.core :as ctrls]
+    [brainard.infra.views.fragments.note-edit :as note-edit]
     [brainard.infra.views.pages.interfaces :as ipages]
     [brainard.notes.infra.views :as notes.views]
     [clojure.set :as set]
@@ -70,7 +71,8 @@
 (defmethod drag-item :static
   [*:store {:keys [on-drag-begin]} node]
   (let [create-modal (update create-modal 1 assoc :init-data {::ws/parent-id (:id node)})
-        modify-modal (update modify-modal 1 merge {:init-data    (select-keys node #{::ws/id ::ws/content})
+        modify-modal (update modify-modal 1 merge {:init-data    (select-keys node #{::ws/id
+                                                                                     ::ws/content})
                                                    :resource-key (->modify-node-key (::ws/id node))})
         delete-modal [:modals/sure?
                       {:description  "This node and all ancestors will be deleted"
@@ -130,33 +132,7 @@
       (when next-route
         (store/dispatch! *:store [:nav/replace! next-route])))))
 
-(defmethod icomp/modal-header ::new-note
-  [_ _]
-  "New note")
 
-(defmethod icomp/modal-body ::new-note
-  [*:store {:modals/keys [close! id] :keys [context tags]}]
-  (r/with-let [new-note {:notes/context context
-                         :notes/pinned? true
-                         :notes/tags    tags}
-               sub:form+ (-> *:store
-                             (store/emit! [::forms/created create-note-key new-note])
-                             (store/subscribe [::forms+/?:form+ create-note-key]))
-               sub:contexts (store/subscribe *:store [::res/?:resource [::specs/contexts#select]])
-               sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])]
-    [:div {:style {:min-width "50vw"}}
-     [notes.views/note-form
-      {:*:store      *:store
-       :form+        @sub:form+
-       :params       {:ok-commands [[::res/submit! [::specs/notes#pinned]]
-                                    [:modals/remove! id]]}
-       :resource-key create-note-key
-       :sub:contexts sub:contexts
-       :sub:tags     sub:tags
-       :buttons      [[comp/plain-button {:on-click close!}
-                       "Cancel"]]}]]
-    (finally
-      (store/emit! *:store [::forms+/destroyed create-node-key]))))
 
 (defn ^:private pinned [*:store route-info [tags pinned-notes]]
   (r/with-let [sub:form (-> *:store
@@ -171,7 +147,14 @@
           form-id (forms/id form)
           filtered-notes (filter (fn [{:notes/keys [tags]}]
                                    (set/subset? tag-filters tags))
-                                 pinned-notes)]
+                                 pinned-notes)
+          edit-modal [::note-edit/modal
+                      {:init         {:notes/context expanded
+                                      :notes/pinned? true
+                                      :notes/tags    tags}
+                       :header       "Create note"
+                       :params       {:ok-commands [[::res/submit! [::specs/notes#pinned]]]}
+                       :resource-key create-note-key}]]
       [:section
        [:h1 {:style {:font-size "1.5rem"}} [:strong "Pinned notes"]]
        [:div.layout--row
@@ -179,8 +162,7 @@
          [comp/plain-button
           {:*:store  *:store
            :class    ["is-info"]
-           :commands [[:modals/create! [::new-note {:context expanded
-                                                    :tags    tag-filters}]]]}
+           :commands [[:modals/create! edit-modal]]}
           "Create note"]]
         [tag-filter {:*:store *:store
                      :form    form}

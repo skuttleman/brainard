@@ -43,8 +43,9 @@
 (defn ^:private search-form [{:keys [*:store form+] :as attrs} contexts tags]
   (let [form-data (forms/data form+)]
     [ctrls/plain-form {:on-submit (fn [_]
-                                    (store/dispatch! *:store [::w/with-qp! form-data]))}
-     [:div.flex.layout--room-between
+                                    (store/dispatch! *:store [::w/with-qp! form-data]))
+                       :submit/body "Search"}
+     [:div.layout--room-between
       [:div.flex-grow
        [context-filter attrs contexts]]
       [:div.flex-grow

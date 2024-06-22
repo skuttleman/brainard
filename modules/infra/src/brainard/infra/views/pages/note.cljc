@@ -2,8 +2,8 @@
   "The page for viewing a note and editing its tags."
   (:require
     [brainard.infra.store.core :as store]
+    [brainard.infra.views.fragments.note-edit :as note-edit]
     [brainard.infra.store.specs :as-alias specs]
-    [brainard.infra.stubs.dom :as dom]
     [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.components.interfaces :as icomp]
@@ -48,37 +48,6 @@
     (finally
       (store/emit! *:store [::forms+/destroyed pin-note-key]))))
 
-(defmethod icomp/modal-header ::edit!
-  [_ _]
-  "Edit the note")
-
-(defmethod icomp/modal-body ::edit!
-  [*:store {modal-id :modals/id :modals/keys [close!] :keys [note]}]
-  (r/with-let [sub:form+ (-> *:store
-                             (store/dispatch! [::forms/ensure! update-note-key note])
-                             (store/subscribe [::forms+/?:form+ update-note-key]))
-               sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
-               sub:contexts (store/subscribe *:store [::res/?:resource [::specs/contexts#select]])]
-    [:div {:style {:min-width "40vw"}}
-     [notes.views/note-form
-      {:*:store      *:store
-       :form+        @sub:form+
-       :params       {:prev-tags   (:notes/tags note)
-                      :ok-commands [[:modals/remove! modal-id]]
-                      :ok-events   [[::res/swapped [::specs/notes#find (:notes/id note)]]
-                                    [::forms/created pin-note-key]]}
-       :resource-key update-note-key
-       :sub:contexts sub:contexts
-       :sub:tags     sub:tags
-       :submit/body  "Save"
-       :buttons      [[:button.button.is-cancel
-                       {:on-click (fn [e]
-                                    (dom/prevent-default! e)
-                                    (close! e))}
-                       "Cancel"]]}]]
-    (finally
-      (store/emit! *:store [::forms+/destroyed update-note-key]))))
-
 (defmethod icomp/modal-header ::history
   [_ _]
   "Note's change history")
@@ -89,18 +58,31 @@
                sub:history (-> *:store
                                (store/dispatch! [::res/submit! spec])
                                (store/subscribe [::res/?:resource spec]))
-               sub:reconstruction (store/subscribe *:store [:notes.history/?:reconstruction spec])]
-    [comp/with-resource sub:history
-     [notes.views/note-history *:store @sub:reconstruction]]
+               sub:recon (store/subscribe *:store [:notes.history/?:reconstruction spec])]
+    [comp/with-resource sub:history [notes.views/note-history *:store @sub:recon]]
     (finally
       (store/emit! *:store [::res/destroyed spec]))))
 
+(defn ^:private ->delete-modal [{note-id :notes/id}]
+  [:modals/sure?
+   {:description  "This note and all related schedules will be deleted"
+    :yes-commands [[::res/submit!
+                    [::specs/notes#destroy note-id]
+                    {:ok-commands [[:nav/navigate! {:token :routes.ui/home}]]}]]}])
+
+(defn ^:private ->edit-modal [{note-id :notes/id :as note}]
+  [::note-edit/modal
+   {:init         note
+    :header       "Edit note"
+    :params       {:prev-tags (:notes/tags note)
+                   :ok-events [[::res/swapped [::specs/notes#find note-id]]
+                               [::forms/created pin-note-key]]}
+    :resource-key update-note-key}])
+
 (defn ^:private root [*:store note]
-  (r/with-let [delete-modal [:modals/sure?
-                             {:description  "This note and all related schedules will be deleted"
-                              :yes-commands [[::res/submit!
-                                              [::specs/notes#destroy (:notes/id note)]
-                                              {:ok-commands [[:nav/navigate! {:token :routes.ui/home}]]}]]}]]
+  (r/with-let [delete-modal (->delete-modal note)
+               edit-modal (->edit-modal note)
+               history-modal [::history {:note note}]]
     [:div.layout--stack-between
      [:div.layout--row
       [:h1.layout--space-after.flex-grow [:strong (:notes/context note)]]
@@ -111,7 +93,7 @@
       [:div.button-row
        [comp/plain-button {:*:store  *:store
                            :class    ["is-info"]
-                           :commands [[:modals/create! [::edit! {:note note}]]]}
+                           :commands [[:modals/create! edit-modal]]}
         "Edit"]
        [comp/plain-button {:*:store  *:store
                            :class    ["is-danger"]
@@ -119,7 +101,7 @@
         "Delete note"]]
       [comp/plain-button {:*:store  *:store
                           :class    ["is-light"]
-                          :commands [[:modals/create! [::history {:note note}]]]}
+                          :commands [[:modals/create! history-modal]]}
        "View history"]]
      [sched.views/schedule-editor *:store note]]))
 
