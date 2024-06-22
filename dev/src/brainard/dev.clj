@@ -7,8 +7,7 @@
     [duct.core :as duct]
     [integrant.core :as ig]
     [nrepl.server :as nrepl]
-    [ring.middleware.reload :as ring.rel]
-    brainard.pages.dev))
+    [ring.middleware.reload :as ring.rel]))
 
 (defonce system nil)
 

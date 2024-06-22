@@ -4,7 +4,6 @@
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.views.pages.core :as pages]
-    [brainard.pages.dev :as dev]
     [clojure.pprint :as pp]
     [defacto.core :as defacto]
     [defacto.resources.core :as-alias res]
@@ -20,16 +19,6 @@
 (defmethod defacto/query-responder ::spy
   [db _]
   (select-keys db #{}))
-
-(defn ^:private reducer-mw [reducer]
-  (fn [db event]
-    (let [occurred-at (js/Date.)
-          id (random-uuid)]
-      (cond-> (reducer db event)
-        (not (:skip-tracking? (meta event)))
-        (update ::dev/-events
-                (fnil conj ())
-                (vary-meta event assoc ::dev/id id ::dev/occurred-at occurred-at))))))
 
 (defn ^:private add-dev-logger! [store]
   (-> store
@@ -59,5 +48,4 @@
 (defn init!
   "Called when the DOM finishes loading."
   []
-  (app/start! (comp app/store->comp with-dev)
-              {:reducer-mw reducer-mw}))
+  (app/start! (comp app/store->comp with-dev)))

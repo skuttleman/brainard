@@ -33,10 +33,8 @@
          body)])
 
 (defn ^:private navbar [*:store {:keys [token]}]
-  (r/with-let [sub:buzz (store/subscribe *:store [::res/?:resource [::specs/notes#buzz]])
-               sub:env (store/subscribe *:store [::w/?:env])]
-    (let [dev? (= :dev @sub:env)
-          resource @sub:buzz
+  (r/with-let [sub:buzz (store/subscribe *:store [::res/?:resource [::specs/notes#buzz]])]
+    (let [resource @sub:buzz
           buzzes (if (res/error? resource)
                    0
                    (count (res/payload resource)))]
@@ -52,10 +50,7 @@
           [navbar-item :routes.ui/buzz token
            "Buzz"
            (when (pos? buzzes)
-             [:span.tag.is-info.space--left.is-rounded buzzes])]
-          (when dev?
-            [navbar-item :routes.ui/dev token
-             "Dev"])]]]])))
+             [:span.tag.is-info.space--left.is-rounded buzzes])]]]]])))
 
 (defn page [*:store route]
   [:div.container
