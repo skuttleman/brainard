@@ -2,7 +2,7 @@
   (:require
     [brainard.api.utils.logger :as log]
     [brainard.infra.store.core :as store]
-    [brainard.infra.utils.routing :as rte]
+    [brainard.infra.views.components.core :as comp]
     [whet.utils.navigation :as nav]
     [clojure.core.async :as async]
     [defacto.core :as defacto]
@@ -76,11 +76,12 @@
 (defmethod defacto/command-handler :toasts.notes/succeed!
   [_ [_ note] emit-cb]
   (let [toast-id (->sortable-id)
-        href (nav/path-for rte/all-routes :routes.ui/note (select-keys note #{:notes/id}))
         body [:span.layout--align-center
               [:span.layout--space-after
                "a"]
-              [:a.link.layout--space-after {:href href}
+              [comp/link {:class        ["layout--space-after"]
+                          :token        :routes.ui/note
+                          :route-params (select-keys note #{:notes/id})}
                "new note"]
               "was created"]]
     (emit-cb [:toasts/created toast-id {:state :init

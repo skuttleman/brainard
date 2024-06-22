@@ -4,7 +4,6 @@
     [brainard.infra.store.core :as store]
     [brainard.infra.views.fragments.note-edit :as note-edit]
     [brainard.infra.store.specs :as-alias specs]
-    [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.components.interfaces :as icomp]
     [brainard.infra.views.controls.core :as ctrls]
@@ -14,7 +13,6 @@
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
     [defacto.resources.core :as res]
-    [whet.utils.navigation :as nav]
     [whet.utils.reagent :as r]))
 
 (def ^:private ^:const update-note-key [::forms+/std [::specs/notes#update ::forms/edit-note]])
@@ -120,7 +118,7 @@
           [comp/alert :warn
            [:div
             "Note not found. Try "
-            [:a.link {:href (nav/path-for rte/all-routes :routes.ui/home)} "creating one"]
+            [comp/link {:token :routes.ui/home} "creating one"]
             "."]]
 
           :else

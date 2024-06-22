@@ -22,6 +22,9 @@
 (def ^{:arglists '([attrs & content])} plain-button
   (scomp/with-auto-focus scomp/plain-button))
 
+(def ^{:arglists '([attrs & content])} link
+  scomp/link)
+
 (def ^{:arglists '([heading body & tabs])} tile
   scomp/tile)
 
@@ -42,24 +45,8 @@
        (update :on-change comp dom/target-value)
        (maps/assoc-defaults :type :text))])
 
-(def ^{:arglists '([attrs])} plain-toggle
-  (scomp/with-auto-focus
-    (fn [{:keys [value on-change] :as attrs}]
-      (let [disabled #?(:clj true :default (:disabled attrs))]
-        [:button.button
-         (-> attrs
-             (select-keys #{:id :type :disabled :style :class :ref :auto-focus})
-             (update :style assoc :color (if value :red :blue))
-             (cond-> disabled (update :class (fnil conj []) "is-disabled"))
-             (maps/assoc-defaults :type :button)
-             (assoc :on-click
-                    (fn [_]
-                      (when on-change
-                        (on-change (not value))))))
-         [icon attrs (if value :minus :plus)]]))))
-
 (def ^:private level->class
-  {:warn "is-warning"
+  {:warn  "is-warning"
    :error "is-danger"})
 
 (defn alert [level body]
@@ -143,10 +130,11 @@
      [:div.tags.has-addons
       [:span.tag.is-info.is-light (str tag)]
       (when on-change
-        [:button.button.tag.is-delete {:tab-index -1
-                                       :on-click  (fn [e]
-                                                    (dom/prevent-default! e)
-                                                    (on-change (disj value tag)))}])])])
+        [plain-button {:tab-index -1
+                       :class     ["tag" "is-delete"]
+                       :on-click  (fn [e]
+                                    (dom/prevent-default! e)
+                                    (on-change (disj value tag)))}])])])
 
 (defn markdown [content]
   [:div.content
@@ -165,11 +153,11 @@
   [:div.layout--stack-between
    [:p description]
    [:div.layout--room-between
-    [plain-button {:class    ["is-info"]
+    [plain-button {:class       ["is-info"]
                    :auto-focus? true
-                   :on-click (fn [e]
-                               (run! (partial store/dispatch! *:store) yes-commands)
-                               (close! e))}
+                   :on-click    (fn [e]
+                                  (run! (partial store/dispatch! *:store) yes-commands)
+                                  (close! e))}
      "OK"]
     [plain-button {:on-click (fn [e]
                                (run! (partial store/dispatch! *:store) no-commands)

@@ -44,9 +44,10 @@
                                 (shared/with-attrs form+ [:value])
                                 (assoc :placeholder "Add tag..."
                                        :on-change on-change))]
-        [:button.button.is-link {:tab-index -1
-                                 :on-click  (->add-tag attrs form-id form-data)
-                                 :disabled  #?(:clj true :default false)}
+        [comp/plain-button {:tab-index -1
+                            :class     ["is-link"]
+                            :on-click  (->add-tag attrs form-id form-data)
+                            :disabled  #?(:clj true :default false)}
          "+"]]
        (when (:invalid? form-data)
          [:span.form-field.errors [:span.error-list [:span.error "invalid tag"]]])

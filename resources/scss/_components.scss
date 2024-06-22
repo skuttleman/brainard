@@ -1,0 +1,11 @@
+.tile {
+    .panel {
+        min-width: 400px;
+        background-color: #fcfcfc;
+
+        .panel-tabs {
+            padding: 8px;
+            justify-content: flex-start;
+        }
+    }
+}

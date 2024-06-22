@@ -3,12 +3,10 @@
   (:require
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as specs]
-    [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.pages.interfaces :as ipages]
     [defacto.resources.core :as res]
     [whet.core :as w]
-    [whet.utils.navigation :as nav]
     [whet.utils.reagent :as r]
     brainard.infra.views.pages.buzz
     brainard.infra.views.pages.home
@@ -30,7 +28,9 @@
 (defn ^:private navbar-item [route token & body]
   [:li
    {:class [(when (= token route) "is-active")]}
-   (into [:a.navbar-item {:href (nav/path-for rte/all-routes route)}] body)])
+   (into [comp/link {:class ["navbar-item"]
+                     :token route}]
+         body)])
 
 (defn ^:private navbar [*:store {:keys [token]}]
   (r/with-let [sub:buzz (store/subscribe *:store [::res/?:resource [::specs/notes#buzz]])

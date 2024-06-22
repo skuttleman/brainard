@@ -2,14 +2,14 @@
   (:require
     [brainard.api.utils.dates :as dates]
     [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.components.interfaces :as icomp]
-    [whet.utils.navigation :as nav]
     [whet.utils.reagent :as r]))
 
 (defn ^:private edit-link [note-id]
-  [:a.link.space--left {:href (nav/path-for rte/all-routes :routes.ui/note {:notes/id note-id})}
+  [comp/link {:class        ["space--left"]
+              :token        :routes.ui/note
+              :route-params {:notes/id note-id}}
    "edit"])
 
 (defn ^:private tag-list [tags]
