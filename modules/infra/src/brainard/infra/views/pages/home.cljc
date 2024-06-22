@@ -135,13 +135,15 @@
   "New note")
 
 (defmethod icomp/modal-body ::new-note
-  [*:store {:modals/keys [close! id] :keys [sub:contexts sub:tags context tags] :as params}]
+  [*:store {:modals/keys [close! id] :keys [context tags]}]
   (r/with-let [new-note {:notes/context context
                          :notes/pinned? true
                          :notes/tags    tags}
                sub:form+ (-> *:store
                              (store/emit! [::forms/created create-note-key new-note])
-                             (store/subscribe [::forms+/?:form+ create-note-key]))]
+                             (store/subscribe [::forms+/?:form+ create-note-key]))
+               sub:contexts (store/subscribe *:store [::res/?:resource [::specs/contexts#select]])
+               sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])]
     [:div {:style {:min-width "50vw"}}
      [notes.views/note-form
       {:*:store      *:store
@@ -156,7 +158,7 @@
     (finally
       (store/emit! *:store [::forms+/destroyed create-node-key]))))
 
-(defn ^:private pinned [*:store sub:contexts sub:tags route-info [tags pinned-notes]]
+(defn ^:private pinned [*:store route-info [tags pinned-notes]]
   (r/with-let [sub:form (-> *:store
                             (store/dispatch! [::forms/ensure!
                                               [::expanded-group]
@@ -172,18 +174,17 @@
                                  pinned-notes)]
       [:section
        [:h1 {:style {:font-size "1.5rem"}} [:strong "Pinned notes"]]
-       [:div.layout--space-between
+       [:div.layout--row
+        [:div.layout--space-after
+         [comp/plain-button
+          {:*:store  *:store
+           :class    ["is-info"]
+           :commands [[:modals/create! [::new-note {:context expanded
+                                                    :tags    tag-filters}]]]}
+          "Create note"]]
         [tag-filter {:*:store *:store
                      :form    form}
-         tags]
-        [comp/plain-button
-         {:*:store  *:store
-          :class    ["is-info"]
-          :commands [[:modals/create! [::new-note {:sub:contexts sub:contexts
-                                                   :sub:tags     sub:tags
-                                                   :context      expanded
-                                                   :tags         tag-filters}]]]}
-         "Create note"]]
+         tags]]
        (if (seq filtered-notes)
          (for [[context note-group] (group-by :notes/context filtered-notes)
                :let [expanded? (= context expanded)
@@ -216,8 +217,7 @@
 
 (defmethod ipages/page :routes.ui/home
   [*:store route-info]
-  (r/with-let [sub:contexts (store/subscribe *:store [::res/?:resource [::specs/contexts#select]])
-               sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
+  (r/with-let [sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
                sub:pinned (-> *:store
                               (store/dispatch! [::res/ensure! [::specs/notes#pinned]])
                               (store/subscribe [::res/?:resource [::specs/notes#pinned]]))
@@ -226,7 +226,7 @@
                             (store/subscribe [::res/?:resource fetch-ws-key]))]
     [:div.layout--stack-between
      [comp/with-resource sub:tree [workspace *:store]]
-     [comp/with-resources [sub:tags sub:pinned] [pinned *:store sub:contexts sub:tags route-info]]]
+     [comp/with-resources [sub:tags sub:pinned] [pinned *:store route-info]]]
     (finally
       (store/emit! *:store [::res/destroyed [::specs/notes#pinned]])
       (store/emit! *:store [::res/destroyed fetch-ws-key]))))

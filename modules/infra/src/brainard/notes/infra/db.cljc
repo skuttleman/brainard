@@ -49,17 +49,6 @@
                    (conj (cond-> versions same-tx? pop) next-version)))
                [])))
 
-(defn update-note [db {note-id :notes/id retract-tags :notes/tags!remove :as note}]
-  (when (ds/query db (istorage/->input {::storage/type ::api.notes/get-note
-                                        :notes/id      note-id}))
-    (into [(select-keys note #{:notes/id
-                               :notes/context
-                               :notes/body
-                               :notes/tags
-                               :notes/pinned?})]
-          (map (partial conj [:db/retract [:notes/id note-id] :notes/tags]))
-          retract-tags)))
-
 (defmethod istorage/->input ::api.notes/create!
   [note]
   [(select-keys note #{:notes/id
@@ -70,9 +59,14 @@
                        :notes/timestamp})])
 
 (defmethod istorage/->input ::api.notes/update!
-  [note]
-  [#?(:clj  `[update-note ~note]
-      :cljs [:db.fn/call update-note note])])
+  [{note-id :notes/id retract-tags :notes/tags!remove :as note}]
+  (into [(select-keys note #{:notes/id
+                             :notes/context
+                             :notes/body
+                             :notes/tags
+                             :notes/pinned?})]
+        (map (partial conj [:db/retract [:notes/id note-id] :notes/tags]))
+        retract-tags))
 
 (defmethod istorage/->input ::api.notes/delete!
   [{note-id :notes/id}]

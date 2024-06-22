@@ -47,12 +47,12 @@
          [:ul.navbar-start.oversize.tabs
           [navbar-item :routes.ui/home token
            "Home"]
+          [navbar-item :routes.ui/search token
+           "Search"]
           [navbar-item :routes.ui/buzz token
            "Buzz"
            (when (pos? buzzes)
              [:span.tag.is-info.space--left.is-rounded buzzes])]
-          [navbar-item :routes.ui/search token
-           "Search"]
           (when dev?
             [navbar-item :routes.ui/dev token
              "Dev"])]]]])))
