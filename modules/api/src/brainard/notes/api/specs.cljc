@@ -36,7 +36,6 @@
    [:notes/changes
     [:map
      [:notes/id {:optional true} [:map [:to uuid?]]]
-     [:notes/timestamp {:optional true} [:map [:to inst?]]]
      [:notes/context {:optional true} [:map
                                        [:from {:optional true} non-empty-trimmed-string]
                                        [:to {:optional true} non-empty-trimmed-string]]]

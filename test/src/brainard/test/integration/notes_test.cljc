@@ -8,29 +8,24 @@
     [brainard.api.storage.core :as storage]
     [brainard.test.system :as tsys]
     [clojure.test :refer [deftest is testing]]
-    brainard.infra.system)
-  (:import
-    (java.util Date)))
+    brainard.infra.system))
 
 (deftest save!-test
   (tsys/with-system [{::b/keys [storage]} nil]
     (testing "when saving a note"
-      (let [note-id (uuids/random)
-            date-time (Date.)]
+      (let [note-id (uuids/random)]
         (storage/execute! storage {::storage/type   ::api.notes/create!
                                    :notes/id        note-id
                                    :notes/body      "some body"
                                    :notes/context   "A Context"
                                    :notes/tags      #{:one :two :three}
-                                   :notes/pinned?   false
-                                   :notes/timestamp date-time})
+                                   :notes/pinned?   false})
         (testing "saves the note to datascript"
           (let [note (-> storage
                          (istorage/read {:query '[:find (pull ?e [:notes/id
                                                                   :notes/body
                                                                   :notes/context
-                                                                  :notes/tags
-                                                                  :notes/timestamp])
+                                                                  :notes/tags])
                                                   :in $ ?id
                                                   :where [?e :notes/id ?id]]
                                          :args  [note-id]})
@@ -39,8 +34,7 @@
             (is (= {:notes/id        note-id
                     :notes/body      "some body"
                     :notes/context   "A Context"
-                    :notes/tags      #{:one :two :three}
-                    :notes/timestamp date-time}
+                    :notes/tags      #{:one :two :three}}
                    note))))
         (testing "and when updating and retracting tags"
           (storage/execute! storage {::storage/type     ::api.notes/update!
@@ -53,8 +47,7 @@
                            (istorage/read {:query '[:find (pull ?e [:notes/id
                                                                     :notes/body
                                                                     :notes/context
-                                                                    :notes/tags
-                                                                    :notes/timestamp])
+                                                                    :notes/tags])
                                                     :in $ ?id
                                                     :where [?e :notes/id ?id]]
                                            :args  [note-id]})
@@ -63,8 +56,7 @@
               (is (= {:notes/id        note-id
                       :notes/body      "some body"
                       :notes/context   "different context"
-                      :notes/tags      #{:three :four :five :six}
-                      :notes/timestamp date-time}
+                      :notes/tags      #{:three :four :five :six}}
                      note)))))
         (testing "and when updating and pinning the note"
           (storage/execute! storage {::storage/type ::api.notes/update!
@@ -106,7 +98,9 @@
         (testing "and when querying notes"
           (testing "finds notes by context"
             (let [results (into #{}
-                                (map #(update % :notes/tags set))
+                                (map #(-> %
+                                          (update :notes/tags set)
+                                          (dissoc :notes/timestamp)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/context "a"}))]
               (is (= #{{:notes/id      id-1
@@ -118,7 +112,9 @@
                      results))))
           (testing "finds notes by tags"
             (let [results (into #{}
-                                (map #(update % :notes/tags set))
+                                (map #(-> %
+                                          (update :notes/tags set)
+                                          (dissoc :notes/timestamp)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/tags    #{:c :d}}))]
               (is (= #{{:notes/id      id-3
@@ -128,7 +124,9 @@
                      results))))
           (testing "finds notes by context and tags"
             (let [results (into #{}
-                                (map #(update % :notes/tags set))
+                                (map #(-> %
+                                          (update :notes/tags set)
+                                          (dissoc :notes/timestamp)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/context "b"
                                                         :notes/tags    #{:b}}))]
@@ -139,7 +137,9 @@
                      results))))
           (testing "finds pinned notes"
             (let [results (into #{}
-                                (map #(update % :notes/tags set))
+                                (map #(-> %
+                                          (update :notes/tags set)
+                                          (dissoc :notes/timestamp)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/pinned? true}))]
               (is (= #{{:notes/id      id-3

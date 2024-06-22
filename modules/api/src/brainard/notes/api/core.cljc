@@ -40,11 +40,12 @@
 (defn create!
   "Creates a note in the store and returns the created note."
   [notes-api note]
-  (let [note (-> note
-                 (clean-note (uuids/random))
-                 (assoc :notes/timestamp #?(:cljs (js/Date.) :default (Date.))))]
+  (let [note-id (uuids/random)
+        note (clean-note note note-id)]
     (storage/execute! (:store notes-api) (assoc note ::storage/type ::create!))
-    note))
+    (tag-set (storage/query (:store notes-api)
+                            {::storage/type ::get-note
+                             :notes/id      note-id}))))
 
 (defn get-tags
   "Retrieve all tags."
@@ -68,9 +69,8 @@
 (defn get-note
   "Find note by primary key."
   [notes-api note-id]
-  (some-> (storage/query (:store notes-api) {::storage/type ::get-note
-                                             :notes/id      note-id})
-          tag-set))
+  (tag-set (storage/query (:store notes-api) {::storage/type ::get-note
+                                              :notes/id      note-id})))
 
 (defn get-note-history [notes-api note-id]
   #?(:clj (storage/query (:store notes-api) {::storage/type ::get-note-history

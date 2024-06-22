@@ -105,7 +105,6 @@
               (let [response (http {:method :patch
                                     :uri    (str "/api/notes/" note1-id)
                                     :body   {:notes/id          "ignored"
-                                             :notes/timestamp   "ignored"
                                              :notes/tags        #{:two}
                                              :notes/tags!remove #{:one}
                                              :notes/pinned?     true}})
@@ -117,7 +116,7 @@
                           :notes/body      "body of note1"
                           :notes/tags      #{:three :two}
                           :notes/pinned?   true
-                          :notes/timestamp (:notes/timestamp note1)}
+                          :notes/timestamp (:notes/timestamp note)}
                          note)))
 
                 (testing "and when searching for pinned notes"
@@ -131,7 +130,7 @@
                                :notes/body      "body of note1"
                                :notes/tags      #{:three :two}
                                :notes/pinned?   true
-                               :notes/timestamp (:notes/timestamp note1)}]
+                               :notes/timestamp (:notes/timestamp note)}]
                              notes))))))
 
               (testing "and when attempting an invalid update"

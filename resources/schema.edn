@@ -21,11 +21,6 @@
   :db/valueType   :db.type/boolean
   :db/cardinality :db.cardinality/one
   :db/doc         "Is the note pinned to the workspace"}
- {:db/ident       :notes/timestamp
-  :db/valueType   :db.type/instant
-  :db/cardinality :db.cardinality/one
-  :db/noHistory   true
-  :db/doc         "The time the note was first recorded"}
 
  ;; schedules
  {:db/ident       :schedules/id

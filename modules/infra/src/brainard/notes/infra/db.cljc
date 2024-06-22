@@ -1,12 +1,11 @@
 (ns brainard.notes.infra.db
   (:require
     [brainard.api.storage.core :as-alias storage]
-    [brainard.infra.db.store :as ds]
     [brainard.notes.api.core :as api.notes]
     [brainard.api.storage.interfaces :as istorage]))
 
 (def ^:private select
-  '[:find (pull ?e [*])
+  '[:find (pull ?e [*]) (max ?at)
     :in $])
 
 (defn ^:private notes-query [{:notes/keys [context ids pinned? tags]}]
@@ -27,7 +26,11 @@
     (into (map (partial conj '[?e :notes/tags])) tags)
 
     pinned?
-    (conj ['?e :notes/pinned? true])))
+    (conj ['?e :notes/pinned? true])
+
+    :always
+    (conj '[?e _ _ ?tx]
+          '[?tx :db/txInstant ?at])))
 
 (defn ^:private prep-history [results]
   (->> results
@@ -55,8 +58,7 @@
                        :notes/context
                        :notes/body
                        :notes/tags
-                       :notes/pinned?
-                       :notes/timestamp})])
+                       :notes/pinned?})])
 
 (defmethod istorage/->input ::api.notes/update!
   [{note-id :notes/id retract-tags :notes/tags!remove :as note}]
@@ -88,15 +90,20 @@
   [params]
   {:query (notes-query params)
    :args  (some-> (:notes/ids params) vector)
-   :xform (map first)})
+   :xform (map (fn [[note timestamp]]
+                 (assoc note :notes/timestamp timestamp)))})
 
 (defmethod istorage/->input ::api.notes/get-note
   [{:notes/keys [id]}]
   {:query (into select '[?note-id
-                         :where [?e :notes/id ?note-id]])
+                         :where
+                         [?e :notes/id ?note-id]
+                         [?e _ _ ?tx]
+                         [?tx :db/txInstant ?at]])
    :args  [id]
    :only? true
-   :xform (map first)})
+   :xform (map (fn [[note timestamp]]
+                 (assoc note :notes/timestamp timestamp)))})
 
 (defmethod istorage/->input ::api.notes/get-note-history
   [{:notes/keys [id]}]
