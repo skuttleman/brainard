@@ -11,7 +11,8 @@
     [defacto.resources.core :as-alias res]
     [whet.utils.reagent :as r]))
 
-(defn ^:private ^:const ->sched-create-key [note] [::forms+/valid [::specs/schedules#create (:notes/id note)]])
+(defn ^:private ->sched-create-key [note]
+  [::forms+/valid [::specs/schedules#create (:notes/id note)]])
 
 (def ^:private ^:const month-options
   (into [[nil "(any)"]]
