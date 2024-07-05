@@ -121,7 +121,7 @@
          [comp/plain-button {:*:store  *:store
                              :class    ["is-small" "is-info"]
                              :commands [[:modals/create! history-modal]]}
-          "view"]]
+          "show"]]
         (into [:<>]
               (for [[k label] [[:notes/context "Context"]
                                [:notes/pinned? "Pin"]
