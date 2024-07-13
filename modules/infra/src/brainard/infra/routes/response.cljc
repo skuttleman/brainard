@@ -13,10 +13,8 @@
 
 (defn errors
   "Generates an error response body."
-  ([message]
-   (errors message nil))
-  ([message code]
-   (errors message code nil))
-  ([message code params]
+  ([code message]
+   (errors code message nil))
+  ([code message params]
    {:errors [(cond-> (assoc params :message message)
                code (assoc :code code))]}))

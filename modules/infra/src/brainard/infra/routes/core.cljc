@@ -10,8 +10,8 @@
     [brainard.infra.routes.response :as routes.res]
     [whet.core :as w]))
 
-(def ^:private ^:const not-found-api
-  (routes.res/->response 404 (routes.res/errors "Not found" :UNKNOWN_RESOURCE)))
+(def ^:private ^:const not-found-resource
+  (routes.res/->response 404 (routes.res/errors :UNKNOWN_RESOURCE "Not found")))
 
 #?(:clj
    (defn ^:private asset? [req]
@@ -31,13 +31,13 @@
   [{:keys [request-method] ::b/keys [apis input] :as req}]
   (let [response (when-let [handle (iroutes/route->handler (iroutes/router req))]
                    (if-let [result (api/invoke-api handle apis input)]
-                     (routes.res/->response (case request-method :post 201 200) {:data result})
+                     (routes.res/->response (if (= request-method :post) 201 200) {:data result})
                      (when (= request-method :delete) (routes.res/->response 204))))]
-    (or response not-found-api)))
+    (or response not-found-resource)))
 
 (defmethod iroutes/handler [:any :routes.api/not-found]
   [_]
-  (routes.res/->response 404 (routes.res/errors "Not found" :UNKNOWN_API)))
+  (routes.res/->response 404 (routes.res/errors :UNKNOWN_API "Not found")))
 
 (def handler
   "Main app handler"

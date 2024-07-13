@@ -6,7 +6,7 @@
 
 (defmethod defacto/event-reducer :modals/created
   [db [_ modal-id modal]]
-  (update db :modals/modals assoc modal-id modal))
+  (assoc-in db [:modals/modals modal-id] modal))
 
 (defmethod defacto/event-reducer :modals/displayed
   [db [_ modal-id]]

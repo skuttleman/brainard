@@ -14,8 +14,6 @@
     [whet.core :as-alias w]
     [whet.utils.reagent :as r]))
 
-(def ^:private ^:const form-id ::forms/search)
-
 (defn ^:private ->empty-form [{:keys [context] :as query-params} contexts tags]
   (cond-> {:notes/tags (into #{}
                              (comp (map keyword) (filter (set tags)))
@@ -42,8 +40,8 @@
 
 (defn ^:private search-form [{:keys [*:store form+] :as attrs} contexts tags]
   (let [form-data (forms/data form+)]
-    [ctrls/plain-form {:on-submit (fn [_]
-                                    (store/dispatch! *:store [::w/with-qp! form-data]))
+    [ctrls/plain-form {:on-submit   (fn [_]
+                                      (store/dispatch! *:store [::w/with-qp! form-data]))
                        :submit/body "Search"}
      [:div.layout--room-between
       [:div.flex-grow
@@ -52,7 +50,7 @@
        [tag-filter attrs tags]]]]))
 
 (defn ^:private root [*:store {:keys [anchor query-params]} [contexts tags]]
-  (r/with-let [form-key [::forms+/valid [::specs/notes#select form-id] query-params]
+  (r/with-let [form-key [::forms+/valid [::specs/notes#select ::forms/search] query-params]
                sub:form+ (let [loaded? (boolean (store/query *:store [::forms/?:form form-key]))]
                            (store/emit! *:store [::forms/created form-key
                                                  (->empty-form query-params contexts tags)])

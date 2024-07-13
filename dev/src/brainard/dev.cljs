@@ -31,10 +31,10 @@
 
 (defn ^:private with-dev [store]
   (set! *store* store)
-  #_(doto store
-    (store/dispatch! [::res/submit! [::specs/notes#buzz]])
-    (store/dispatch! [::res/submit! [::specs/tags#select]])
-    (store/dispatch! [::res/submit! [::specs/contexts#select]]))
+  #_(-> store
+      (store/dispatch! [::res/submit! [::specs/notes#buzz]])
+      (store/dispatch! [::res/submit! [::specs/tags#select]])
+      (store/dispatch! [::res/submit! [::specs/contexts#select]]))
   (doto store add-dev-logger!))
 
 (defn load!

@@ -2,7 +2,7 @@
   (:require
     [whet.core :as-alias w]))
 
-(def routing-hierarchy
+(def ^:private routing-hierarchy
   (-> (make-hierarchy)
       (derive :get :any)
       (derive :post :any)

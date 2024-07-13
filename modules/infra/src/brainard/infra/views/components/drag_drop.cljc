@@ -11,14 +11,10 @@
 (defn ^:private ->mouse-up [*:store sub:form on-drop]
   (fn [_]
     (let [form @sub:form
-          form-id (forms/id form)
           {::keys [drag-id target-id]} (forms/data form)]
       (when (and drag-id target-id)
         (on-drop drag-id target-id))
-      (store/emit! *:store [::forms/changed
-                            form-id
-                            [::drag-id]
-                            nil]))))
+      (store/emit! *:store [::forms/changed (forms/id form) [::drag-id] nil]))))
 
 (defn ^:private ->mouse-down [*:store form node-id]
   (fn [e]

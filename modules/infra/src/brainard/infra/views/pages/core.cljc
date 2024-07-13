@@ -35,9 +35,8 @@
 (defn ^:private navbar [*:store {:keys [token]}]
   (r/with-let [sub:buzz (store/subscribe *:store [::res/?:resource [::specs/notes#buzz]])]
     (let [resource @sub:buzz
-          buzzes (if (res/error? resource)
-                   0
-                   (count (res/payload resource)))]
+          buzzes (count (when (res/success? resource)
+                          (res/payload resource)))]
       [:nav.navbar
        {:role "navigation" :aria-label "main navigation"}
        [:div.navbar-start.layout--relative

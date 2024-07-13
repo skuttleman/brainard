@@ -16,11 +16,11 @@
     brainard.infra.store.queries))
 
 (defn ^:private store->tree [env route store]
-  (doto store
-    (defacto/dispatch! [::res/submit! [::specs/notes#buzz]])
-    (defacto/dispatch! [::res/submit! [::specs/tags#select]])
-    (defacto/dispatch! [::res/submit! [::specs/contexts#select]])
-    (defacto/emit! [::w/in-env (or env :prod)]))
+  (-> store
+      (defacto/dispatch! [::res/submit! [::specs/notes#buzz]])
+      (defacto/dispatch! [::res/submit! [::specs/tags#select]])
+      (defacto/dispatch! [::res/submit! [::specs/contexts#select]])
+      (defacto/emit! [::w/in-env (or env :prod)]))
   [pages/page store route])
 
 (def ^:private ^:const icon-lib
