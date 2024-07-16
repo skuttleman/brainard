@@ -20,6 +20,7 @@
       (derive :routes.api/contexts :routes/api)
       (derive :routes.api/workspace-nodes :routes/api)
       (derive :routes.api/workspace-node :routes/api)
+      (derive :routes.api/application :routes/api)
       (derive :routes.api/applications :routes/api)
 
       (derive :routes.resources/js :routes.resources/asset)
@@ -53,6 +54,7 @@
    [:delete :routes.api/workspace-node] :api.workspace-nodes/delete!
    [:patch :routes.api/workspace-node]  :api.workspace-nodes/update!
 
+   [:get :routes.api/application] :api.applications/fetch
    [:post :routes.api/applications] :api.applications/create!})
 
 (defn router [{:keys [request-method] ::w/keys [route]}]

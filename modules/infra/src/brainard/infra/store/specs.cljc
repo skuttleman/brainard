@@ -227,12 +227,19 @@
          spec))
 
 (let [vld (valid/->validator sapps/create)]
-  (defmethod forms+/validate ::app#new [_ data] (vld data)))
-(defmethod res/->request-spec ::app#new
+  (defmethod forms+/validate ::apps#new [_ data] (vld data)))
+(defmethod res/->request-spec ::apps#new
   [_ {::forms/keys [data] :as spec}]
   (->req {:route        :routes.api/applications
           :method       :post
           :body         data
           :err-commands [[:toasts/fail!]]
           :ok-commands  [[:toasts.applications/succeed!]]}
+         spec))
+
+(defmethod res/->request-spec ::apps#find
+  [[_ resource-id] spec]
+  (->req {:route  :routes.api/application
+          :method :get
+          :params {:applications/id resource-id}}
          spec))

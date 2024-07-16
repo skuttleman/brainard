@@ -15,3 +15,7 @@
     (storage/query (:store apps-api)
                    {::storage/type   ::get-app
                     :applications/id app-id})))
+
+(defn fetch [apps-api app-id]
+  (storage/query (:store apps-api) {::storage/type   ::get-app
+                                    :applications/id app-id}))
