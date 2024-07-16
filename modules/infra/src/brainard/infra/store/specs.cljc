@@ -1,6 +1,7 @@
 (ns brainard.infra.store.specs
   (:require
     [brainard.api.validations :as valid]
+    [brainard.applications.api.specs :as sapps]
     [brainard.notes.api.specs :as snotes]
     [brainard.schedules.api.specs :as ssched]
     [brainard.workspace.api.specs :as sws]
@@ -223,4 +224,15 @@
           :method       :delete
           :params       {:workspace-nodes/id resource-id}
           :err-commands [[:toasts/fail!]]}
+         spec))
+
+(let [vld (valid/->validator sapps/create)]
+  (defmethod forms+/validate ::app#new [_ data] (vld data)))
+(defmethod res/->request-spec ::app#new
+  [_ {::forms/keys [data] :as spec}]
+  (->req {:route        :routes.api/applications
+          :method       :post
+          :body         data
+          :err-commands [[:toasts/fail!]]
+          :ok-commands  [[:toasts.applications/succeed!]]}
          spec))

@@ -5,7 +5,7 @@
     [brainard.api.storage.interfaces :as istorage]))
 
 (def ^:private select
-  '[:find (pull ?e [*]) (max ?at)
+  '[:find (pull ?e [*]) (min ?at)
     :in $])
 
 (defn ^:private notes-query [{:notes/keys [context ids pinned? tags]}]

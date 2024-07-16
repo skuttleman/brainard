@@ -1,6 +1,7 @@
 (ns brainard.api.core
   (:require
     [brainard.api.validations :as valid]
+    [brainard.applications.api.core :as api.apps]
     [brainard.api.utils.logger :as log]
     [brainard.notes.api.core :as api.notes]
     [brainard.schedules.api.core :as api.sched]
@@ -76,6 +77,10 @@
 (defmethod invoke-api* :api.workspace-nodes/update!
   [_ apis node]
   (api.ws/update! (:workspace apis) (:workspace-nodes/id node) node))
+
+(defmethod invoke-api* :api.applications/create!
+  [_ apis app]
+  (api.apps/create! (:applications apis) app))
 
 (def ^:private missing-spec
   (memoize (fn [api]

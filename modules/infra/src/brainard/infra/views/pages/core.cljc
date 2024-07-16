@@ -8,6 +8,8 @@
     [defacto.resources.core :as res]
     [whet.core :as w]
     [whet.utils.reagent :as r]
+    brainard.infra.views.pages.application
+    brainard.infra.views.pages.applications
     brainard.infra.views.pages.buzz
     brainard.infra.views.pages.home
     brainard.infra.views.pages.note
@@ -49,7 +51,9 @@
           [navbar-item :routes.ui/buzz token
            "Buzz"
            (when (pos? buzzes)
-             [:span.tag.is-info.space--left.is-rounded buzzes])]]]]])))
+             [:span.tag.is-info.space--left.is-rounded buzzes])]
+          [navbar-item :routes.ui/applications token
+           "Applications"]]]]])))
 
 (defn page [*:store route]
   [:div.container

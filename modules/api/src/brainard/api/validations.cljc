@@ -1,6 +1,7 @@
 (ns brainard.api.validations
   "Specs for data that flows through the system."
   (:require
+    [brainard.applications.api.specs :as sapps]
     [brainard.notes.api.specs :as snotes]
     [brainard.schedules.api.specs :as ssched]
     [brainard.workspace.api.specs :as sws]
@@ -20,7 +21,9 @@
 
    :api.workspace-nodes/create! sws/create
    :api.workspace-nodes/delete! [:map [:workspace-nodes/id uuid?]]
-   :api.workspace-nodes/update! sws/modify})
+   :api.workspace-nodes/update! sws/modify
+
+   :api.applications/create!    sapps/create})
 
 (def output-specs
   {:api.notes/select                [:sequential snotes/full]

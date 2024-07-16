@@ -96,4 +96,53 @@
   :db/cardinality :db.cardinality/many
   :db/isComponent true
   :db/noHistory   true
-  :db/doc         "The node's children"}]
+  :db/doc         "The node's children"}
+
+ ;; applications
+ {:db/ident       :applications/id
+  :db/valueType   :db.type/uuid
+  :db/cardinality :db.cardinality/one
+  :db/unique      :db.unique/identity
+  :db/noHistory   true
+  :db/doc         "The external id of the application"}
+ {:db/ident       :applications/state
+  :db/valueType   :db.type/keyword
+  :db/cardinality :db.cardinality/one
+  :db/noHistory   true
+  :db/doc         "The state of the application"}
+ {:db/ident       :applications/job-title
+  :db/valueType   :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/noHistory   true
+  :db/doc         "The application's associated job title"}
+ {:db/ident       :applications/details
+  :db/valueType   :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/noHistory   true
+  :db/doc         "The application's miscellaneous details"}
+ {:db/ident       :applications/company
+  :db/valueType   :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/isComponent true
+  :db/noHistory   true
+  :db/doc         "The application's company info"}
+ {:db/ident       :companies/name
+  :db/valueType   :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/noHistory   true
+  :db/doc         "The application company's name"}
+ {:db/ident       :companies/website
+  :db/valueType   :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/noHistory   true
+  :db/doc         "The application company's website"}
+ {:db/ident       :companies/location
+  :db/valueType   :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/noHistory   true
+  :db/doc         "The application company's primary location"}
+ {:db/ident       :companies/details
+  :db/valueType   :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/noHistory   true
+  :db/doc         "The application company's details"}]

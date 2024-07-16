@@ -87,3 +87,18 @@
     (emit-cb [:toasts/created toast-id {:state :init
                                         :level :success
                                         :body  body}])))
+
+(defmethod defacto/command-handler :toasts.applications/succeed!
+  [_ [_ app] emit-cb]
+  (let [toast-id (->sortable-id)
+        body [:span.layout--align-center
+              [:span.layout--space-after
+               "a"]
+              [comp/link {:class        ["layout--space-after"]
+                          :token        :routes.ui/application
+                          :route-params (select-keys app #{:applications/id})}
+               "new application"]
+              "was created"]]
+    (emit-cb [:toasts/created toast-id {:state :init
+                                        :level :success
+                                        :body  body}])))
