@@ -1,6 +1,7 @@
 (ns brainard.applications.api.core
-  (:require [brainard.api.storage.core :as storage]
-            [brainard.api.utils.uuids :as uuids]))
+  (:require
+    [brainard.api.storage.core :as storage]
+    [brainard.api.utils.uuids :as uuids]))
 
 (defn create! [apps-api app]
   (let [app-id (uuids/random)
@@ -19,3 +20,7 @@
 (defn fetch [apps-api app-id]
   (storage/query (:store apps-api) {::storage/type   ::get-app
                                     :applications/id app-id}))
+
+(defn select [apps-api]
+  (->> (storage/query (:store apps-api) {::storage/type ::get-apps})
+       (sort-by :applications/updated-at #(compare %2 %1))))

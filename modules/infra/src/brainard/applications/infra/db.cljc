@@ -20,3 +20,13 @@
    :args  [app-id]
    :only? true
    :xform (map first)})
+
+(defmethod istorage/->input ::api.apps/get-apps
+  [_]
+  {:query '[:find (pull ?e [*]) (max ?at)
+            :where
+            [?e :applications/id _]
+            [?e _ _ ?tx]
+            [?tx :db/txInstant ?at]]
+   :xform (map (fn [[app updated-at]]
+                 (assoc app :applications/updated-at updated-at)))})

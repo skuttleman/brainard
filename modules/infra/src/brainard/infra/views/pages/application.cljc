@@ -7,7 +7,7 @@
     [defacto.resources.core :as-alias res]
     [whet.utils.reagent :as r]))
 
-(defn ^:private application [{:applications/keys [company] :as app}]
+(defn ^:private details [{:applications/keys [company] :as app}]
   [:div
    [:h2.subtitle "Application Details"]
    [:div.layout--row
@@ -27,7 +27,8 @@
 
 (defn ^:private root [*:store app]
   [:div
-   [application app]])
+   [details app]
+   [:div.button-row]])
 
 (defmethod ipages/page :routes.ui/application
   [*:store {:keys [route-params]}]

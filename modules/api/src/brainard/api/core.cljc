@@ -86,6 +86,10 @@
   [_ apis {app-id :applications/id}]
   (api.apps/fetch (:applications apis) app-id))
 
+(defmethod invoke-api* :api.applications/select
+  [_ apis _]
+  (api.apps/select (:applications apis)))
+
 (def ^:private missing-spec
   (memoize (fn [api]
              (log/warn "no input-spec defined for API:" api))))

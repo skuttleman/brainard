@@ -6,7 +6,8 @@
     [whet.utils.navigation :as nav]
     [clojure.core.async :as async]
     [defacto.core :as defacto]
-    [whet.core :as w]))
+    [defacto.resources.core :as res]
+    [whet.core :as-alias w]))
 
 (defonce ^:private ->sortable-id
   (let [id (atom 0)]
@@ -17,6 +18,15 @@
   [{::defacto/keys [store] ::w/keys [nav]} [_ query-params] _]
   (let [{:keys [token route-params]} (store/query store [::w/?:route])]
     (nav/navigate! nav token route-params query-params)))
+
+(defmethod defacto/command-handler ::res/re-succeed!
+  [{::defacto/keys [store]} [_ resource-key data] emit-cb]
+  (let [res (store/query store [::res/?:resource resource-key])]
+    (when (res/success? res)
+      (async/go
+        (emit-cb [::res/submitted resource-key])
+        (async/<! (async/timeout 1))
+        (emit-cb [::res/succeeded resource-key data])))))
 
 (defmethod defacto/command-handler :nav/navigate!
   [{::w/keys [nav]} [_ {:keys [token query-params route-params]}]]

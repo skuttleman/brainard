@@ -112,7 +112,7 @@
                               (merge (diff-tags prev-tags (:notes/tags note))))
             :ok-events    [[::res/destroyed resource-key]]
             :ok-commands  [[:toasts/succeed! {:message "previous version of note was reinstated"}]
-                           [::res/submit! [::notes#find note-id]]
+                           [::res/re-succeed! [::notes#find note-id]]
                            [::res/submit! [::note#history note-id]]]
             :err-commands [[:toasts/fail!]]}
            spec)))
@@ -235,6 +235,12 @@
           :body         data
           :err-commands [[:toasts/fail!]]
           :ok-commands  [[:toasts.applications/succeed!]]}
+         spec))
+
+(defmethod res/->request-spec ::apps#select
+  [_ spec]
+  (->req {:route  :routes.api/applications
+          :method :get}
          spec))
 
 (defmethod res/->request-spec ::apps#find

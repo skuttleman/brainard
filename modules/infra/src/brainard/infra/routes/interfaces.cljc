@@ -54,8 +54,9 @@
    [:delete :routes.api/workspace-node] :api.workspace-nodes/delete!
    [:patch :routes.api/workspace-node]  :api.workspace-nodes/update!
 
-   [:get :routes.api/application] :api.applications/fetch
-   [:post :routes.api/applications] :api.applications/create!})
+   [:get :routes.api/application]       :api.applications/fetch
+   [:get :routes.api/applications]      :api.applications/select
+   [:post :routes.api/applications]     :api.applications/create!})
 
 (defn router [{:keys [request-method] ::w/keys [route]}]
   [request-method (:token route)])

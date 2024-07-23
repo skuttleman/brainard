@@ -8,6 +8,7 @@
     [brainard.infra.views.pages.interfaces :as ipages]
     [defacto.forms.core :as-alias forms]
     [defacto.forms.plus :as-alias forms+]
+    [defacto.resources.core :as-alias res]
     [whet.utils.reagent :as r]))
 
 (def ^:private ^:const new-app-form-key
@@ -57,10 +58,37 @@
     (finally
       (store/emit! *:store [::forms+/destroyed new-app-form-key]))))
 
+(defn ^:private app-list [*:store apps]
+  [:ul.applications.layout--stack-between
+   (for [{app-id :applications/id :as app} apps]
+     ^{:key app-id}
+     [:li.layout--space-between
+      [:div.layout--room-between
+       [:span
+        (-> app :applications/company :companies/name)]
+       [:span
+        (-> app :applications/state name)]]
+      [comp/link {:class        ["button" "is-link" "is-small"]
+                  :token        :routes.ui/application
+                  :route-params {:applications/id app-id}}
+       "view"]])])
+
+(defn ^:private root [*:store apps]
+  [:div.layout--stack-between
+   [:div
+    [comp/plain-button
+     {:*:store  *:store
+      :class    ["is-info"]
+      :commands [[:modals/create! [::modal]]]}
+     "New application"]]
+   (when (seq apps)
+     [app-list *:store apps])])
+
 (defmethod ipages/page :routes.ui/applications
   [*:store _]
-  [comp/plain-button
-   {:*:store  *:store
-    :class    ["is-info"]
-    :commands [[:modals/create! [::modal]]]}
-   "Create application"])
+  (r/with-let [sub:apps (-> *:store
+                            (store/dispatch! [::res/ensure! [::specs/apps#select]])
+                            (store/subscribe [::res/?:resource [::specs/apps#select]]))]
+    [comp/with-resource sub:apps [root *:store]]
+    (finally
+      (store/emit! *:store [::res/destroyed [::specs/apps#select]]))))
