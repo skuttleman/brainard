@@ -59,11 +59,9 @@
 
 (defn ^:private pinned [*:store route-info [tags pinned-notes]]
   (r/with-let [sub:form (-> *:store
-                            (store/dispatch! [::forms/ensure!
-                                              [::expanded-group]
-                                              {::expanded    (-> route-info :query-params :expanded)
-                                               ::tag-filters #{}}])
-                            (store/subscribe [::forms/?:form [::expanded-group]])
+                            (store/form-sub [::expanded-group]
+                                            {::expanded    (-> route-info :query-params :expanded)
+                                             ::tag-filters #{}})
                             (doto (add-watch ::change (expanded-change *:store route-info))))]
     (let [form @sub:form
           {::keys [expanded tag-filters]} (forms/data form)

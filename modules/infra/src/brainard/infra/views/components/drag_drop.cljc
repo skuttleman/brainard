@@ -99,9 +99,7 @@
 
 (defn control [{:keys [*:store id on-drop] :as attrs} nodes]
   (r/with-let [form-id [::form id]
-               sub:form (-> *:store
-                            (store/emit! [::forms/created form-id])
-                            (store/subscribe [::forms/?:form form-id]))
+               sub:form (store/form-sub *:store form-id nil)
                *:pos (r/atom {:x 0 :y 0})
                mouse-move (dom/add-listener! dom/window :mousemove (->mouse-move *:store *:pos sub:form))
                mouse-up (dom/add-listener! dom/window :mouseup (->mouse-up *:store sub:form on-drop))]
