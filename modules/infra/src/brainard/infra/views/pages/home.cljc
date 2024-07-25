@@ -171,9 +171,7 @@
 
 (defmethod icomp/modal-body ::edit!
   [*:store {:keys [init-data resource-key]}]
-  (r/with-let [sub:form+ (-> *:store
-                             (store/dispatch! [::forms/ensure! resource-key init-data])
-                             (store/subscribe [::forms+/?:form+ resource-key]))]
+  (r/with-let [sub:form+ (store/form+-sub *:store resource-key init-data)]
     (let [form+ @sub:form+]
       [ctrls/form {:*:store      *:store
                    :form+        form+
@@ -199,13 +197,9 @@
 
 (defmethod ipages/page :routes.ui/home
   [*:store route-info]
-  (r/with-let [sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
-               sub:pinned (-> *:store
-                              (store/dispatch! [::res/ensure! [::specs/notes#pinned]])
-                              (store/subscribe [::res/?:resource [::specs/notes#pinned]]))
-               sub:tree (-> *:store
-                            (store/dispatch! [::res/ensure! fetch-ws-key])
-                            (store/subscribe [::res/?:resource fetch-ws-key]))]
+  (r/with-let [sub:tags (store/res-sub *:store [::specs/tags#select])
+               sub:pinned (store/res-sub *:store [::specs/notes#pinned])
+               sub:tree (store/res-sub *:store fetch-ws-key)]
     [:div.layout--stack-between
      [comp/with-resource sub:tree [workspace *:store]]
      [comp/with-resources [sub:tags sub:pinned] [pinned *:store route-info]]]

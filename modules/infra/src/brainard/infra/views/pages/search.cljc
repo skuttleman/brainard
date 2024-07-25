@@ -10,7 +10,6 @@
     [brainard.notes.infra.views :as notes.views]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
-    [defacto.resources.core :as res]
     [whet.core :as-alias w]
     [whet.utils.reagent :as r]))
 
@@ -51,14 +50,13 @@
 
 (defn ^:private root [*:store {:keys [anchor query-params]} [contexts tags]]
   (r/with-let [form-key [::forms+/valid [::specs/notes#select ::forms/search] query-params]
-               sub:form+ (let [loaded? (boolean (store/query *:store [::forms/?:form form-key]))]
-                           (-> *:store
-                               (store/dispatch! [::forms/ensure!
-                                                 form-key
-                                                 (->empty-form query-params contexts tags)])
-                               (cond-> (and (not loaded?) (seq query-params))
-                                       (store/dispatch! [::forms+/submit! form-key]))
-                               (store/subscribe [::forms+/?:form+ form-key])))]
+               sub:form+ (let [loaded? (boolean (store/query *:store [::forms/?:form form-key]))
+                               sub (store/form+-sub *:store
+                                                    form-key
+                                                    (->empty-form query-params contexts tags))]
+                           (when (and (not loaded?) (seq query-params))
+                             (store/dispatch! *:store [::forms+/submit! form-key]))
+                           sub)]
     [:div.layout--stack-between
      [search-form {:*:store      *:store
                    :form+        @sub:form+
@@ -73,8 +71,8 @@
 
 (defmethod ipages/page :routes.ui/search
   [*:store {:keys [query-params] :as route-info}]
-  (r/with-let [sub:contexts (store/subscribe *:store [::res/?:resource [::specs/contexts#select]])
-               sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])]
+  (r/with-let [sub:contexts (store/res-sub *:store [::specs/contexts#select])
+               sub:tags (store/res-sub *:store [::specs/tags#select])]
     [comp/with-resources [sub:contexts sub:tags]
      ^{:key (pr-str query-params)}
      [root *:store route-info]]))

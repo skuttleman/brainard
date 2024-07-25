@@ -81,7 +81,7 @@
 (defn ^:private diff-tags [old curr]
   (let [removals (set/difference old curr)]
     {:notes/tags!remove removals
-     :notes/tags        curr}))
+     :notes/tags        (or curr #{})}))
 
 (defmethod forms+/re-init ::notes#update [_ _ result] result)
 (defmethod res/->request-spec ::notes#update

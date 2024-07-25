@@ -33,9 +33,7 @@
 (defmethod ipages/page :routes.ui/application
   [*:store {:keys [route-params]}]
   (r/with-let [app-id (:applications/id route-params)
-               sub:app (-> *:store
-                           (store/dispatch! [::res/ensure! [::specs/apps#find app-id]])
-                           (store/subscribe [::res/?:resource [::specs/apps#find app-id]]))]
+               sub:app (store/res-sub *:store [::specs/apps#find app-id])]
     [comp/with-resource sub:app [root *:store]]
     (finally
       (store/emit! *:store [::res/destroyed [::specs/apps#find app-id]]))))

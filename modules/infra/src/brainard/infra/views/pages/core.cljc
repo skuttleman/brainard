@@ -35,7 +35,7 @@
          body)])
 
 (defn ^:private navbar [*:store {:keys [token]}]
-  (r/with-let [sub:buzz (store/subscribe *:store [::res/?:resource [::specs/notes#buzz]])]
+  (r/with-let [sub:buzz (store/res-sub *:store [::specs/notes#buzz])]
     (let [resource @sub:buzz
           buzzes (count (when (res/success? resource)
                           (res/payload resource)))]

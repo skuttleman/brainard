@@ -72,11 +72,9 @@
 
 (defmethod icomp/modal-body ::modal
   [*:store {modal-id :modals/id :modals/keys [close!] :keys [init params resource-key]}]
-  (r/with-let [sub:form+ (-> *:store
-                             (store/dispatch! [::forms/ensure! resource-key init])
-                             (store/subscribe [::forms+/?:form+ resource-key]))
-               sub:contexts (store/subscribe *:store [::res/?:resource [::specs/contexts#select]])
-               sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])
+  (r/with-let [sub:form+ (store/form+-sub *:store resource-key init)
+               sub:contexts (store/res-sub *:store [::specs/contexts#select])
+               sub:tags (store/res-sub *:store [::specs/tags#select])
                params (update params :ok-commands conj [:modals/remove! modal-id])]
     [:div {:style {:min-width "50vw"}}
      [note-form {:*:store      *:store

@@ -24,9 +24,7 @@
 
 (defn ^:private pin-toggle [*:store note]
   (r/with-let [init-form (select-keys note #{:notes/id :notes/pinned?})
-               sub:form+ (-> *:store
-                             (store/dispatch! [::forms/ensure! pin-note-key init-form])
-                             (store/subscribe [::forms+/?:form+ pin-note-key]))]
+               sub:form+ (store/form+-sub *:store pin-note-key init-form)]
     (let [form+ @sub:form+]
       [:div
        [ctrls/form {:*:store      *:store
@@ -87,9 +85,7 @@
 (defmethod ipages/page :routes.ui/note
   [*:store {{note-id :notes/id} :route-params}]
   (let [resource-key [::specs/notes#find note-id]]
-    (r/with-let [sub:note (-> *:store
-                              (store/dispatch! [::res/ensure! resource-key])
-                              (store/subscribe [::res/?:resource resource-key]))]
+    (r/with-let [sub:note (store/res-sub *:store resource-key)]
       (let [resource @sub:note]
         (cond
           (res/success? resource)

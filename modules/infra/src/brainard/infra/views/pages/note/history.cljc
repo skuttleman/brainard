@@ -66,11 +66,11 @@
        "reinstate"]])])
 
 (defn ^:private note-history [*:store reconstruction entries]
-  (let [entry-count (count entries)
+  (let [last-idx (dec (count entries))
         prev-tags (:notes/tags (get reconstruction (:notes/history-id (last entries))))]
     [:ul.note-history
      (for [[idx {:notes/keys [changes history-id saved-at]}] (map-indexed vector entries)
-           :let [history-modal [::view {:last?     (= idx (dec entry-count))
+           :let [history-modal [::view {:last?     (= idx last-idx)
                                         :note      (get reconstruction history-id)
                                         :prev-tags prev-tags}]]]
        ^{:key history-id}
@@ -83,7 +83,7 @@
                              :commands [[:modals/create! history-modal]]}
           "show"]]
         (into [:<>]
-              (for [[k label] [[:notes/context "Context"]
+              (for [[k label] [[:notes/context "Topic"]
                                [:notes/pinned? "Pin"]
                                [:notes/body "Body"]
                                [:notes/tags "Tags"]]
@@ -98,9 +98,7 @@
 (defmethod icomp/modal-body ::modal
   [*:store {{note-id :notes/id} :note}]
   (r/with-let [spec [::specs/note#history note-id]
-               sub:history (-> *:store
-                               (store/dispatch! [::res/submit! spec])
-                               (store/subscribe [::res/?:resource spec]))
+               sub:history (store/res-sub *:store spec)
                sub:recon (store/subscribe *:store [:notes.history/?:reconstruction spec])]
     [comp/with-resource sub:history [note-history *:store @sub:recon]]
     (finally
