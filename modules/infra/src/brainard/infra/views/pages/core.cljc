@@ -12,7 +12,7 @@
     brainard.infra.views.pages.applications
     brainard.infra.views.pages.buzz
     brainard.infra.views.pages.home
-    brainard.infra.views.pages.note
+    brainard.infra.views.pages.note.core
     brainard.infra.views.pages.search))
 
 (defmethod ipages/page :default
