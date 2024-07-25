@@ -172,7 +172,7 @@
 (defmethod icomp/modal-body ::edit!
   [*:store {:keys [init-data resource-key]}]
   (r/with-let [sub:form+ (-> *:store
-                             (store/emit! [::forms/created resource-key init-data])
+                             (store/dispatch! [::forms/ensure! resource-key init-data])
                              (store/subscribe [::forms+/?:form+ resource-key]))]
     (let [form+ @sub:form+]
       [ctrls/form {:*:store      *:store

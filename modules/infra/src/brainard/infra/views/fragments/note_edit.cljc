@@ -73,7 +73,7 @@
 (defmethod icomp/modal-body ::modal
   [*:store {modal-id :modals/id :modals/keys [close!] :keys [init params resource-key]}]
   (r/with-let [sub:form+ (-> *:store
-                             (store/emit! [::forms/created resource-key init])
+                             (store/dispatch! [::forms/ensure! resource-key init])
                              (store/subscribe [::forms+/?:form+ resource-key]))
                sub:contexts (store/subscribe *:store [::res/?:resource [::specs/contexts#select]])
                sub:tags (store/subscribe *:store [::res/?:resource [::specs/tags#select]])

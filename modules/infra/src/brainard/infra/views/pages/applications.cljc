@@ -42,10 +42,10 @@
 (defmethod icomp/modal-body ::modal
   [*:store {modal-id :modals/id :modals/keys [close!]}]
   (r/with-let [sub:form+ (-> *:store
-                             (store/emit! [::forms/created
-                                           new-app-form-key
-                                           {:applications/company {::present? true}}
-                                           {:remove-nil? true}])
+                             (store/dispatch! [::forms/ensure!
+                                               new-app-form-key
+                                               {:applications/company {::present? true}}
+                                               {:remove-nil? true}])
                              (store/subscribe [::forms+/?:form+ new-app-form-key]))]
     [:div {:style {:min-width "50vw"}}
      [app-form {:*:store      *:store

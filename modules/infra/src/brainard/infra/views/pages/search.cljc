@@ -52,11 +52,13 @@
 (defn ^:private root [*:store {:keys [anchor query-params]} [contexts tags]]
   (r/with-let [form-key [::forms+/valid [::specs/notes#select ::forms/search] query-params]
                sub:form+ (let [loaded? (boolean (store/query *:store [::forms/?:form form-key]))]
-                           (store/emit! *:store [::forms/created form-key
+                           (-> *:store
+                               (store/dispatch! [::forms/ensure!
+                                                 form-key
                                                  (->empty-form query-params contexts tags)])
-                           (when (and (not loaded?) (seq query-params))
-                             (store/dispatch! *:store [::forms+/submit! form-key]))
-                           (store/subscribe *:store [::forms+/?:form+ form-key]))]
+                               (cond-> (and (not loaded?) (seq query-params))
+                                       (store/dispatch! [::forms+/submit! form-key]))
+                               (store/subscribe [::forms+/?:form+ form-key])))]
     [:div.layout--stack-between
      [search-form {:*:store      *:store
                    :form+        @sub:form+

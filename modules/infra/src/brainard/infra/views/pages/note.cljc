@@ -9,7 +9,6 @@
     [brainard.infra.views.components.interfaces :as icomp]
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.pages.interfaces :as ipages]
-    [brainard.notes.infra.views :as notes.views]
     [brainard.schedules.infra.views :as sched.views]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
@@ -46,10 +45,6 @@
                                (ctrls/with-attrs form+ [:notes/pinned?]))]]])
     (finally
       (store/emit! *:store [::forms+/destroyed pin-note-key]))))
-
-(defmethod icomp/modal-header ::history
-  [_ _]
-  "Note's change history")
 
 (defn ^:private history-change [label {:keys [added from removed to]}]
   [:div.layout--row
@@ -129,6 +124,10 @@
                     :when change]
                 [history-change label change]))])]))
 
+(defmethod icomp/modal-header ::history
+  [_ _]
+  "Note's change history")
+
 (defmethod icomp/modal-body ::history
   [*:store {{note-id :notes/id} :note}]
   (r/with-let [spec [::specs/note#history note-id]
@@ -157,30 +156,27 @@
     :resource-key update-note-key}])
 
 (defn ^:private root [*:store note]
-  (r/with-let [delete-modal (->delete-modal note)
-               edit-modal (->edit-modal note)
-               history-modal [::history {:note note}]]
-    [:div.layout--stack-between
-     [:div.layout--row
-      [:h1.layout--space-after.flex-grow [:strong (:notes/context note)]]
-      [pin-toggle *:store note]]
-     [comp/markdown (:notes/body note)]
-     [tag-list note]
-     [:div.layout--space-between
-      [:div.button-row
-       [comp/plain-button {:*:store  *:store
-                           :class    ["is-info"]
-                           :commands [[:modals/create! edit-modal]]}
-        "Edit"]
-       [comp/plain-button {:*:store  *:store
-                           :class    ["is-danger"]
-                           :commands [[:modals/create! delete-modal]]}
-        "Delete note"]]
-      [comp/plain-button {:*:store  *:store
-                          :class    ["is-light"]
-                          :commands [[:modals/create! history-modal]]}
-       "View history"]]
-     [sched.views/schedule-editor *:store note]]))
+  [:div.layout--stack-between
+   [:div.layout--row
+    [:h1.layout--space-after.flex-grow [:strong (:notes/context note)]]
+    [pin-toggle *:store note]]
+   [comp/markdown (:notes/body note)]
+   [tag-list note]
+   [:div.layout--space-between
+    [:div.button-row
+     [comp/plain-button {:*:store  *:store
+                         :class    ["is-info"]
+                         :commands [[:modals/create! (->edit-modal note)]]}
+      "Edit"]
+     [comp/plain-button {:*:store  *:store
+                         :class    ["is-danger"]
+                         :commands [[:modals/create! (->delete-modal note)]]}
+      "Delete note"]]
+    [comp/plain-button {:*:store  *:store
+                        :class    ["is-light"]
+                        :commands [[:modals/create! [::history {:note note}]]]}
+     "View history"]]
+   [sched.views/schedule-editor *:store note]])
 
 (defmethod ipages/page :routes.ui/note
   [*:store {:keys [route-params]}]
