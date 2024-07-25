@@ -97,9 +97,9 @@
 
 (defmethod icomp/modal-body ::modal
   [*:store {{note-id :notes/id} :note}]
-  (r/with-let [spec [::specs/note#history note-id]
-               sub:history (store/res-sub *:store spec)
-               sub:recon (store/subscribe *:store [:notes.history/?:reconstruction spec])]
+  (r/with-let [spec-key [::specs/note#history note-id]
+               sub:history (store/res-sub *:store spec-key)
+               sub:recon (store/subscribe *:store [:notes.history/?:reconstruction spec-key])]
     [comp/with-resource sub:history [note-history *:store @sub:recon]]
     (finally
-      (store/emit! *:store [::res/destroyed spec]))))
+      (store/emit! *:store [::res/destroyed spec-key]))))
