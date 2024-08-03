@@ -1,4 +1,4 @@
-(ns brainard.infra.views.pages.home
+(ns brainard.infra.views.pages.home.core
   (:require
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as specs]
@@ -6,8 +6,8 @@
     [brainard.infra.views.components.drag-drop :as dnd]
     [brainard.infra.views.components.interfaces :as icomp]
     [brainard.infra.views.controls.core :as ctrls]
-    [brainard.infra.views.fragments.note-edit :as note-edit]
     [brainard.infra.views.pages.interfaces :as ipages]
+    [brainard.infra.views.pages.home.actions :as home.act]
     [brainard.notes.infra.views :as notes.views]
     [clojure.set :as set]
     [clojure.walk :as walk]
@@ -16,13 +16,6 @@
     [defacto.resources.core :as res]
     [whet.utils.reagent :as r]
     [workspace-nodes :as-alias ws]))
-
-(def ^:private ^:const create-note-key [::forms+/valid [::specs/notes#create]])
-(def ^:private ^:const fetch-ws-key [::specs/workspace#select])
-(def ^:private ^:const create-ws-node-key [::forms+/valid [::specs/workspace#create]])
-(defn ^:private ->modify-node-key [node-id] [::forms+/valid [::specs/workspace#modify node-id]])
-
-(defmulti ^:private drag-item (fn [_ attrs _] (:type attrs)))
 
 (defn ^:private collapsible [{:keys [*:store expanded? expand]} label & content]
   (cond-> [:div [:div.layout--row
@@ -44,38 +37,19 @@
                                :options-by-id options-by-id}
                               (ctrls/with-attrs form [::tag-filters]))]))
 
-(defn ^:private expanded-change [*:store route-info]
-  (fn [_ _ old new]
-    (let [old-expanded (::expanded (forms/data old))
-          new-expanded (::expanded (forms/data new))
-          next-route (when (not= old-expanded new-expanded)
-                       (assoc route-info :query-params (if new-expanded
-                                                         {:expanded new-expanded}
-                                                         {})))]
-      (when next-route
-        (store/dispatch! *:store [:nav/replace! next-route])))))
-
-
-
 (defn ^:private pinned [*:store route-info [tags pinned-notes]]
   (r/with-let [sub:form (-> *:store
                             (store/form-sub [::expanded-group]
                                             {::expanded    (-> route-info :query-params :expanded)
                                              ::tag-filters #{}})
-                            (doto (add-watch ::change (expanded-change *:store route-info))))]
+                            (doto (add-watch ::change (home.act/expanded-change *:store route-info))))]
     (let [form @sub:form
           {::keys [expanded tag-filters]} (forms/data form)
           form-id (forms/id form)
           filtered-notes (filter (fn [{:notes/keys [tags]}]
                                    (set/subset? tag-filters tags))
                                  pinned-notes)
-          edit-modal [::note-edit/modal
-                      {:init         {:notes/context expanded
-                                      :notes/pinned? true
-                                      :notes/tags    tag-filters}
-                       :header       "Create note"
-                       :params       {:ok-commands [[::res/submit! [::specs/notes#pinned]]]}
-                       :resource-key create-note-key}]]
+          edit-modal (home.act/->note-edit-modal expanded tag-filters)]
       [:section
        [:h1 {:style {:font-size "1.5rem"}} [:strong "Pinned notes"]]
        [:div.layout--row
@@ -116,22 +90,6 @@
                                                          ::ws/children  :children}))))
                  ws-nodes))
 
-(defn ^:private ->on-drop [*:store]
-  (fn [node-id [_ parent-id sibling-id]]
-    (store/dispatch! *:store [::res/submit!
-                              [::specs/workspace#move node-id]
-                              {:body        (cond-> {::ws/parent-id parent-id}
-                                              sibling-id (assoc ::ws/prev-sibling-id sibling-id))
-                               :ok-commands [[::res/submit! fetch-ws-key]
-                                             [:modals/remove-all!]]}])))
-
-(def ^:private create-modal
-  [::edit! {:header       "Create new item in your workspace"
-            :resource-key create-ws-node-key}])
-
-(def ^:private modify-modal
-  [::edit! {:header "Edit the workspace node"}])
-
 (defn ^:private icon-button [*:store modal icon]
   [comp/plain-button {:*:store  *:store
                       :commands [[:modals/create! modal]]
@@ -139,17 +97,15 @@
                       :style    {:padding 0 :height "2em"}}
    [comp/icon (when (= :trash-can icon) {:class ["is-danger"]}) icon]])
 
-(defmethod drag-item :static
+(defmethod home.act/drag-item :static
   [*:store {:keys [on-drag-begin]} node]
-  (let [create-modal (update create-modal 1 assoc :init-data {::ws/parent-id (:id node)})
-        modify-modal (update modify-modal 1 merge {:init-data    (select-keys node #{::ws/id
-                                                                                     ::ws/content})
-                                                   :resource-key (->modify-node-key (::ws/id node))})
-        delete-modal [:modals/sure?
-                      {:description  "This node and all ancestors will be deleted"
-                       :yes-commands [[::res/submit!
-                                       [::specs/workspace#destroy (::ws/id node)]
-                                       {:ok-commands [[::res/submit! [::specs/workspace#select]]]}]]}]]
+  (let [create-modal (update home.act/create-modal 1 assoc
+                             :init-data {::ws/parent-id (:id node)})
+        modify-modal (update home.act/modify-modal 1 merge
+                             {:init-data    (select-keys node #{::ws/id
+                                                                ::ws/content})
+                              :resource-key (home.act/->modify-node-key (::ws/id node))})
+        delete-modal (home.act/->delete-modal node)]
     [:div.layout--row
      [:span.layout--space-after {:on-mouse-down on-drag-begin}
       [:span {:style {:cursor :grab}} (::ws/content node)]]
@@ -159,23 +115,19 @@
       [icon-button *:store delete-modal :trash-can]]
      [icon-button *:store create-modal :plus]]))
 
-(defmethod drag-item :default
+(defmethod home.act/drag-item :default
   [_ _ node]
   [:span (::ws/content node)])
 
-(defmethod icomp/modal-header ::edit!
+(defmethod icomp/modal-header ::home.act/edit!
   [_ {:keys [header]}]
   header)
 
-(defmethod icomp/modal-body ::edit!
+(defmethod icomp/modal-body ::home.act/edit!
   [*:store {:keys [init-data resource-key]}]
   (r/with-let [sub:form+ (store/form+-sub *:store resource-key init-data)]
     (let [form+ @sub:form+]
-      [ctrls/form {:*:store      *:store
-                   :form+        form+
-                   :params       {:ok-commands [[::res/submit! fetch-ws-key]
-                                                [:modals/remove-all!]]}
-                   :resource-key resource-key}
+      [ctrls/form (home.act/->node-form-attrs *:store form+ resource-key)
        [ctrls/input (-> {:*:store     *:store
                          :auto-focus? true
                          :label       "Content"}
@@ -184,23 +136,20 @@
       (store/emit! *:store [::forms+/destroyed resource-key]))))
 
 (defn ^:private workspace [*:store ws-nodes]
-  (r/with-let [dnd-attrs {:*:store *:store
-                          :comp    [drag-item *:store]
-                          :id      ::workspace
-                          :on-drop (->on-drop *:store)}]
+  (r/with-let [dnd-attrs (home.act/->dnd-form-attrs *:store)]
     [:section
      [:h1 {:style {:font-size "1.5rem"}} [:strong "Workspace"]]
      [dnd/control dnd-attrs (->tree ws-nodes)]
-     [icon-button *:store create-modal :plus]]))
+     [icon-button *:store home.act/create-modal :plus]]))
 
 (defmethod ipages/page :routes.ui/home
   [*:store route-info]
   (r/with-let [sub:tags (store/res-sub *:store [::specs/tags#select])
                sub:pinned (store/res-sub *:store [::specs/notes#pinned])
-               sub:tree (store/res-sub *:store fetch-ws-key)]
+               sub:tree (store/res-sub *:store home.act/fetch-ws-key)]
     [:div.layout--stack-between
      [comp/with-resource sub:tree [workspace *:store]]
      [comp/with-resources [sub:tags sub:pinned] [pinned *:store route-info]]]
     (finally
-      (store/emit! *:store [::res/destroyed fetch-ws-key])
+      (store/emit! *:store [::res/destroyed home.act/fetch-ws-key])
       (store/emit! *:store [::res/destroyed [::specs/notes#pinned]]))))

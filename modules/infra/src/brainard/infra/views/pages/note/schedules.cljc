@@ -82,8 +82,3 @@
        (keep ->schedule-part)
        reverse
        seq))
-
-(defn ->delete-sched-modal [sched-id note]
-  [:modals/sure?
-   {:description  "This schedule will be deleted"
-    :yes-commands [[::res/submit! [::specs/schedules#destroy sched-id] note]]}])

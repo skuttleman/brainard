@@ -9,10 +9,15 @@
 (def ^:const update-note-key [::forms+/std [::specs/notes#update ::forms/edit-note]])
 (def ^:const pin-note-key [::forms+/std [::specs/notes#pin ::forms/pin-note]])
 
+(defmethod forms+/re-init ::specs/notes#update [_ _ result] result)
+(defmethod res/->request-spec ::specs/notes#update
+  [_ {::forms/keys [data] :as spec}]
+  (res/->request-spec [::specs/notes#patch] (assoc spec :note data)))
+
 (defmethod forms+/re-init ::specs/notes#pin [_ _ result] (select-keys result #{:notes/id :notes/pinned?}))
 (defmethod res/->request-spec ::specs/notes#pin
   [_ {::forms/keys [data] :as spec}]
-  (merge (res/->request-spec [::specs/notes#update] (assoc spec :note data))
+  (merge (res/->request-spec [::specs/notes#patch] (assoc spec :note data))
          {:body         (select-keys data #{:notes/pinned?})
           :ok-events    [[:api.notes/saved]]
           :ok-commands  []
@@ -21,7 +26,7 @@
 (defmethod res/->request-spec ::specs/notes#reinstate
   [resource-key {:keys [note] :as spec}]
   (let [note-id (:notes/id note)]
-    (merge (res/->request-spec [::specs/notes#update] spec)
+    (merge (res/->request-spec [::specs/notes#patch] spec)
            {:ok-events    [[::res/destroyed resource-key]]
             :ok-commands  [[:toasts/succeed! {:message "previous version of note was reinstated"}]
                            [::res/re-succeed! [::specs/notes#find note-id]]
@@ -54,3 +59,8 @@
                    :ok-events [[::res/swapped [::specs/notes#find note-id]]
                                [::forms/created pin-note-key]]}
     :resource-key update-note-key}])
+
+(defn ->delete-sched-modal [sched-id note]
+  [:modals/sure?
+   {:description  "This schedule will be deleted"
+    :yes-commands [[::res/submit! [::specs/schedules#destroy sched-id] note]]}])

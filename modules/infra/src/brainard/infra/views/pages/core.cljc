@@ -11,7 +11,7 @@
     brainard.infra.views.pages.application
     brainard.infra.views.pages.applications
     brainard.infra.views.pages.buzz
-    brainard.infra.views.pages.home
+    brainard.infra.views.pages.home.core
     brainard.infra.views.pages.note.core
     brainard.infra.views.pages.search))
 

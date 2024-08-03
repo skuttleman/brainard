@@ -47,7 +47,7 @@
       [:p [:em "Existing schedules"]]
       [:ul.layout--stack-between
        (for [{sched-id :schedules/id :as sched} scheds
-             :let [modal (note.sched/->delete-sched-modal sched-id note)]]
+             :let [modal (note.act/->delete-sched-modal sched-id note)]]
          ^{:key sched-id}
          [:li.layout--room-between.layout--align-center.space--left
           [comp/plain-button {:*:store *:store

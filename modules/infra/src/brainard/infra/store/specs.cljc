@@ -80,11 +80,10 @@
 
 (defn ^:private diff-tags [old curr]
   (let [removals (set/difference old curr)]
-    {:notes/tags!remove removals
+    {:notes/tags!remove (or removals #{})
      :notes/tags        (or curr #{})}))
 
-(defmethod forms+/re-init ::notes#update [_ _ result] result)
-(defmethod res/->request-spec ::notes#update
+(defmethod res/->request-spec ::notes#patch
   [_ {:keys [note prev-tags] :as spec}]
   (->req {:route        :routes.api/note
           :params       (select-keys note #{:notes/id})
@@ -101,13 +100,6 @@
   (->req {:route        :routes.api/note
           :params       {:notes/id note-id}
           :method       :delete}
-         spec))
-
-(defmethod res/->request-spec ::notes#pinned
-  [_ spec]
-  (->req {:route  :routes.api/notes
-          :method :get
-          :params {:query-params {:pinned true}}}
          spec))
 
 (defmethod res/->request-spec ::notes#buzz
@@ -172,15 +164,6 @@
           :method       :patch
           :params       {:workspace-nodes/id resource-id}
           :body         data
-          :err-commands [[:toasts/fail!]]}
-         spec))
-
-(defmethod res/->request-spec ::workspace#move
-  [[_ resource-id] {:keys [body] :as spec}]
-  (->req {:route        :routes.api/workspace-node
-          :method       :patch
-          :params       {:workspace-nodes/id resource-id}
-          :body         body
           :err-commands [[:toasts/fail!]]}
          spec))
 
