@@ -85,27 +85,22 @@
 
 (defmethod forms+/re-init ::notes#update [_ _ result] result)
 (defmethod res/->request-spec ::notes#update
-  [_ {::forms/keys [data] :keys [prev-tags] :as spec}]
+  [_ {:keys [note prev-tags] :as spec}]
   (->req {:route        :routes.api/note
-          :params       (select-keys data #{:notes/id})
+          :params       (select-keys note #{:notes/id})
           :method       :patch
-          :body         (-> data
+          :body         (-> note
                             (select-keys #{:notes/context
                                            :notes/pinned?
                                            :notes/body})
-                            (merge (diff-tags prev-tags (:notes/tags data))))
-          :ok-events    [[:api.notes/saved]]
-          :ok-commands  [[:toasts/succeed! {:message "note updated"}]]
-          :err-commands [[:toasts/fail!]]}
+                            (merge (diff-tags prev-tags (:notes/tags note))))}
          spec))
 
 (defmethod res/->request-spec ::notes#destroy
   [[_ note-id] spec]
   (->req {:route        :routes.api/note
           :params       {:notes/id note-id}
-          :method       :delete
-          :ok-commands  [[:toasts/succeed! {:message "note deleted"}]]
-          :err-commands [[:toasts/fail!]]}
+          :method       :delete}
          spec))
 
 (defmethod res/->request-spec ::notes#pinned

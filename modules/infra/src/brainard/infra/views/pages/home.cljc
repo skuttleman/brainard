@@ -17,7 +17,7 @@
     [whet.utils.reagent :as r]
     [workspace-nodes :as-alias ws]))
 
-(def ^:private ^:const create-note-key [::forms+/valid [::specs/notes#create ::new-note]])
+(def ^:private ^:const create-note-key [::forms+/valid [::specs/notes#create]])
 (def ^:private ^:const fetch-ws-key [::specs/workspace#select])
 (def ^:private ^:const create-ws-node-key [::forms+/valid [::specs/workspace#create]])
 (defn ^:private ->modify-node-key [node-id] [::forms+/valid [::specs/workspace#modify node-id]])

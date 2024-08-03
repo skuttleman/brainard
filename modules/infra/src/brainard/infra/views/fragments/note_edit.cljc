@@ -10,7 +10,6 @@
     [clojure.string :as string]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
-    [defacto.resources.core :as res]
     [whet.utils.reagent :as r]))
 
 (defn ^:private with-trim-on-blur [{:keys [on-change] :as attrs} *:store]
