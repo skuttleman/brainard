@@ -145,11 +145,11 @@
 (defmethod ipages/page :routes.ui/home
   [*:store route-info]
   (r/with-let [sub:tags (store/res-sub *:store [::specs/tags#select])
-               sub:pinned (store/res-sub *:store [::specs/notes#pinned])
+               sub:pinned (store/res-sub *:store [::home.act/notes#pinned])
                sub:tree (store/res-sub *:store home.act/fetch-ws-key)]
     [:div.layout--stack-between
      [comp/with-resource sub:tree [workspace *:store]]
      [comp/with-resources [sub:tags sub:pinned] [pinned *:store route-info]]]
     (finally
       (store/emit! *:store [::res/destroyed home.act/fetch-ws-key])
-      (store/emit! *:store [::res/destroyed [::specs/notes#pinned]]))))
+      (store/emit! *:store [::res/destroyed [::home.act/notes#pinned]]))))

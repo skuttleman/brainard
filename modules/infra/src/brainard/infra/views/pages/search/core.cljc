@@ -1,4 +1,4 @@
-(ns brainard.infra.views.pages.search
+(ns brainard.infra.views.pages.search.core
   "The search page."
   (:require
     [brainard.api.utils.colls :as colls]

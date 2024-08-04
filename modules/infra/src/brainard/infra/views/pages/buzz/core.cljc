@@ -1,4 +1,4 @@
-(ns brainard.infra.views.pages.buzz
+(ns brainard.infra.views.pages.buzz.core
   (:require
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as specs]

@@ -6,16 +6,16 @@
     [defacto.forms.plus :as forms+]
     [defacto.resources.core :as res]))
 
-(def ^:const update-note-key [::forms+/std [::specs/notes#update ::forms/edit-note]])
-(def ^:const pin-note-key [::forms+/std [::specs/notes#pin ::forms/pin-note]])
+(def ^:const update-note-key [::forms+/std [::notes#update ::forms/edit-note]])
+(def ^:const pin-note-key [::forms+/std [::notes#pin ::forms/pin-note]])
 
-(defmethod forms+/re-init ::specs/notes#update [_ _ result] result)
-(defmethod res/->request-spec ::specs/notes#update
+(defmethod forms+/re-init ::notes#update [_ _ result] result)
+(defmethod res/->request-spec ::notes#update
   [_ {::forms/keys [data] :as spec}]
   (res/->request-spec [::specs/notes#patch] (assoc spec :note data)))
 
-(defmethod forms+/re-init ::specs/notes#pin [_ _ result] (select-keys result #{:notes/id :notes/pinned?}))
-(defmethod res/->request-spec ::specs/notes#pin
+(defmethod forms+/re-init ::notes#pin [_ _ result] (select-keys result #{:notes/id :notes/pinned?}))
+(defmethod res/->request-spec ::notes#pin
   [_ {::forms/keys [data] :as spec}]
   (merge (res/->request-spec [::specs/notes#patch] (assoc spec :note data))
          {:body         (select-keys data #{:notes/pinned?})
@@ -23,7 +23,7 @@
           :ok-commands  []
           :err-commands [[:toasts/fail!]]}))
 
-(defmethod res/->request-spec ::specs/notes#reinstate
+(defmethod res/->request-spec ::notes#reinstate
   [resource-key {:keys [note] :as spec}]
   (let [note-id (:notes/id note)]
     (merge (res/->request-spec [::specs/notes#patch] spec)

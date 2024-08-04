@@ -5,6 +5,7 @@
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.components.interfaces :as icomp]
+    [brainard.infra.views.pages.note.actions :as note.act]
     [defacto.resources.core :as res]
     [whet.utils.reagent :as r]))
 
@@ -62,7 +63,7 @@
       [comp/plain-button {:*:store  *:store
                           :class    ["is-small" "is-info"]
                           :commands [[:modals/remove! modal-id]
-                                     [::res/submit! [::specs/notes#reinstate modal-id] params]]}
+                                     [::res/submit! [::note.act/notes#reinstate modal-id] params]]}
        "reinstate"]])])
 
 (defn ^:private note-history [*:store reconstruction entries]
