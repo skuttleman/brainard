@@ -7,6 +7,7 @@
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.pages.interfaces :as ipages]
+    [brainard.infra.views.pages.search.actions :as search.act]
     [brainard.notes.infra.views :as notes.views]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
@@ -49,7 +50,7 @@
        [tag-filter attrs tags]]]]))
 
 (defn ^:private root [*:store {:keys [anchor query-params]} [contexts tags]]
-  (r/with-let [form-key [::forms+/valid [::specs/notes#select ::forms/search] query-params]
+  (r/with-let [form-key [::forms+/valid [::search.act/search] query-params]
                sub:form+ (let [loaded? (boolean (store/query *:store [::forms/?:form form-key]))
                                sub (store/form+-sub *:store
                                                     form-key

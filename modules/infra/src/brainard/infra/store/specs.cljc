@@ -46,14 +46,11 @@
           :method :get}
          spec))
 
-(let [vld (valid/->validator snotes/query)]
-  (defmethod forms+/validate ::notes#select [_ data] (vld data)))
-(defmethod forms+/re-init ::notes#select [_ form _] (forms/data form))
 (defmethod res/->request-spec ::notes#select
-  [_ {::forms/keys [data] :as spec}]
+  [_ {:keys [payload] :as spec}]
   (->req {:route  :routes.api/notes
           :method :get
-          :params {:query-params data}}
+          :params {:query-params payload}}
          spec))
 
 (defmethod res/->request-spec ::notes#find
@@ -63,16 +60,11 @@
           :params {:notes/id resource-id}}
          spec))
 
-(let [vld (valid/->validator snotes/create)]
-  (defmethod forms+/validate ::notes#create [_ data] (vld data)))
 (defmethod res/->request-spec ::notes#create
-  [_ {::forms/keys [data] :as spec}]
+  [_ {:keys [payload] :as spec}]
   (->req {:route        :routes.api/notes
           :method       :post
-          :body         (select-keys data #{:notes/context
-                                            :notes/pinned?
-                                            :notes/body
-                                            :notes/tags})
+          :body         payload
           :ok-events    [[:api.notes/saved]]
           :ok-commands  [[:toasts.notes/succeed!]]
           :err-commands [[:toasts/fail!]]}
@@ -115,14 +107,12 @@
           :params {:notes/id note-id}}
          spec))
 
-(let [vld (valid/->validator ssched/create)]
-  (defmethod forms+/validate ::schedules#create [_ data] (vld data)))
 (defmethod res/->request-spec ::schedules#create
-  [_ {::forms/keys [data] :as spec}]
+  [_ {:keys [payload] :as spec}]
   (->req {:route        :routes.api/schedules
           :method       :post
-          :body         data
-          :ok-events    [[:api.schedules/saved (:schedules/note-id data)]]
+          :body         payload
+          :ok-events    [[:api.schedules/saved (:schedules/note-id payload)]]
           :ok-commands  [[:toasts/succeed! {:message "schedule created"}]]
           :err-commands [[:toasts/fail!]]}
          spec))
@@ -146,24 +136,20 @@
           :err-commands [[:toasts/fail!]]}
          spec))
 
-(let [vld (valid/->validator sws/create)]
-  (defmethod forms+/validate ::workspace#create [_ data] (vld data)))
 (defmethod res/->request-spec ::workspace#create
-  [_ {::forms/keys [data] :as spec}]
+  [_ {:keys [payload] :as spec}]
   (->req {:route        :routes.api/workspace-nodes
           :method       :post
-          :body         data
+          :body         payload
           :err-commands [[:toasts/fail!]]}
          spec))
 
-(let [vld (valid/->validator sws/modify)]
-  (defmethod forms+/validate ::workspace#modify [_ data] (vld data)))
 (defmethod res/->request-spec ::workspace#modify
-  [[_ resource-id] {::forms/keys [data] :as spec}]
+  [[_ resource-id] {:keys [payload] :as spec}]
   (->req {:route        :routes.api/workspace-node
           :method       :patch
           :params       {:workspace-nodes/id resource-id}
-          :body         data
+          :body         payload
           :err-commands [[:toasts/fail!]]}
          spec))
 

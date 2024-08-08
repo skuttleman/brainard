@@ -1,7 +1,9 @@
 (ns brainard.infra.views.pages.note.actions
   (:require
+    [brainard.api.validations :as valid]
     [brainard.infra.store.specs :as-alias specs]
-    [brainard.infra.views.fragments.note-edit :as-alias note-edit]
+    [brainard.infra.views.fragments.note-edit :as note-edit]
+    [brainard.schedules.api.specs :as ssched]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
     [defacto.resources.core :as res]))
@@ -34,6 +36,10 @@
                          [::res/submit! [::specs/notes#find note-id]]
                          [::res/submit! [::specs/note#history note-id]]]
            :err-commands [[:toasts/fail!]])))
+
+(forms+/validated ::schedules#create (valid/->validator ssched/create)
+  [_ {::forms/keys [data] :as spec}]
+  (res/->request-spec [::specs/schedules#create] (assoc spec :payload data)))
 
 (defn ->pin-form-attrs [*:store form+ note-id init-form]
   {:*:store      *:store

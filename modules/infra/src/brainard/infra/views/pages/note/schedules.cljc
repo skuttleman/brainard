@@ -2,12 +2,13 @@
   (:require
     [brainard.api.utils.dates :as dates]
     [brainard.infra.store.specs :as-alias specs]
+    [brainard.infra.views.pages.note.actions :as-alias note.act]
     [clojure.pprint :as pp]
     [defacto.forms.plus :as-alias forms+]
     [defacto.resources.core :as-alias res]))
 
 (defn ->sched-create-key [note]
-  [::forms+/valid [::specs/schedules#create (:notes/id note)]])
+  [::forms+/valid [::note.act/schedules#create (:notes/id note)]])
 
 (def ^:const month-options
   (into [[nil "(any)"]]

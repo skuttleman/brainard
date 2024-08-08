@@ -1,27 +1,43 @@
 (ns brainard.infra.views.pages.home.actions
   (:require
+    [brainard.api.validations :as valid]
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as specs]
-    [brainard.infra.views.fragments.note-edit :as-alias note-edit]
+    [brainard.infra.views.fragments.note-edit :as note-edit]
+    [brainard.notes.api.specs :as snotes]
+    [brainard.workspace.api.specs :as sws]
     [defacto.forms.core :as forms]
-    [defacto.forms.plus :as-alias forms+]
+    [defacto.forms.plus :as forms+]
     [defacto.resources.core :as res]
     [workspace-nodes :as-alias ws]))
 
-(def ^:const create-note-key [::forms+/valid [::specs/notes#create]])
+(def ^:const create-note-key [::forms+/valid [::notes#create]])
 (def ^:const fetch-ws-key [::specs/workspace#select])
-(def ^:const create-ws-node-key [::forms+/valid [::specs/workspace#create]])
-(defn ->modify-node-key [node-id] [::forms+/valid [::specs/workspace#modify node-id]])
+(def ^:const create-ws-node-key [::forms+/valid [::workspace#create]])
+(defn ->modify-node-key [node-id] [::forms+/valid [::workspace#modify node-id]])
 
 (defmulti drag-item (fn [_ attrs _] (:type attrs)))
 
+(forms+/validated ::notes#create (valid/->validator snotes/create)
+  [_ {::forms/keys [data] :as spec}]
+  (res/->request-spec [::specs/notes#create]
+                      (assoc spec :payload (select-keys data #{:notes/context
+                                                               :notes/pinned?
+                                                               :notes/body
+                                                               :notes/tags}))))
+
+(forms+/validated ::workspace#create (valid/->validator sws/create)
+  [_ {::forms/keys [data] :as spec}]
+  (res/->request-spec [::specs/workspace#create] (assoc spec :payload data)))
+
 (defmethod res/->request-spec ::notes#pinned
   [_ spec]
-  (res/->request-spec [::specs/notes#select] (assoc spec ::forms/data {:pinned true})))
+  (res/->request-spec [::specs/notes#select] (assoc spec :payload {:pinned true})))
 
-(defmethod res/->request-spec ::workspace#move
-  [[_ resource-id] {:keys [body] :as spec}]
-  (res/->request-spec [::specs/workspace#modify resource-id] (assoc spec ::forms/data body)))
+
+(forms+/validated ::workspace#modify (valid/->validator sws/modify)
+  [[_ resource-id] {::forms/keys [data] :as spec}]
+  (res/->request-spec [::specs/workspace#modify resource-id] (assoc spec :payload data)))
 
 (defn expanded-change [*:store route-info]
   (fn [_ _ old new]
@@ -37,8 +53,8 @@
 (defn ->on-drop [*:store]
   (fn [node-id [_ parent-id sibling-id]]
     (store/dispatch! *:store [::res/submit!
-                              [::workspace#move node-id]
-                              {:body        (cond-> {::ws/parent-id parent-id}
+                              [::specs/workspace#modify node-id]
+                              {:payload     (cond-> {::ws/parent-id parent-id}
                                               sibling-id (assoc ::ws/prev-sibling-id sibling-id))
                                :ok-commands [[::res/submit! fetch-ws-key]
                                              [:modals/remove-all!]]}])))
