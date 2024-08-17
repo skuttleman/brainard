@@ -9,7 +9,7 @@
     [whet.core :as w]
     [whet.utils.reagent :as r]
     brainard.infra.views.pages.application.core
-    brainard.infra.views.pages.applications
+    brainard.infra.views.pages.applications.core
     brainard.infra.views.pages.buzz.core
     brainard.infra.views.pages.home.core
     brainard.infra.views.pages.note.core

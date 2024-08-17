@@ -1,18 +1,16 @@
-(ns brainard.infra.views.pages.applications
+(ns brainard.infra.views.pages.applications.core
   (:require
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.components.interfaces :as icomp]
     [brainard.infra.views.controls.core :as ctrls]
+    [brainard.infra.views.pages.applications.actions :as apps.act]
     [brainard.infra.views.pages.interfaces :as ipages]
     [defacto.forms.core :as-alias forms]
     [defacto.forms.plus :as-alias forms+]
     [defacto.resources.core :as-alias res]
     [whet.utils.reagent :as r]))
-
-(def ^:private ^:const new-app-form-key
-  [::forms+/valid [::specs/apps#create]])
 
 (defn ^:private app-form [{:keys [*:store form+] :as attrs}]
   [ctrls/form attrs
@@ -40,21 +38,15 @@
   [:div "Create new application"])
 
 (defmethod icomp/modal-body ::modal
-  [*:store {modal-id :modals/id :modals/keys [close!]}]
+  [*:store attrs]
   (r/with-let [sub:form+ (store/form+-sub *:store
-                                          new-app-form-key
+                                          apps.act/new-app-form-key
                                           {:applications/company {::present? true}}
                                           {:remove-nil? true})]
     [:div {:style {:min-width "50vw"}}
-     [app-form {:*:store      *:store
-                :form+        @sub:form+
-                :params       {:ok-commands [[:modals/remove! modal-id]]}
-                :submit/body  "Save"
-                :resource-key new-app-form-key
-                :buttons      [[comp/plain-button {:on-click close!}
-                                "Cancel"]]}]]
+     [app-form (apps.act/->create-form-attrs *:store @sub:form+ attrs)]]
     (finally
-      (store/emit! *:store [::forms+/destroyed new-app-form-key]))))
+      (store/emit! *:store [::forms+/destroyed apps.act/new-app-form-key]))))
 
 (defn ^:private app-list [*:store apps]
   [:ul.applications.layout--stack-between
