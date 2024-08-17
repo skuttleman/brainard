@@ -24,7 +24,12 @@
    (when-let [location (:companies/location company)]
      [:div.layout--row
       [:strong.layout--space-after "Company location:"]
-      [:span location]])])
+      [:span location]])
+   (when-let [details (:applications/details app)]
+     [:div.layout--col
+      [:strong.layout--space-after "Application details:"]
+      [:div.layout--indent
+       [:p details]]])])
 
 (defn ^:private root [*:store app]
   [:div

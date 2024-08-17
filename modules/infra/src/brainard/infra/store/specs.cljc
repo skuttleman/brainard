@@ -1,10 +1,6 @@
 (ns brainard.infra.store.specs
   (:require
-    [brainard.api.validations :as valid]
-    [brainard.applications.api.specs :as sapps]
     [clojure.set :as set]
-    [defacto.forms.core :as forms]
-    [defacto.forms.plus :as forms+]
     [defacto.resources.core :as res]))
 
 (defn ^:private with-msgs [m k params spec]
@@ -158,13 +154,11 @@
           :err-commands [[:toasts/fail!]]}
          spec))
 
-(let [vld (valid/->validator sapps/create)]
-  (defmethod forms+/validate ::apps#create [_ data] (vld data)))
 (defmethod res/->request-spec ::apps#create
-  [_ {::forms/keys [data] :as spec}]
+  [_ {:keys [payload] :as spec}]
   (->req {:route        :routes.api/applications
           :method       :post
-          :body         data
+          :body         payload
           :err-commands [[:toasts/fail!]]
           :ok-commands  [[:toasts.applications/succeed!]]}
          spec))
