@@ -3,16 +3,17 @@
     [brainard.api.validations :as valid]
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.views.fragments.note-edit :as note-edit]
+    [brainard.notes.api.specs :as snotes]
     [brainard.schedules.api.specs :as ssched]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
     [defacto.resources.core :as res]))
 
-(def ^:const update-note-key [::forms+/std [::notes#update ::forms/edit-note]])
+(def ^:const update-note-key [::forms+/valid [::notes#update ::forms/edit-note]])
 (def ^:const pin-note-key [::forms+/std [::notes#pin ::forms/pin-note]])
 
 (defmethod forms+/re-init ::notes#update [_ _ result] result)
-(defmethod res/->request-spec ::notes#update
+(forms+/validated ::notes#update (valid/->validator snotes/modify)
   [_ {::forms/keys [data] :as spec}]
   (let [req (res/->request-spec [::specs/notes#modify] (assoc spec :note data))]
     (update req :ok-commands conj
