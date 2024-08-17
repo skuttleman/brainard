@@ -1,4 +1,4 @@
-(ns brainard.infra.views.pages.application
+(ns brainard.infra.views.pages.application.core
   (:require
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as specs]
@@ -19,7 +19,8 @@
    (when-let [website (:companies/website company)]
      [:div.layout--row
       [:strong.layout--space-after "Company website:"]
-      [:a.link {:href website :target "_blank"} (:companies/name company)]])
+      [comp/link {:href website :target "_blank"}
+       (:companies/name company)]])
    (when-let [location (:companies/location company)]
      [:div.layout--row
       [:strong.layout--space-after "Company location:"]

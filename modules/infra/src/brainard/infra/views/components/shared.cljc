@@ -27,7 +27,7 @@
                (nav/path-for rte/all-routes token route-params query-params))]
     (into [:a.link (-> attrs
                        (cond-> href (assoc :href href))
-                       (select-keys #{:href :class}))]
+                       (select-keys #{:href :class :target}))]
           content)))
 
 (defn tile [heading body & tabs]

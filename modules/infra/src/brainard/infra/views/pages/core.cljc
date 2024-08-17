@@ -8,7 +8,7 @@
     [defacto.resources.core :as res]
     [whet.core :as w]
     [whet.utils.reagent :as r]
-    brainard.infra.views.pages.application
+    brainard.infra.views.pages.application.core
     brainard.infra.views.pages.applications
     brainard.infra.views.pages.buzz.core
     brainard.infra.views.pages.home.core
