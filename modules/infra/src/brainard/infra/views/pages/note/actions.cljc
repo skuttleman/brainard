@@ -14,14 +14,14 @@
 (defmethod forms+/re-init ::notes#update [_ _ result] result)
 (defmethod res/->request-spec ::notes#update
   [_ {::forms/keys [data] :as spec}]
-  (let [req (res/->request-spec [::specs/notes#patch] (assoc spec :note data))]
+  (let [req (res/->request-spec [::specs/notes#modify] (assoc spec :note data))]
     (update req :ok-commands conj
             [::res/submit! [::specs/notes#find (:notes/id data)]])))
 
 (defmethod forms+/re-init ::notes#pin [_ _ result] (select-keys result #{:notes/id :notes/pinned?}))
 (defmethod res/->request-spec ::notes#pin
   [_ {::forms/keys [data] :as spec}]
-  (assoc (res/->request-spec [::specs/notes#patch] (assoc spec :note data))
+  (assoc (res/->request-spec [::specs/notes#modify] (assoc spec :note data))
          :body (select-keys data #{:notes/pinned?})
          :ok-events [[:api.notes/saved]]
          :ok-commands [[::res/submit! [::specs/notes#find (:notes/id data)]]]
@@ -30,7 +30,7 @@
 (defmethod res/->request-spec ::notes#reinstate
   [resource-key {:keys [note] :as spec}]
   (let [note-id (:notes/id note)]
-    (assoc (res/->request-spec [::specs/notes#patch] spec)
+    (assoc (res/->request-spec [::specs/notes#modify] spec)
            :ok-events [[::res/destroyed resource-key]]
            :ok-commands [[:toasts/succeed! {:message "previous version of note was reinstated"}]
                          [::res/submit! [::specs/notes#find note-id]]

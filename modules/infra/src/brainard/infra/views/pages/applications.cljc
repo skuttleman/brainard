@@ -12,7 +12,7 @@
     [whet.utils.reagent :as r]))
 
 (def ^:private ^:const new-app-form-key
-  [::forms+/valid [::specs/apps#new]])
+  [::forms+/valid [::specs/apps#create]])
 
 (defn ^:private app-form [{:keys [*:store form+] :as attrs}]
   [ctrls/form attrs

@@ -2,9 +2,6 @@
   (:require
     [brainard.api.validations :as valid]
     [brainard.applications.api.specs :as sapps]
-    [brainard.notes.api.specs :as snotes]
-    [brainard.schedules.api.specs :as ssched]
-    [brainard.workspace.api.specs :as sws]
     [clojure.set :as set]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
@@ -75,7 +72,7 @@
     {:notes/tags!remove (or removals #{})
      :notes/tags        (or curr #{})}))
 
-(defmethod res/->request-spec ::notes#patch
+(defmethod res/->request-spec ::notes#modify
   [_ {:keys [note prev-tags] :as spec}]
   (->req {:route        :routes.api/note
           :params       (select-keys note #{:notes/id})
@@ -162,8 +159,8 @@
          spec))
 
 (let [vld (valid/->validator sapps/create)]
-  (defmethod forms+/validate ::apps#new [_ data] (vld data)))
-(defmethod res/->request-spec ::apps#new
+  (defmethod forms+/validate ::apps#create [_ data] (vld data)))
+(defmethod res/->request-spec ::apps#create
   [_ {::forms/keys [data] :as spec}]
   (->req {:route        :routes.api/applications
           :method       :post
