@@ -27,6 +27,13 @@
          (with-msgs :err-events params spec)
          (with-msgs :err-commands params spec)))))
 
+(defn with-cbs [spec & kvs]
+  (->> kvs
+       (partition-all 2)
+       (reduce (fn [spec [k cbs]]
+                 (update spec k into cbs))
+               spec)))
+
 (defmethod res/->request-spec ::tags#select
   [_ spec]
   (->req {:route  :routes.api/tags
@@ -40,10 +47,10 @@
          spec))
 
 (defmethod res/->request-spec ::notes#select
-  [_ {:keys [payload] :as spec}]
+  [_ {:keys [params] :as spec}]
   (->req {:route  :routes.api/notes
           :method :get
-          :params {:query-params payload}}
+          :params {:query-params params}}
          spec))
 
 (defmethod res/->request-spec ::notes#find
@@ -55,36 +62,34 @@
 
 (defmethod res/->request-spec ::notes#create
   [_ {:keys [payload] :as spec}]
-  (->req {:route        :routes.api/notes
-          :method       :post
-          :body         payload
-          :ok-events    [[:api.notes/saved]]
-          :ok-commands  [[:toasts.notes/succeed!]]
-          :err-commands [[:toasts/fail!]]}
+  (->req {:route  :routes.api/notes
+          :method :post
+          :body   payload}
          spec))
 
 (defn ^:private diff-tags [old curr]
-  (let [removals (set/difference old curr)]
-    {:notes/tags!remove (or removals #{})
-     :notes/tags        (or curr #{})}))
+  (when (and old curr)
+    (let [removals (set/difference old curr)]
+      {:notes/tags!remove (or removals #{})
+       :notes/tags        (or curr #{})})))
 
 (defmethod res/->request-spec ::notes#modify
-  [_ {:keys [note prev-tags] :as spec}]
-  (->req {:route        :routes.api/note
-          :params       (select-keys note #{:notes/id})
-          :method       :patch
-          :body         (-> note
-                            (select-keys #{:notes/context
-                                           :notes/pinned?
-                                           :notes/body})
-                            (merge (diff-tags prev-tags (:notes/tags note))))}
+  [[_ resource-id] {:keys [payload prev-tags] :as spec}]
+  (->req {:route  :routes.api/note
+          :params {:notes/id resource-id}
+          :method :patch
+          :body   (-> payload
+                      (select-keys #{:notes/context
+                                     :notes/pinned?
+                                     :notes/body})
+                      (merge (diff-tags prev-tags (:notes/tags payload))))}
          spec))
 
 (defmethod res/->request-spec ::notes#destroy
   [[_ note-id] spec]
-  (->req {:route        :routes.api/note
-          :params       {:notes/id note-id}
-          :method       :delete}
+  (->req {:route  :routes.api/note
+          :params {:notes/id note-id}
+          :method :delete}
          spec))
 
 (defmethod res/->request-spec ::notes#buzz
@@ -102,65 +107,51 @@
 
 (defmethod res/->request-spec ::schedules#create
   [_ {:keys [payload] :as spec}]
-  (->req {:route        :routes.api/schedules
-          :method       :post
-          :body         payload
-          :ok-events    [[:api.schedules/saved (:schedules/note-id payload)]]
-          :ok-commands  [[:toasts/succeed! {:message "schedule created"}]]
-          :err-commands [[:toasts/fail!]]}
+  (->req {:route  :routes.api/schedules
+          :method :post
+          :body   payload}
          spec))
 
 (defmethod res/->request-spec ::schedules#destroy
-  [[_ resource-id :as resource-key] spec]
-  (->req {:route        :routes.api/schedule
-          :method       :delete
-          :params       {:schedules/id resource-id}
-          :ok-events    [[:api.schedules/deleted resource-id (:notes/id spec)]
-                         [::res/destroyed resource-key]]
-          :ok-commands  [[:toasts/succeed! {:message "schedule deleted"}]]
-          :err-events   [[::res/destroyed resource-key]]
-          :err-commands [[:toasts/fail!]]}
+  [[_ resource-id] spec]
+  (->req {:route  :routes.api/schedule
+          :method :delete
+          :params {:schedules/id resource-id}}
          spec))
 
 (defmethod res/->request-spec ::workspace#select
   [_ spec]
-  (->req {:route        :routes.api/workspace-nodes
-          :method       :get
-          :err-commands [[:toasts/fail!]]}
+  (->req {:route  :routes.api/workspace-nodes
+          :method :get}
          spec))
 
 (defmethod res/->request-spec ::workspace#create
   [_ {:keys [payload] :as spec}]
-  (->req {:route        :routes.api/workspace-nodes
-          :method       :post
-          :body         payload
-          :err-commands [[:toasts/fail!]]}
+  (->req {:route  :routes.api/workspace-nodes
+          :method :post
+          :body   payload}
          spec))
 
 (defmethod res/->request-spec ::workspace#modify
   [[_ resource-id] {:keys [payload] :as spec}]
-  (->req {:route        :routes.api/workspace-node
-          :method       :patch
-          :params       {:workspace-nodes/id resource-id}
-          :body         payload
-          :err-commands [[:toasts/fail!]]}
+  (->req {:route  :routes.api/workspace-node
+          :method :patch
+          :params {:workspace-nodes/id resource-id}
+          :body   payload}
          spec))
 
 (defmethod res/->request-spec ::workspace#destroy
   [[_ resource-id] spec]
-  (->req {:route        :routes.api/workspace-node
-          :method       :delete
-          :params       {:workspace-nodes/id resource-id}
-          :err-commands [[:toasts/fail!]]}
+  (->req {:route  :routes.api/workspace-node
+          :method :delete
+          :params {:workspace-nodes/id resource-id}}
          spec))
 
 (defmethod res/->request-spec ::apps#create
   [_ {:keys [payload] :as spec}]
-  (->req {:route        :routes.api/applications
-          :method       :post
-          :body         payload
-          :err-commands [[:toasts/fail!]]
-          :ok-commands  [[:toasts.applications/succeed!]]}
+  (->req {:route  :routes.api/applications
+          :method :post
+          :body   payload}
          spec))
 
 (defmethod res/->request-spec ::apps#select

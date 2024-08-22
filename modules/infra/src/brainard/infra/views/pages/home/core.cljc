@@ -1,7 +1,7 @@
 (ns brainard.infra.views.pages.home.core
   (:require
     [brainard.infra.store.core :as store]
-    [brainard.infra.store.specs :as specs]
+    [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.components.drag-drop :as dnd]
     [brainard.infra.views.components.interfaces :as icomp]

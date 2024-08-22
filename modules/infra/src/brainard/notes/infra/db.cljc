@@ -1,8 +1,8 @@
 (ns brainard.notes.infra.db
   (:require
     [brainard.api.storage.core :as-alias storage]
-    [brainard.notes.api.core :as api.notes]
-    [brainard.api.storage.interfaces :as istorage]))
+    [brainard.api.storage.interfaces :as istorage]
+    [brainard.notes.api.core :as api.notes]))
 
 (def ^:private select
   '[:find (pull ?e [*]) (min ?at)

@@ -20,24 +20,31 @@
 
 (forms+/validated ::notes#create (valid/->validator snotes/create)
   [_ {::forms/keys [data] :as spec}]
-  (res/->request-spec [::specs/notes#create]
-                      (assoc spec :payload (select-keys data #{:notes/context
-                                                               :notes/pinned?
-                                                               :notes/body
-                                                               :notes/tags}))))
+  (let [spec (assoc spec :payload (select-keys data #{:notes/context
+                                                      :notes/pinned?
+                                                      :notes/body
+                                                      :notes/tags}))]
+    (specs/with-cbs (res/->request-spec [::specs/notes#create] spec)
+                    :ok-events [[:api.notes/saved]]
+                    :ok-commands [[:toasts.notes/succeed!]]
+                    :err-commands [[:toasts/fail!]])))
 
 (forms+/validated ::workspace#create (valid/->validator sws/create)
   [_ {::forms/keys [data] :as spec}]
-  (res/->request-spec [::specs/workspace#create] (assoc spec :payload data)))
+  (let [spec (assoc spec :payload data)]
+    (specs/with-cbs (res/->request-spec [::specs/workspace#create] spec)
+                    :err-commands [[:toasts/fail!]])))
 
 (defmethod res/->request-spec ::notes#pinned
   [_ spec]
-  (res/->request-spec [::specs/notes#select] (assoc spec :payload {:pinned true})))
+  (res/->request-spec [::specs/notes#select] (assoc spec :params {:pinned true})))
 
 
 (forms+/validated ::workspace#modify (valid/->validator sws/modify)
   [[_ resource-id] {::forms/keys [data] :as spec}]
-  (res/->request-spec [::specs/workspace#modify resource-id] (assoc spec :payload data)))
+  (let [spec (assoc spec :payload data)]
+    (specs/with-cbs (res/->request-spec [::specs/workspace#modify resource-id] spec)
+                    :err-commands [[:toasts/fail!]])))
 
 (defn expanded-change [*:store route-info]
   (fn [_ _ old new]
@@ -54,10 +61,11 @@
   (fn [node-id [_ parent-id sibling-id]]
     (store/dispatch! *:store [::res/submit!
                               [::specs/workspace#modify node-id]
-                              {:payload     (cond-> {::ws/parent-id parent-id}
-                                              sibling-id (assoc ::ws/prev-sibling-id sibling-id))
-                               :ok-commands [[::res/submit! fetch-ws-key]
-                                             [:modals/remove-all!]]}])))
+                              {:payload      (cond-> {::ws/parent-id parent-id}
+                                               sibling-id (assoc ::ws/prev-sibling-id sibling-id))
+                               :ok-commands  [[::res/submit! fetch-ws-key]
+                                              [:modals/remove-all!]]
+                               :err-commands [[:toasts/fail!]]}])))
 
 (def create-modal
   [::edit! {:header       "Create new item in your workspace"
@@ -71,7 +79,8 @@
    {:description  "This node and all ancestors will be deleted"
     :yes-commands [[::res/submit!
                     [::specs/workspace#destroy (::ws/id node)]
-                    {:ok-commands [[::res/submit! [::specs/workspace#select]]]}]]}])
+                    {:ok-commands  [[::res/submit! [::specs/workspace#select]]]
+                     :err-commands [[:toasts/fail!]]}]]}])
 
 (defn ->note-edit-modal [context tags]
   [::note-edit/modal

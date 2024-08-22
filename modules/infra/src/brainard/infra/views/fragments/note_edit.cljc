@@ -2,7 +2,7 @@
   (:require
     [brainard.api.utils.fns :as fns]
     [brainard.infra.store.core :as store]
-    [brainard.infra.store.specs :as specs]
+    [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.components.interfaces :as icomp]

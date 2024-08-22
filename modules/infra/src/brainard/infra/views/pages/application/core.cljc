@@ -1,7 +1,7 @@
 (ns brainard.infra.views.pages.application.core
   (:require
     [brainard.infra.store.core :as store]
-    [brainard.infra.store.specs :as specs]
+    [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.pages.interfaces :as ipages]
     [defacto.resources.core :as-alias res]
