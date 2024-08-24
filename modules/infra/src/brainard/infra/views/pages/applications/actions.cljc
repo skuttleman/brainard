@@ -3,12 +3,15 @@
     [brainard.api.validations :as valid]
     [brainard.applications.api.specs :as sapps]
     [brainard.infra.store.specs :as specs]
-    [brainard.infra.views.components.core :as comp]
+    [brainard.infra.views.fragments.app-edit :as app-edit]
     [defacto.forms.core :as-alias forms]
     [defacto.forms.plus :as forms+]
     [defacto.resources.core :as res]))
 
 (def ^:const new-app-form-key [::forms+/valid [::apps#create]])
+
+(def ^:private ^:const init-app
+  {:applications/company {::present? true}})
 
 (forms+/validated ::apps#create (valid/->validator sapps/create)
   [_ {::forms/keys [data] :as spec}]
@@ -17,11 +20,8 @@
                     :err-commands [[:toasts/fail!]]
                     :ok-commands [[:toasts.applications/succeed!]])))
 
-(defn ->create-form-attrs [*:store form+ {modal-id :modals/id :modals/keys [close!]}]
-  {:*:store      *:store
-   :form+        form+
-   :params       {:ok-commands [[:modals/remove! modal-id]]}
-   :submit/body  "Save"
-   :resource-key new-app-form-key
-   :buttons      [[comp/plain-button {:on-click close!}
-                   "Cancel"]]})
+(defn ->new-app-modal-button-attrs [*:store]
+  {:*:store  *:store
+   :class    ["is-info"]
+   :commands [[:modals/create! [::app-edit/modal {:init         init-app
+                                                  :resource-key new-app-form-key}]]]})

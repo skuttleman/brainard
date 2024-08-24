@@ -68,7 +68,7 @@
          spec))
 
 (defn ^:private diff-tags [old curr]
-  (when (and old curr)
+  (when (or old curr)
     (let [removals (set/difference old curr)]
       {:notes/tags!remove (or removals #{})
        :notes/tags        (or curr #{})})))
@@ -151,6 +151,14 @@
   [_ {:keys [payload] :as spec}]
   (->req {:route  :routes.api/applications
           :method :post
+          :body   payload}
+         spec))
+
+(defmethod res/->request-spec ::apps#modify
+  [[_ resource-id] {:keys [payload] :as spec}]
+  (->req {:route  :routes.api/application
+          :method :patch
+          :params {:applications/id resource-id}
           :body   payload}
          spec))
 

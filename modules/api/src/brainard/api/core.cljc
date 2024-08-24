@@ -82,6 +82,10 @@
   [_ apis app]
   (api.apps/create! (:applications apis) app))
 
+(defmethod invoke-api* :api.applications/update!
+  [_ apis app]
+  (api.apps/update! (:applications apis) (:applications/id app) app))
+
 (defmethod invoke-api* :api.applications/fetch
   [_ apis {app-id :applications/id}]
   (api.apps/fetch (:applications apis) app-id))

@@ -23,7 +23,8 @@
    :api.workspace-nodes/delete! [:map [:workspace-nodes/id uuid?]]
    :api.workspace-nodes/update! sws/modify
 
-   :api.applications/create!    sapps/create})
+   :api.applications/create!    sapps/create
+   :api.applications/update!    sapps/modify})
 
 (def output-specs
   {:api.notes/select                [:sequential snotes/full]

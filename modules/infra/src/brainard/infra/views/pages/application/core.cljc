@@ -3,13 +3,17 @@
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.views.components.core :as comp]
+    [brainard.infra.views.pages.application.actions :as app-edit]
     [brainard.infra.views.pages.interfaces :as ipages]
     [defacto.resources.core :as-alias res]
     [whet.utils.reagent :as r]))
 
-(defn ^:private details [{:applications/keys [company] :as app}]
+(defn ^:private details [*:store {:applications/keys [company] :as app}]
   [:div
    [:h2.subtitle "Application Details"]
+   [comp/plain-button
+    (app-edit/->edit-app-modal-button-attrs *:store app)
+    "Edit"]
    [:div.layout--row
     [:strong.layout--space-after "Application status:"]
     [:span (name (:applications/state app))]]
@@ -33,7 +37,7 @@
 
 (defn ^:private root [*:store app]
   [:div
-   [details app]
+   [details *:store app]
    [:div.button-row]])
 
 (defmethod ipages/page :routes.ui/application

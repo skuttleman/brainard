@@ -20,3 +20,14 @@
      [:companies/location {:optional true} string?]]]
    [:applications/job-title {:optional true} string?]
    [:applications/details {:optional true} string?]])
+
+(def modify
+  [:map
+   [:applications/company
+    {:optional true}
+    [:map
+     [:companies/name {:optional true} non-empty-trimmed-string]
+     [:companies/website {:optional true} string?]
+     [:companies/location {:optional true} string?]]]
+   [:applications/job-title {:optional true} string?]
+   [:applications/details {:optional true} string?]])

@@ -17,6 +17,18 @@
                    {::storage/type   ::get-app
                     :applications/id app-id})))
 
+(defn update! [apps-api app-id app]
+  (let [app (-> app
+                (select-keys #{:applications/company :applications/details :applications/job-title})
+                (update :applications/company select-keys #{:companies/location
+                                                            :companies/name
+                                                            :companies/website})
+                (assoc :applications/id app-id))]
+    (storage/execute! (:store apps-api) (assoc app ::storage/type ::update!))
+    (storage/query (:store apps-api)
+                   {::storage/type   ::get-app
+                    :applications/id app-id})))
+
 (defn fetch [apps-api app-id]
   (storage/query (:store apps-api) {::storage/type   ::get-app
                                     :applications/id app-id}))

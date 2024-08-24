@@ -11,6 +11,13 @@
                       :applications/job-title
                       :applications/state})])
 
+(defmethod istorage/->input ::api.apps/update!
+  [app]
+  [(select-keys app #{:applications/id
+                      :applications/company
+                      :applications/details
+                      :applications/job-title})])
+
 (defmethod istorage/->input ::api.apps/get-app
   [{app-id :applications/id}]
   {:query '[:find (pull ?e [*])

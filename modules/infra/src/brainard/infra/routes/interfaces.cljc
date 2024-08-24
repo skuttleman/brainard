@@ -55,6 +55,7 @@
    [:patch :routes.api/workspace-node]  :api.workspace-nodes/update!
 
    [:get :routes.api/application]       :api.applications/fetch
+   [:patch :routes.api/application]     :api.applications/update!
    [:get :routes.api/applications]      :api.applications/select
    [:post :routes.api/applications]     :api.applications/create!})
 
