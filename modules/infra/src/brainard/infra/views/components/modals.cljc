@@ -24,12 +24,13 @@
                   :width "100%"}}
     [icomp/modal-body *:store attrs]]])
 
-(defn modal-view [*:store idx {modal-id :id :as modal}]
+(defn modal-view [*:store idx {modal-id :id :as modal} top?]
   (r/with-let [close! (close-modal! *:store modal-id)
                stop-and-close! (comp close! dom/stop-propagation!)
                listener (dom/add-listener! dom/window
                                            :keydown
-                                           #(when (#{:key-codes/esc} (dom/event->key %))
+                                           #(when (and (#{:key-codes/esc} (dom/event->key %))
+                                                       (top? idx))
                                               (stop-and-close! %))
                                            true)
                [modal-type attrs] (:body modal)
@@ -49,12 +50,13 @@
       (dom/remove-listener! listener))))
 
 (defn root [*:store]
-  (r/with-let [sub:modals (store/subscribe *:store [:modals/?:modals])]
-    (let [modals @sub:modals
-          active? (and (seq modals)
-                       (or (seq (rest modals))
-                           (not= :removing (:state (first modals)))))]
-      (when (seq modals)
+  (r/with-let [sub:modals (store/subscribe *:store [:modals/?:modals])
+               modal-count (volatile! 0)]
+    (when-let [modals (seq @sub:modals)]
+      (vreset! modal-count (count modals))
+      (let [active? (or (seq (rest modals))
+                        (not= :removing (:state (first modals))))
+            top? #(= (dec @modal-count) %)]
         [:div.modal-container
          {:class    [(when active? "is-active")]
           :on-click (when active?
@@ -64,4 +66,4 @@
           [:ul.modal-list
            (for [[idx modal] (map-indexed vector modals)]
              ^{:key (:id modal)}
-             [modal-view *:store idx modal])]]]))))
+             [modal-view *:store idx modal top?])]]]))))
