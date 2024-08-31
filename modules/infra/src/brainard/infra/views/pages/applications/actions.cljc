@@ -24,4 +24,5 @@
   {:*:store  *:store
    :class    ["is-info"]
    :commands [[:modals/create! [::app-edit/modal {:init         init-app
+                                                  :new?         true
                                                   :resource-key new-app-form-key}]]]})

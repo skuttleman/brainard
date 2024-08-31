@@ -1,7 +1,8 @@
 (ns brainard.infra.store.specs
   (:require
     [clojure.set :as set]
-    [defacto.resources.core :as res]))
+    [defacto.resources.core :as res]
+    [whet.interfaces :as iwhet]))
 
 (defn ^:private with-msgs [m k params spec]
   (if-let [v (seq (concat (get spec k) (get params k) (get-in spec [:params k])))]
@@ -174,3 +175,7 @@
           :method :get
           :params {:applications/id resource-id}}
          spec))
+
+(defmethod iwhet/handle-request ::sub-form
+  [_ _ {:keys [data]}]
+  [::res/ok data])

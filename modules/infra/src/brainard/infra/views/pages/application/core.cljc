@@ -24,7 +24,7 @@
      [:div.layout--row
       [:strong.layout--space-after "Company website:"]
       [comp/link {:href website :target "_blank"}
-       (:companies/name company)]])
+       website]])
    (when-let [location (:companies/location company)]
      [:div.layout--row
       [:strong.layout--space-after "Company location:"]
