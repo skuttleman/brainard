@@ -18,7 +18,8 @@
   (let [spec (assoc spec :payload data)]
     (specs/with-cbs (res/->request-spec [::specs/apps#create] spec)
                     :err-commands [[:toasts/fail!]]
-                    :ok-commands [[:toasts.applications/succeed!]])))
+                    :ok-commands [[:toasts.applications/succeed!]
+                                  [::res/submit! [::specs/apps#select]]])))
 
 (defn ->new-app-modal-button-attrs [*:store]
   {:*:store  *:store

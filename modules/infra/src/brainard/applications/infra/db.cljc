@@ -18,6 +18,11 @@
                       :applications/details
                       :applications/job-title})])
 
+(defmethod istorage/->input ::api.apps/remove-contacts!
+  [{contact-ids :contacts/ids}]
+  (for [contact-id contact-ids]
+    [:db/retractEntity [:contacts/id contact-id]]))
+
 (defmethod istorage/->input ::api.apps/get-app
   [{app-id :applications/id}]
   {:query '[:find (pull ?e [*])
@@ -37,3 +42,14 @@
             [?tx :db/txInstant ?at]]
    :xform (map (fn [[app updated-at]]
                  (assoc app :applications/updated-at updated-at)))})
+
+(defmethod istorage/->input ::api.apps/app-contacts
+  [{app-id :applications/id}]
+  {:query '[:find (pull ?c [*])
+            :in $ ?app-id
+            :where
+            [?e :applications/id ?app-id]
+            [?e :applications/company ?co]
+            [?co :companies/contacts ?c]]
+   :args  [app-id]
+   :xform (map first)})

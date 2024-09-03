@@ -13,6 +13,7 @@
 (defn ^:private ->init [app]
   (assoc-in app [:applications/company ::present?] true))
 
+(defmethod forms+/re-init ::apps#modify [_ _ result] result)
 (forms+/validated ::apps#modify (valid/->validator sapps/modify)
   [_ {::forms/keys [data] :as spec}]
   (let [spec (assoc spec :payload data)

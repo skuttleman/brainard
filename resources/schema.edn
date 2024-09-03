@@ -146,7 +146,7 @@
   :db/cardinality :db.cardinality/one
   :db/noHistory   true
   :db/doc         "The application company's details"}
- {:db/ident       :applications/contacts
+ {:db/ident       :companies/contacts
   :db/valueType   :db.type/ref
   :db/cardinality :db.cardinality/many
   :db/isComponent true

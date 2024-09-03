@@ -44,17 +44,29 @@
    [ctrls/textarea (-> {:label   "Misc"
                         :*:store *:store}
                        (ctrls/with-attrs form+ [:applications/details]))]
-   [comp/plain-button {:*:store  *:store
-                       :commands [[:modals/create! [::contact-modal {:form-id (forms/id form+)}]]]}
-    "Add contact"]
-   (for [[idx contact] (->> form+
-                            forms/data
-                            :applications/company
-                            :companies/contacts
-                            (sort-by :contacts/name)
-                            (map-indexed vector))]
-     ^{:key idx}
-     [comp/pprint contact])])
+   [:div.layout--col
+    [comp/plain-button {:*:store  *:store
+                        :commands [[:modals/create! [::contact-modal {:form-id (forms/id form+)}]]]}
+     "Add contact"]
+    (for [[idx contact] (->> form+
+                             forms/data
+                             :applications/company
+                             :companies/contacts
+                             (sort-by :contacts/name)
+                             (map-indexed vector))]
+      ^{:key (pr-str [idx (:contacts/id contact)])}
+      [:div
+       [:div.layout--room-between
+        [:strong (:contacts/name contact)]
+        [comp/plain-button {:*:store *:store
+                            :events  [[::forms/modified
+                                       (forms/id form+)
+                                       [:applications/company :companies/contacts]
+                                       (partial remove #{contact})]]
+                            :class   ["is-danger" "is-light" "is-small"]}
+         [comp/icon :trash-can]]]
+       (when-let [info (or (:contacts/email contact) (:contacts/phone contact))]
+         [:div info])])]])
 
 (defn ^:private ->create-form-attrs [*:store form+ attrs]
   (let [{modal-id :modals/id :modals/keys [close!] :keys [resource-key]} attrs]
@@ -80,13 +92,8 @@
     (finally
       (store/emit! *:store [::forms+/destroyed resource-key]))))
 
-(defn ^:private contact-form [*:store form+ form+-key close!]
-  [ctrls/form {:*:store      *:store
-               :form+        form+
-               :resource-key form+-key
-               :submit/body  "Add"
-               :buttons      [[comp/plain-button {:on-click close! :type :button}
-                               "Cancel"]]}
+(defn ^:private contact-form [{:keys [*:store form+] :as attrs}]
+  [ctrls/form attrs
    [ctrls/input (-> {:label       "Name"
                      :auto-focus? true
                      :*:store     *:store}
@@ -98,14 +105,22 @@
                      :*:store *:store}
                     (ctrls/with-attrs form+ [:contacts/phone]))]])
 
+(defn ^:private ->contact-form-attrs [*:store form+ form+-key {:modals/keys [close!]}]
+  {:*:store      *:store
+   :form+        form+
+   :resource-key form+-key
+   :submit/body  "Add"
+   :buttons      [[comp/plain-button {:on-click close! :type :button}
+                   "Cancel"]]})
+
 (defmethod icomp/modal-header ::contact-modal
   [_ _]
   [:div "Add contact"])
 
 (defmethod icomp/modal-body ::contact-modal
-  [*:store {modal-id :modals/id :modals/keys [close!] :keys [form-id]}]
+  [*:store {modal-id :modals/id :keys [form-id] :as attrs}]
   (r/with-let [form+-key (->contact-modal-form-key form-id modal-id)
                sub:form+ (store/form+-sub *:store form+-key nil {:remove-nil? true})]
-    [contact-form *:store @sub:form+ form+-key close!]
+    [contact-form (->contact-form-attrs *:store @sub:form+ form+-key attrs)]
     (finally
       (store/emit! *:store [::forms+/destroyed form+-key]))))
