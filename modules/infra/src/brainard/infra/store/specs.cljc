@@ -147,35 +147,3 @@
           :method :delete
           :params {:workspace-nodes/id resource-id}}
          spec))
-
-(defmethod res/->request-spec ::apps#create
-  [_ {:keys [payload] :as spec}]
-  (->req {:route  :routes.api/applications
-          :method :post
-          :body   payload}
-         spec))
-
-(defmethod res/->request-spec ::apps#modify
-  [[_ resource-id] {:keys [payload] :as spec}]
-  (->req {:route  :routes.api/application
-          :method :patch
-          :params {:applications/id resource-id}
-          :body   payload}
-         spec))
-
-(defmethod res/->request-spec ::apps#select
-  [_ spec]
-  (->req {:route  :routes.api/applications
-          :method :get}
-         spec))
-
-(defmethod res/->request-spec ::apps#find
-  [[_ resource-id] spec]
-  (->req {:route  :routes.api/application
-          :method :get
-          :params {:applications/id resource-id}}
-         spec))
-
-(defmethod iwhet/handle-request ::sub-form
-  [_ _ {:keys [data]}]
-  [::res/ok data])

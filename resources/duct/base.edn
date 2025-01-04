@@ -11,8 +11,7 @@
  [:duct/const :brainard/apis]
  {:notes        #ig/ref :brainard/notes-api
   :schedules    #ig/ref :brainard/schedules-api
-  :workspace    #ig/ref :brainard/workspace-api
-  :applications #ig/ref :brainard/applications-api}
+  :workspace    #ig/ref :brainard/workspace-api}
 
  [:duct/const :brainard/notes-api]
  {:store #ig/ref :brainard/storage}
@@ -21,9 +20,6 @@
  {:store #ig/ref :brainard/storage}
 
  [:duct/const :brainard/workspace-api]
- {:store #ig/ref :brainard/storage}
-
- [:duct/const :brainard/applications-api]
  {:store #ig/ref :brainard/storage}
 
 

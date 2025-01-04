@@ -20,8 +20,6 @@
       (derive :routes.api/contexts :routes/api)
       (derive :routes.api/workspace-nodes :routes/api)
       (derive :routes.api/workspace-node :routes/api)
-      (derive :routes.api/application :routes/api)
-      (derive :routes.api/applications :routes/api)
 
       (derive :routes.resources/js :routes.resources/asset)
       (derive :routes.resources/css :routes.resources/asset)
@@ -30,8 +28,6 @@
       (derive :routes.ui/buzz :routes/ui)
       (derive :routes.ui/note :routes/ui)
       (derive :routes.ui/search :routes/ui)
-      (derive :routes.ui/application :routes/ui)
-      (derive :routes.ui/applications :routes/ui)
       (derive :routes.ui/not-found :routes/ui)))
 
 (def route->handler
@@ -52,12 +48,7 @@
    [:get :routes.api/workspace-nodes]   :api.workspace-nodes/select-tree
    [:post :routes.api/workspace-nodes]  :api.workspace-nodes/create!
    [:delete :routes.api/workspace-node] :api.workspace-nodes/delete!
-   [:patch :routes.api/workspace-node]  :api.workspace-nodes/update!
-
-   [:get :routes.api/application]       :api.applications/fetch
-   [:patch :routes.api/application]     :api.applications/update!
-   [:get :routes.api/applications]      :api.applications/select
-   [:post :routes.api/applications]     :api.applications/create!})
+   [:patch :routes.api/workspace-node]  :api.workspace-nodes/update!})
 
 (defn router [{:keys [request-method] ::w/keys [route]}]
   [request-method (:token route)])

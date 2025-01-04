@@ -6,7 +6,6 @@
     [brainard.infra.db.store :as ds]
     [brainard.infra.routes.core :as routes]
     [integrant.core :as ig]
-    brainard.applications.infra.db
     brainard.notes.infra.db
     brainard.notes.infra.routes
     brainard.schedules.infra.db
