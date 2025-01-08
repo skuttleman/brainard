@@ -5,7 +5,7 @@
            com.datomic/local              {:mvn/version "1.0.277"}
            datascript/datascript          {:mvn/version "1.6.1"}
            duct/core                      {:mvn/version "0.8.0"}
-           io.github.nextjournal/markdown {:mvn/version "0.5.148"}
+           io.github.nextjournal/markdown {:mvn/version "0.6.157"}
            org.immutant/immutant          {:mvn/version "2.1.10"
                                            :exclusions  [ch.qos.logback/logback-classic
                                                          org.jboss.naming/jnpserver

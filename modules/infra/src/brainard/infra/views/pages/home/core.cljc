@@ -50,7 +50,7 @@
                                    (set/subset? tag-filters tags))
                                  pinned-notes)
           edit-modal (home.act/->note-edit-modal expanded tag-filters)]
-      [:section
+      [:section.box
        [:h1 {:style {:font-size "1.5rem"}} [:strong "Pinned notes"]]
        [:div.layout--row
         [:div.layout--space-after
@@ -137,7 +137,7 @@
 
 (defn ^:private workspace [*:store ws-nodes]
   (r/with-let [dnd-attrs (home.act/->dnd-form-attrs *:store)]
-    [:section
+    [:section.box
      [:h1 {:style {:font-size "1.5rem"}} [:strong "Workspace"]]
      [dnd/control dnd-attrs (->tree ws-nodes)]
      [icon-button *:store home.act/create-modal :plus]]))
