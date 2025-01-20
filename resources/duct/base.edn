@@ -9,9 +9,13 @@
 
  ;; apis
  [:duct/const :brainard/apis]
- {:notes        #ig/ref :brainard/notes-api
-  :schedules    #ig/ref :brainard/schedules-api
-  :workspace    #ig/ref :brainard/workspace-api}
+ {:attachments #ig/ref :brainard/attachments-api
+  :notes       #ig/ref :brainard/notes-api
+  :schedules   #ig/ref :brainard/schedules-api
+  :workspace   #ig/ref :brainard/workspace-api}
+
+ [:duct/const :brainard/attachments-api]
+ {:obj-store #ig/ref :brainard/obj-storage}
 
  [:duct/const :brainard/notes-api]
  {:store #ig/ref :brainard/storage}
@@ -27,8 +31,18 @@
  :brainard/storage
  {:conn #ig/ref :brainard/IDBConn}
 
+ :brainard/obj-storage
+ {:invoker #ig/ref :brainard/IObjInvoker}
+
  [:duct/const :cfg.ds/schema]
  #duct/include "schema.edn"
+
+ ;; move me to prod and make dev impl
+ [:brainard/s3-invoker :brainard/IObjInvoker]
+ {:access-key #duct/env "AWS_ACCESS_KEY"
+  :bucket     #duct/env "AWS_S3_BUCKET"
+  :region     #duct/env "AWS_S3_REGION"
+  :secret-key #duct/env "AWS_SECRET_KEY"}
 
  ;; env
  [:duct/const :cfg/server-port]

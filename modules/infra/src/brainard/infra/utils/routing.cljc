@@ -35,6 +35,7 @@
                           [["/" [uuids/regex :schedules/id]] :routes.api/schedule]]]
            ["/workspace-nodes" [["" :routes.api/workspace-nodes]
                                 [["/" [uuids/regex :workspace-nodes/id]] :routes.api/workspace-node]]]
+           ["/attachments" :routes.api/attachments]
            ["/tags" :routes.api/tags]
            ["/contexts" :routes.api/contexts]
            [true :routes.api/not-found]]])

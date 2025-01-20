@@ -1,11 +1,14 @@
 (ns brainard.infra.system
   (:require
-    #?@(:clj [[immutant.web :as web]
+    #?@(:clj [[brainard.infra.obj.store :as os]
+              [immutant.web :as web]
               brainard.infra.routes.ui])
     [brainard.api.utils.logger :as log]
     [brainard.infra.db.store :as ds]
     [brainard.infra.routes.core :as routes]
     [integrant.core :as ig]
+    brainard.attachments.infra.db
+    brainard.attachments.infra.routes
     brainard.notes.infra.db
     brainard.notes.infra.routes
     brainard.schedules.infra.db
@@ -37,3 +40,13 @@
 (defmethod ig/init-key :brainard.ds/conn
   [_ input]
   (ds/connect! input))
+
+#?(:clj
+   (defmethod ig/init-key :brainard/obj-storage
+     [_ {:keys [invoker]}]
+     (os/->ObjStore invoker)))
+
+#?(:clj
+   (defmethod ig/init-key :brainard/s3-invoker
+     [_ params]
+     (os/->invoke-fn params)))

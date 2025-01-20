@@ -40,5 +40,7 @@
                                     "dev"]})))
 
 (comment
-  (def system (core/start! "duct/dev.edn" [:duct.profile/base :duct.profile/dev]))
+  (alter-var-root #'system (fn [sys]
+                             (some-> sys ig/halt!)
+                             (core/start! "duct/dev.edn" [:duct.profile/base :duct.profile/dev])))
   (ig/halt! system))

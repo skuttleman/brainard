@@ -9,6 +9,8 @@ resources/public/js/
 resources/public/css/
 resources/public/img/
 target/
+
 *.iml
 *.log
+.env
 .nrepl-port

@@ -10,6 +10,7 @@
     [clojure.string :as string]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
+    [defacto.resources.core :as res]
     [whet.utils.reagent :as r]))
 
 (defn ^:private with-trim-on-blur [{:keys [on-change] :as attrs} *:store]
@@ -20,7 +21,7 @@
                                              (store/emit! *:store (conj on-change trimmed-v)))
                                            e))))
 
-(defn ^:private topic-field [{:keys [*:store form+ on-context-blur sub:contexts]}]
+(defn ^:private topic+pin-field [{:keys [*:store form+ on-context-blur sub:contexts]}]
   (let [form-data (forms/data form+)]
     [:div.layout--space-between
      [:div.flex-grow
@@ -50,20 +51,39 @@
                              :auto-focus? (some? (:notes/context form-data))}
                             (ctrls/with-attrs form+ [:notes/body]))])]]))
 
-(defn ^:private note-form [{:keys [*:store form+ sub:tags] :as attrs}]
+(defn ^:private tags+attachments-field [{:keys [*:store form+ sub:tags]}]
+  (r/with-let [sub:uploads (store/res-sub *:store [::specs/attachment#upload])]
+    [:div.layout--room-between
+     [:div {:style {:flex-basis "50%"}}
+      [ctrls/tags-editor (-> {:*:store   *:store
+                              :form-id   [::tags (forms/id form+)]
+                              :label     "Tags"
+                              :sub:items sub:tags}
+                             (ctrls/with-attrs form+ [:notes/tags]))]]
+     [:div {:style {:flex-basis "50%"}}
+      [ctrls/file {:on-change (fn [files]
+                                (when (seq files)
+                                  (store/dispatch! *:store
+                                                   [::res/submit!
+                                                    [::specs/attachment#upload]
+                                                    {:form-id (forms/id form+)
+                                                     :files   files}])))
+                   :disabled  (res/requesting? @sub:uploads)
+                   :label     "Attachments"
+                   :multi?    true}]]]
+    (finally
+      (store/emit! *:store [::res/destroyed [::specs/attachment#upload]]))))
+
+(defn ^:private note-form [{:keys [*:store form+] :as attrs}]
   [ctrls/form attrs
-   [topic-field attrs]
+   [topic+pin-field attrs]
    [body-field attrs]
    [ctrls/toggle (-> {:label   [:span.is-small "Preview"]
                       :style   {:margin-top 0}
                       :inline? true
                       :*:store *:store}
                      (ctrls/with-attrs form+ [::preview?]))]
-   [ctrls/tags-editor (-> {:*:store   *:store
-                           :form-id   [::tags (forms/id form+)]
-                           :label     "Tags"
-                           :sub:items sub:tags}
-                          (ctrls/with-attrs form+ [:notes/tags]))]])
+   [tags+attachments-field attrs]])
 
 (defmethod icomp/modal-header ::modal
   [_ {:keys [header]}]

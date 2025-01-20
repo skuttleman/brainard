@@ -11,20 +11,14 @@
 
 #?(:clj
    (defn read [stream]
-     (let [reader (-> stream
-                      io/reader
-                      PushbackReader.)
-           byte (.read reader)]
-       (when-not (= -1 byte)
-         (.unread reader byte)
-         (edn*/read reader)))))
+     (with-open [reader (-> stream
+                            io/reader
+                            PushbackReader.)]
+       (let [byte (.read reader)]
+         (when-not (= -1 byte)
+           (.unread reader byte)
+           (edn*/read reader))))))
 
 (defn read-string [s]
   (when-not (string/blank? s)
     (edn*/read-string s)))
-
-#?(:clj
-   (defn resource [resource-name]
-     (-> resource-name
-         io/resource
-         read)))

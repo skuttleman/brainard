@@ -1,8 +1,7 @@
 (ns brainard.infra.store.specs
   (:require
     [clojure.set :as set]
-    [defacto.resources.core :as res]
-    [whet.interfaces :as iwhet]))
+    [defacto.resources.core :as res]))
 
 (defn ^:private with-msgs [m k params spec]
   (if-let [v (seq (concat (get spec k) (get params k) (get-in spec [:params k])))]
@@ -13,12 +12,14 @@
   ([params]
    (->req params nil))
   ([{:keys [route] :as params} spec]
-   (let [{:keys [query-params] :as route-params} (:params params)]
-     (-> {:params {:request-method (:method params)
-                   :route          {:token        route
-                                    :route-params (dissoc route-params :query-params)
-                                    :query-params query-params}
-                   :body           (:body params)}
+   (let [{:keys [query-params] :as route-params} (:params params)
+         req-params (-> params
+                        (select-keys #{:body :headers :multipart-params :progress})
+                        (assoc :request-method (:method params)
+                               :route {:token        route
+                                       :route-params (dissoc route-params :query-params)
+                                       :query-params query-params}))]
+     (-> {:params req-params
           :->ok   :data
           :->err  :errors}
          (with-msgs :pre-events params spec)
@@ -146,4 +147,12 @@
   (->req {:route  :routes.api/workspace-node
           :method :delete
           :params {:workspace-nodes/id resource-id}}
+         spec))
+
+(defmethod res/->request-spec ::attachment#upload
+  [_ spec]
+  (->req {:route            :routes.api/attachments
+          :method           :post
+          :multipart-params (for [file (:files spec)]
+                              ["files[]" file])}
          spec))

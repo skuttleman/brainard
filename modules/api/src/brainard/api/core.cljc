@@ -2,6 +2,7 @@
   (:require
     [brainard.api.validations :as valid]
     [brainard.api.utils.logger :as log]
+    [brainard.attachments.api.core :as api.attachments]
     [brainard.notes.api.core :as api.notes]
     [brainard.schedules.api.core :as api.sched]
     [brainard.workspace.api.core :as api.ws]))
@@ -76,6 +77,10 @@
 (defmethod invoke-api* :api.workspace-nodes/update!
   [_ apis node]
   (api.ws/update! (:workspace apis) (:workspace-nodes/id node) node))
+
+(defmethod invoke-api* :api.attachments/upload!
+  [_ apis attachments]
+  (api.attachments/upload! (:attachments apis) attachments))
 
 (def ^:private missing-spec
   (memoize (fn [api]

@@ -220,6 +220,34 @@
            attrs
            [dd/control (dd/->single attrs)]])))))
 
+(def ^{:arglists '([attrs])} file
+  (with-id
+    (scomp/with-auto-focus
+      (fn [{:keys [multi? on-change] :as attrs}]
+        (r/with-let [file-input (volatile! nil)]
+          [form-field attrs
+           [:div
+            [:input {:ref       #(some->> % (vreset! file-input))
+                     :type      :file
+                     :multiple  multi?
+                     :style     {:display :none}
+                     :on-change (comp on-change
+                                      (fn [e]
+                                        (let [files (into #{} (some-> e .-target .-files))]
+                                          (doto (.-target e)
+                                            (aset "files" nil)
+                                            (aset "value" nil))
+                                          files)))}]
+            [comp/plain-button
+             (-> attrs
+                 (select-keys #{:class :id :disabled :style :on-blur :ref :auto-focus})
+                 (assoc :on-click (comp (fn [_]
+                                          (dom/click! @file-input))
+                                        dom/prevent-default!)))
+             (:display attrs "Select file…")
+             (when (:disabled attrs)
+               [:div {:style {:margin-left "8px"}} [comp/spinner]])]]])))))
+
 (defn ^:private form-button-row [{:keys [attempted? inline-buttons? buttons disabled requesting?] :as attrs}]
   (cond-> [:div.layout--room-between
            {:class [(when-not inline-buttons? "button-row")] }

@@ -2,6 +2,9 @@
  :deps    {bidi/bidi                      {:mvn/version "2.1.6"
                                            :exclusions  [ring/ring-core]}
            brainard/api                   {:local/root "../api"}
+           com.cognitect.aws/api          {:mvn/version "0.8.723"}
+           com.cognitect.aws/endpoints    {:mvn/version "871.2.29.52"}
+           com.cognitect.aws/s3           {:mvn/version "871.2.29.52"}
            com.datomic/local              {:mvn/version "1.0.277"}
            datascript/datascript          {:mvn/version "1.6.1"}
            duct/core                      {:mvn/version "0.8.0"}

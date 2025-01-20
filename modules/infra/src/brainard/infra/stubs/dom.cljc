@@ -26,6 +26,7 @@
 (def ^{:arglists '([e])} stop-propagation! wdom/stop-propagation!)
 (def ^{:arglists '([e])} target-value wdom/target-value)
 (def ^{:arglists '([e])} blur! wdom/blur!)
+(def ^{:arglists '([e])} click! wdom/click!)
 (def ^{:arglists '([e])} focus! wdom/focus!)
 
 (defn add-listener!

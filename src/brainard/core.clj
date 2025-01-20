@@ -2,7 +2,10 @@
   "brainard: 'cause absent-minded people need help 'membering stuff"
   (:gen-class)
   (:require
+    [brainard.infra.utils.edn :as edn]
+    [clojure.java.io :as io]
     [duct.core :as duct]
+    [duct.core.env :as duct.env]
     [integrant.core :as ig]
     brainard.infra.system))
 
@@ -16,7 +19,11 @@
       (duct/prep-config profiles)
       (ig/init [:duct/daemon])))
 
+(defn ^:private with-env-file [env]
+  (merge env (some-> (io/file ".env") edn/read)))
+
 (defn -main
   "Entry point for running the `brainard` web application from the command line."
   [& _]
-  (duct/await-daemons (start! "duct/prod.edn" [:duct.profile/base :duct.profile/prod])))
+  (binding [duct.env/*env* (with-env-file duct.env/*env*)]
+    (duct/await-daemons (start! "duct/prod.edn" [:duct.profile/base :duct.profile/prod]))))

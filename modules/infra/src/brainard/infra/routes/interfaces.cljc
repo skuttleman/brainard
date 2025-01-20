@@ -20,6 +20,7 @@
       (derive :routes.api/contexts :routes/api)
       (derive :routes.api/workspace-nodes :routes/api)
       (derive :routes.api/workspace-node :routes/api)
+      (derive :routes.api/attachments :routes/api)
 
       (derive :routes.resources/js :routes.resources/asset)
       (derive :routes.resources/css :routes.resources/asset)
@@ -48,7 +49,9 @@
    [:get :routes.api/workspace-nodes]   :api.workspace-nodes/select-tree
    [:post :routes.api/workspace-nodes]  :api.workspace-nodes/create!
    [:delete :routes.api/workspace-node] :api.workspace-nodes/delete!
-   [:patch :routes.api/workspace-node]  :api.workspace-nodes/update!})
+   [:patch :routes.api/workspace-node]  :api.workspace-nodes/update!
+
+   [:post :routes.api/attachments]      :api.attachments/upload!})
 
 (defn router [{:keys [request-method] ::w/keys [route]}]
   [request-method (:token route)])
