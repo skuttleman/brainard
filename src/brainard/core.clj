@@ -9,21 +9,21 @@
     [integrant.core :as ig]
     brainard.infra.system))
 
+(defn ^:private with-env-file [env]
+  (merge env (some-> (io/file ".env") edn/read)))
+
 (defn start!
   "Starts a duct component system from a configuration expressed in an `edn` file."
   [config-file profiles]
   (duct/load-hierarchy)
-  (-> config-file
-      duct/resource
-      duct/read-config
-      (duct/prep-config profiles)
-      (ig/init [:duct/daemon])))
-
-(defn ^:private with-env-file [env]
-  (merge env (some-> (io/file ".env") edn/read)))
+  (binding [duct.env/*env* (with-env-file duct.env/*env*)]
+    (-> config-file
+        duct/resource
+        duct/read-config
+        (duct/prep-config profiles)
+        (ig/init [:duct/daemon]))))
 
 (defn -main
   "Entry point for running the `brainard` web application from the command line."
   [& _]
-  (binding [duct.env/*env* (with-env-file duct.env/*env*)]
-    (duct/await-daemons (start! "duct/prod.edn" [:duct.profile/base :duct.profile/prod]))))
+  (duct/await-daemons (start! "duct/prod.edn" [:duct.profile/base :duct.profile/prod])))
