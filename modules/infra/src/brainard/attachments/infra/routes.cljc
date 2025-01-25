@@ -4,10 +4,7 @@
 
 (defmethod iroutes/req->input [:post :routes.api/attachments]
   [req]
-  (for [{:keys [content-type filename size tempfile]} (-> (:multipart-params req)
-                                                     (get "files[]")
-                                                     (as-> $ (cond-> $ (and (seq $) (not (sequential? $))) vector)))]
+  (for [{:keys [content-type filename stream]} (-> req :multipart-params :files)]
     {:attachments/content-type content-type
-     :attachments/file         tempfile
-     :attachments/filename     filename
-     :attachments/size         size}))
+     :attachments/stream       stream
+     :attachments/filename     filename}))

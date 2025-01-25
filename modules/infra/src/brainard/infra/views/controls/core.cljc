@@ -223,7 +223,7 @@
 (def ^{:arglists '([attrs])} file
   (with-id
     (scomp/with-auto-focus
-      (fn [{:keys [multi? on-change] :as attrs}]
+      (fn [{:keys [multi? on-upload] :as attrs}]
         (r/with-let [file-input (volatile! nil)]
           [form-field attrs
            [:div
@@ -231,7 +231,7 @@
                      :type      :file
                      :multiple  multi?
                      :style     {:display :none}
-                     :on-change (comp on-change
+                     :on-change (comp on-upload
                                       (fn [e]
                                         (let [files (into #{} (some-> e .-target .-files))]
                                           (doto (.-target e)
@@ -244,7 +244,7 @@
                  (assoc :on-click (comp (fn [_]
                                           (dom/click! @file-input))
                                         dom/prevent-default!)))
-             (:display attrs "Select file…")
+             (:display attrs "Select file(s)…")
              (when (:disabled attrs)
                [:div {:style {:margin-left "8px"}} [comp/spinner]])]]])))))
 

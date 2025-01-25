@@ -52,7 +52,7 @@
                             (ctrls/with-attrs form+ [:notes/body]))])]]))
 
 (defn ^:private tags+attachments-field [{:keys [*:store form+ sub:tags]}]
-  (r/with-let [sub:uploads (store/res-sub *:store [::specs/attachment#upload])]
+  (r/with-let [sub:uploads (store/subscribe *:store [::res/?:resource [::specs/attachment#upload]])]
     [:div.layout--room-between
      [:div {:style {:flex-basis "50%"}}
       [ctrls/tags-editor (-> {:*:store   *:store
@@ -61,13 +61,16 @@
                               :sub:items sub:tags}
                              (ctrls/with-attrs form+ [:notes/tags]))]]
      [:div {:style {:flex-basis "50%"}}
-      [ctrls/file {:on-change (fn [files]
+      [ctrls/file {:on-upload (fn [files]
                                 (when (seq files)
                                   (store/dispatch! *:store
                                                    [::res/submit!
                                                     [::specs/attachment#upload]
-                                                    {:form-id (forms/id form+)
-                                                     :files   files}])))
+                                                    {:files     files
+                                                     :ok-events [[::forms/modified
+                                                                  (forms/id form+)
+                                                                  [:notes/attachments]
+                                                                  into]]}])))
                    :disabled  (res/requesting? @sub:uploads)
                    :label     "Attachments"
                    :multi?    true}]]]

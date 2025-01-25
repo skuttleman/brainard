@@ -1,6 +1,7 @@
 (ns brainard.infra.routes.ui
   (:require
     [brainard :as-alias b]
+    [brainard.attachments.api.core :as api.attachments]
     [brainard.infra.routes.core :as routes]
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.infra.routes.response :as routes.res]
@@ -39,7 +40,7 @@
       routes/handler))
 
 (defmethod iroutes/handler [:get :routes/ui]
-  [{::w/keys [route] ::b/keys [apis env] :as req}]
+  [{::w/keys [route] ::b/keys [apis env]}]
   (let [template (-> {::b/sys apis}
                      (w/into-template "brainard"
                                       route
@@ -57,3 +58,12 @@
     (some-> req
             (ring.res/resource-request "public")
             (assoc-in [:headers "content-type"] content-type))))
+
+(defmethod iroutes/handler [:get :routes.resources/attachment]
+  [{::b/keys [apis input]}]
+  (let [{:attachments/keys [content-length content-type stream]}
+        (api.attachments/fetch (:attachments apis) (:attachments/id input))]
+    (routes.res/->response 200
+                           stream
+                           {"content-length" content-length
+                            "content-type"   content-type})))

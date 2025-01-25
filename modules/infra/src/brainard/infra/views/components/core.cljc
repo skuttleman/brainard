@@ -41,7 +41,8 @@
   [:input.input
    (-> attrs
        (select-keys #{:auto-focus :class :disabled :id :on-blur :style
-                      :on-change :on-click :on-focus :ref :type :value})
+                      :on-change :on-click :on-focus :ref :type :value
+                      :placeholder})
        (update :on-change comp dom/target-value)
        (maps/assoc-defaults :type :text))])
 

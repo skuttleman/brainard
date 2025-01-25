@@ -34,13 +34,13 @@
 (defn control [{:keys [*:store form-id] :as attrs}]
   (r/with-let [sub:form (store/form-sub *:store form-id nil)
                on-change (->update-form *:store form-id)]
-    (let [form+ (forms+/->form+ @sub:form @(:sub:items attrs))
-          form-data (forms/data form+)
+    (let [form (forms+/->form+ @sub:form @(:sub:items attrs))
+          form-data (forms/data form)
           add-tag (->add-tag attrs form-id form-data)]
       [:div.tags-editor
        [:div.field.has-addons
         [type-ahead/control (-> attrs
-                                (shared/with-attrs form+ [:value])
+                                (shared/with-attrs form [:value])
                                 (assoc :placeholder "Add tag..."
                                        :on-change on-change
                                        :on-add add-tag))]

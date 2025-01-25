@@ -5,11 +5,12 @@
     [whet.interfaces :as iwhet]))
 
 (def ^:private token->coercers
-  {:routes.api/note           {:notes/id uuids/->uuid}
-   :routes.api/note?history   {:notes/id uuids/->uuid}
-   :routes.ui/note            {:notes/id uuids/->uuid}
-   :routes.api/schedule       {:schedules/id uuids/->uuid}
-   :routes.api/workspace-node {:workspace-nodes/id uuids/->uuid}})
+  {:routes.api/note             {:notes/id uuids/->uuid}
+   :routes.api/note?history     {:notes/id uuids/->uuid}
+   :routes.api/schedule         {:schedules/id uuids/->uuid}
+   :routes.api/workspace-node   {:workspace-nodes/id uuids/->uuid}
+   :routes.resources/attachment {:attachments/id uuids/->uuid}
+   :routes.ui/note              {:notes/id uuids/->uuid}})
 
 (defn ^:private coerce-params [token params]
   (let [coercers (token->coercers token)]
@@ -20,11 +21,8 @@
             params
             coercers)))
 
-(defmethod iwhet/coerce-route-params :routes.api/note [token params] (coerce-params token params))
-(defmethod iwhet/coerce-route-params :routes.api/note?history [token params] (coerce-params token params))
-(defmethod iwhet/coerce-route-params :routes.ui/note [token params] (coerce-params token params))
-(defmethod iwhet/coerce-route-params :routes.api/schedule [token params] (coerce-params token params))
-(defmethod iwhet/coerce-route-params :routes.api/workspace-node [token params] (coerce-params token params))
+(doseq [token (keys token->coercers)]
+  (defmethod iwhet/coerce-route-params token [token params] (coerce-params token params)))
 
 (def ^:private api-routes
   ["/api" [["/notes" [["" :routes.api/notes]
@@ -41,9 +39,10 @@
            [true :routes.api/not-found]]])
 
 (def ^:private resource-routes
-  ["" [["/js/" [[true :routes.resources/js]]]
+  ["" [[["/attachments/" [uuids/regex :attachments/id]] :routes.resources/attachment]
        ["/css/" [[true :routes.resources/css]]]
        ["/img/" [[true :routes.resources/img]]]
+       ["/js/" [[true :routes.resources/js]]]
        ["/favicon.ico" :routes.resources/not-found]]])
 
 (def ^:private ui-routes

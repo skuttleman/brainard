@@ -1,19 +1,21 @@
 {:paths   ["resources" "src"]
- :deps    {bidi/bidi                      {:mvn/version "2.1.6"
-                                           :exclusions  [ring/ring-core]}
-           brainard/api                   {:local/root "../api"}
-           com.cognitect.aws/api          {:mvn/version "0.8.723"}
-           com.cognitect.aws/endpoints    {:mvn/version "871.2.29.52"}
-           com.cognitect.aws/s3           {:mvn/version "871.2.29.52"}
-           com.datomic/local              {:mvn/version "1.0.277"}
-           datascript/datascript          {:mvn/version "1.6.1"}
-           duct/core                      {:mvn/version "0.8.0"}
-           io.github.nextjournal/markdown {:mvn/version "0.6.157"}
-           org.immutant/immutant          {:mvn/version "2.1.10"
-                                           :exclusions  [ch.qos.logback/logback-classic
-                                                         org.jboss.naming/jnpserver
-                                                         ring/ring-core]}
-           skuttleman/whet                {:git/url "https://github.com/skuttleman/whet"
-                                           :git/sha "7912861dca5d4f5a8481678ae2979efac9565e41"}}
+ :deps    {bidi/bidi                             {:mvn/version "2.1.6"
+                                                  :exclusions  [ring/ring-core]}
+           brainard/api                          {:local/root "../api"}
+           com.cognitect.aws/api                 {:mvn/version "0.8.723"}
+           com.cognitect.aws/endpoints           {:mvn/version "871.2.29.52"}
+           com.cognitect.aws/s3                  {:mvn/version "871.2.29.52"}
+           com.datomic/local                     {:mvn/version "1.0.277"}
+           datascript/datascript                 {:mvn/version "1.6.1"}
+           duct/core                             {:mvn/version "0.8.0"}
+           io.github.nextjournal/markdown        {:mvn/version "0.6.157"}
+           commons-fileupload/commons-fileupload {:mvn/version "1.4"}
+           org.immutant/immutant                 {:mvn/version "2.1.10"
+                                                  :exclusions  [ch.qos.logback/logback-classic
+                                                                org.jboss.naming/jnpserver
+                                                                ring/ring-core]}
+           skuttleman/whet                       {:local/root "../../../whet"}
+                                               #_{:git/url "https://github.com/skuttleman/whet"
+                                                  :git/sha "7912861dca5d4f5a8481678ae2979efac9565e41"}}
  :aliases {:test     {:extra-paths ["test/resources" "test/src"]}
            :intellij {:extra-deps {org.clojure/clojurescript {:mvn/version "1.11.60"}}}}}

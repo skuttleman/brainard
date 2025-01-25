@@ -9,13 +9,19 @@
                    (assoc attachment
                           ::storage/type ::save-attachment!
                           :attachments/id attachment-id))]
-    (apply storage/execute! (:obj-store attachments-api) requests)
+    (run! (partial storage/execute! (:obj-store attachments-api)) requests)
     (for [request requests]
-      (select-keys request #{:attachments/content-type
-                             :attachments/filename
-                             :attachments/id}))))
+      (-> request
+          (select-keys #{:attachments/content-type
+                         :attachments/filename
+                         :attachments/id})
+          (as-> $ (assoc $ :attachments/name (:attachments/filename $)))))))
 
 (defn fetch [attachments-api attachment-id]
-  (storage/query (:obj-store attachments-api)
-                 {::storage/type  ::get-attachment
-                  :attachments/id attachment-id}))
+  (let [{:keys [Body ContentType ContentLength]} (storage/query (:obj-store attachments-api)
+                                                                {::storage/type  ::get-attachment
+                                                                 :attachments/id attachment-id})]
+    {:attachments/id             attachment-id
+     :attachments/content-length ContentLength
+     :attachments/content-type   ContentType
+     :attachments/stream         Body}))

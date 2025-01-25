@@ -1,9 +1,9 @@
 (ns brainard.infra.routes.core
   (:require
-    #?@(:clj [[brainard.infra.utils.routing :as rte]
+    #?@(:clj [[brainard.attachments.infra.multipart-params :as multi]
+              [brainard.infra.utils.routing :as rte]
               [ring.middleware.keyword-params :as ring.kw-params]
-              [ring.middleware.params :as ring.params]
-              [ring.middleware.multipart-params :as ring.multi]])
+              [ring.middleware.params :as ring.params]])
     [brainard :as-alias b]
     [brainard.api.core :as api]
     [brainard.infra.routes.interfaces :as iroutes]
@@ -44,8 +44,8 @@
   "Main app handler"
   (-> iroutes/handler
       mw/with-input
-      #?(:clj ring.multi/wrap-multipart-params)
-      #?(:clj (w/with-middleware rte/all-routes))))
+      #?@(:clj [multi/wrap-multipart-params
+                (w/with-middleware rte/all-routes)])))
 
 #?(:clj
    (def be-handler
