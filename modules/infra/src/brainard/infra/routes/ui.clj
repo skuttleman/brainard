@@ -60,10 +60,13 @@
             (assoc-in [:headers "content-type"] content-type))))
 
 (defmethod iroutes/handler [:get :routes.resources/attachment]
-  [{::b/keys [apis input]}]
-  (let [{:attachments/keys [content-length content-type stream]}
-        (api.attachments/fetch (:attachments apis) (:attachments/id input))]
+  [{::b/keys [apis input] ::w/keys [route] :as req}]
+  (if-let [{:attachments/keys [content-length content-type stream]}
+           (api.attachments/fetch (:attachments apis) (:attachments/id input))]
     (routes.res/->response 200
                            stream
                            {"content-length" content-length
-                            "content-type"   content-type})))
+                            "content-type"   content-type})
+    (iroutes/handler (assoc req
+                            :request-method :get
+                            ::w/route (assoc route :token :routes/ui)))))

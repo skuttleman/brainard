@@ -21,7 +21,8 @@
   (let [{:keys [Body ContentType ContentLength]} (storage/query (:obj-store attachments-api)
                                                                 {::storage/type  ::get-attachment
                                                                  :attachments/id attachment-id})]
-    {:attachments/id             attachment-id
-     :attachments/content-length ContentLength
-     :attachments/content-type   ContentType
-     :attachments/stream         Body}))
+    (when Body
+      {:attachments/id             attachment-id
+       :attachments/content-length ContentLength
+       :attachments/content-type   ContentType
+       :attachments/stream         Body})))
