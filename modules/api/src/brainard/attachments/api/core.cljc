@@ -7,19 +7,25 @@
   (let [requests (for [attachment attachments
                        :let [attachment-id (uuids/random)]]
                    (assoc attachment
-                          ::storage/type ::save-attachment!
-                          :attachments/id attachment-id))]
-    (run! (partial storage/execute! (:obj-store attachments-api)) requests)
+                          :attachments/id attachment-id
+                          :attachments/name (:attachments/filename attachment)))]
+    (doseq [request requests
+            :let [attachment (select-keys request #{:attachments/content-type
+                                                    :attachments/filename
+                                                    :attachments/id
+                                                    :attachments/name})]]
+      (storage/execute! (:store attachments-api)
+                        (assoc attachment ::storage/type ::create!))
+      (storage/execute! (:obj-store attachments-api)
+                        (assoc request ::storage/type ::upload!)))
     (for [request requests]
-      (-> request
-          (select-keys #{:attachments/content-type
-                         :attachments/filename
-                         :attachments/id})
-          (as-> $ (assoc $ :attachments/name (:attachments/filename $)))))))
+      (select-keys request #{:attachments/content-type
+                             :attachments/filename
+                             :attachments/id}))))
 
 (defn fetch [attachments-api attachment-id]
   (let [{:keys [Body ContentType ContentLength]} (storage/query (:obj-store attachments-api)
-                                                                {::storage/type  ::get-attachment
+                                                                {::storage/type  ::download
                                                                  :attachments/id attachment-id})]
     (when Body
       {:attachments/id             attachment-id

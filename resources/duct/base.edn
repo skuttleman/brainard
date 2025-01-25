@@ -15,7 +15,8 @@
   :workspace   #ig/ref :brainard/workspace-api}
 
  [:duct/const :brainard/attachments-api]
- {:obj-store #ig/ref :brainard/obj-storage}
+ {:obj-store #ig/ref :brainard/obj-storage
+  :store     #ig/ref :brainard/storage}
 
  [:duct/const :brainard/notes-api]
  {:store #ig/ref :brainard/storage}
