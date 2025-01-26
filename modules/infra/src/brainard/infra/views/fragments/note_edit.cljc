@@ -51,42 +51,43 @@
                              :auto-focus? (some? (:notes/context form-data))}
                             (ctrls/with-attrs form+ [:notes/body]))])]]))
 
-(defn ^:private tags+attachments-field [{:keys [*:store form+ sub:tags]}]
-  (r/with-let [sub:uploads (store/subscribe *:store [::res/?:resource [::specs/attachment#upload]])]
-    [:div.layout--room-between
-     [:div {:style {:flex-basis "50%"}}
-      [ctrls/tags-editor (-> {:*:store   *:store
-                              :form-id   [::tags (forms/id form+)]
-                              :label     "Tags"
-                              :sub:items sub:tags}
-                             (ctrls/with-attrs form+ [:notes/tags]))]]
-     [:div {:style {:flex-basis "50%"}}
-      [ctrls/file {:on-upload (fn [files]
-                                (when (seq files)
-                                  (store/dispatch! *:store
-                                                   [::res/submit!
-                                                    [::specs/attachment#upload]
-                                                    {:files     files
-                                                     :ok-events [[::forms/modified
-                                                                  (forms/id form+)
-                                                                  [:notes/attachments]
-                                                                  into]]}])))
-                   :disabled  (res/requesting? @sub:uploads)
-                   :label     "Attachments"
-                   :multi?    true}]]]
-    (finally
-      (store/emit! *:store [::res/destroyed [::specs/attachment#upload]]))))
+(defn ^:private tags+attachments-field [{:keys [*:store form+ sub:tags uploading?]}]
+  [:div.layout--room-between
+   [:div {:style {:flex-basis "50%"}}
+    [ctrls/tags-editor (-> {:*:store   *:store
+                            :form-id   [::tags (forms/id form+)]
+                            :label     "Tags"
+                            :sub:items sub:tags}
+                           (ctrls/with-attrs form+ [:notes/tags]))]]
+   [:div {:style {:flex-basis "50%"}}
+    [ctrls/file {:on-upload (fn [files]
+                              (when (seq files)
+                                (store/dispatch! *:store
+                                                 [::res/submit!
+                                                  [::specs/attachment#upload]
+                                                  {:files     files
+                                                   :ok-events [[::forms/modified
+                                                                (forms/id form+)
+                                                                [:notes/attachments]
+                                                                into]]}])))
+                 :disabled  uploading?
+                 :label     "Attachments"
+                 :multi?    true}]]])
 
 (defn ^:private note-form [{:keys [*:store form+] :as attrs}]
-  [ctrls/form attrs
-   [topic+pin-field attrs]
-   [body-field attrs]
-   [ctrls/toggle (-> {:label   [:span.is-small "Preview"]
-                      :style   {:margin-top 0}
-                      :inline? true
-                      :*:store *:store}
-                     (ctrls/with-attrs form+ [::preview?]))]
-   [tags+attachments-field attrs]])
+  (r/with-let [sub:uploads (store/subscribe *:store [::res/?:resource [::specs/attachment#upload]])]
+    (let [uploading? (res/requesting? @sub:uploads)]
+      [ctrls/form (assoc attrs :disabled uploading?)
+       [topic+pin-field attrs]
+       [body-field attrs]
+       [ctrls/toggle (-> {:label   [:span.is-small "Preview"]
+                          :style   {:margin-top 0}
+                          :inline? true
+                          :*:store *:store}
+                         (ctrls/with-attrs form+ [::preview?]))]
+       [tags+attachments-field (assoc attrs :uploading? uploading?)]])
+    (finally
+      (store/emit! *:store [::res/destroyed [::specs/attachment#upload]]))))
 
 (defmethod icomp/modal-header ::modal
   [_ {:keys [header]}]

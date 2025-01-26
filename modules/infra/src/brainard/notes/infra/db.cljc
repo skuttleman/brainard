@@ -2,6 +2,7 @@
   (:require
     [brainard.api.storage.core :as-alias storage]
     [brainard.api.storage.interfaces :as istorage]
+    [brainard.infra.db.store :as ds]
     [brainard.notes.api.core :as api.notes]))
 
 (def ^:private select
@@ -52,21 +53,39 @@
                    (conj (cond-> versions same-tx? pop) next-version)))
                [])))
 
+(defn ^:private retract-attachments [db {note-id :notes/id :as note}]
+  (if-let [removals (seq (:notes/attachments!remove note))]
+    (map (partial conj [:db/retract [:notes/id note-id] :notes/attachments])
+         (ds/query db {:query '[:find ?e
+                                :in $ ?id ...
+                                :where [?e :attachments/id ?id]]
+                       :args  [removals]
+                       :xform (map first)}))
+    []))
+
 (defmethod istorage/->input ::api.notes/create!
   [note]
-  [(select-keys note #{:notes/id
-                       :notes/context
-                       :notes/body
-                       :notes/tags
-                       :notes/pinned?})])
+  [(-> note
+       (select-keys #{:notes/id
+                      :notes/context
+                      :notes/body
+                      :notes/tags
+                      :notes/pinned?
+                      :notes/attachments})
+       (update :notes/attachments (partial map #(select-keys % #{:attachments/id}))))
+   #?(:clj  `[retract-attachments ~note]
+      :cljs [:db.fn/call retract-attachments note])])
 
 (defmethod istorage/->input ::api.notes/update!
   [{note-id :notes/id retract-tags :notes/tags!remove :as note}]
-  (into [(select-keys note #{:notes/id
-                             :notes/context
-                             :notes/body
-                             :notes/tags
-                             :notes/pinned?})]
+  (into [(-> note
+             (select-keys #{:notes/id
+                            :notes/context
+                            :notes/body
+                            :notes/tags
+                            :notes/pinned?
+                            :notes/attachments})
+             (update :notes/attachments (partial map #(select-keys % #{:attachments/id}))))]
         (map (partial conj [:db/retract [:notes/id note-id] :notes/tags]))
         retract-tags))
 

@@ -75,8 +75,18 @@
       {:notes/tags!remove (or removals #{})
        :notes/tags        (or curr #{})})))
 
+(defn ^:private diff-attachments [old curr]
+  (when (or old curr)
+    (letfn [(id-set [xs]
+              (into #{}
+                    (map #(select-keys % #{:attachments/id}))
+                    xs))]
+      (let [removals (set/difference (id-set old) (id-set curr))]
+        {:notes/attachments!remove (or removals #{})
+         :notes/attachments        (or curr #{})}))))
+
 (defmethod res/->request-spec ::notes#modify
-  [[_ resource-id] {:keys [payload prev-tags] :as spec}]
+  [[_ resource-id] {:keys [payload prev-attachments prev-tags] :as spec}]
   (->req {:route  :routes.api/note
           :params {:notes/id resource-id}
           :method :patch
@@ -84,7 +94,8 @@
                       (select-keys #{:notes/context
                                      :notes/pinned?
                                      :notes/body})
-                      (merge (diff-tags prev-tags (:notes/tags payload))))}
+                      (merge (diff-tags prev-tags (:notes/tags payload))
+                             (diff-attachments prev-attachments (:notes/attachments payload))))}
          spec))
 
 (defmethod res/->request-spec ::notes#destroy

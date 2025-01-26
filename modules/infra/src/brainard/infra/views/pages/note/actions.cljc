@@ -79,9 +79,10 @@
   [::note-edit/modal
    {:init         note
     :header       "Edit note"
-    :params       {:prev-tags (:notes/tags note)
-                   :ok-events [[::res/swapped [::specs/notes#find note-id]]
-                               [::forms/created pin-note-key]]}
+    :params       {:prev-attachments (:notes/attachments note)
+                   :prev-tags        (:notes/tags note)
+                   :ok-events        [[::res/swapped [::specs/notes#find note-id]]
+                                      [::forms/created pin-note-key]]}
     :resource-key update-note-key}])
 
 (defn ->delete-sched-modal [sched-id note]

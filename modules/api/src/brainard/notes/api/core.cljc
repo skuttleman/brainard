@@ -1,17 +1,15 @@
 (ns brainard.notes.api.core
   (:require
-    [brainard.api.utils.uuids :as uuids]
-    [brainard.api.storage.core :as storage])
-  #?(:clj
-     (:import
-       (java.util Date))))
+    [brainard.api.storage.core :as storage]
+    [brainard.api.utils.uuids :as uuids]))
 
 (defn ^:private tag-set [note]
   (some-> note (update :notes/tags set)))
 
 (defn ^:private clean-note [note note-id]
   (-> note
-      (select-keys #{:notes/body :notes/context :notes/tags :notes/tags!remove :notes/pinned?})
+      (select-keys #{:notes/body :notes/context :notes/tags!remove
+                     :notes/tags :notes/pinned? :notes/attachments})
       tag-set
       (assoc :notes/id note-id)))
 
