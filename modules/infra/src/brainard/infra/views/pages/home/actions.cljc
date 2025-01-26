@@ -84,9 +84,10 @@
 
 (defn ->note-edit-modal [context tags]
   [::note-edit/modal
-   {:init         {:notes/context context
-                   :notes/pinned? true
-                   :notes/tags    tags}
+   {:init         {:notes/context     context
+                   :notes/pinned?     true
+                   :notes/tags        tags
+                   :notes/attachments #{}}
     :header       "Create note"
     :params       {:ok-commands [[::res/submit! [::notes#pinned]]]}
     :resource-key create-note-key}])

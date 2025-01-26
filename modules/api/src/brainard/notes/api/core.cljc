@@ -3,14 +3,15 @@
     [brainard.api.storage.core :as storage]
     [brainard.api.utils.uuids :as uuids]))
 
-(defn ^:private tag-set [note]
-  (some-> note (update :notes/tags set)))
+(defn ^:private coll-set [note]
+  (some-> note
+          (update :notes/tags set)
+          (update :notes/attachments set)))
 
 (defn ^:private clean-note [note note-id]
   (-> note
-      (select-keys #{:notes/body :notes/context :notes/tags!remove
-                     :notes/tags :notes/pinned? :notes/attachments})
-      tag-set
+      (select-keys #{:notes/body :notes/context :notes/tags :notes/pinned? :notes/attachments})
+      coll-set
       (assoc :notes/id note-id)))
 
 (defn update!
@@ -23,8 +24,8 @@
                       (assoc note
                              ::storage/type ::update!
                              :notes/id note-id))
-    (tag-set (storage/query (:store notes-api)
-                            {::storage/type ::get-note
+    (coll-set (storage/query (:store notes-api)
+                             {::storage/type ::get-note
                              :notes/id      note-id}))))
 
 (defn delete!
@@ -41,8 +42,8 @@
   (let [note-id (uuids/random)
         note (clean-note note note-id)]
     (storage/execute! (:store notes-api) (assoc note ::storage/type ::create!))
-    (tag-set (storage/query (:store notes-api)
-                            {::storage/type ::get-note
+    (coll-set (storage/query (:store notes-api)
+                             {::storage/type ::get-note
                              :notes/id      note-id}))))
 
 (defn get-tags
@@ -61,14 +62,14 @@
   [notes-api params]
   (->> (assoc params ::storage/type ::get-notes)
        (storage/query (:store notes-api))
-       (map tag-set)
+       (map coll-set)
        (sort-by :notes/timestamp)))
 
 (defn get-note
   "Find note by primary key."
   [notes-api note-id]
-  (tag-set (storage/query (:store notes-api) {::storage/type ::get-note
-                                              :notes/id      note-id})))
+  (coll-set (storage/query (:store notes-api) {::storage/type ::get-note
+                                              :notes/id       note-id})))
 
 (defn get-note-history [notes-api note-id]
   #?(:clj (storage/query (:store notes-api) {::storage/type ::get-note-history
