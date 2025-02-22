@@ -137,6 +137,19 @@
                                     (dom/prevent-default! e)
                                     (on-change (disj value tag)))}])])])
 
+(defn attachment-list [{:keys [label? value]}]
+  [:div.layout--stack-between
+   (when label?
+     [:em "Attachments:"])
+   [:ul.attachment-list
+    (for [{attachment-id :attachments/id :as attachment} (sort-by :attachments/id value)]
+      ^{:key attachment-id}
+      [:li.attachment.bullet
+       [link {:token        :routes.resources/attachment
+              :route-params {:attachments/id attachment-id}
+              :target       "_blank"}
+        (:attachments/name attachment)]])]])
+
 (defn markdown [content]
   [:div.content
    (some-> content md/parse md.trans/->hiccup)])

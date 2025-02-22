@@ -59,7 +59,7 @@
                             :label     "Tags"
                             :sub:items sub:tags}
                            (ctrls/with-attrs form+ [:notes/tags]))]]
-   [:div {:style {:flex-basis "50%"}}
+   [:div.layout--stack-between {:style {:flex-basis "50%"}}
     [ctrls/file {:on-upload (fn [files]
                               (when (seq files)
                                 (store/dispatch! *:store
@@ -72,7 +72,8 @@
                                                                 into]]}])))
                  :disabled  uploading?
                  :label     "Attachments"
-                 :multi?    true}]]])
+                 :multi?    true}]
+    [comp/attachment-list {:value (:notes/attachments (forms/data form+))}]]])
 
 (defn ^:private note-form [{:keys [*:store form+] :as attrs}]
   (r/with-let [sub:uploads (store/subscribe *:store [::res/?:resource [::specs/attachment#upload]])]

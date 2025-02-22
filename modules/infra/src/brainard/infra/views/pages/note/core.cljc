@@ -6,8 +6,8 @@
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.pages.interfaces :as ipages]
-    [brainard.infra.views.pages.note.history :as note.history]
     [brainard.infra.views.pages.note.actions :as note.act]
+    [brainard.infra.views.pages.note.history :as note.history]
     [brainard.infra.views.pages.note.schedules :as note.sched]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
@@ -18,6 +18,11 @@
   (if-let [tags (not-empty (:notes/tags note))]
     [comp/tag-list {:value tags}]
     [:em "no tags"]))
+
+(defn ^:private attachment-list [note]
+  (when-let [attachments (not-empty (:notes/attachments note))]
+    [comp/attachment-list {:label? true
+                           :value attachments}]))
 
 (defn ^:private pin-toggle [*:store note]
   (r/with-let [init-form (select-keys note #{:notes/id :notes/pinned?})
@@ -109,6 +114,7 @@
     [:h1.layout--space-after.flex-grow [:strong (:notes/context note)]]
     [pin-toggle *:store note]]
    [comp/markdown (:notes/body note)]
+   [attachment-list note]
    [tag-list note]
    [:div.layout--space-between
     [:div.button-row
