@@ -79,7 +79,7 @@
   (when (or old curr)
     (letfn [(id-set [xs]
               (into #{}
-                    (map #(select-keys % #{:attachments/id}))
+                    (map :attachments/id)
                     xs))]
       (let [removals (set/difference (id-set old) (id-set curr))]
         {:notes/attachments!remove (or removals #{})

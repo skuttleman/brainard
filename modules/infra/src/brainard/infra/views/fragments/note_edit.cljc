@@ -52,28 +52,38 @@
                             (ctrls/with-attrs form+ [:notes/body]))])]]))
 
 (defn ^:private tags+attachments-field [{:keys [*:store form+ sub:tags uploading?]}]
-  [:div.layout--room-between
-   [:div {:style {:flex-basis "50%"}}
-    [ctrls/tags-editor (-> {:*:store   *:store
-                            :form-id   [::tags (forms/id form+)]
-                            :label     "Tags"
-                            :sub:items sub:tags}
-                           (ctrls/with-attrs form+ [:notes/tags]))]]
-   [:div.layout--stack-between {:style {:flex-basis "50%"}}
-    [ctrls/file {:on-upload (fn [files]
-                              (when (seq files)
-                                (store/dispatch! *:store
-                                                 [::res/submit!
-                                                  [::specs/attachment#upload]
-                                                  {:files     files
-                                                   :ok-events [[::forms/modified
-                                                                (forms/id form+)
-                                                                [:notes/attachments]
-                                                                into]]}])))
-                 :disabled  uploading?
-                 :label     "Attachments"
-                 :multi?    true}]
-    [comp/attachment-list {:value (:notes/attachments (forms/data form+))}]]])
+  (let [form-id (forms/id form+)]
+    [:div.layout--room-between
+     [:div {:style {:flex-basis "50%"}}
+      [ctrls/tags-editor (-> {:*:store   *:store
+                              :form-id   [::tags form-id]
+                              :label     "Tags"
+                              :sub:items sub:tags}
+                             (ctrls/with-attrs form+ [:notes/tags]))]]
+     [:div.layout--stack-between {:style {:flex-basis "50%"}}
+      [ctrls/file {:on-upload (fn [files]
+                                (when (seq files)
+                                  (store/dispatch! *:store
+                                                   [::res/submit!
+                                                    [::specs/attachment#upload]
+                                                    {:files     files
+                                                     :ok-events [[::forms/modified
+                                                                  form-id
+                                                                  [:notes/attachments]
+                                                                  into]]}])))
+                   :disabled  uploading?
+                   :label     "Attachments"
+                   :multi?    true}]
+      [comp/attachment-list
+       {:on-remove (fn [{attachment-id :attachments/id}]
+                     (store/emit! *:store
+                                  [::forms/modified form-id
+                                   [:notes/attachments]
+                                   (partial into
+                                            #{}
+                                            (remove (comp #{attachment-id}
+                                                          :attachments/id)))]))
+        :value     (:notes/attachments (forms/data form+))}]]]))
 
 (defn ^:private note-form [{:keys [*:store form+] :as attrs}]
   (r/with-let [sub:uploads (store/subscribe *:store [::res/?:resource [::specs/attachment#upload]])]

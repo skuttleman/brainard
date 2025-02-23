@@ -2,6 +2,7 @@
   (:require
     [brainard.api.storage.core :as-alias storage]
     [brainard.api.storage.interfaces :as istorage]
+    [brainard.api.utils.fns :as fns]
     [brainard.infra.db.store :as ds]
     [brainard.notes.api.core :as api.notes]))
 
@@ -54,12 +55,12 @@
                [])))
 
 (defn ^:private retract-attachments [db {note-id :notes/id :as note}]
-  (if-let [removals (seq (:notes/attachments!remove note))]
+  (if-let [attachment-ids (seq (:notes/attachments!remove note))]
     (map (partial conj [:db/retract [:notes/id note-id] :notes/attachments])
          (ds/query db {:query '[:find ?e
-                                :in $ ?id ...
+                                :in $ [?id ...]
                                 :where [?e :attachments/id ?id]]
-                       :args  [removals]
+                       :args  [attachment-ids]
                        :xform (map first)}))
     []))
 
@@ -72,9 +73,7 @@
                       :notes/tags
                       :notes/pinned?
                       :notes/attachments})
-       (update :notes/attachments (partial map #(select-keys % #{:attachments/id}))))
-   #?(:clj  `[retract-attachments ~note]
-      :cljs [:db.fn/call retract-attachments note])])
+       (update :notes/attachments fns/smap select-keys #{:attachments/id}))])
 
 (defmethod istorage/->input ::api.notes/update!
   [{note-id :notes/id retract-tags :notes/tags!remove :as note}]
@@ -85,7 +84,9 @@
                             :notes/tags
                             :notes/pinned?
                             :notes/attachments})
-             (update :notes/attachments (partial map #(select-keys % #{:attachments/id}))))]
+             (update :notes/attachments fns/smap select-keys #{:attachments/id}))
+         #?(:clj  `[retract-attachments ~note]
+            :cljs [:db.fn/call retract-attachments note])]
         (map (partial conj [:db/retract [:notes/id note-id] :notes/tags]))
         retract-tags))
 

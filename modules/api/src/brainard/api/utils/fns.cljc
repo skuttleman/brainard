@@ -9,3 +9,6 @@
 
 (defn safe-comp [& fns]
   (apply comp (remove nil? fns)))
+
+(defn smap [xs f & args]
+  (map #(apply f % args) xs))

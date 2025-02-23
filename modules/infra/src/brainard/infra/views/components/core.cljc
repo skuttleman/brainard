@@ -137,14 +137,19 @@
                                     (dom/prevent-default! e)
                                     (on-change (disj value tag)))}])])])
 
-(defn attachment-list [{:keys [label? value]}]
+(defn attachment-list [{:keys [label? on-remove value]}]
   [:div.layout--stack-between
    (when label?
      [:em "Attachments:"])
    [:ul.attachment-list
     (for [{attachment-id :attachments/id :as attachment} (sort-by :attachments/id value)]
       ^{:key attachment-id}
-      [:li.attachment.bullet
+      [:li.attachment.layout--room-between
+       (when on-remove
+         [plain-button {:class ["tag" "is-delete" "is-danger"]
+                        :on-click (fn [e]
+                                    (dom/prevent-default! e)
+                                    (on-remove attachment))}])
        [link {:token        :routes.resources/attachment
               :route-params {:attachments/id attachment-id}
               :target       "_blank"}
