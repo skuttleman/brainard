@@ -84,7 +84,7 @@
                             :notes/tags
                             :notes/pinned?
                             :notes/attachments})
-             (update :notes/attachments fns/smap select-keys #{:attachments/id}))
+             (update :notes/attachments fns/smap select-keys #{:attachments/id :attachments/name}))
          #?(:clj  `[retract-attachments ~note]
             :cljs [:db.fn/call retract-attachments note])]
         (map (partial conj [:db/retract [:notes/id note-id] :notes/tags]))

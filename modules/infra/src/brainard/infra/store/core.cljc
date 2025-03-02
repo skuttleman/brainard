@@ -27,12 +27,12 @@
        (subscribe [::res/?:resource spec-key]))))
 
 (defn form-sub
-  ([store spec-key init]
-   (form-sub store spec-key init nil))
-  ([store spec-key init opts]
+  ([store form-id init]
+   (form-sub store form-id init nil))
+  ([store form-id init opts]
    (-> store
-       (dispatch! [::forms/ensure! spec-key init opts])
-       (subscribe [::forms/?:form spec-key]))))
+       (dispatch! [::forms/ensure! form-id init opts])
+       (subscribe [::forms/?:form form-id]))))
 
 (defn form+-sub
   ([store spec-key init]

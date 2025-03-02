@@ -75,9 +75,26 @@
                    :label     "Attachments"
                    :multi?    true}]
       [comp/attachment-list
-       {:on-remove (fn [{attachment-id :attachments/id}]
+       {:on-edit   (fn [attachment]
+                     (store/dispatch! *:store
+                                      [:modals/create!
+                                       [::attachment-name
+                                        {:init (select-keys attachment #{:attachments/id
+                                                                         :attachments/name})
+                                         :ok-events [[::forms/modified
+                                                      form-id
+                                                      [:notes/attachments]
+                                                      fns/smap
+                                                      (fn [attachment' new-name]
+                                                        (println new-name)
+                                                        (cond-> attachment'
+                                                          (= (:attachments/id attachment')
+                                                             (:attachments/id attachment))
+                                                          (assoc :attachments/name new-name)))]]}]]))
+        :on-remove (fn [{attachment-id :attachments/id}]
                      (store/emit! *:store
-                                  [::forms/modified form-id
+                                  [::forms/modified
+                                   form-id
                                    [:notes/attachments]
                                    (partial into
                                             #{}
@@ -122,3 +139,25 @@
                                  "Cancel"]]}]]
     (finally
       (store/emit! *:store [::forms+/destroyed resource-key]))))
+
+(defmethod icomp/modal-header ::attachment-name
+  [_ _]
+  "Edit attachment name")
+
+(defmethod icomp/modal-body ::attachment-name
+  [*:store {:modals/keys [close!] :keys [init ok-events]}]
+  (r/with-let [sub:form (store/form-sub *:store [::attachment-edit!] init)]
+    (let [form @sub:form]
+      [ctrls/plain-form
+       {:on-submit   (fn [_]
+                       (close!)
+                       (run! (fn [event]
+                               (store/emit! *:store (conj event (:attachments/name (forms/data form)))))
+                             ok-events))
+        :submit/body "Update"}
+       [ctrls/input (-> {:*:store     *:store
+                         :auto-focus? true
+                         :label       "Attachment name"}
+                        (ctrls/with-attrs form [:attachments/name]))]])
+    (finally
+      (store/emit! *:store [::forms/destroyed [::attachment-edit!]]))))

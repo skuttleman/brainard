@@ -137,7 +137,15 @@
                                     (dom/prevent-default! e)
                                     (on-change (disj value tag)))}])])])
 
-(defn attachment-list [{:keys [label? on-remove value]}]
+(defn ^:private attachment-action [action-fn icon]
+  [plain-button {:class    ["is-small" "is-white"]
+                 :style    {:padding 0 :height "2em"}
+                 :on-click (fn [e]
+                             (dom/prevent-default! e)
+                             (action-fn))}
+   icon])
+
+(defn attachment-list [{:keys [label? on-edit on-remove value]}]
   [:div.layout--stack-between
    (when label?
      [:em "Attachments:"])
@@ -145,15 +153,16 @@
     (for [{attachment-id :attachments/id :as attachment} (sort-by :attachments/id value)]
       ^{:key attachment-id}
       [:li.attachment.layout--room-between
-       (when on-remove
-         [plain-button {:class ["tag" "is-delete" "is-danger"]
-                        :on-click (fn [e]
-                                    (dom/prevent-default! e)
-                                    (on-remove attachment))}])
        [link {:token        :routes.resources/attachment
               :route-params {:attachments/id attachment-id}
               :target       "_blank"}
-        (:attachments/name attachment)]])]])
+        (:attachments/name attachment)]
+       (when on-remove
+         [attachment-action #(on-remove attachment)
+          [icon {:class ["is-danger"]} :trash-can]])
+       (when on-edit
+         [attachment-action #(on-edit attachment)
+          [icon :pencil]])])]])
 
 (defn markdown [content]
   [:div.content
