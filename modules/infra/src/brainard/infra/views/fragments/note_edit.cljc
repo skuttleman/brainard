@@ -86,7 +86,6 @@
                                                       [:notes/attachments]
                                                       fns/smap
                                                       (fn [attachment' new-name]
-                                                        (println new-name)
                                                         (cond-> attachment'
                                                           (= (:attachments/id attachment')
                                                              (:attachments/id attachment))
@@ -98,8 +97,7 @@
                                    [:notes/attachments]
                                    (partial into
                                             #{}
-                                            (remove (comp #{attachment-id}
-                                                          :attachments/id)))]))
+                                            (remove (comp #{attachment-id} :attachments/id)))]))
         :value     (:notes/attachments (forms/data form+))}]]]))
 
 (defn ^:private note-form [{:keys [*:store form+] :as attrs}]

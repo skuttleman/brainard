@@ -1,6 +1,8 @@
 (ns brainard.notes.api.specs
   (:require
     [brainard.api.specs :as scommon]
+    [brainard.attachments.api.specs :as sattachments]
+    [brainard.schedules.api.specs :as ssched]
     [malli.util :as mu]))
 
 (def create
@@ -8,13 +10,15 @@
    [:notes/context scommon/non-empty-trimmed-string]
    [:notes/body scommon/non-empty-string]
    [:notes/pinned? boolean?]
-   [:notes/tags {:optional true} [:set keyword?]]])
+   [:notes/tags {:optional true} [:set keyword?]]
+   [:notes/attachments {:optional true} [:seqable sattachments/full]]])
 
 (def full
   (mu/merge create
             [:map
              [:notes/id uuid?]
-             [:notes/timestamp inst?]]))
+             [:notes/timestamp inst?]
+             [:notes/schedules {:optional true} [:sequential ssched/full]]]))
 
 (def history
   [:map
@@ -42,7 +46,9 @@
    [:notes/body {:optional true} scommon/non-empty-string]
    [:notes/tags {:optional true} [:set keyword?]]
    [:notes/tags!remove {:optional true} [:set keyword?]]
-   [:notes/pinned? {:optional true} boolean?]])
+   [:notes/pinned? {:optional true} boolean?]
+   [:notes/attachments {:optional true} [:seqable sattachments/modify]]
+   [:notes/attachments!remove {:optional true} [:set uuid?]]])
 
 (def query
   [:and

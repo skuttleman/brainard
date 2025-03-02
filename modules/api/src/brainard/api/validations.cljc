@@ -22,7 +22,7 @@
    :api.workspace-nodes/delete! [:map [:workspace-nodes/id uuid?]]
    :api.workspace-nodes/update! sws/modify
 
-   :api.attachments/upload!    [:any]})
+   :api.attachments/upload!     [:any]})
 
 (def output-specs
   {:api.notes/select                [:sequential snotes/full]
