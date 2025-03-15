@@ -138,4 +138,4 @@
                [?c :db/ident ?card]]
    :args     [id]
    :history? true
-   :post prep-history})
+   :post     prep-history})
