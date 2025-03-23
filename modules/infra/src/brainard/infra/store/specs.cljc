@@ -8,26 +8,25 @@
     (assoc m k (vec v))
     m))
 
-(defn ^:private ->req
-  ([params]
-   (->req params nil))
-  ([{:keys [route] :as params} spec]
-   (let [{:keys [query-params] :as route-params} (:params params)
-         req-params (-> params
-                        (select-keys #{:body :headers :multipart-params :progress})
-                        (assoc :request-method (:method params)
-                               :route {:token        route
-                                       :route-params (dissoc route-params :query-params)
-                                       :query-params query-params}))]
-     (-> {:params req-params
-          :->ok   :data
-          :->err  :errors}
-         (with-msgs :pre-events params spec)
-         (with-msgs :pre-commands params spec)
-         (with-msgs :ok-events params spec)
-         (with-msgs :ok-commands params spec)
-         (with-msgs :err-events params spec)
-         (with-msgs :err-commands params spec)))))
+(defn ^:private ->req [{:keys [route] :as params} spec]
+  (let [{:keys [query-params] :as route-params} (:params params)
+        req-params (-> params
+                       (select-keys #{:body :headers :multipart-params})
+                       (assoc :request-method (:method params)
+                              :route {:token        route
+                                      :route-params (dissoc route-params :query-params)
+                                      :query-params query-params}))]
+    (-> {:params req-params
+         :->ok   :data
+         :->err  :errors}
+        (with-msgs :pre-events params spec)
+        (with-msgs :pre-commands params spec)
+        (with-msgs :ok-events params spec)
+        (with-msgs :ok-commands params spec)
+        (with-msgs :err-events params spec)
+        (with-msgs :err-commands params spec)
+        (with-msgs :prog-events params spec)
+        (with-msgs :prog-commands params spec))))
 
 (defn with-cbs [spec & kvs]
   (->> kvs

@@ -51,55 +51,89 @@
                              :auto-focus? (some? (:notes/context form-data))}
                             (ctrls/with-attrs form+ [:notes/body]))])]]))
 
+(defn ^:private progress-bar [{:keys [loaded status total]}]
+  (let [height "6px"
+        complete? (#{:complete :error} status)
+        percent (cond
+                  (= status :init) 0.02
+                  complete? 1
+                  total (min (/ loaded total) 0.98))]
+    [:div {:style {:height    height
+                   :width     "400px"
+                   :max-width "90%"
+                   :outline   (when percent "1px grey solid")}}
+     (when percent
+       [:div.progress-bar
+        {:style {:height height}}
+        [:div.progress-amount
+         {:class [(cond
+                    (zero? percent) "unstarted"
+                    complete? "complete")]
+          :style {:background-color (case status
+                                      :error "red"
+                                      :success "green"
+                                      "blue")
+                  :height           height
+                  :width            (str (* 100 percent) "%")}}]])]))
+
+(defn ^:private ->on-upload [*:store form-id]
+  (fn [files]
+    (when (seq files)
+      (store/dispatch! *:store
+                       [::res/submit!
+                        [::specs/attachment#upload]
+                        {:files        files
+                         :pre-events   [[::forms/changed form-id [:upload-status] {:status :init}]]
+                         :prog-events  [[::forms/changed form-id [:upload-status]]]
+                         :ok-events    [[::forms/modified form-id [:notes/attachments] into]]
+                         :err-commands [[:toasts/fail!]]
+                         :err-events   [[::forms/changed form-id [:upload-status] {:status :error}]]}]))))
+
+(defn ^:private ->on-edit [*:store form-id]
+  (fn [attachment]
+    (letfn [(mapper [attachment' new-name]
+              (cond-> attachment'
+                (= (:attachments/id attachment')
+                   (:attachments/id attachment))
+                (assoc :attachments/name new-name)))]
+      (store/dispatch! *:store
+                       [:modals/create!
+                        [::attachment-name
+                         {:init      (select-keys attachment #{:attachments/id
+                                                               :attachments/name})
+                          :ok-events [[::forms/modified form-id [:notes/attachments] fns/smap mapper]]}]]))))
+
+(defn ^:private ->on-remove [*:store form-id]
+  (fn [{attachment-id :attachments/id}]
+    (store/emit! *:store
+                 [::forms/modified
+                  form-id
+                  [:notes/attachments]
+                  (partial into #{} (remove (comp #{attachment-id} :attachments/id)))])))
+
 (defn ^:private tags+attachments-field [{:keys [*:store form+ sub:tags uploading?]}]
-  (let [form-id (forms/id form+)]
-    [:div.layout--room-between
-     [:div {:style {:flex-basis "50%"}}
-      [ctrls/tags-editor (-> {:*:store   *:store
-                              :form-id   [::tags form-id]
-                              :label     "Tags"
-                              :sub:items sub:tags}
-                             (ctrls/with-attrs form+ [:notes/tags]))]]
-     [:div.layout--stack-between {:style {:flex-basis "50%"}}
-      [ctrls/file {:on-upload (fn [files]
-                                (when (seq files)
-                                  (store/dispatch! *:store
-                                                   [::res/submit!
-                                                    [::specs/attachment#upload]
-                                                    {:files        files
-                                                     :ok-events    [[::forms/modified
-                                                                     form-id
-                                                                     [:notes/attachments]
-                                                                     into]]
-                                                     :err-commands [[:toasts/fail!]]}])))
-                   :disabled  uploading?
-                   :label     "Attachments"
-                   :multi?    true}]
-      [comp/attachment-list
-       {:on-edit   (fn [attachment]
-                     (store/dispatch! *:store
-                                      [:modals/create!
-                                       [::attachment-name
-                                        {:init      (select-keys attachment #{:attachments/id
-                                                                              :attachments/name})
-                                         :ok-events [[::forms/modified
-                                                      form-id
-                                                      [:notes/attachments]
-                                                      fns/smap
-                                                      (fn [attachment' new-name]
-                                                        (cond-> attachment'
-                                                          (= (:attachments/id attachment')
-                                                             (:attachments/id attachment))
-                                                          (assoc :attachments/name new-name)))]]}]]))
-        :on-remove (fn [{attachment-id :attachments/id}]
-                     (store/emit! *:store
-                                  [::forms/modified
-                                   form-id
-                                   [:notes/attachments]
-                                   (partial into
-                                            #{}
-                                            (remove (comp #{attachment-id} :attachments/id)))]))
-        :value     (:notes/attachments (forms/data form+))}]]]))
+  (r/with-let [form-id (forms/id form+)
+               on-upload (->on-upload *:store form-id)
+               on-edit (->on-edit *:store form-id)
+               on-remove (->on-remove *:store form-id)]
+    (let [form-data (forms/data form+)]
+      [:div.layout--room-between
+       [:div {:style {:flex-basis "50%"}}
+        [ctrls/tags-editor (-> {:*:store   *:store
+                                :form-id   [::tags form-id]
+                                :label     "Tags"
+                                :sub:items sub:tags}
+                               (ctrls/with-attrs form+ [:notes/tags]))]]
+       [:div.layout--stack-between {:style {:flex-basis "50%"}}
+        [ctrls/file {:on-upload on-upload
+                     :disabled  uploading?
+                     :label     "Attachments"
+                     :multi?    true}]
+        [progress-bar (:upload-status form-data)]
+        [comp/attachment-list
+         {:on-edit   on-edit
+          :on-remove on-remove
+          :value     (:notes/attachments form-data)}]]])))
 
 (defn ^:private note-form [{:keys [*:store form+] :as attrs}]
   (r/with-let [sub:uploads (store/subscribe *:store [::res/?:resource [::specs/attachment#upload]])]
