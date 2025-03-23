@@ -3,6 +3,7 @@
     [brainard.api.utils.logger :as log]
     [brainard.infra.store.core :as store]
     [brainard.infra.views.components.core :as comp]
+    [clojure.string :as string]
     [whet.utils.navigation :as nav]
     [clojure.core.async :as async]
     [defacto.core :as defacto]
@@ -67,7 +68,12 @@
 (defmethod defacto/command-handler :toasts/fail!
   [{::defacto/keys [store]} [_ err] _]
   (log/debug err)
-  (store/dispatch! store [:toasts/create! :error (:message err "An error occurred")]))
+  (store/dispatch! store [:toasts/create! :error (or (:message err)
+                                                     (when (and (seqable? err) (seq err))
+                                                       (some->> (map :message err)
+                                                                (string/join "\n")
+                                                                not-empty))
+                                                     "An error occurred")]))
 
 (defmethod defacto/command-handler :toasts/hide!
   [_ [_ toast-id] emit-cb]

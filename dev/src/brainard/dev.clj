@@ -29,9 +29,11 @@
     (duct/await-daemons system)))
 
 (defmethod ig/init-key :brainard.web/dev-handler
-  [_ _]
+  [_ {:keys [upload-limit]}]
   (-> #'routes/be-handler
-      ((fn [handler] (fn [req] (handler (assoc req ::b/env :dev)))))
+      ((fn [handler] (fn [req] (handler (assoc req
+                                               ::b/env :dev
+                                               ::b/file-limit-bytes upload-limit)))))
       (ring.rel/wrap-reload {:dirs ["../defacto"
                                     "../whet"
                                     "modules/api/src"

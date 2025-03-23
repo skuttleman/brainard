@@ -3,6 +3,7 @@
     #?@(:clj [[brainard.infra.obj.store :as os]
               [immutant.web :as web]
               brainard.infra.routes.ui])
+    [brainard :as-alias b]
     [brainard.api.utils.logger :as log]
     [brainard.infra.db.store :as ds]
     [brainard.infra.routes.core :as routes]
@@ -16,8 +17,9 @@
 
 #?(:clj
    (defmethod ig/init-key :brainard.web/handler
-     [_ _]
-     routes/be-handler))
+     [_ {:keys [upload-limit]}]
+     (fn [req]
+       (routes/be-handler (assoc req ::b/file-limit-bytes upload-limit)))))
 
 #?(:clj
    (defmethod ig/init-key :brainard/webserver

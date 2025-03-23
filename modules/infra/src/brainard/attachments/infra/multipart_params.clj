@@ -1,13 +1,17 @@
 (ns brainard.attachments.infra.multipart-params
   (:require
+    [brainard :as-alias b]
+    [brainard.api.validations :as-alias valid]
     [ring.util.request :as req])
   (:import
-    (org.apache.commons.fileupload FileItemIterator FileItemStream FileUpload UploadContext)))
+    (java.io InputStream)
+    (org.apache.commons.fileupload FileItemIterator FileItemStream FileUpload UploadContext)
+    (org.apache.commons.fileupload.util LimitedInputStream)))
 
 (defn ^:private multipart-form? [request]
   (= (req/content-type request) "multipart/form-data"))
 
-(defn ^:private request-context [request encoding]
+(defn ^:private ->UploadContext [request encoding]
   (reify UploadContext
     (getContentType [_]
       (get-in request [:headers "content-type"]))
@@ -20,6 +24,14 @@
     (getInputStream [_]
       (:body request))))
 
+(defn ^:private ->LimitedInputStream ^InputStream [^InputStream is ^long file-limit-bytes]
+  (proxy [LimitedInputStream] [is file-limit-bytes]
+    (raiseError [max _count]
+      (.close this)
+      (throw (ex-info "File upload too big"
+                      {::valid/type ::valid/upload-too-big
+                       :details     {:max-size max}})))))
+
 (defn ^:private file-item-iterator-seq [^FileItemIterator it]
   (lazy-seq
     (when (.hasNext it)
@@ -30,15 +42,15 @@
     (file-item-iterator-seq
       (.getItemIterator ^FileUpload upload context))))
 
-(defn ^:private parse-file-item [^FileItemStream item]
+(defn ^:private parse-file-item [file-limit-bytes ^FileItemStream item]
   {:filename     (.getName item)
    :content-type (.getContentType item)
-   :stream       (.openStream item)})
+   :stream       (->LimitedInputStream (.openStream item) file-limit-bytes)})
 
-(defn ^:private parse-multipart-params [request fallback-encoding]
-  {:files (->> (request-context request fallback-encoding)
+(defn ^:private parse-multipart-params [{::b/keys [file-limit-bytes] :as request} fallback-encoding]
+  {:files (->> (->UploadContext request fallback-encoding)
                file-item-seq
-               (map parse-file-item))})
+               (map (partial parse-file-item file-limit-bytes)))})
 
 (defn multipart-params-request [request]
   (let [req-encoding (or (req/character-encoding request) "UTF-8")

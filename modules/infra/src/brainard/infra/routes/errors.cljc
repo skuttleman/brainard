@@ -28,3 +28,10 @@
                   (routes.res/errors :INVALID_OUTPUT
                                      "Unable to generate valid output"
                                      {:details (:details data)})))
+
+(defmethod ex->response ::valid/upload-too-big
+  [data]
+  (->err-response 400
+                  (routes.res/errors :FILE_UPLOAD_EXCEEDS_MAX_ALLOWED
+                                     "A file being uploaded exceeds the maximum allowed size"
+                                     {:details (:details data)})))

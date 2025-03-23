@@ -8,4 +8,4 @@
                      {}
 
                      [:brainard.web/handler :brainard/IWebHandler]
-                     {}}}
+                     {:upload-limit 1000}}}

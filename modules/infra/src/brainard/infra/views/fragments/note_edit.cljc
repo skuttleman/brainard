@@ -66,11 +66,12 @@
                                   (store/dispatch! *:store
                                                    [::res/submit!
                                                     [::specs/attachment#upload]
-                                                    {:files     files
-                                                     :ok-events [[::forms/modified
-                                                                  form-id
-                                                                  [:notes/attachments]
-                                                                  into]]}])))
+                                                    {:files        files
+                                                     :ok-events    [[::forms/modified
+                                                                     form-id
+                                                                     [:notes/attachments]
+                                                                     into]]
+                                                     :err-commands [[:toasts/fail!]]}])))
                    :disabled  uploading?
                    :label     "Attachments"
                    :multi?    true}]
@@ -79,8 +80,8 @@
                      (store/dispatch! *:store
                                       [:modals/create!
                                        [::attachment-name
-                                        {:init (select-keys attachment #{:attachments/id
-                                                                         :attachments/name})
+                                        {:init      (select-keys attachment #{:attachments/id
+                                                                              :attachments/name})
                                          :ok-events [[::forms/modified
                                                       form-id
                                                       [:notes/attachments]

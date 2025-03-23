@@ -1,6 +1,6 @@
 {:duct.profile/base #duct/include "duct/base.edn"
  :duct.profile/dev  {[:brainard.web/dev-handler :brainard/IWebHandler]
-                     {}
+                     {:upload-limit #duct/env ["UPLOAD_SIZE_LIMIT_BYTES" Int :or 10000000]}
 
                      [:brainard.ds/conn :brainard/IDBConn]
                      {:db-name #ig/ref :cfg.ds/db-name
