@@ -6,10 +6,12 @@
 (defn upload! [attachments-api uploads]
   (doall (for [upload uploads
                :let [attachment-id (uuids/random)
+                     upload (assoc upload :attachments/id attachment-id)
                      attachment (-> upload
-                                    (select-keys #{:attachments/content-type :attachments/filename})
-                                    (assoc :attachments/id attachment-id
-                                           :attachments/name (:attachments/filename upload)))]]
+                                    (select-keys #{:attachments/id
+                                                   :attachments/content-type
+                                                   :attachments/filename})
+                                    (assoc :attachments/name (:attachments/filename upload)))]]
            (do (storage/execute! (:store attachments-api)
                                  (assoc attachment ::storage/type ::create!))
                (storage/execute! (:obj-store attachments-api)

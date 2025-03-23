@@ -38,12 +38,6 @@
  [:duct/const :cfg.ds/schema]
  #duct/include "schema.edn"
 
- ;; move me to prod and make dev impl
- [:brainard/s3-invoker :brainard/IObjInvoker]
- {:access-key #duct/env "AWS_ACCESS_KEY"
-  :bucket     #duct/env "AWS_S3_BUCKET"
-  :region     #duct/env "AWS_S3_REGION"
-  :secret-key #duct/env "AWS_SECRET_KEY"}
 
  ;; env
  [:duct/const :cfg/server-port]

@@ -26,4 +26,6 @@
                                first
                                val)]
           (throw ex))
+        (when-let [err (:Error result)]
+          (throw (ex-info "failed to upload" err)))
         result))))

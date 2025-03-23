@@ -4,4 +4,10 @@
 
                      [:brainard.ds/conn :brainard/IDBConn]
                      {:db-name #ig/ref :cfg.ds/db-name
-                      :schema  #ig/ref :cfg.ds/schema}}}
+                      :schema  #ig/ref :cfg.ds/schema}
+
+                     [:brainard/s3-invoker :brainard/IObjInvoker]
+                     {:access-key #duct/env "AWS_ACCESS_KEY"
+                      :bucket     #duct/env "AWS_S3_BUCKET"
+                      :region     #duct/env "AWS_S3_REGION"
+                      :secret-key #duct/env "AWS_SECRET_KEY"}}}
