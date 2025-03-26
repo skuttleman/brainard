@@ -12,10 +12,10 @@
                                                    :attachments/content-type
                                                    :attachments/filename})
                                     (assoc :attachments/name (:attachments/filename upload)))]]
-           (do (storage/execute! (:store attachments-api)
-                                 (assoc attachment ::storage/type ::create!))
-               (storage/execute! (:obj-store attachments-api)
+           (do (storage/execute! (:obj-store attachments-api)
                                  (assoc upload ::storage/type ::upload!))
+               (storage/execute! (:store attachments-api)
+                                 (assoc attachment ::storage/type ::create!))
                attachment))))
 
 (defn fetch [attachments-api attachment-id]

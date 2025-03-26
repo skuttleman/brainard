@@ -5,6 +5,7 @@
     [brainard.core :as core]
     [brainard.infra.routes.core :as routes]
     [clojure.java.io :as io]
+    [clojure.string :as string]
     [duct.core :as duct]
     [integrant.core :as ig]
     [nrepl.server :as nrepl]
@@ -43,7 +44,7 @@
                                     "src"
                                     "dev"]})))
 
-(defmulti fs-invoker :op)
+(defmulti ^:private fs-invoker :op)
 
 (defmethod fs-invoker :GetObject
   [req]
@@ -64,6 +65,24 @@
     (spit content-type-file ContentType)
     (io/copy Body (io/file blob-file))
     nil))
+
+(defmethod fs-invoker :ListObjectsV2
+  [_]
+  {:Contents (->> (file-seq (io/file "target"))
+                  (remove #(.isDirectory %))
+                  (map #(-> %
+                            .getName
+                            (string/replace #"^target/" "")
+                            (string/replace #"\..*$" "")
+                            (->> (hash-map :Key))))
+                  distinct)})
+
+(defmethod fs-invoker :DeleteObjects
+  [req]
+  (doseq [key (->> req :request :Delete :Objects (map :Key))]
+    (io/delete-file (io/file (format "target/%s.blob" key)))
+    (io/delete-file (io/file (format "target/%s.content-type" key))))
+  {})
 
 (defmethod ig/init-key :brainard/fs-invoker
   [_ _]
