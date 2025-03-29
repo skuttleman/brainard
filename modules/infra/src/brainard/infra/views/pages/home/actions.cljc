@@ -23,7 +23,8 @@
   (let [spec (assoc spec :payload (select-keys data #{:notes/context
                                                       :notes/pinned?
                                                       :notes/body
-                                                      :notes/tags}))]
+                                                      :notes/tags
+                                                      :notes/attachments}))]
     (specs/with-cbs (res/->request-spec [::specs/notes#create] spec)
                     :ok-events [[:api.notes/saved]]
                     :ok-commands [[:toasts.notes/succeed!]]

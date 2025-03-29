@@ -64,27 +64,23 @@
                        :xform (map first)}))
     []))
 
+(defn ^:private clean-note [note]
+  (-> note
+      (select-keys #{:notes/id
+                     :notes/context
+                     :notes/body
+                     :notes/tags
+                     :notes/pinned?
+                     :notes/attachments})
+      (update :notes/attachments fns/smap select-keys #{:attachments/id :attachments/name})))
+
 (defmethod istorage/->input ::api.notes/create!
   [note]
-  [(-> note
-       (select-keys #{:notes/id
-                      :notes/context
-                      :notes/body
-                      :notes/tags
-                      :notes/pinned?
-                      :notes/attachments})
-       (update :notes/attachments fns/smap select-keys #{:attachments/id}))])
+  [(clean-note note)])
 
 (defmethod istorage/->input ::api.notes/update!
   [{note-id :notes/id retract-tags :notes/tags!remove :as note}]
-  (into [(-> note
-             (select-keys #{:notes/id
-                            :notes/context
-                            :notes/body
-                            :notes/tags
-                            :notes/pinned?
-                            :notes/attachments})
-             (update :notes/attachments fns/smap select-keys #{:attachments/id :attachments/name}))
+  (into [(clean-note note)
          #?(:clj  `[retract-attachments ~note]
             :cljs [:db.fn/call retract-attachments note])]
         (map (partial conj [:db/retract [:notes/id note-id] :notes/tags]))

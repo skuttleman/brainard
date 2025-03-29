@@ -24,6 +24,7 @@
  {:db/ident       :notes/attachments
   :db/valueType   :db.type/ref
   :db/cardinality :db.cardinality/many
+  :db/isComponent true
   :db/doc         "Documents attached to the note"}
 
  ;; attachments

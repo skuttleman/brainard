@@ -57,7 +57,7 @@
                                       (cleanup-orphaned-artifacts! db obj)
                                       ;; every 12 hours
                                       (Thread/sleep ^long (* 1000 60 60 12))))))
-                   .run)]
+                   .start)]
       (duct/add-shutdown-hook ::stop-thread #(.interrupt thread))
       sys)))
 
