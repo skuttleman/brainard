@@ -3,14 +3,12 @@
  :builds   {:ui  {:target           :browser
                   :output-dir       "resources/public/js"
                   :compiler         {:optimizations :advanced}
-                  :compiler-options {:warnings {:redef false}
-                                     :externs  ["datascript/externs.js"]}
+                  :compiler-options {:warnings {:redef false}}
                   :modules          {:main {:init-fn brainard.app/init!}}}
             :dev {:target           :browser
                   :output-dir       "resources/public/js"
                   :compiler         {:optimizations :none}
-                  :compiler-options {:warnings {:redef false}
-                                     :externs  ["datascript/externs.js"]}
+                  :compiler-options {:warnings {:redef false}}
                   :modules          {:main {:init-fn brainard.dev/init!}}
                   :devtools         {:watch-dir  "resources/public"
                                      :after-load brainard.dev/load!}}}}

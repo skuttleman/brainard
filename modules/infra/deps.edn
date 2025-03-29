@@ -6,7 +6,6 @@
            com.cognitect.aws/endpoints           {:mvn/version "871.2.29.52"}
            com.cognitect.aws/s3                  {:mvn/version "871.2.29.52"}
            com.datomic/local                     {:mvn/version "1.0.277"}
-           datascript/datascript                 {:mvn/version "1.6.1"}
            duct/core                             {:mvn/version "0.8.0"}
            io.github.nextjournal/markdown        {:mvn/version "0.6.157"}
            commons-fileupload/commons-fileupload {:mvn/version "1.4"}

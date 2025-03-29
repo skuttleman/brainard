@@ -20,7 +20,7 @@
                                    :notes/context   "A Context"
                                    :notes/tags      #{:one :two :three}
                                    :notes/pinned?   false})
-        (testing "saves the note to datascript"
+        (testing "saves the note to db"
           (let [note (-> storage
                          (istorage/read {:query '[:find (pull ?e [:notes/id
                                                                   :notes/body
@@ -42,7 +42,7 @@
                                      :notes/context     "different context"
                                      :notes/tags!remove #{:one :two}
                                      :notes/tags        #{:four :five :six}})
-          (testing "updates the note in datascript"
+          (testing "updates the note in db"
             (let [note (-> storage
                            (istorage/read {:query '[:find (pull ?e [:notes/id
                                                                     :notes/body
@@ -62,7 +62,7 @@
           (storage/execute! storage {::storage/type ::api.notes/update!
                                      :notes/id      note-id
                                      :notes/pinned? true})
-          (testing "updates the note in datascript"
+          (testing "updates the note in db"
             (let [note (-> storage
                            (istorage/read {:query '[:find (pull ?e [:notes/id
                                                                     :notes/pinned?])
