@@ -1,6 +1,6 @@
 {:duct.profile/base #duct/include "duct/base.edn"
  :duct.profile/dev  {[:brainard.web/dev-handler :brainard/IWebHandler]
-                     {:upload-limit #duct/env ["UPLOAD_SIZE_LIMIT_BYTES" Int :or 10000000]}
+                     {:upload-limit #ig/ref :cfg.obj/upload-size-limit}
 
                      [:brainard.ds/conn :brainard/IDBConn]
                      {:db-name #ig/ref :cfg.ds/db-name
@@ -10,7 +10,7 @@
                      {}
 
                      #_#_[:brainard/s3-invoker :brainard/IObjInvoker]
-                     {:access-key #duct/env "AWS_ACCESS_KEY"
-                      :bucket     #duct/env "AWS_S3_BUCKET"
-                      :region     #duct/env "AWS_S3_REGION"
-                      :secret-key #duct/env "AWS_SECRET_KEY"}}}
+                     {:access-key #ig/ref :cfg.obj/access-key
+                      :bucket     #ig/ref :cfg.obj/bucket
+                      :region     #ig/ref :cfg.obj/region
+                      :secret-key #ig/ref :cfg.obj/secret-key}}}

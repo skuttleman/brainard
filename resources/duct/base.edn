@@ -44,4 +44,19 @@
  #duct/env ["SERVER_PORT" Int :or 1165]
 
  [:duct/const :cfg.ds/db-name]
- #duct/env ["DB_NAME" :or "brainard"]}
+ #duct/env ["DB_NAME" :or "brainard"]
+
+ [:duct/const :cfg.obj/upload-size-limit]
+ #duct/env ["UPLOAD_SIZE_LIMIT_BYTES" Int :or 20000000]
+
+ [:duct/const :cfg.obj/bucket]
+ #duct/env "AWS_S3_BUCKET"
+
+ [:duct/const :cfg.obj/region]
+ #duct/env "AWS_S3_REGION"
+
+ [:duct/const :cfg.obj/access-key]
+ #duct/env "AWS_ACCESS_KEY"
+
+ [:duct/const :cfg.obj/secret-key]
+ #duct/env "AWS_SECRET_KEY"}
