@@ -8,43 +8,49 @@
 
 (defmulti ^:private fs-invoker :op)
 
+(defn ^:private ensure-wkdir! [path]
+  (io/make-parents (str path "/.empty")))
+
 (defmethod fs-invoker :GetObject
-  [req]
+  [{::keys [path] :as req}]
+  (ensure-wkdir! path)
   (let [{:keys [Key]} (:request req)
-        content-type-file (str "target/" Key ".content-type")
-        blob-file (str "target/" Key ".blob")
+        content-type-file (str path "/" Key ".content-type")
+        blob-file (str path "/" Key ".blob")
         ^File file (io/file blob-file)]
     {:Body          (io/input-stream file)
      :ContentLength (.length file)
      :ContentType   (slurp content-type-file)}))
 
 (defmethod fs-invoker :PutObject
-  [req]
+  [{::keys [path] :as req}]
+  (ensure-wkdir! path)
   (let [{:keys [Body Key ContentType]} (:request req)
-        content-type-file (str "target/" Key ".content-type")
-        blob-file (str "target/" Key ".blob")]
-    (io/make-parents content-type-file)
+        content-type-file (str path "/" Key ".content-type")
+        blob-file (str path "/" Key ".blob")]
     (spit content-type-file ContentType)
     (io/copy Body (io/file blob-file))
     nil))
 
 (defmethod fs-invoker :ListObjectsV2
-  [_]
-  {:Contents (->> (io/file "target")
+  [{::keys [path]}]
+  (ensure-wkdir! path)
+  {:Contents (->> (io/file path)
                   .listFiles
                   (sequence (comp (map #(.getName %))
                                   (filter #(string/ends-with? % ".blob"))
                                   (map #(-> %
-                                            (string/replace #"^target/" "")
+                                            (string/replace (re-pattern (format "^%s/" path)) "")
                                             (string/replace #"\..*$" "")
                                             (->> (hash-map :Key)))))))})
 
 (defmethod fs-invoker :DeleteObjects
-  [req]
+  [{::keys [path] :as req}]
+  (ensure-wkdir! path)
   (doseq [key (->> req :request :Delete :Objects (map :Key))]
-    (io/delete-file (io/file (format "target/%s.blob" key)))
-    (io/delete-file (io/file (format "target/%s.content-type" key)))))
+    (io/delete-file (io/file (format "%s/%s.blob" path key)))
+    (io/delete-file (io/file (format "%s/%s.content-type" path key)))))
 
 (defmethod ig/init-key :brainard/fs-invoker
-  [_ _]
-  fs-invoker)
+  [_ {:keys [path]}]
+  #(fs-invoker (assoc % ::path path)))

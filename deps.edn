@@ -7,7 +7,8 @@
  :aliases {:dev      {:extra-paths ["dev/resources" "dev/src"]
                       :extra-deps  {nrepl/nrepl     {:mvn/version "1.0.0"}
                                     ring/ring-devel {:mvn/version "1.11.0"}}}
-           :test     {:extra-paths ["test/resources"
+           :test     {:extra-paths ["dev/src"
+                                    "test/resources"
                                     "test/src"
                                     "modules/api/test/resources"
                                     "modules/api/test/src"

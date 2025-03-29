@@ -111,12 +111,13 @@
                     note (-> response :body :data)]
                 (testing "returns the updated note"
                   (is (thttp/success? response))
-                  (is (= {:notes/id        note1-id
-                          :notes/context   "Context1"
-                          :notes/body      "body of note1"
-                          :notes/tags      #{:three :two}
-                          :notes/pinned?   true
-                          :notes/timestamp (:notes/timestamp note)}
+                  (is (= {:notes/id          note1-id
+                          :notes/context     "Context1"
+                          :notes/body        "body of note1"
+                          :notes/tags        #{:three :two}
+                          :notes/pinned?     true
+                          :notes/timestamp   (:notes/timestamp note)
+                          :notes/attachments #{}}
                          note)))
 
                 (testing "and when searching for pinned notes"
@@ -125,12 +126,13 @@
                         notes (-> response :body :data)]
                     (testing "returns pinned notes"
                       (is (thttp/success? response))
-                      (is (= [{:notes/id        note1-id
-                               :notes/context   "Context1"
-                               :notes/body      "body of note1"
-                               :notes/tags      #{:three :two}
-                               :notes/pinned?   true
-                               :notes/timestamp (:notes/timestamp note)}]
+                      (is (= [{:notes/id          note1-id
+                               :notes/context     "Context1"
+                               :notes/body        "body of note1"
+                               :notes/tags        #{:three :two}
+                               :notes/pinned?     true
+                               :notes/timestamp   (:notes/timestamp note)
+                               :notes/attachments #{}}]
                              notes))))))
 
               (testing "and when attempting an invalid update"

@@ -2,9 +2,11 @@
   (:require
     [brainard.api.utils.uuids :as uuids]
     [brainard.infra.db.store :as ds]
+    [clojure.java.io :as io]
     [datomic.client.api :as d]
     [duct.core :as duct]
-    [integrant.core :as ig]))
+    [integrant.core :as ig]
+    brainard.dev.s3))
 
 (defmethod ig/init-key :brainard.test/db-name
   [_ _]
@@ -19,6 +21,19 @@
   (let [{::ds/keys [db-name]} (meta conn)
         client (second conn)]
     (d/delete-database client {:db-name db-name})))
+
+(defmethod ig/init-key :brainard.test/fs-invoker
+  [_ _]
+  (let [path (str "target/test/" (uuids/random))
+        invoker (ig/init-key :brainard/fs-invoker {:path path})]
+    (vary-meta invoker assoc ::path path)))
+
+(defmethod ig/halt-key! :brainard.test/fs-invoker
+  [_ invoker]
+  (let [objects (:Contents (invoker {:op :ListObjectsV2}))]
+    (invoker {:op      :DeleteObjects
+              :request {:Delete {:Objects objects}}})
+    (-> invoker meta ::path io/file io/delete-file)))
 
 (defmacro with-system [[sys-binding opts] & body]
   (let [sys (gensym)
