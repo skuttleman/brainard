@@ -30,14 +30,14 @@
 
 (defmethod fs-invoker :ListObjectsV2
   [_]
-  {:Contents (->> (file-seq (io/file "target"))
-                  (remove #(.isDirectory %))
-                  (map #(-> %
-                            .getName
-                            (string/replace #"^target/" "")
-                            (string/replace #"\..*$" "")
-                            (->> (hash-map :Key))))
-                  distinct)})
+  {:Contents (->> (io/file "target")
+                  .listFiles
+                  (sequence (comp (map #(.getName %))
+                                  (filter #(string/ends-with? % ".blob"))
+                                  (map #(-> %
+                                            (string/replace #"^target/" "")
+                                            (string/replace #"\..*$" "")
+                                            (->> (hash-map :Key)))))))})
 
 (defmethod fs-invoker :DeleteObjects
   [req]

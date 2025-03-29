@@ -68,12 +68,13 @@
             (some->> ?ns-str (re-matches #"^brainard.*")))
     data))
 
-(defn ^:private output-fn [{:keys [level msg_ ?ns-str ?file timestamp_ ?line]}]
+(defn ^:private output-fn [{:keys [level msg_ timestamp_ ?err ?file ?line ?ns-str]}]
   (let [loc (str (or ?ns-str ?file "?") ":" (or ?line "?"))]
     (str (when-let [ts (some-> timestamp_ deref)]
            (str ts " "))
          (string/upper-case (name level))
          " [" loc "]: "
+         (when ?err (str (pr-str ?err) "\n"))
          @msg_)))
 
 (log*/merge-config! {:level      (keyword (or #?(:clj (System/getenv "LOG_LEVEL"))
