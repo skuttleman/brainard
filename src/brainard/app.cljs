@@ -11,8 +11,7 @@
     [whet.core :as w]
     brainard.infra.store.commands
     brainard.infra.store.events
-    brainard.infra.store.queries
-    brainard.infra.system))
+    brainard.infra.store.queries))
 
 (enable-console-print!)
 

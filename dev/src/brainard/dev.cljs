@@ -7,8 +7,7 @@
     [clojure.pprint :as pp]
     [defacto.core :as defacto]
     [defacto.resources.core :as-alias res]
-    [whet.core :as w]
-    #_brainard.stubbed.api))
+    [whet.core :as w]))
 
 (defonce ^:dynamic *store* nil)
 
@@ -31,10 +30,6 @@
 
 (defn ^:private with-dev [store]
   (set! *store* store)
-  #_(-> store
-      (store/dispatch! [::res/submit! [::specs/notes#buzz]])
-      (store/dispatch! [::res/submit! [::specs/tags#select]])
-      (store/dispatch! [::res/submit! [::specs/contexts#select]]))
   (doto store add-dev-logger!))
 
 (defn load!
