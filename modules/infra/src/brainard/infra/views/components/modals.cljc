@@ -21,7 +21,7 @@
    [:div {:style {:max-height "80vh"
                   :max-width  "80vw"
                   :overflow-y :scroll
-                  :width "100%"}}
+                  :width      "100%"}}
     [icomp/modal-body *:store attrs]]])
 
 (defn modal-view [*:store idx {modal-id :id :as modal} top?]
@@ -51,19 +51,24 @@
 
 (defn root [*:store]
   (r/with-let [sub:modals (store/subscribe *:store [:modals/?:modals])
-               modal-count (volatile! 0)]
+               modal-count (volatile! 0)
+               this (volatile! nil)
+               self-click? (volatile! false)]
     (when-let [modals (seq @sub:modals)]
       (vreset! modal-count (count modals))
-      (let [active? (or (seq (rest modals))
+      (let [active? (or (next modals)
                         (not= :removing (:state (first modals))))
             top? #(= (dec @modal-count) %)]
-        [:div.modal-container
-         {:class    [(when active? "is-active")]
-          :on-click (when active?
-                      (fn [_]
-                        (store/dispatch! *:store [:modals/remove-all!])))}
-         [:div.modal-stack
-          [:ul.modal-list
+        [:div.modal-container {:class [(when active? "is-active")]}
+         [:div.modal-stack {:ref           (fn [node] (some->> node (vreset! this)))
+                            :on-mouse-down (fn [e]
+                                             (vreset! self-click? (= (.-target e) @this)))
+                            :on-mouse-up   (fn [_]
+                                             (when @self-click?
+                                               (vreset! self-click? false)
+                                               (when active?
+                                                 (store/dispatch! *:store [:modals/remove-all!]))))}
+          [:ul.modal-list {:on-mouse-up dom/stop-propagation!}
            (for [[idx modal] (map-indexed vector modals)]
              ^{:key (:id modal)}
              [modal-view *:store idx modal top?])]]]))))
