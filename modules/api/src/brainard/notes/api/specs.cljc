@@ -38,7 +38,29 @@
                                        [:to {:optional true} boolean?]]]
      [:notes/tags {:optional true} [:map
                                     [:added {:optional true} [:set keyword?]]
-                                    [:removed {:optional true} [:set keyword?]]]]]]])
+                                    [:removed {:optional true} [:set keyword?]]]]
+     [:notes/attachments {:optional true} [:map
+                                           [:added {:optional true} [:set int?]]
+                                           [:removed {:optional true} [:set int?]]]]
+     [:attachments/changes {:optional true} [:map-of
+                                             int?
+                                             [:map
+                                              [:attachments/id {:optional true}
+                                               [:map
+                                                [:from {:optional true} uuid?]
+                                                [:to {:optional true} uuid?]]]
+                                              [:attachments/name {:optional true}
+                                               [:map
+                                                [:from {:optional true} scommon/non-empty-string]
+                                                [:to {:optional true} scommon/non-empty-string]]]
+                                              [:attachments/filename {:optional true}
+                                               [:map
+                                                [:from {:optional true} scommon/non-empty-string]
+                                                [:to {:optional true} scommon/non-empty-string]]]
+                                              [:attachments/content-type {:optional true}
+                                               [:map
+                                                [:from {:optional true} scommon/non-empty-string]
+                                                [:to {:optional true} scommon/non-empty-string]]]]]]]]])
 
 (def modify
   [:map
