@@ -14,7 +14,12 @@
     [comp/tag-list {:value tags}]
     [:em "no tags"]))
 
-(defn ^:private history-change [label {:keys [added from removed to]}]
+(defmulti ^:private ^{:arglists '([label changes])} history-change
+          (fn [label _]
+            label))
+
+(defmethod history-change :default
+  [label {:keys [added from removed to]}]
   [:div.layout--row
    [:span.purple label]
    (when (some? added)
@@ -44,6 +49,34 @@
                  [:span.space--left.truncate.blue
                   (str to)]])])
 
+(defmethod history-change "Attachments"
+  [label changes]
+  [:div
+   [:span.layout--row.purple label]
+   [:ul
+    (for [[id {:keys [added from removed to]}] changes]
+      ^{:key id}
+      [:li.layout--row.layout--indent
+       (cond
+         added
+         [:<>
+          [:em.space--left "added"]
+          [:span.space--left.truncate.blue added]]
+
+         removed
+         [:<>
+          [:em.space--left "removed"]
+          [:span.space--left.truncate.orange removed]]
+
+         :else
+         [:<>
+          [:em.space--left "changed"]
+          [:span.space--left.truncate.orange {:style {:max-width "50%"}}
+           (str from)]
+          [:em.space--left "to"]
+          [:span.space--left.truncate.blue {:style {:max-width "50%"}}
+           (str to)]])])]])
+
 (defmethod icomp/modal-header ::view
   [_ {:notes/keys [saved-at]}]
   (dates/->str saved-at))
@@ -68,12 +101,20 @@
 
 (defn ^:private note-history [*:store reconstruction entries]
   (let [last-idx (dec (count entries))
-        prev-tags (:notes/tags (get reconstruction (:notes/history-id (last entries))))]
+        last-history-id (:notes/history-id (last entries))
+        prev-tags (:notes/tags (get reconstruction last-history-id))
+        prev-attachments (-> reconstruction
+                             (get last-history-id)
+                             (:attachments/state)
+                             vals
+                             set)]
     [:ul.note-history
      (for [[idx {:notes/keys [changes history-id saved-at]}] (map-indexed vector entries)
-           :let [history-modal [::view {:last?     (= idx last-idx)
-                                        :note      (get reconstruction history-id)
-                                        :prev-tags prev-tags}]]]
+           :let [attachment-changes (get-in reconstruction [history-id :attachments/changes])
+                 history-modal [::view {:last?            (= idx last-idx)
+                                        :note             (get reconstruction history-id)
+                                        :prev-tags        prev-tags
+                                        :prev-attachments prev-attachments}]]]
        ^{:key history-id}
        [:li.layout--stack-between
         [:div.layout--row.layout--align-center.layout--space-between
@@ -87,7 +128,8 @@
               (for [[k label] [[:notes/context "Topic"]
                                [:notes/pinned? "Pin"]
                                [:notes/body "Body"]
-                               [:notes/tags "Tags"]]
+                               [:notes/tags "Tags"]
+                               [(constantly attachment-changes) "Attachments"]]
                     :let [change (k changes)]
                     :when change]
                 [history-change label change]))])]))

@@ -3,6 +3,7 @@
     [brainard.api.storage.core :as-alias storage]
     [brainard.api.storage.interfaces :as istorage]
     [brainard.api.utils.fns :as fns]
+    [brainard.api.utils.maps :as maps]
     [brainard.infra.db.store :as ds]
     [brainard.notes.api.core :as api.notes]))
 
@@ -34,35 +35,99 @@
     (conj '[?e _ _ ?tx]
           '[?tx :db/txInstant ?at])))
 
-(defn ^:private prep-history [results]
-  (->> results
-       (sort-by (juxt first second))
-       (reduce (fn [versions [tx op attr val at cardinality]]
-                 (let [recent (peek versions)
-                       same-tx? (= tx (:notes/history-id recent))
-                       version (if same-tx?
-                                 recent
-                                 {:notes/history-id tx
-                                  :notes/saved-at   at
-                                  :notes/changes    {}})
-                       [k f] (case [cardinality op]
-                               [:db.cardinality/one false] [:from (constantly val)]
-                               [:db.cardinality/one true] [:to (constantly val)]
-                               [:db.cardinality/many false] [:removed (fnil conj #{})]
-                               [:db.cardinality/many true] [:added (fnil conj #{})])
-                       next-version (update-in version [:notes/changes attr k] f val)]
-                   (conj (cond-> versions same-tx? pop) next-version)))
-               [])))
+(defn ^:private reduce-history [sub-path results]
+  (letfn [(one-updater [_ val] val)
+          (many-updater [coll val] (conj (or coll #{}) val))]
+    (reduce (fn [versions [_ tx op attr val at cardinality]]
+              (let [recent (peek versions)
+                    same-tx? (= tx (:notes/history-id recent))
+                    version (if same-tx?
+                              recent
+                              {:notes/history-id tx
+                               :notes/saved-at   at
+                               :notes/changes    {}})
+                    [k f] (case [cardinality op]
+                            [:db.cardinality/one false] [:from one-updater]
+                            [:db.cardinality/one true] [:to one-updater]
+                            [:db.cardinality/many false] [:removed many-updater]
+                            [:db.cardinality/many true] [:added many-updater])
+                    path (into [:notes/changes] (concat sub-path [attr k]))
+                    next-version (update-in version path f val)]
+                (conj (cond-> versions same-tx? pop) next-version)))
+            []
+            results)))
 
-(defn ^:private retract-attachments [db {note-id :notes/id :as note}]
-  (if-let [attachment-ids (seq (:notes/attachments!remove note))]
-    (map (partial conj [:db/retract [:notes/id note-id] :notes/attachments])
-         (ds/query db {:query '[:find ?e
-                                :in $ [?id ...]
-                                :where [?e :attachments/id ?id]]
-                       :args  [attachment-ids]
-                       :xform (map first)}))
-    []))
+(defn ^:private prep-note-history [results]
+  (->> results
+       (sort-by second)
+       (reduce-history [])))
+
+(defn ^:private prep-attachment-history [_ results]
+  (->> results
+       (sort-by second)
+       (group-by first)
+       (mapcat (fn [[k vals]]
+                 (reduce-history [:attachments/changes k] vals)))
+       (sort-by :notes/history-id)))
+
+(defn ^:private combine-history
+  ([note-history attachment-history]
+   (combine-history note-history attachment-history []))
+  ([[note-hist :as note-history] [att-hist :as attachment-history] combined-history]
+   (cond
+     (empty? attachment-history)
+     (into combined-history note-history)
+
+     (empty? note-history)
+     (into combined-history attachment-history)
+
+     (= (:notes/history-id note-hist) (:notes/history-id att-hist))
+     (recur (vec (rest note-history))
+            (rest attachment-history)
+            (conj combined-history (update note-hist
+                                           :notes/changes
+                                           maps/deep-merge
+                                           (:notes/changes att-hist))))
+
+     (and (> (:notes/history-id note-hist) (:notes/history-id att-hist))
+          (-> note-hist :notes/changes :notes/attachments :added))
+     (recur (update-in note-history
+                       [0 :notes/changes]
+                       maps/deep-merge
+                       (:notes/changes att-hist))
+            (rest attachment-history)
+            combined-history)
+
+     (> (:notes/history-id note-hist) (:notes/history-id att-hist))
+     (recur note-history
+            (rest attachment-history)
+            (conj combined-history att-hist))
+
+     :else
+     (recur (vec (rest note-history))
+            attachment-history
+            (conj combined-history note-hist)))))
+
+(defn ^:private prep-history [db results]
+  (let [note-history (prep-note-history results)
+        attachment-ids (into #{}
+                             (keep (fn [[_ _ _ attr val]]
+                                     (when (= :notes/attachments attr)
+                                       val)))
+                             results)
+        attachment-history (ds/query db
+                                     {:query    '[:find ?e ?tx ?op ?attr ?val ?at ?card
+                                                  :in $ [?e ...]
+                                                  :where
+                                                  [?e ?a ?val ?tx ?op]
+                                                  [?tx :db/txInstant ?at]
+                                                  [?a :db/ident ?attr]
+                                                  [?a :db/cardinality ?c]
+                                                  [?c :db/ident ?card]]
+                                      :args     [attachment-ids]
+                                      :history? true
+                                      :post     prep-attachment-history})]
+    (combine-history note-history attachment-history)))
 
 (defn ^:private clean-note [note]
   (-> note
@@ -79,11 +144,12 @@
   [(clean-note note)])
 
 (defmethod istorage/->input ::api.notes/update!
-  [{note-id :notes/id retract-tags :notes/tags!remove :as note}]
-  (into [(clean-note note)
-         [`retract-attachments note]]
-        (map (partial conj [:db/retract [:notes/id note-id] :notes/tags]))
-        retract-tags))
+  [{note-id :notes/id retract-attachments :notes/attachments!remove retract-tags :notes/tags!remove :as note}]
+  (concat [(clean-note note)]
+          (map #(vector :db/retract [:notes/id note-id] :notes/tags %)
+               retract-tags)
+          (map #(vector :db/retractEntity [:attachments/id %])
+               retract-attachments)))
 
 (defmethod istorage/->input ::api.notes/delete!
   [{note-id :notes/id}]
@@ -122,7 +188,7 @@
 
 (defmethod istorage/->input ::api.notes/get-note-history
   [{:notes/keys [id]}]
-  {:query    '[:find ?tx ?op ?attr ?val ?at ?card
+  {:query    '[:find ?e ?tx ?op ?attr ?val ?at ?card
                :in $ ?id
                :where
                [?e :notes/id ?id]

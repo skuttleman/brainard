@@ -23,7 +23,7 @@
                                              (not ref?) (dissoc :db/id)))))
                (sequence (or xform identity)))
     only? first
-    post post))
+    post (->> (post db))))
 
 (defn connect! [{:keys [storage-dir db-name schema]}]
   (let [client (d/client {:server-type :datomic-local

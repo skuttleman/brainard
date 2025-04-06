@@ -42,6 +42,13 @@
     (apply update m k f f-args)
      m))
 
+(defn deep-merge
+  "Deeply merges nested maps. Other values are overwritten as with merge"
+  [m1 m2]
+  (cond->> m2
+    (and (map? m1) (map? m2))
+    (merge-with deep-merge m1)))
+
 (defmacro m
   "Generates a map literal by keying symbols off a keyword representation. At runtime,
    the symbols will be evaluated as normal.
