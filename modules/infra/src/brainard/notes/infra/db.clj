@@ -82,12 +82,12 @@
      (into combined-history attachment-history)
 
      (= (:notes/history-id note-hist) (:notes/history-id att-hist))
-     (recur (vec (rest note-history))
+     (recur (update-in note-history
+                       [0 :notes/changes]
+                       maps/deep-merge
+                       (:notes/changes att-hist))
             (rest attachment-history)
-            (conj combined-history (update note-hist
-                                           :notes/changes
-                                           maps/deep-merge
-                                           (:notes/changes att-hist))))
+            combined-history)
 
      (and (> (:notes/history-id note-hist) (:notes/history-id att-hist))
           (-> note-hist :notes/changes :notes/attachments :added))
@@ -137,7 +137,10 @@
                      :notes/tags
                      :notes/pinned?
                      :notes/attachments})
-      (update :notes/attachments fns/smap select-keys #{:attachments/id :attachments/name})))
+      (update :notes/attachments fns/smap select-keys #{:attachments/id
+                                                        :attachments/content-type
+                                                        :attachments/filename
+                                                        :attachments/name})))
 
 (defmethod istorage/->input ::api.notes/create!
   [note]

@@ -24,41 +24,42 @@
   (some-> (get-in db [:toasts/toasts toast-id])
           (assoc :id toast-id)))
 
-(defn ^:private handle-attachment-changes [version {:keys [added removed] :as change}]
-  (let [prev-attachments (:attachments/state version)
+(defn ^:private handle-attachment-changes [version change {:keys [added removed]}]
+  (let [prev-attachments (:attachments/previous version)
         next-attachments (-> {}
                              (into (filter (comp int? key)) change)
                              (update-vals #(update-vals % :to)))
         attachment-changes (into {}
                                  (keep (fn [id]
-                                         (when (not= (get prev-attachments id)
-                                                     (get next-attachments id))
-                                           [id (cond
-                                                 (or (nil? (get prev-attachments id))
-                                                     ((set added) id))
-                                                 {:added (get-in next-attachments [id :attachments/name])}
+                                         (let [prev (get-in prev-attachments [id :attachments/name])
+                                               next (get-in next-attachments [id :attachments/name])
+                                               full (or next (get-in version [:attachments/state id :attachments/name]))]
+                                           (when-let [update (cond
+                                                               (contains? removed id)
+                                                               {:removed full}
 
-                                                 (or (nil? (get next-attachments id))
-                                                     ((set removed) id))
-                                                 {:removed (get-in prev-attachments [id :attachments/name])}
+                                                               (contains? added id)
+                                                               {:added full}
 
-                                                 :else
-                                                 {:from (get-in prev-attachments [id :attachments/name])
-                                                  :to   (get-in next-attachments [id :attachments/name])})])))
-                                 (into (set (keys prev-attachments))
+                                                               (and prev (not= prev full))
+                                                               {:from prev
+                                                                :to   full})]
+                                             [id update]))))
+                                 (into (set (keys (:attachments/state version)))
                                        (keys next-attachments)))]
     (-> version
-        (assoc :attachments/state next-attachments
+        (update :attachments/state maps/deep-merge next-attachments)
+        (assoc :attachments/previous next-attachments
                :attachments/changes attachment-changes))))
 
 (defn ^:private reconstruct [prev changes]
-  (let [changes (-> changes
-                    (update-in [:notes/attachments :added] set)
-                    (update-in [:notes/attachments :removed] set)
-                    (update :attachments/changes merge {}))]
+  (let [{:notes/keys [attachments] :as changes} (-> changes
+                                                    (update-in [:notes/attachments :added] set)
+                                                    (update-in [:notes/attachments :removed] set)
+                                                    (update :attachments/changes merge {}))]
     (reduce-kv (fn [version attr {:keys [added removed to] :as change}]
                  (cond-> version
-                   (= :attachments/changes attr) (handle-attachment-changes change)
+                   (= :attachments/changes attr) (handle-attachment-changes change attachments)
                    (some? to) (assoc attr to)
                    added (update attr (fnil into #{}) added)
                    removed (update attr (partial apply disj) removed)))

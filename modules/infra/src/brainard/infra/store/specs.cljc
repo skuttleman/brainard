@@ -80,12 +80,9 @@
               (into #{}
                     (map :attachments/id)
                     xs))]
-      (let [removals (set (set/difference (id-set old) (id-set curr)))
-            updates (into #{}
-                          (map #(select-keys % #{:attachments/id :attachments/name}))
-                          curr)]
+      (let [removals (set (set/difference (id-set old) (id-set curr)))]
         {:notes/attachments!remove removals
-         :notes/attachments        updates}))))
+         :notes/attachments        (set curr)}))))
 
 (defmethod res/->request-spec ::notes#modify
   [[_ resource-id] {:keys [payload prev-attachments prev-tags] :as spec}]

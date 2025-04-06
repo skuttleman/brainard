@@ -14,6 +14,11 @@
     [comp/tag-list {:value tags}]
     [:em "no tags"]))
 
+(defn ^:private attachment-list [note]
+  (when-let [attachments (not-empty (:notes/attachments note))]
+    [comp/attachment-list {:label? true
+                           :value attachments}]))
+
 (defmulti ^:private ^{:arglists '([label changes])} history-change
           (fn [label _]
             label))
@@ -90,6 +95,7 @@
                   :style {:align-self :center}} :paperclip])
     [:h1 [:strong (:notes/context note)]]]
    [comp/markdown (:notes/body note)]
+   [attachment-list note]
    [tag-list note]
    (when-not last?
      [:div
@@ -102,17 +108,19 @@
 (defn ^:private note-history [*:store reconstruction entries]
   (let [last-idx (dec (count entries))
         last-history-id (:notes/history-id (last entries))
-        prev-tags (:notes/tags (get reconstruction last-history-id))
-        prev-attachments (-> reconstruction
-                             (get last-history-id)
-                             (:attachments/state)
-                             vals
-                             set)]
+        last-entry (get reconstruction last-history-id)
+        prev-tags (:notes/tags last-entry)
+        prev-attachments (->> last-entry
+                              :notes/attachments
+                              (map (:attachments/state last-entry))
+                              set)]
     [:ul.note-history
      (for [[idx {:notes/keys [changes history-id saved-at]}] (map-indexed vector entries)
-           :let [attachment-changes (get-in reconstruction [history-id :attachments/changes])
+           :let [note (get reconstruction history-id)
+                 attachment-changes (:attachments/changes note)
+                 note (update note :notes/attachments (partial map (:attachments/state note)))
                  history-modal [::view {:last?            (= idx last-idx)
-                                        :note             (get reconstruction history-id)
+                                        :note             note
                                         :prev-tags        prev-tags
                                         :prev-attachments prev-attachments}]]]
        ^{:key history-id}
