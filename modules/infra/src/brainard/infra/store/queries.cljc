@@ -35,7 +35,8 @@
                                                              [k to]))))))
         attachment-changes (into {}
                                  (keep (fn [id]
-                                         (let [prev (get-in prev-attachments [id :attachments/name])
+                                         (let [prev (or (get-in prev-attachments [id :attachments/name])
+                                                        (get-in change [:attachments/changes id :attachments/name :from]))
                                                next (or (get-in next-attachments [id :attachments/name])
                                                         (get-in version [:attachments/state id :attachments/name]))]
                                            (when-let [update (cond
