@@ -20,7 +20,7 @@ $ foreman start
 ## Run Tests
 
 ```bash
-$ clj -M:test
+$ clj -M:test -m kaocha.runner
 ```
 
 ## Build

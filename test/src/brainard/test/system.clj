@@ -26,7 +26,7 @@
 
 (defmethod ig/init-key :brainard.test/fs-invoker
   [_ _]
-  (let [path (str "target/test/" (uuids/random))
+  (let [path (str ".obj-storage/test/" (uuids/random))
         invoker (ig/init-key :brainard/fs-invoker {:path path})]
     (vary-meta invoker assoc ::path path)))
 

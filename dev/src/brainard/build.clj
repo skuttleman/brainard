@@ -9,12 +9,12 @@
 (defn uber [{:keys [jar-content basis main uber-file-name] :as attrs}]
   (clean attrs)
 
-  (b/copy-dir {:src-dirs   ["resources" "src"]
+  (b/copy-dir {:src-dirs   ["resources" "src" "modules/api/src" "modules/infra/src"]
                :target-dir jar-content})
 
-  (b/compile-clj {:basis     basis
-                  :src-dirs  ["src"]
-                  :class-dir jar-content})
+  (b/compile-clj {:basis      basis
+                  :ns-compile [main]
+                  :class-dir  jar-content})
 
   (b/uber {:class-dir jar-content
            :uber-file uber-file-name

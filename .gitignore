@@ -3,6 +3,7 @@
 .datomic-storage/
 .idea/
 .shadow-cljs/
+.obj-storage/
 classes/
 node_modules/
 resources/public/js/

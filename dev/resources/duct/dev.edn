@@ -7,7 +7,7 @@
                       :schema  #ig/ref :cfg.ds/schema}
 
                      [:brainard/fs-invoker :brainard/IObjInvoker]
-                     {:path "target"}
+                     {:path ".obj-storage"}
 
                      #_#_[:brainard/s3-invoker :brainard/IObjInvoker]
                      {:access-key #ig/ref :cfg.obj/access-key
