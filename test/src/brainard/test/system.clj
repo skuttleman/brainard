@@ -1,12 +1,14 @@
 (ns brainard.test.system
   (:require
+    [brainard.api.storage.interfaces :as istorage]
     [brainard.api.utils.uuids :as uuids]
     [brainard.infra.db.store :as ds]
     [clojure.java.io :as io]
     [datomic.client.api :as d]
     [duct.core :as duct]
     [integrant.core :as ig]
-    brainard.dev.s3))
+    brainard.dev.s3
+    brainard.infra.system))
 
 (defmethod ig/init-key :brainard.test/db-name
   [_ _]
@@ -34,6 +36,10 @@
     (invoker {:op      :DeleteObjects
               :request {:Delete {:Objects objects}}})
     (-> invoker meta ::path io/file io/delete-file)))
+
+(defmethod istorage/->input :default
+  [params]
+  params)
 
 (defmacro with-system [[sys-binding opts] & body]
   (let [sys (gensym)

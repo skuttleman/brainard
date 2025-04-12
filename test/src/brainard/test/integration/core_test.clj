@@ -4,8 +4,8 @@
     [brainard.api.utils.uuids :as uuids]
     [brainard.test.http :as thttp]
     [brainard.test.system :as tsys]
-    [clojure.test :refer [deftest is testing]]
-    brainard.infra.system))
+    [clojure.java.io :as io]
+    [clojure.test :refer [deftest is testing]]))
 
 (deftest notes-integration-test
   (tsys/with-system [{::b/keys [apis]} nil]
@@ -198,3 +198,64 @@
             (is (thttp/client-error? response))
             (is (= #{:UNKNOWN_RESOURCE}
                    (into #{} (map :code) errors)))))))))
+
+(deftest attachments-integration-test
+  (tsys/with-system [{::b/keys [apis]} nil]
+    (letfn [(http [request]
+              (thttp/request request apis))]
+      (testing "when uploading an attachment"
+        (let [response (http {:method           :post
+                              :uri              "/api/attachments"
+                              :multipart-params {:files ["fixtures/sample.txt"]}})
+              attachment (-> response
+                             :body
+                             :data
+                             first
+                             (assoc :attachments/name "some other name"))]
+          (testing "successfully uploads the attachment"
+            (is (thttp/success? response)))
+
+          (testing "and when downloading the attachment"
+            (let [download (http {:method :get
+                                  :uri    (str "/attachments/" (:attachments/id attachment))})]
+              (testing "successfully fetches the attachment"
+                (is (thttp/success? download))
+                (is (= (slurp (io/resource "fixtures/sample.txt"))
+                       (:body download))))))
+
+          (testing "and when creating a note"
+            (let [{note-id :notes/id :as note} (-> {:method :post
+                                                    :uri    "/api/notes"
+                                                    :body   {:notes/context     "Context1"
+                                                             :notes/tags        #{:one :three}
+                                                             :notes/pinned?     false
+                                                             :notes/body        "body of note"
+                                                             :notes/attachments [attachment]}}
+                                                   http
+                                                   :body
+                                                   :data)]
+              (testing "saves the attachment"
+                (is (= attachment (-> note :notes/attachments first))))
+
+              (testing "and when fetching the note"
+                (let [note (-> {:method :get
+                                :uri    (str "/api/notes/" note-id)}
+                               http
+                               :body
+                               :data)]
+                  (testing "includes the attachment"
+                    (is (= attachment (-> note :notes/attachments first))))))
+
+              (testing "and when removing the attachment"
+                (-> {:method :patch
+                     :uri    (str "/api/notes/" note-id)
+                     :body   {:notes/attachments!remove #{(:attachments/id attachment)}}}
+                    http
+                    :body
+                    :data)
+                (testing "does not delete the uploaded file"
+                  (let [download (http {:method :get
+                                        :uri    (str "/attachments/" (:attachments/id attachment))})]
+                    (is (thttp/success? download))
+                    (is (= (slurp (io/resource "fixtures/sample.txt"))
+                           (:body download)))))))))))))

@@ -1,17 +1,11 @@
 (ns brainard.test.integration.schedules-test
   (:require
     [brainard :as-alias b]
-    [brainard.api.storage.interfaces :as istorage]
     [brainard.api.utils.uuids :as uuids]
     [brainard.schedules.api.core :as api.sched]
     [brainard.api.storage.core :as storage]
     [brainard.test.system :as tsys]
-    [clojure.test :refer [deftest is testing]]
-    brainard.infra.system))
-
-(defmethod istorage/->input :default
-  [params]
-  params)
+    [clojure.test :refer [deftest is testing]]))
 
 (deftest get-schedules-test
   (tsys/with-system [{::b/keys [storage]} nil]

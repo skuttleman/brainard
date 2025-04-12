@@ -54,10 +54,10 @@
 
 (defn multipart-params-request [request]
   (let [req-encoding (or (req/character-encoding request) "UTF-8")
-        params (if (multipart-form? request)
-                 (parse-multipart-params request req-encoding)
-                 {})]
-    (assoc request :multipart-params params)))
+        params (when (multipart-form? request)
+                 (parse-multipart-params request req-encoding))]
+    (cond-> request
+      params (assoc :multipart-params params))))
 
 (defn wrap-multipart-params [handler]
   (comp handler multipart-params-request))

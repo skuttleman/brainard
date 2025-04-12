@@ -8,8 +8,7 @@
     [brainard.workspace.api.core :as api.ws]
     [clojure.test :refer [deftest is testing]]
     [clojure.walk :as walk]
-    [workspace-nodes :as-alias ws]
-    brainard.infra.system))
+    [workspace-nodes :as-alias ws]))
 
 (defn ^:private seed-tree! [conn]
   (let [[id1 id2 id3 id4 id5] (repeatedly uuids/random)]

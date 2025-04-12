@@ -18,9 +18,10 @@
         content-type-file (str path "/" Key ".content-type")
         blob-file (str path "/" Key ".blob")
         ^File file (io/file blob-file)]
-    {:Body          (io/input-stream file)
-     :ContentLength (.length file)
-     :ContentType   (slurp content-type-file)}))
+    (when (.exists file)
+      {:Body          (io/input-stream file)
+       :ContentLength (.length file)
+       :ContentType   (slurp content-type-file)})))
 
 (defmethod fs-invoker :PutObject
   [{::keys [path] :as req}]

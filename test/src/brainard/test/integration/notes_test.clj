@@ -3,23 +3,23 @@
     [brainard :as-alias b]
     [brainard.api.storage.interfaces :as istorage]
     [brainard.api.utils.uuids :as uuids]
-    [brainard.ds :as-alias bds]
+    [brainard.attachments.api.core :as api.attachments]
     [brainard.notes.api.core :as api.notes]
     [brainard.api.storage.core :as storage]
     [brainard.test.system :as tsys]
-    [clojure.test :refer [deftest is testing]]
-    brainard.infra.system))
+    [clojure.test :refer [deftest is testing]])
+  (:import (java.io ByteArrayInputStream)))
 
 (deftest save!-test
   (tsys/with-system [{::b/keys [storage]} nil]
     (testing "when saving a note"
       (let [note-id (uuids/random)]
-        (storage/execute! storage {::storage/type   ::api.notes/create!
-                                   :notes/id        note-id
-                                   :notes/body      "some body"
-                                   :notes/context   "A Context"
-                                   :notes/tags      #{:one :two :three}
-                                   :notes/pinned?   false})
+        (storage/execute! storage {::storage/type ::api.notes/create!
+                                   :notes/id      note-id
+                                   :notes/body    "some body"
+                                   :notes/context "A Context"
+                                   :notes/tags    #{:one :two :three}
+                                   :notes/pinned? false})
         (testing "saves the note to db"
           (let [note (-> storage
                          (istorage/read {:query '[:find (pull ?e [:notes/id
@@ -31,10 +31,10 @@
                                          :args  [note-id]})
                          ffirst
                          (update :notes/tags set))]
-            (is (= {:notes/id        note-id
-                    :notes/body      "some body"
-                    :notes/context   "A Context"
-                    :notes/tags      #{:one :two :three}}
+            (is (= {:notes/id      note-id
+                    :notes/body    "some body"
+                    :notes/context "A Context"
+                    :notes/tags    #{:one :two :three}}
                    note))))
         (testing "and when updating and retracting tags"
           (storage/execute! storage {::storage/type     ::api.notes/update!
@@ -53,10 +53,10 @@
                                            :args  [note-id]})
                            ffirst
                            (update :notes/tags set))]
-              (is (= {:notes/id        note-id
-                      :notes/body      "some body"
-                      :notes/context   "different context"
-                      :notes/tags      #{:three :four :five :six}}
+              (is (= {:notes/id      note-id
+                      :notes/body    "some body"
+                      :notes/context "different context"
+                      :notes/tags    #{:three :four :five :six}}
                      note)))))
         (testing "and when updating and pinning the note"
           (storage/execute! storage {::storage/type ::api.notes/update!
@@ -166,56 +166,94 @@
             (is (nil? (storage/query storage {::storage/type ::api.notes/get-note
                                               :notes/id      (uuids/random)})))))))))
 
-#?(:clj
-   (deftest get-note-history-test
-     (testing "when there is a note"
-       (tsys/with-system [{::b/keys [storage]} nil]
-         (let [note-id (uuids/random)]
-           (istorage/write! storage
-                            [{:notes/id      note-id
-                              :notes/context "a"
-                              :notes/tags    #{:a :b :c}
-                              :notes/pinned? false}])
-           (testing "and when querying the note's history"
-             (let [history (storage/query storage {::storage/type ::api.notes/get-note-history
-                                                   :notes/id      note-id})]
-               (testing "returns the history of the note"
-                 (is (= [{:notes/context {:to "a"}
-                          :notes/pinned? {:to false}
-                          :notes/tags    {:added #{:a :b :c}}
-                          :notes/id      {:to note-id}}]
-                        (map :notes/changes history))))))
+;; TODO update test w/ attachments
+(deftest get-note-history-test
+  (testing "when there is a note"
+    (tsys/with-system [{::b/keys [storage]} nil]
+      (let [[note-id attachment-id] (repeatedly uuids/random)]
+        (istorage/write! storage
+                         [{:notes/id          note-id
+                           :notes/context     "a"
+                           :notes/tags        #{:a :b :c}
+                           :notes/pinned?     false
+                           :notes/attachments #{{:attachments/id           attachment-id
+                                                 :attachments/content-type "some/type"
+                                                 :attachments/name         "some-file.txt"
+                                                 :attachments/filename     "some-file.txt"}}}])
+        (testing "and when querying the note's history"
+          (let [attachment-ref (-> storage
+                                   (istorage/read {:query '[:find (pull ?e [*])
+                                                            :in $ ?attachment-id
+                                                            :where
+                                                            [?e :attachments/id ?attachment-id]]
+                                                   :args  [attachment-id]
+                                                   :xform (map first)
+                                                   :only? true
+                                                   :ref?  true})
+                                   :brainard/ref)
+                history (storage/query storage {::storage/type ::api.notes/get-note-history
+                                                :notes/id      note-id})]
+            (testing "returns the history of the note"
+              (is (= [{:notes/context       {:to "a"}
+                       :notes/pinned?       {:to false}
+                       :notes/tags          {:added #{:a :b :c}}
+                       :notes/id            {:to note-id}
+                       :attachments/changes {attachment-ref {:attachments/content-type {:to "some/type"}
+                                                             :attachments/filename     {:to "some-file.txt"}
+                                                             :attachments/id           {:to attachment-id}
+                                                             :attachments/name         {:to "some-file.txt"}}}
+                       :notes/attachments   {:added #{attachment-ref}}}]
+                     (map :notes/changes history))))
 
-           (testing "and when the note changes"
-             (storage/execute! storage {::storage/type ::api.notes/update!
-                                        :notes/id      note-id
-                                        :notes/context "diff context"
-                                        :notes/pinned? false
-                                        :notes/tags    #{:a :b :c :d}})
-             (storage/execute! storage {::storage/type     ::api.notes/update!
-                                        :notes/id          note-id
-                                        :notes/tags        #{:b :d :e}
-                                        :notes/pinned?     true
-                                        :notes/tags!remove #{:a :c}})
-             (storage/execute! storage {::storage/type ::api.notes/update!
-                                        :notes/id      note-id
-                                        :notes/context "diff context"
-                                        :notes/pinned? false})
-             (testing "and when querying the note's history"
-               (let [history (storage/query storage {::storage/type ::api.notes/get-note-history
-                                                     :notes/id      note-id})]
-                 (testing "returns the history of the note"
-                   (is (= [{:notes/id      {:to note-id}
-                            :notes/context {:to "a"}
-                            :notes/pinned? {:to false}
-                            :notes/tags    {:added #{:a :b :c}}}
-                           {:notes/context {:from "a"
-                                            :to   "diff context"}
-                            :notes/tags    {:added #{:d}}}
-                           {:notes/pinned? {:from false
-                                            :to   true}
-                            :notes/tags    {:added   #{:e}
-                                            :removed #{:a :c}}}
-                           {:notes/pinned? {:from true
-                                            :to   false}}]
-                          (map :notes/changes history))))))))))))
+            (testing "and when the note changes"
+              (storage/execute! storage {::storage/type ::api.notes/update!
+                                         :notes/id      note-id
+                                         :notes/context "diff context"
+                                         :notes/pinned? false
+                                         :notes/tags    #{:a :b :c :d}})
+              (storage/execute! storage {::storage/type     ::api.notes/update!
+                                         :notes/id          note-id
+                                         :notes/attachments #{{:attachments/id   attachment-id
+                                                               :attachments/name "some-new-name"}}})
+              (storage/execute! storage {::storage/type     ::api.notes/update!
+                                         :notes/id          note-id
+                                         :notes/tags        #{:b :d :e}
+                                         :notes/pinned?     true
+                                         :notes/tags!remove #{:a :c}})
+              (storage/execute! storage {::storage/type            ::api.notes/update!
+                                         :notes/id                 note-id
+                                         :notes/attachments!remove #{attachment-id}})
+              (storage/execute! storage {::storage/type ::api.notes/update!
+                                         :notes/id      note-id
+                                         :notes/context "diff context"
+                                         :notes/pinned? false})
+              (testing "and when querying the note's history"
+                (let [history (storage/query storage {::storage/type ::api.notes/get-note-history
+                                                      :notes/id      note-id})]
+                  (testing "returns the history of the note"
+                    (is (= [{:attachments/changes {attachment-ref {:attachments/content-type {:to "some/type"}
+                                                                   :attachments/filename     {:to "some-file.txt"}
+                                                                   :attachments/id           {:to attachment-id}
+                                                                   :attachments/name         {:to "some-file.txt"}}}
+                             :notes/attachments   {:added #{attachment-ref}}
+                             :notes/context       {:to "a"}
+                             :notes/id            {:to note-id}
+                             :notes/pinned?       {:to false}
+                             :notes/tags          {:added #{:a :b :c}}}
+                            {:notes/context {:from "a"
+                                             :to   "diff context"}
+                             :notes/tags    {:added #{:d}}}
+                            {:attachments/changes {attachment-ref {:attachments/name {:from "some-file.txt"
+                                                                                      :to   "some-new-name"}}}}
+                            {:notes/pinned? {:from false
+                                             :to   true}
+                             :notes/tags    {:added   #{:e}
+                                             :removed #{:a :c}}}
+                            {:attachments/changes {attachment-ref {:attachments/content-type {:from "some/type"}
+                                                                   :attachments/filename     {:from "some-file.txt"}
+                                                                   :attachments/id           {:from attachment-id}
+                                                                   :attachments/name         {:from "some-new-name"}}}
+                             :notes/attachments   {:removed #{attachment-ref}}}
+                            {:notes/pinned? {:from true
+                                             :to   false}}]
+                           (map :notes/changes history)))))))))))))
