@@ -13,7 +13,9 @@
                                     "modules/api/test/resources"
                                     "modules/api/test/src"
                                     "modules/infra/test/resources"
-                                    "modules/infra/test/src"]}
+                                    "modules/infra/test/src"]
+                      :main-opts   ["-m" "kaocha.runner"]
+                      :extra-deps  {lambdaisland/kaocha {:mvn/version "1.91.1392"}}}
            :build    {:extra-deps {io.github.clojure/tools.build {:mvn/version "0.9.6"}}}
            :shadow   {:extra-deps {thheller/shadow-cljs {:mvn/version "2.26.2"}}}
            :intellij {:extra-paths ["modules/api/resources"

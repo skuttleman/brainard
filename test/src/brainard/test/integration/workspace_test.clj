@@ -153,7 +153,7 @@
 
             (testing "and when moving the node to its current parent"
               (api.ws/update! workspace-api id3 {::ws/parent-id id5})
-              (testing "keeps the node in teh same position"
+              (testing "keeps the node in the same position"
                 (is (= [{::ws/id       id1
                          ::ws/content  "root"
                          ::ws/children [{::ws/id        id2

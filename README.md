@@ -16,3 +16,15 @@ their thoughts now, so they can forget them later.
 ```bash
 $ foreman start
 ```
+
+## Run Tests
+
+```bash
+$ clj -M:test
+```
+
+## Build
+
+```bash
+$ ./bin/build.sh
+```
