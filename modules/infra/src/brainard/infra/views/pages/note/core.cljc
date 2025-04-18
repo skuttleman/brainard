@@ -122,9 +122,11 @@
     [:h1.layout--space-after.flex-grow [:strong (:notes/context note)]]
     [pin-toggle *:store note]]
    [comp/markdown (:notes/body note)]
-   [:div.layout--room-between
-    [todo-list *:store note]
-    [attachment-list note]]
+   [:div.layout--room-between {:style {:width "100%"}}
+    [:div.flex-grow {:flex-basis "50%"}
+     [todo-list *:store note]]
+    [:div.flex-grow {:flex-basis "50%"}
+     [attachment-list note]]]
    [tag-list note]
    [:div.layout--space-between
     [:div.button-row

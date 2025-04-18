@@ -148,9 +148,9 @@
    icon])
 
 (defn attachment-list [{:keys [label? on-edit on-remove value]}]
-  [:div.layout--stack-between
+  [:div.layout--col
    (when label?
-     [:em "Attachments:"])
+     [:label.label "Attachments:"])
    [:ul.attachment-list
     (for [{attachment-id :attachments/id :as attachment} (sort-by :attachments/id value)]
       ^{:key attachment-id}
@@ -228,13 +228,12 @@
       (store/emit! *:store [::forms+/destroyed form-key]))))
 
 (defn todo-list [{:keys [label? on-create value] :as attrs}]
-  [:div.layout--stack-between
-   [:div.layout-col
-    (when label?
-      [:em "TODOs:"])
-    (when on-create
-      [plain-button {:on-click #(on-create)}
-       "Create TODO..."])]
+  [:div.layout-col
+   (when label?
+     [:label.label "TODOs:"])
+   (when on-create
+     [plain-button {:on-click #(on-create)}
+      "Create TODO..."])
    [:ul.todo-list
     (for [{todo-id :todos/id :as todo} (sort-by (juxt (complement :todos/completed?) :todos/id) value)]
       ^{:key todo-id}

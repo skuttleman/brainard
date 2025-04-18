@@ -53,7 +53,7 @@
                             (ctrls/with-attrs form+ [:notes/body]))])]]))
 
 (defn ^:private progress-bar [{:keys [loaded status total]}]
-  (let [height "6px"
+  (let [height "4px"
         complete? (#{:complete :error} status)
         percent (cond
                   (= status :init) 0.02
@@ -62,7 +62,8 @@
     [:div {:style {:height    height
                    :width     "400px"
                    :max-width "90%"
-                   :outline   (when percent "1px grey solid")}}
+                   :outline   (when percent "1px grey solid")
+                   :margin    "5px 0 3px 0"}}
      (when percent
        [:div.progress-bar
         {:style {:height height}}
@@ -176,14 +177,15 @@
                                 :sub:items sub:tags}
                                (ctrls/with-attrs form+ [:notes/tags]))]]
        [:div.layout--stack-between {:style {:flex-basis "33%"}}
-        [:label.label "TODOs"]
-        [comp/todo-list
-         {:on-create on-create-todo
-          :on-check  on-check-todo
-          :on-edit   on-edit-todo
-          :on-remove on-remove-todo
-          :value     (:notes/todos form-data)}]]
-       [:div.layout--stack-between {:style {:flex-basis "33%"}}
+        [:div.layout-col
+         [:label.label "TODOs"]
+         [comp/todo-list
+          {:on-create on-create-todo
+           :on-check  on-check-todo
+           :on-edit   on-edit-todo
+           :on-remove on-remove-todo
+           :value     (:notes/todos form-data)}]]]
+       [:div.layout-col {:style {:flex-basis "33%"}}
         [ctrls/file {:on-upload on-upload-att
                      :disabled  uploading?
                      :label     "Attachments"
