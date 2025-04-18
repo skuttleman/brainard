@@ -8,6 +8,7 @@
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.components.interfaces :as icomp]
     [brainard.infra.views.controls.core :as ctrls]
+    [brainard.infra.views.fragments.note-components :as note-comp]
     [clojure.string :as string]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
@@ -179,7 +180,7 @@
        [:div.layout--stack-between {:style {:flex-basis "33%"}}
         [:div.layout-col
          [:label.label "TODOs"]
-         [comp/todo-list
+         [note-comp/todo-list
           {:on-create on-create-todo
            :on-check  on-check-todo
            :on-edit   on-edit-todo
@@ -191,7 +192,7 @@
                      :label     "Attachments"
                      :multi?    true}]
         [progress-bar (:upload-status form-data)]
-        [comp/attachment-list
+        [note-comp/attachment-list
          {:on-edit   on-edit-att
           :on-remove on-remove-att
           :value     (:notes/attachments form-data)}]]])))

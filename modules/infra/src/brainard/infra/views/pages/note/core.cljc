@@ -5,6 +5,7 @@
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.controls.core :as ctrls]
+    [brainard.infra.views.fragments.note-components :as note-comp]
     [brainard.infra.views.pages.interfaces :as ipages]
     [brainard.infra.views.pages.note.actions :as note.act]
     [brainard.infra.views.pages.note.history :as note.history]
@@ -14,19 +15,14 @@
     [defacto.resources.core :as res]
     [whet.utils.reagent :as r]))
 
-(defn ^:private tag-list [note]
-  (if-let [tags (not-empty (:notes/tags note))]
-    [comp/tag-list {:value tags}]
-    [:em "no tags"]))
-
 (defn ^:private attachment-list [note]
   (when-let [attachments (not-empty (:notes/attachments note))]
-    [comp/attachment-list {:label? true
-                           :value  attachments}]))
+    [note-comp/attachment-list {:label? true
+                                :value  attachments}]))
 
 (defn ^:private todo-list [*:store note]
   (when-let [todos (not-empty (:notes/todos note))]
-    [comp/todo-list
+    [note-comp/todo-list
      {:*:store *:store
       :note-id (:notes/id note)
       :label?  true
@@ -127,7 +123,7 @@
      [todo-list *:store note]]
     [:div.flex-grow {:flex-basis "50%"}
      [attachment-list note]]]
-   [tag-list note]
+   [note-comp/tag-list note]
    [:div.layout--space-between
     [:div.button-row
      [comp/plain-button {:*:store  *:store

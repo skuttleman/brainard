@@ -5,19 +5,15 @@
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.components.interfaces :as icomp]
+    [brainard.infra.views.fragments.note-components :as note-comp]
     [brainard.infra.views.pages.note.actions :as note.act]
     [defacto.resources.core :as res]
     [whet.utils.reagent :as r]))
 
-(defn ^:private tag-list [note]
-  (if-let [tags (not-empty (:notes/tags note))]
-    [comp/tag-list {:value tags}]
-    [:em "no tags"]))
-
 (defn ^:private attachment-list [note]
   (when-let [attachments (not-empty (:notes/attachments note))]
-    [comp/attachment-list {:label? true
-                           :value attachments}]))
+    [note-comp/attachment-list {:label? true
+                                :value  attachments}]))
 
 (defmulti ^:private ^{:arglists '([label changes])} history-change
           (fn [label _]
@@ -96,7 +92,7 @@
     [:h1 [:strong (:notes/context note)]]]
    [comp/markdown (:notes/body note)]
    [attachment-list note]
-   [tag-list note]
+   [note-comp/tag-list note]
    (when-not last?
      [:div
       [comp/plain-button {:*:store  *:store
