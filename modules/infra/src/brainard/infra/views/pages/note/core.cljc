@@ -22,12 +22,15 @@
 (defn ^:private attachment-list [note]
   (when-let [attachments (not-empty (:notes/attachments note))]
     [comp/attachment-list {:label? true
-                           :value attachments}]))
+                           :value  attachments}]))
 
-(defn ^:private todo-list [note]
+(defn ^:private todo-list [*:store note]
   (when-let [todos (not-empty (:notes/todos note))]
-    [comp/todo-list {:label? true
-                     :value  todos}]))
+    [comp/todo-list
+     {:*:store *:store
+      :note-id (:notes/id note)
+      :label?  true
+      :value   todos}]))
 
 (defn ^:private pin-toggle [*:store note]
   (r/with-let [init-form (select-keys note #{:notes/id :notes/pinned?})
@@ -60,7 +63,7 @@
              :let [modal (note.act/->delete-sched-modal sched-id note)]]
          ^{:key sched-id}
          [:li.layout--room-between.layout--align-center.space--left
-          [comp/plain-button {:*:store *:store
+          [comp/plain-button {:*:store  *:store
                               :class    ["is-danger" "is-light" "is-small"]
                               :commands [[:modals/create! modal]]}
            [comp/icon :trash-can]]
@@ -120,7 +123,7 @@
     [pin-toggle *:store note]]
    [comp/markdown (:notes/body note)]
    [:div.layout--room-between
-    [todo-list note]
+    [todo-list *:store note]
     [attachment-list note]]
    [tag-list note]
    [:div.layout--space-between

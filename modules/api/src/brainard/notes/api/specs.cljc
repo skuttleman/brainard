@@ -15,6 +15,12 @@
             [:map
              [:todos/id uuid?]]))
 
+(def ^:private todo-update
+  [:map
+   [:todos/id uuid?]
+   [:todos/text {:optional true} scommon/non-empty-trimmed-string]
+   [:todos/completed? {:optional true} boolean?]])
+
 (def create
   [:map
    [:notes/context scommon/non-empty-trimmed-string]
@@ -83,7 +89,7 @@
    [:notes/pinned? {:optional true} boolean?]
    [:notes/attachments {:optional true} [:seqable sattachments/modify]]
    [:notes/attachments!remove {:optional true} [:set uuid?]]
-   [:notes/todos {:optional true} [:seqable todo-full]]
+   [:notes/todos {:optional true} [:seqable todo-update]]
    [:notes/todos!remove {:optional true} [:set uuid?]]])
 
 (def query
