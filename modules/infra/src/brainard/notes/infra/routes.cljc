@@ -13,11 +13,12 @@
 
 (defmethod iroutes/req->input [:get :routes.api/notes]
   [{::w/keys [route]}]
-  (let [{:keys [context pinned tags]} (:query-params route)
+  (let [{:keys [context pinned tags todos]} (:query-params route)
         tags (cond
                (coll? tags) (into #{} (map keyword) tags)
                (nil? tags) #{}
                :else #{(keyword tags)})]
     (cond-> {:notes/tags tags}
       context (assoc :notes/context context)
+      todos (assoc :notes/todos (keyword todos))
       (= pinned "true") (assoc :notes/pinned? true))))

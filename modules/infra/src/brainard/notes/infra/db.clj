@@ -11,7 +11,7 @@
   '[:find (pull ?e [*]) (min ?at)
     :in $])
 
-(defn ^:private notes-query [{:notes/keys [context ids pinned? tags]}]
+(defn ^:private notes-query [{:notes/keys [context ids pinned? tags todos]}]
   (cond-> select
     (seq ids)
     (conj '[?id ...])
@@ -29,7 +29,17 @@
     (into (map (partial conj '[?e :notes/tags])) tags)
 
     pinned?
-    (conj ['?e :notes/pinned? true])
+    (conj '[?e :notes/pinned? true])
+
+    (= todos :complete)
+    (conj '[?e :notes/todos]
+          '(not-join [?e]
+                     [?e :notes/todos ?todo]
+                     [?todo :todos/completed? false]))
+
+    (= todos :incomplete)
+    (conj '[?e :notes/todos ?todo]
+          '[?todo :todos/completed? false])
 
     :always
     (conj '[?e _ _ ?tx]

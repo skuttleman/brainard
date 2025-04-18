@@ -98,9 +98,11 @@
     [:notes/ids {:optional true} [:set uuid?]]
     [:notes/context {:optional true} scommon/non-empty-trimmed-string]
     [:notes/tags {:optional true} [:set keyword?]]
-    [:notes/pinned? {:optional true} true?]]
+    [:notes/pinned? {:optional true} true?]
+    [:notes/todos {:optional true} [:enum {} nil :complete :incomplete]]]
    [:fn {:error/message "must select at least one: ids, tag, topic, or pinned"}
     (some-fn (comp seq :notes/ids)
              (comp true? :notes/pinned?)
              (comp some? :notes/context)
-             (comp seq :notes/tags))]])
+             (comp seq :notes/tags)
+             (comp some? :notes/todos))]])

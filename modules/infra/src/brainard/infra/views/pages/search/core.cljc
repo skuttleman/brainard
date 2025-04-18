@@ -14,11 +14,12 @@
     [whet.core :as-alias w]
     [whet.utils.reagent :as r]))
 
-(defn ^:private ->empty-form [{:keys [context] :as query-params} contexts tags]
+(defn ^:private ->empty-form [{:keys [context todos] :as query-params} contexts tags]
   (cond-> {:notes/tags (into #{}
                              (comp (map keyword) (filter (set tags)))
                              (colls/wrap-set (:tags query-params)))}
-    (contains? contexts context) (assoc :notes/context context)))
+    (contains? contexts context) (assoc :notes/context context)
+    todos (assoc :notes/todos (keyword todos))))
 
 (defn ^:private context-filter [{:keys [*:store form+]} contexts]
   (r/with-let [options (map #(vector % %) contexts)
@@ -44,10 +45,17 @@
                                       (store/dispatch! *:store [::w/with-qp! form-data]))
                        :submit/body "Search"}
      [:div.layout--room-between
-      [:div.flex-grow
+      [:div {:style {:flex-basis "40%"}}
        [context-filter attrs contexts]]
-      [:div.flex-grow
-       [tag-filter attrs tags]]]]))
+      [:div {:style {:flex-basis "40%"}}
+       [tag-filter attrs tags]]
+      [:div {:style {:flex-basis "20%"}}
+       [ctrls/select (-> {:*:store *:store
+                          :label   "TODO Filter"}
+                         (ctrls/with-attrs form+ [:notes/todos]))
+        [[nil "(Unspecified)"]
+         [:incomplete "Incomplete (has 1+ unfinished TODOs)"]
+         [:complete "Complete (has 1+ TODOs - all finished)"]]]]]]))
 
 (defn ^:private root [*:store {:keys [anchor query-params]} [contexts tags]]
   (r/with-let [form-key [::forms+/valid [::search.act/search] query-params]
@@ -59,9 +67,8 @@
                              (store/dispatch! *:store [::forms+/submit! form-key]))
                            sub)]
     [:div.layout--stack-between
-     [search-form {:*:store      *:store
-                   :form+        @sub:form+
-                   :query-params query-params}
+     [search-form {:*:store *:store
+                   :form+   @sub:form+}
       contexts
       tags]
      [comp/with-resource sub:form+ [notes.views/note-list {:anchor     anchor
