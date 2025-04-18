@@ -1,6 +1,7 @@
 (ns brainard.infra.views.fragments.note-edit
   (:require
     [brainard.api.utils.fns :as fns]
+    [brainard.api.utils.uuids :as uuids]
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.stubs.dom :as dom]
@@ -76,7 +77,7 @@
                   :height           height
                   :width            (str (* 100 percent) "%")}}]])]))
 
-(defn ^:private ->on-upload [*:store form-id]
+(defn ^:private ->on-upload-att [*:store form-id]
   (fn [files]
     (when (seq files)
       (store/dispatch! *:store
@@ -89,7 +90,7 @@
                          :err-commands [[:toasts/fail!]]
                          :err-events   [[::forms/changed form-id [:upload-status] {:status :error}]]}]))))
 
-(defn ^:private ->on-edit [*:store form-id]
+(defn ^:private ->on-edit-att [*:store form-id]
   (fn [attachment]
     (letfn [(mapper [attachment' new-name]
               (cond-> attachment'
@@ -103,7 +104,7 @@
                                                                :attachments/name})
                           :ok-events [[::forms/modified form-id [:notes/attachments] fns/smap mapper]]}]]))))
 
-(defn ^:private ->on-remove [*:store form-id]
+(defn ^:private ->on-remove-att [*:store form-id]
   (fn [{attachment-id :attachments/id}]
     (store/emit! *:store
                  [::forms/modified
@@ -111,28 +112,86 @@
                   [:notes/attachments]
                   (partial into #{} (remove (comp #{attachment-id} :attachments/id)))])))
 
-(defn ^:private tags+attachments-field [{:keys [*:store form+ sub:tags uploading?]}]
+(defn ^:private ->on-create-todo [*:store form-id]
+  (fn []
+    (store/dispatch! *:store
+                     [:modals/create!
+                      [::todo
+                       {:init      {:todos/id         (uuids/random)
+                                    :todos/completed? false}
+                        :new?      true
+                        :ok-events [[::forms/modified
+                                     form-id
+                                     [:notes/todos]
+                                     #(conj (vec %1) %2)]]}]])))
+
+(defn ^:private ->on-edit-todo [*:store form-id]
+  (fn [{todo-id :todos/id :as init}]
+    (store/dispatch! *:store
+                     [:modals/create!
+                      [::todo
+                       {:init      init
+                        :ok-events [[::forms/modified
+                                     form-id
+                                     [:notes/todos]
+                                     fns/smap
+                                     #(if (= todo-id (:todos/id %1))
+                                        %2
+                                        %1)]]}]])))
+
+(defn ^:private ->on-check-todo [*:store form-id]
+  (fn [{todo-id :todos/id}]
+    (store/emit! *:store
+                 [::forms/modified
+                  form-id
+                  [:notes/todos]
+                  fns/smap
+                  #(cond-> %
+                     (= (:todos/id %) todo-id)
+                     (update :todos/completed? not))])))
+
+(defn ^:private ->on-remove-todo [*:store form-id]
+  (fn [{todo-id :todos/id}]
+    (store/emit! *:store
+                 [::forms/modified
+                  form-id
+                  [:notes/todos]
+                  (partial remove (comp #{todo-id} :todos/id))])))
+
+(defn ^:private tags+todos+attachments-field [{:keys [*:store form+ sub:tags uploading?]}]
   (r/with-let [form-id (forms/id form+)
-               on-upload (->on-upload *:store form-id)
-               on-edit (->on-edit *:store form-id)
-               on-remove (->on-remove *:store form-id)]
+               on-upload-att (->on-upload-att *:store form-id)
+               on-edit-att (->on-edit-att *:store form-id)
+               on-remove-att (->on-remove-att *:store form-id)
+               on-create-todo (->on-create-todo *:store form-id)
+               on-check-todo (->on-check-todo *:store form-id)
+               on-edit-todo (->on-edit-todo *:store form-id)
+               on-remove-todo (->on-remove-todo *:store form-id)]
     (let [form-data (forms/data form+)]
       [:div.layout--room-between
-       [:div {:style {:flex-basis "50%"}}
+       [:div {:style {:flex-basis "33%"}}
         [ctrls/tags-editor (-> {:*:store   *:store
                                 :form-id   [::tags form-id]
                                 :label     "Tags"
                                 :sub:items sub:tags}
                                (ctrls/with-attrs form+ [:notes/tags]))]]
-       [:div.layout--stack-between {:style {:flex-basis "50%"}}
-        [ctrls/file {:on-upload on-upload
+       [:div.layout--stack-between {:style {:flex-basis "33%"}}
+        [:label.label "TODOs"]
+        [comp/todo-list
+         {:on-create on-create-todo
+          :on-check  on-check-todo
+          :on-edit   on-edit-todo
+          :on-remove on-remove-todo
+          :value     (:notes/todos form-data)}]]
+       [:div.layout--stack-between {:style {:flex-basis "33%"}}
+        [ctrls/file {:on-upload on-upload-att
                      :disabled  uploading?
                      :label     "Attachments"
                      :multi?    true}]
         [progress-bar (:upload-status form-data)]
         [comp/attachment-list
-         {:on-edit   on-edit
-          :on-remove on-remove
+         {:on-edit   on-edit-att
+          :on-remove on-remove-att
           :value     (:notes/attachments form-data)}]]])))
 
 (defn ^:private note-form [{:keys [*:store form+] :as attrs}]
@@ -146,7 +205,7 @@
                           :inline? true
                           :*:store *:store}
                          (ctrls/with-attrs form+ [::preview?]))]
-       [tags+attachments-field (assoc attrs :uploading? uploading?)]])
+       [tags+todos+attachments-field (assoc attrs :uploading? uploading?)]])
     (finally
       (store/emit! *:store [::res/destroyed [::specs/attachment#upload]]))))
 
@@ -194,3 +253,27 @@
                         (ctrls/with-attrs form [:attachments/name]))]])
     (finally
       (store/emit! *:store [::forms/destroyed [::attachment-edit!]]))))
+
+(defmethod icomp/modal-header ::todo
+  [_ {:keys [new?]}]
+  (if new?
+    "Create new TODO"
+    "Edit your TODO"))
+
+(defmethod icomp/modal-body ::todo
+  [*:store {:modals/keys [close!] :keys [new? init ok-events]}]
+  (r/with-let [sub:form (store/form-sub *:store [::todo-edit] init)]
+    (let [form @sub:form]
+      [ctrls/plain-form
+       {:on-submit   (fn [_]
+                       (close!)
+                       (run! (fn [event]
+                               (store/emit! *:store (conj event (forms/data form))))
+                             ok-events))
+        :submit/body (if new? "Create" "Update")}
+       [ctrls/input (-> {:*:store     *:store
+                         :auto-focus? true
+                         :label       "TODO"}
+                        (ctrls/with-attrs form [:todos/text]))]])
+    (finally
+      (store/emit! *:store [::forms/destroyed [::todo-edit]]))))

@@ -26,6 +26,11 @@
   :db/cardinality :db.cardinality/many
   :db/isComponent true
   :db/doc         "Documents attached to the note"}
+ {:db/ident       :notes/todos
+  :db/valueType   :db.type/ref
+  :db/cardinality :db.cardinality/many
+  :db/isComponent true
+  :db/doc         "TODO checklist items associated with the note"}
 
  ;; attachments
  {:db/ident       :attachments/id
@@ -48,6 +53,22 @@
   :db/valueType   :db.type/string
   :db/cardinality :db.cardinality/one
   :db/doc         "The name of the attachment"}
+
+ ;; todos
+ {:db/ident       :todos/id
+  :db/valueType   :db.type/uuid
+  :db/cardinality :db.cardinality/one
+  :db/unique      :db.unique/identity
+  :db/noHistory   true
+  :db/doc         "The external id of the TODO"}
+ {:db/ident       :todos/text
+  :db/valueType   :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc         "The content of the TODO"}
+ {:db/ident       :todos/completed?
+  :db/valueType   :db.type/boolean
+  :db/cardinality :db.cardinality/one
+  :db/doc         "The completed status of the TODO"}
 
  ;; schedules
  {:db/ident       :schedules/id

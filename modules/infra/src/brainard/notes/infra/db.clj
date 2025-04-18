@@ -136,23 +136,29 @@
                      :notes/body
                      :notes/tags
                      :notes/pinned?
-                     :notes/attachments})
+                     :notes/attachments
+                     :notes/todos})
       (update :notes/attachments fns/smap select-keys #{:attachments/id
                                                         :attachments/content-type
                                                         :attachments/filename
-                                                        :attachments/name})))
+                                                        :attachments/name})
+      (update :notes/todos fns/smap select-keys #{:todos/id
+                                                  :todos/text
+                                                  :todos/completed?})))
 
 (defmethod istorage/->input ::api.notes/create!
   [note]
   [(clean-note note)])
 
 (defmethod istorage/->input ::api.notes/update!
-  [{note-id :notes/id retract-attachments :notes/attachments!remove retract-tags :notes/tags!remove :as note}]
+  [{note-id :notes/id :notes/keys [attachments!remove tags!remove todos!remove] :as note}]
   (concat [(clean-note note)]
-          (map #(vector :db/retract [:notes/id note-id] :notes/tags %)
-               retract-tags)
           (map #(vector :db/retractEntity [:attachments/id %])
-               retract-attachments)))
+               attachments!remove)
+          (map #(vector :db/retract [:notes/id note-id] :notes/tags %)
+               tags!remove)
+          (map #(vector :db/retractEntity [:todos/id %])
+               todos!remove)))
 
 (defmethod istorage/->input ::api.notes/delete!
   [{note-id :notes/id}]

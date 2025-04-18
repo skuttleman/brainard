@@ -74,18 +74,25 @@
       {:notes/tags!remove (or removals #{})
        :notes/tags        (or curr #{})})))
 
-(defn ^:private diff-attachments [old curr]
+(defn ^:private diff-id'ed [old curr map-fn]
   (when (or old curr)
     (letfn [(id-set [xs]
-              (into #{}
-                    (map :attachments/id)
-                    xs))]
+              (into #{} (map map-fn) xs))]
       (let [removals (set (set/difference (id-set old) (id-set curr)))]
-        {:notes/attachments!remove removals
-         :notes/attachments        (set curr)}))))
+        [removals (set curr)]))))
+
+(defn ^:private diff-attachments [old curr]
+  (when-let [[removals attachments] (diff-id'ed old curr :attachments/id)]
+    {:notes/attachments!remove removals
+     :notes/attachments        attachments}))
+
+(defn ^:private diff-todos [old curr]
+  (when-let [[removals todos] (diff-id'ed old curr :todos/id)]
+    {:notes/todos!remove removals
+     :notes/todos        todos}))
 
 (defmethod res/->request-spec ::notes#modify
-  [[_ resource-id] {:keys [payload prev-attachments prev-tags] :as spec}]
+  [[_ resource-id] {:keys [payload prev-attachments prev-tags prev-todos] :as spec}]
   (->req {:route  :routes.api/note
           :params {:notes/id resource-id}
           :method :patch
@@ -93,8 +100,9 @@
                       (select-keys #{:notes/context
                                      :notes/pinned?
                                      :notes/body})
-                      (merge (diff-tags prev-tags (:notes/tags payload))
-                             (diff-attachments prev-attachments (:notes/attachments payload))))}
+                      (merge (diff-attachments prev-attachments (:notes/attachments payload))
+                             (diff-tags prev-tags (:notes/tags payload))
+                             (diff-todos prev-todos (:notes/todos payload))))}
          spec))
 
 (defmethod res/->request-spec ::notes#destroy

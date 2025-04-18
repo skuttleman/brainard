@@ -1,16 +1,17 @@
 (ns brainard.notes.api.core
   (:require
     [brainard.api.storage.core :as storage]
+    [brainard.api.utils.fns :as fns]
     [brainard.api.utils.uuids :as uuids]))
 
 (defn ^:private coll-set [note]
   (some-> note
           (update :notes/tags set)
-          (update :notes/attachments set)))
+          (update :notes/attachments set)
+          (update :notes/todos set)))
 
 (defn ^:private clean-note [note note-id]
   (-> note
-      (select-keys #{:notes/body :notes/context :notes/tags :notes/pinned? :notes/attachments})
       coll-set
       (assoc :notes/id note-id)))
 
@@ -40,7 +41,9 @@
   "Creates a note in the store and returns the created note."
   [notes-api note]
   (let [note-id (uuids/random)
-        note (clean-note note note-id)]
+        note (-> note
+                 (update :notes/todos fns/smap #(assoc % :todos/id (uuids/random)))
+                 (clean-note note-id))]
     (storage/execute! (:store notes-api) (assoc note ::storage/type ::create!))
     (coll-set (storage/query (:store notes-api)
                              {::storage/type ::get-note

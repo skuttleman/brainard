@@ -24,6 +24,11 @@
     [comp/attachment-list {:label? true
                            :value attachments}]))
 
+(defn ^:private todo-list [note]
+  (when-let [todos (not-empty (:notes/todos note))]
+    [comp/todo-list {:label? true
+                     :value  todos}]))
+
 (defn ^:private pin-toggle [*:store note]
   (r/with-let [init-form (select-keys note #{:notes/id :notes/pinned?})
                sub:form+ (store/form+-sub *:store note.act/pin-note-key init-form)]
@@ -114,7 +119,9 @@
     [:h1.layout--space-after.flex-grow [:strong (:notes/context note)]]
     [pin-toggle *:store note]]
    [comp/markdown (:notes/body note)]
-   [attachment-list note]
+   [:div.layout--room-between
+    [todo-list note]
+    [attachment-list note]]
    [tag-list note]
    [:div.layout--space-between
     [:div.button-row

@@ -1,9 +1,10 @@
 {:paths   ["resources" "src"]
- :deps    {com.fzakaria/slf4j-timbre           {:mvn/version "0.3.21"}
-           com.taoensso/timbre                 {:mvn/version "6.0.4"}
-           com.widdindustries/cljc.java-time   {:mvn/version "0.1.21"}
-           danlentz/clj-uuid                   {:mvn/version "0.1.9"}
-           metosin/malli                       {:mvn/version "0.17.0"}
-           org.clojure/core.async              {:mvn/version "1.6.673"}}
+ :deps    {com.fzakaria/slf4j-timbre         {:mvn/version "0.3.21"}
+           com.taoensso/timbre               {:mvn/version "6.0.4"}
+           com.widdindustries/cljc.java-time {:mvn/version "0.1.21"}
+           com.yetanalytics/colossal-squuid  {:mvn/version "0.1.5"}
+           danlentz/clj-uuid                 {:mvn/version "0.1.9"}
+           metosin/malli                     {:mvn/version "0.17.0"}
+           org.clojure/core.async            {:mvn/version "1.6.673"}}
  :aliases {:test     {:extra-paths ["test/resources" "test/src"]}
            :intellij {:extra-deps {org.clojure/clojurescript {:mvn/version "1.11.60"}}}}}

@@ -137,7 +137,7 @@
                                     (dom/prevent-default! e)
                                     (on-change (disj value tag)))}])])])
 
-(defn ^:private attachment-action [action-fn icon]
+(defn ^:private list-action [action-fn icon]
   [plain-button {:class    ["is-small" "is-white"]
                  :style    {:padding 0 :height "2em"}
                  :on-click (fn [e]
@@ -158,10 +158,37 @@
               :target       "_blank"}
         (:attachments/name attachment)]
        (when on-remove
-         [attachment-action #(on-remove attachment)
+         [list-action #(on-remove attachment)
           [icon {:class ["is-danger"]} :trash-can]])
        (when on-edit
-         [attachment-action #(on-edit attachment)
+         [list-action #(on-edit attachment)
+          [icon :pencil]])])]])
+
+(defn todo-list [{:keys [label? on-check on-create on-edit on-remove value]}]
+  [:div.layout--stack-between
+   [:div.layout-col
+    (when label?
+      [:em "TODOs:"])
+    (when on-create
+      [plain-button {:on-click #(on-create)}
+       "Create TODO..."])]
+   [:ul.todo-list
+    (for [{todo-id :todos/id :as todo} (sort-by (juxt (complement :todos/completed?) :todos/id) value)]
+      ^{:key todo-id}
+      [:li.todo.layout--room-between
+       [:input.checkbox
+        (-> {:checked   (boolean (:todos/completed? todo))
+             :type      :checkbox
+             :disabled  (not on-check)
+             :on-change #(on-check todo)})]
+       [:span {:class [(when (:todos/completed? todo)
+                         "strikethrough")]}
+        (:todos/text todo)]
+       (when on-remove
+         [list-action #(on-remove todo)
+          [icon {:class ["is-danger"]} :trash-can]])
+       (when on-edit
+         [list-action #(on-edit todo)
           [icon :pencil]])])]])
 
 (defn markdown [content]

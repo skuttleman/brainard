@@ -24,7 +24,8 @@
                                                       :notes/pinned?
                                                       :notes/body
                                                       :notes/tags
-                                                      :notes/attachments}))]
+                                                      :notes/attachments
+                                                      :notes/todos}))]
     (specs/with-cbs (res/->request-spec [::specs/notes#create] spec)
                     :ok-events [[:api.notes/saved]]
                     :ok-commands [[:toasts.notes/succeed!]]

@@ -81,6 +81,7 @@
     :header       "Edit note"
     :params       {:prev-attachments (:notes/attachments note)
                    :prev-tags        (:notes/tags note)
+                   :prev-todos       (:notes/todos note)
                    :ok-events        [[::res/swapped [::specs/notes#find note-id]]
                                       [::forms/created pin-note-key]]}
     :resource-key update-note-key}])

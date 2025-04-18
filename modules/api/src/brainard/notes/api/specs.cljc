@@ -5,20 +5,32 @@
     [brainard.schedules.api.specs :as ssched]
     [malli.util :as mu]))
 
+(def ^:private todo-create
+  [:map
+   [:todos/text scommon/non-empty-trimmed-string]
+   [:todos/completed? boolean?]])
+
+(def ^:private todo-full
+  (mu/merge todo-create
+            [:map
+             [:todos/id uuid?]]))
+
 (def create
   [:map
    [:notes/context scommon/non-empty-trimmed-string]
    [:notes/body scommon/non-empty-string]
    [:notes/pinned? boolean?]
    [:notes/tags {:optional true} [:set keyword?]]
-   [:notes/attachments {:optional true} [:seqable sattachments/full]]])
+   [:notes/attachments {:optional true} [:seqable sattachments/full]]
+   [:notes/todos {:optional true} [:seqable todo-create]]])
 
 (def full
   (mu/merge create
             [:map
              [:notes/id uuid?]
              [:notes/timestamp inst?]
-             [:notes/schedules {:optional true} [:sequential ssched/full]]]))
+             [:notes/schedules {:optional true} [:sequential ssched/full]]
+             [:notes/todos {:optional true} [:seqable todo-full]]]))
 
 (def history
   [:map
@@ -70,7 +82,9 @@
    [:notes/tags!remove {:optional true} [:set keyword?]]
    [:notes/pinned? {:optional true} boolean?]
    [:notes/attachments {:optional true} [:seqable sattachments/modify]]
-   [:notes/attachments!remove {:optional true} [:set uuid?]]])
+   [:notes/attachments!remove {:optional true} [:set uuid?]]
+   [:notes/todos {:optional true} [:seqable todo-full]]
+   [:notes/todos!remove {:optional true} [:set uuid?]]])
 
 (def query
   [:and
