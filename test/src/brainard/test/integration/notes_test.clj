@@ -3,12 +3,10 @@
     [brainard :as-alias b]
     [brainard.api.storage.interfaces :as istorage]
     [brainard.api.utils.uuids :as uuids]
-    [brainard.attachments.api.core :as api.attachments]
     [brainard.notes.api.core :as api.notes]
     [brainard.api.storage.core :as storage]
     [brainard.test.system :as tsys]
-    [clojure.test :refer [deftest is testing]])
-  (:import (java.io ByteArrayInputStream)))
+    [clojure.test :refer [deftest is testing]]))
 
 (deftest save!-test
   (tsys/with-system [{::b/keys [storage]} nil]
@@ -77,18 +75,27 @@
 (deftest get-notes-test
   (testing "when there are saved notes"
     (tsys/with-system [{::b/keys [storage]} nil]
-      (let [[id-1 id-2 id-3 id-4 id-5] (repeatedly uuids/random)]
+      (let [[id-1 id-2 id-3 id-4 id-5 td-1 td-2 td-3] (repeatedly uuids/random)]
         (istorage/write! storage
                          [{:notes/id      id-1
                            :notes/context "a"
-                           :notes/tags    #{:a :b :d}}
+                           :notes/tags    #{:a :b :d}
+                           :notes/todos   #{{:todos/id         td-1
+                                             :todos/text       "do something"
+                                             :todos/completed? true}
+                                            {:todos/id         td-2
+                                             :todos/text       "do something else"
+                                             :todos/completed? false}}}
                           {:notes/id      id-2
                            :notes/context "a"
                            :notes/tags    #{:a :c}}
                           {:notes/id      id-3
                            :notes/context "b"
                            :notes/tags    #{:b :c :d}
-                           :notes/pinned? true}
+                           :notes/pinned? true
+                           :notes/todos   #{{:todos/id         td-3
+                                             :todos/text       "do a third thing"
+                                             :todos/completed? true}}}
                           {:notes/id      id-4
                            :notes/context "b"
                            :notes/tags    #{:d}}
@@ -100,7 +107,7 @@
             (let [results (into #{}
                                 (map #(-> %
                                           (update :notes/tags set)
-                                          (dissoc :notes/timestamp)))
+                                          (dissoc :notes/todos :notes/timestamp)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/context "a"}))]
               (is (= #{{:notes/id      id-1
@@ -114,7 +121,7 @@
             (let [results (into #{}
                                 (map #(-> %
                                           (update :notes/tags set)
-                                          (dissoc :notes/timestamp)))
+                                          (dissoc :notes/todos :notes/timestamp)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/tags    #{:c :d}}))]
               (is (= #{{:notes/id      id-3
@@ -126,7 +133,7 @@
             (let [results (into #{}
                                 (map #(-> %
                                           (update :notes/tags set)
-                                          (dissoc :notes/timestamp)))
+                                          (dissoc :notes/todos :notes/timestamp)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/context "b"
                                                         :notes/tags    #{:b}}))]
@@ -139,7 +146,7 @@
             (let [results (into #{}
                                 (map #(-> %
                                           (update :notes/tags set)
-                                          (dissoc :notes/timestamp)))
+                                          (dissoc :notes/todos :notes/timestamp)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/pinned? true}))]
               (is (= #{{:notes/id      id-3
@@ -150,6 +157,40 @@
                         :notes/context "XYZ"
                         :notes/pinned? true
                         :notes/tags    #{}}}
+                     results))))
+          (testing "finds notes with complete todos"
+            (let [results (into #{}
+                                (map #(-> %
+                                          (update :notes/tags set)
+                                          (update :notes/todos set)
+                                          (dissoc :notes/timestamp)))
+                                (storage/query storage {::storage/type ::api.notes/get-notes
+                                                        :notes/todos :complete}))]
+              (is (= #{{:notes/id      id-3
+                        :notes/context "b"
+                        :notes/tags    #{:b :c :d}
+                        :notes/pinned? true
+                        :notes/todos   #{{:todos/id         td-3
+                                          :todos/text       "do a third thing"
+                                          :todos/completed? true}}}}
+                     results))))
+          (testing "finds notes with incomplete todos"
+            (let [results (into #{}
+                                (map #(-> %
+                                          (update :notes/tags set)
+                                          (update :notes/todos set)
+                                          (dissoc :notes/timestamp)))
+                                (storage/query storage {::storage/type ::api.notes/get-notes
+                                                        :notes/todos :incomplete}))]
+              (is (= #{{:notes/id      id-1
+                        :notes/context "a"
+                        :notes/tags    #{:a :b :d}
+                        :notes/todos   #{{:todos/id         td-1
+                                          :todos/text       "do something"
+                                          :todos/completed? true}
+                                         {:todos/id         td-2
+                                          :todos/text       "do something else"
+                                          :todos/completed? false}}}}
                      results))))
 
           (testing "and when deleting a note"
@@ -166,7 +207,6 @@
             (is (nil? (storage/query storage {::storage/type ::api.notes/get-note
                                               :notes/id      (uuids/random)})))))))))
 
-;; TODO update test w/ attachments
 (deftest get-note-history-test
   (testing "when there is a note"
     (tsys/with-system [{::b/keys [storage]} nil]

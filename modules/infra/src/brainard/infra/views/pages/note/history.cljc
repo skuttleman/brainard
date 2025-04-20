@@ -118,7 +118,16 @@
                  history-modal [::view {:last?            (= idx last-idx)
                                         :note             note
                                         :prev-tags        prev-tags
-                                        :prev-attachments prev-attachments}]]]
+                                        :prev-attachments prev-attachments}]
+                 change-list (for [[k label] [[:notes/context "Topic"]
+                                              [:notes/pinned? "Pin"]
+                                              [:notes/body "Body"]
+                                              [:notes/tags "Tags"]
+                                              [(constantly (not-empty attachment-changes)) "Attachments"]]
+                                   :let [change (k changes)]
+                                   :when change]
+                               [history-change label change])]
+           :when (seq change-list)]
        ^{:key history-id}
        [:li.layout--stack-between
         [:div.layout--row.layout--align-center.layout--space-between
@@ -128,15 +137,7 @@
                              :class    ["is-small" "is-info"]
                              :commands [[:modals/create! history-modal]]}
           "show"]]
-        (into [:<>]
-              (for [[k label] [[:notes/context "Topic"]
-                               [:notes/pinned? "Pin"]
-                               [:notes/body "Body"]
-                               [:notes/tags "Tags"]
-                               [(constantly attachment-changes) "Attachments"]]
-                    :let [change (k changes)]
-                    :when change]
-                [history-change label change]))])]))
+        (into [:<>] change-list)])]))
 
 (defmethod icomp/modal-header ::modal
   [_ _]
