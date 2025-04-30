@@ -64,28 +64,28 @@
     (when-let [details (validator data)]
       (throw! type {:data data :details details}))))
 
-(defn select-spec-keys [spec m]
+(defn select-spec-keys [m spec]
   (let [spec (m/form spec)]
     (if-not (seqable? spec)
       m
       (let [[kind & more] spec
             spec' (last more)]
         (case kind
-          :and (recur (second spec) m)
+          :and (recur m (second spec))
           :map (into {}
                      (keep (fn [[kind & more]]
                              (when-let [[_ v] (find m kind)]
                                (let [spec' (last more)]
-                                 [kind (select-spec-keys spec' v)]))))
+                                 [kind (select-spec-keys v spec')]))))
                      more)
           :map-of (into {}
                         (map (fn [[k v]]
-                               [k (select-spec-keys spec' v)]))
+                               [k (select-spec-keys v spec')]))
                         m)
           :set (into #{}
-                     (map #(select-spec-keys spec' %))
+                     (map #(select-spec-keys % spec'))
                      m)
           (:seqable :sequential) (into []
-                                       (map #(select-spec-keys spec' %))
+                                       (map #(select-spec-keys % spec'))
                                        m)
           m)))))

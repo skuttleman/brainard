@@ -65,7 +65,9 @@
 (defmethod forms+/re-init ::notes#todo [_ form _] (forms/data form))
 (defmethod res/->request-spec ::notes#todo
   [_ {::forms/keys [data] :as spec}]
-  (let [spec (assoc spec :payload (valid/select-spec-keys snotes/full (select-keys data #{:notes/todos})))
+  (let [spec (assoc spec :payload (-> data
+                                      (select-keys #{:notes/todos})
+                                      (valid/select-spec-keys snotes/full)))
         note-id (:notes/id data)]
     (specs/with-cbs (res/->request-spec [::specs/notes#modify note-id] spec)
                     :ok-events [[:api.notes/saved]]

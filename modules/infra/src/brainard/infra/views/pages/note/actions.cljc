@@ -16,7 +16,7 @@
 (forms+/validated ::notes#update (valid/->validator snotes/modify)
   [_ {::forms/keys [data] :as spec}]
   (let [note-id (:notes/id data)
-        spec (assoc spec :payload (valid/select-spec-keys snotes/modify data))]
+        spec (assoc spec :payload (valid/select-spec-keys data snotes/modify))]
     (specs/with-cbs (res/->request-spec [::specs/notes#modify note-id] spec)
                     :ok-commands [[::res/submit! [::specs/notes#find note-id]]])))
 
@@ -32,7 +32,7 @@
 
 (defmethod res/->request-spec ::notes#reinstate
   [resource-key {:keys [note] :as spec}]
-  (let [payload (valid/select-spec-keys snotes/modify note)
+  (let [payload (valid/select-spec-keys note snotes/modify)
         note-id (:notes/id note)]
     (specs/with-cbs (res/->request-spec [::specs/notes#modify note-id] (assoc spec :payload payload))
                     :ok-events [[::res/destroyed resource-key]]
@@ -43,7 +43,7 @@
 
 (forms+/validated ::schedules#create (valid/->validator ssched/create)
   [_ {::forms/keys [data] :as spec}]
-  (let [spec (assoc spec :payload (valid/select-spec-keys ssched/create data))]
+  (let [spec (assoc spec :payload (valid/select-spec-keys data ssched/create))]
     (specs/with-cbs (res/->request-spec [::specs/schedules#create] spec)
                     :ok-events [[:api.schedules/saved (:schedules/note-id data)]]
                     :ok-commands [[:toasts/succeed! {:message "schedule created"}]]
