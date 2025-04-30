@@ -10,4 +10,5 @@
 (defmethod forms+/re-init ::search [_ form _] (forms/data form))
 (forms+/validated ::search (valid/->validator snotes/query)
   [_ {::forms/keys [data] :as spec}]
-  (res/->request-spec [::specs/notes#select] (assoc spec :params data)))
+  (let [spec (assoc spec :params (valid/select-spec-keys snotes/query data))]
+    (res/->request-spec [::specs/notes#select] spec)))

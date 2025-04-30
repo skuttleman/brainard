@@ -119,9 +119,9 @@
     [pin-toggle *:store note]]
    [comp/markdown (:notes/body note)]
    [:div.layout--room-between {:style {:width "100%"}}
-    [:div.flex-grow {:flex-basis "50%"}
+    [:div.flex-grow {:style {:flex-basis "50%"}}
      [todo-list *:store note]]
-    [:div.flex-grow {:flex-basis "50%"}
+    [:div.flex-grow {:style {:flex-basis "50%"}}
      [attachment-list note]]]
    [note-comp/tag-list note]
    [:div.layout--space-between

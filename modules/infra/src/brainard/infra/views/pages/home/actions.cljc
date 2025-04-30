@@ -20,12 +20,7 @@
 
 (forms+/validated ::notes#create (valid/->validator snotes/create)
   [_ {::forms/keys [data] :as spec}]
-  (let [spec (assoc spec :payload (select-keys data #{:notes/context
-                                                      :notes/pinned?
-                                                      :notes/body
-                                                      :notes/tags
-                                                      :notes/attachments
-                                                      :notes/todos}))]
+  (let [spec (assoc spec :payload (valid/select-spec-keys snotes/create data))]
     (specs/with-cbs (res/->request-spec [::specs/notes#create] spec)
                     :ok-events [[:api.notes/saved]]
                     :ok-commands [[:toasts.notes/succeed!]]
@@ -33,7 +28,7 @@
 
 (forms+/validated ::workspace#create (valid/->validator sws/create)
   [_ {::forms/keys [data] :as spec}]
-  (let [spec (assoc spec :payload data)]
+  (let [spec (assoc spec :payload (valid/select-spec-keys sws/create data))]
     (specs/with-cbs (res/->request-spec [::specs/workspace#create] spec)
                     :err-commands [[:toasts/fail!]])))
 
@@ -44,7 +39,7 @@
 
 (forms+/validated ::workspace#modify (valid/->validator sws/modify)
   [[_ resource-id] {::forms/keys [data] :as spec}]
-  (let [spec (assoc spec :payload data)]
+  (let [spec (assoc spec :payload (valid/select-spec-keys sws/modify data))]
     (specs/with-cbs (res/->request-spec [::specs/workspace#modify resource-id] spec)
                     :err-commands [[:toasts/fail!]])))
 

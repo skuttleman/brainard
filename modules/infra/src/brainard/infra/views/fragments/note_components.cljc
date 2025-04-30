@@ -1,9 +1,11 @@
 (ns brainard.infra.views.fragments.note-components
   (:require
+    [brainard.api.validations :as valid]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as specs]
     [brainard.infra.stubs.dom :as dom]
+    [brainard.notes.api.specs :as snotes]
     [defacto.forms.core :as forms]
     [defacto.resources.core :as res]
     [defacto.forms.plus :as forms+]
@@ -63,7 +65,7 @@
 (defmethod forms+/re-init ::notes#todo [_ form _] (forms/data form))
 (defmethod res/->request-spec ::notes#todo
   [_ {::forms/keys [data] :as spec}]
-  (let [spec (assoc spec :payload (select-keys data #{:notes/todos}))
+  (let [spec (assoc spec :payload (valid/select-spec-keys snotes/full (select-keys data #{:notes/todos})))
         note-id (:notes/id data)]
     (specs/with-cbs (res/->request-spec [::specs/notes#modify note-id] spec)
                     :ok-events [[:api.notes/saved]]

@@ -5,7 +5,7 @@
     [brainard.schedules.api.specs :as ssched]
     [malli.util :as mu]))
 
-(def ^:private todo-create
+(def todo-create
   [:map
    [:todos/text scommon/non-empty-trimmed-string]
    [:todos/completed? boolean?]])

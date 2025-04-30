@@ -16,7 +16,7 @@
 (forms+/validated ::notes#update (valid/->validator snotes/modify)
   [_ {::forms/keys [data] :as spec}]
   (let [note-id (:notes/id data)
-        spec (assoc spec :payload data)]
+        spec (assoc spec :payload (valid/select-spec-keys snotes/modify data))]
     (specs/with-cbs (res/->request-spec [::specs/notes#modify note-id] spec)
                     :ok-commands [[::res/submit! [::specs/notes#find note-id]]])))
 
@@ -32,8 +32,9 @@
 
 (defmethod res/->request-spec ::notes#reinstate
   [resource-key {:keys [note] :as spec}]
-  (let [note-id (:notes/id note)]
-    (specs/with-cbs (res/->request-spec [::specs/notes#modify note-id] (assoc spec :payload note))
+  (let [payload (valid/select-spec-keys snotes/modify note)
+        note-id (:notes/id note)]
+    (specs/with-cbs (res/->request-spec [::specs/notes#modify note-id] (assoc spec :payload payload))
                     :ok-events [[::res/destroyed resource-key]]
                     :ok-commands [[:toasts/succeed! {:message "previous version of note was reinstated"}]
                                   [::res/submit! [::specs/notes#find note-id]]
@@ -42,7 +43,7 @@
 
 (forms+/validated ::schedules#create (valid/->validator ssched/create)
   [_ {::forms/keys [data] :as spec}]
-  (let [spec (assoc spec :payload data)]
+  (let [spec (assoc spec :payload (valid/select-spec-keys ssched/create data))]
     (specs/with-cbs (res/->request-spec [::specs/schedules#create] spec)
                     :ok-events [[:api.schedules/saved (:schedules/note-id data)]]
                     :ok-commands [[:toasts/succeed! {:message "schedule created"}]]
