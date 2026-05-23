@@ -82,7 +82,13 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - uses: browser-actions/setup-chrome@v1
         id: setup-chrome
-      - run: clojure -M:test -m kaocha.runner :ui
+      - run: |
+          echo env | grep HEADLESS
+          echo env | grep CHROME
+          echo ${{ steps.setup-chrome.outputs }}
+          # clojure -M:test -m kaocha.runner :ui
+          fail
+
         env:
           CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
           HEADLESS: "true"
