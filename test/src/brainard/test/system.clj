@@ -51,8 +51,9 @@
 
                                                   (and (symbol? k) (keyword? v) (namespace v))
                                                   [[k v]])]
-                                 [sym kw] bindings]
-                             [sym `(val (ig/find-derived-1 ~sys ~kw))])]
+                                 [sym kw] bindings
+                                 token [sym `(val (ig/find-derived-1 ~sys ~kw))]]
+                             token)]
     `(let [opts# ~opts
            _# (duct/load-hierarchy)
            ~sys (-> (:config opts# "duct/test.edn")
