@@ -297,3 +297,83 @@
                             {:notes/pinned? {:from true
                                              :to   false}}]
                            (map :notes/changes history)))))))))))))
+
+(deftest get-tags-test
+  (tsys/with-system [{::b/keys [notes-api]} nil]
+    (testing "when there are no notes"
+      (testing "returns an empty set"
+        (is (= #{} (api.notes/get-tags notes-api)))))
+    (api.notes/create! notes-api {:notes/context "ctx-a"
+                                 :notes/body    "body"
+                                 :notes/pinned? false
+                                 :notes/tags    #{:alpha :beta}})
+    (api.notes/create! notes-api {:notes/context "ctx-b"
+                                 :notes/body    "body"
+                                 :notes/pinned? false
+                                 :notes/tags    #{:beta :gamma}})
+    (testing "when notes with tags exist"
+      (testing "returns all distinct tags"
+        (is (= #{:alpha :beta :gamma} (api.notes/get-tags notes-api)))))))
+
+(deftest get-contexts-test
+  (tsys/with-system [{::b/keys [notes-api]} nil]
+    (testing "when there are no notes"
+      (testing "returns an empty set"
+        (is (= #{} (api.notes/get-contexts notes-api)))))
+    (api.notes/create! notes-api {:notes/context "ctx-a"
+                                 :notes/body    "body"
+                                 :notes/pinned? false
+                                 :notes/tags    #{}})
+    (api.notes/create! notes-api {:notes/context "ctx-b"
+                                 :notes/body    "body"
+                                 :notes/pinned? false
+                                 :notes/tags    #{}})
+    (api.notes/create! notes-api {:notes/context "ctx-a"
+                                 :notes/body    "another body"
+                                 :notes/pinned? false
+                                 :notes/tags    #{}})
+    (testing "when notes with contexts exist"
+      (testing "returns all distinct contexts"
+        (is (= #{"ctx-a" "ctx-b"} (api.notes/get-contexts notes-api)))))))
+
+(deftest todos-test
+  (tsys/with-system [{::b/keys [notes-api]} nil]
+    (testing "when creating a note with todos"
+      (let [note (api.notes/create! notes-api {:notes/context "ctx"
+                                              :notes/body    "body"
+                                              :notes/pinned? false
+                                              :notes/tags    #{}
+                                              :notes/todos   [{:todos/text       "task one"
+                                                               :todos/completed? false}
+                                                              {:todos/text       "task two"
+                                                               :todos/completed? true}]})
+            todos       (:notes/todos note)
+            todo-one    (first (filter #(= "task one" (:todos/text %)) todos))
+            todo-two    (first (filter #(= "task two" (:todos/text %)) todos))]
+        (testing "assigns ids to todos and saves them"
+          (is (= 2 (count todos)))
+          (is (uuid? (:todos/id todo-one)))
+          (is (uuid? (:todos/id todo-two)))
+          (is (false? (:todos/completed? todo-one)))
+          (is (true? (:todos/completed? todo-two))))
+
+        (testing "and when updating a todo"
+          (let [updated (api.notes/update! notes-api
+                                          (:notes/id note)
+                                          {:notes/todos #{(assoc todo-one
+                                                                  :todos/text "task one updated"
+                                                                  :todos/completed? true)}})
+                updated-one (first (filter #(= (:todos/id todo-one) (:todos/id %))
+                                          (:notes/todos updated)))]
+            (testing "updates the todo in place"
+              (is (= "task one updated" (:todos/text updated-one)))
+              (is (true? (:todos/completed? updated-one))))))
+
+        (testing "and when removing a todo"
+          (let [updated   (api.notes/update! notes-api
+                                            (:notes/id note)
+                                            {:notes/todos!remove #{(:todos/id todo-two)}})
+                remaining (into #{} (map :todos/id) (:notes/todos updated))]
+            (testing "removes the specified todo"
+              (is (not (contains? remaining (:todos/id todo-two))))
+              (is (contains? remaining (:todos/id todo-one))))))))))

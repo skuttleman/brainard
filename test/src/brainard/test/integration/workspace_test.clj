@@ -44,6 +44,12 @@
                         (map? x) (select-keys keys)))
                     tree))))
 
+(deftest get-tree-test
+  (tsys/with-system [{::b/keys [workspace-api]} nil]
+    (testing "when there are no workspace nodes"
+      (testing "returns an empty list"
+        (is (empty? (api.ws/get-tree workspace-api)))))))
+
 (deftest create!-test
   (tsys/with-system [{::b/keys [IDBConn workspace-api]} nil]
     (let [[_ _ id3] (seed-tree! IDBConn)]

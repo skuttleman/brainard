@@ -2,10 +2,12 @@
   (:require
     [brainard :as-alias b]
     [brainard.api.utils.uuids :as uuids]
+    [brainard.schedules.api.core :as api.sched]
     [brainard.test.http :as thttp]
     [brainard.test.system :as tsys]
     [clojure.java.io :as io]
-    [clojure.test :refer [deftest is testing]]))
+    [clojure.test :refer [deftest is testing]]
+    [workspace-nodes :as-alias ws]))
 
 (deftest notes-integration-test
   (tsys/with-system [{::b/keys [apis]} nil]
@@ -261,3 +263,122 @@
                     (is (thttp/success? download))
                     (is (= (slurp (io/resource "fixtures/sample.txt"))
                            (:body download)))))))))))))
+
+(deftest schedules-integration-test
+  (tsys/with-system [{::b/keys [apis]} nil]
+    (letfn [(http [request] (thttp/request request apis))]
+      (let [note-id (-> (http {:method :post
+                               :uri    "/api/notes"
+                               :body   {:notes/context "ctx"
+                                        :notes/body    "body"
+                                        :notes/pinned? false
+                                        :notes/tags    #{}}})
+                        :body
+                        :data
+                        :notes/id)]
+        (testing "when creating a schedule"
+          (let [response (http {:method :post
+                                :uri    "/api/schedules"
+                                :body   {:schedules/note-id note-id
+                                         :schedules/weekday :monday}})
+                schedule (-> response :body :data)]
+            (testing "returns the created schedule"
+              (is (thttp/success? response))
+              (is (= {:schedules/note-id note-id
+                      :schedules/weekday :monday}
+                     (select-keys schedule #{:schedules/note-id :schedules/weekday}))))
+
+            (testing "and when deleting the schedule"
+              (let [delete-response (http {:method :delete
+                                           :uri    (str "/api/schedules/" (:schedules/id schedule))})]
+                (testing "succeeds"
+                  (is (thttp/success? delete-response)))
+                (testing "and the note no longer has the schedule"
+                  (is (empty? (-> (http {:method :get
+                                         :uri    (str "/api/notes/" note-id)})
+                                  :body
+                                  :data
+                                  :notes/schedules))))))))
+
+        (testing "when creating an invalid schedule"
+          (let [response (http {:method :post
+                                :uri    "/api/schedules"
+                                :body   {:schedules/note-id note-id}})
+                errors   (-> response :body :errors)]
+            (testing "returns a validation error"
+              (is (thttp/client-error? response))
+              (is (seq errors)))))))))
+
+(deftest note-delete-cascades-test
+  (tsys/with-system [{::b/keys [apis]} nil]
+    (letfn [(http [request] (thttp/request request apis))]
+      (let [note-id (-> (http {:method :post
+                               :uri    "/api/notes"
+                               :body   {:notes/context "ctx"
+                                        :notes/body    "body"
+                                        :notes/pinned? false
+                                        :notes/tags    #{}}})
+                        :body
+                        :data
+                        :notes/id)]
+        (http {:method :post
+               :uri    "/api/schedules"
+               :body   {:schedules/note-id note-id
+                        :schedules/weekday :monday}})
+        (testing "when deleting a note with a schedule"
+          (http {:method :delete
+                 :uri    (str "/api/notes/" note-id)})
+          (testing "also deletes associated schedules"
+            (is (empty? (api.sched/get-by-note-id (:schedules apis) note-id)))))))))
+
+(deftest workspace-integration-test
+  (tsys/with-system [{::b/keys [apis]} nil]
+    (letfn [(http [request] (thttp/request request apis))]
+      (testing "when fetching an empty workspace"
+        (let [response (http {:method :get :uri "/api/workspace-nodes"})]
+          (testing "returns an empty list"
+            (is (thttp/success? response))
+            (is (empty? (-> response :body :data))))))
+
+      (testing "when creating a workspace node"
+        (let [response (http {:method :post
+                              :uri    "/api/workspace-nodes"
+                              :body   {::ws/content "root node"}})
+              node     (-> response :body :data)]
+          (testing "returns the created node"
+            (is (thttp/success? response))
+            (is (= "root node" (::ws/content node))))
+
+          (testing "and the tree includes the node"
+            (is (= ["root node"]
+                   (map ::ws/content
+                        (-> (http {:method :get :uri "/api/workspace-nodes"})
+                            :body
+                            :data)))))
+
+          (testing "and when updating the node"
+            (let [update-response (http {:method :patch
+                                         :uri    (str "/api/workspace-nodes/" (::ws/id node))
+                                         :body   {::ws/content "updated content"}})]
+              (testing "returns the updated node"
+                (is (thttp/success? update-response))
+                (is (= "updated content" (-> update-response :body :data ::ws/content))))))
+
+          (testing "and when deleting the node"
+            (let [delete-response (http {:method :delete
+                                          :uri    (str "/api/workspace-nodes/" (::ws/id node))})]
+              (testing "succeeds"
+                (is (thttp/success? delete-response)))
+              (testing "and the workspace is empty again"
+                (is (empty? (-> (http {:method :get :uri "/api/workspace-nodes"})
+                                :body
+                                :data)))))))
+
+        (testing "when creating an invalid workspace node"
+          (let [response (http {:method :post
+                                :uri    "/api/workspace-nodes"
+                                :body   {}})
+                errors   (-> response :body :errors)]
+            (testing "returns a validation error"
+              (is (thttp/client-error? response))
+              (is (seq errors)))))))))

@@ -63,3 +63,16 @@
               (let [results (storage/query storage filters)]
                 (testing "matches all schedules"
                   (is (= #{s7} (into #{} (map :schedules/id) results))))))))))))
+
+(deftest delete-for-note!-test
+  (tsys/with-system [{::b/keys [schedules-api]} nil]
+    (let [[note-id-1 note-id-2] (repeatedly uuids/random)]
+      (api.sched/create! schedules-api {:schedules/note-id note-id-1 :schedules/weekday :monday})
+      (api.sched/create! schedules-api {:schedules/note-id note-id-1 :schedules/weekday :friday})
+      (api.sched/create! schedules-api {:schedules/note-id note-id-2 :schedules/weekday :tuesday})
+      (testing "when deleting schedules for a note"
+        (api.sched/delete-for-note! schedules-api note-id-1)
+        (testing "removes all schedules for that note"
+          (is (empty? (api.sched/get-by-note-id schedules-api note-id-1))))
+        (testing "does not remove schedules for other notes"
+          (is (= 1 (count (api.sched/get-by-note-id schedules-api note-id-2)))))))))
