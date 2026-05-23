@@ -17,7 +17,7 @@ jobs:
       - uses: DeLaGuardo/setup-clojure@13
         with:
           cli: latest
-      - run: clj -M:test -m kaocha.runner :api :infra
+      - run: clojure -M:test -m kaocha.runner :api :infra
 
   integration-tests:
     name: Integration Tests
@@ -31,7 +31,7 @@ jobs:
       - uses: DeLaGuardo/setup-clojure@13
         with:
           cli: latest
-      - run: clj -M:test -m kaocha.runner :integration
+      - run: clojure -M:test -m kaocha.runner :integration
 
   ui-tests:
     name: UI Tests
@@ -47,7 +47,7 @@ jobs:
           cli: latest
       - uses: browser-actions/setup-chrome@v1
         id: setup-chrome
-      - run: clj -M:test -m kaocha.runner :ui
+      - run: clojure -M:test -m kaocha.runner :ui
         env:
           CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
           HEADLESS: "true"
