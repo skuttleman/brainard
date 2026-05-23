@@ -40,6 +40,8 @@
     (catch Throwable ex
       (log/error ex "Failed to cleanup orphaned s3 objects"))))
 
+(def ^:const ^long twelve-hours (* 1000 60 60 12))
+
 (defn start!
   "Starts a duct component system from a configuration expressed in an `edn` file."
   [config-file profiles]
@@ -55,8 +57,7 @@
                                         obj (val (ig/find-derived-1 sys :brainard/obj-storage))]
                                     (while true
                                       (cleanup-orphaned-artifacts! db obj)
-                                      ;; every 12 hours
-                                      (Thread/sleep ^long (* 1000 60 60 12))))))
+                                      (Thread/sleep twelve-hours)))))
                    .start)]
       (duct/add-shutdown-hook ::stop-thread #(.interrupt thread))
       sys)))

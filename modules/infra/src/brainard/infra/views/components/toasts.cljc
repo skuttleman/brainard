@@ -11,11 +11,11 @@
     :warning "is-warning"
     "is-info"))
 
-(defn ^:private open-toast! [*:store {toast-id :id :as toast}]
+(defn ^:private open-toast! [*:store {toast-id :id :as toast timeout :timeout}]
   (when (= :init (:state toast))
     (store/emit! *:store [:toasts/shown toast-id]))
   (async/go
-    (async/<! (async/timeout 4444))
+    (async/<! (async/timeout timeout))
     (store/dispatch! *:store [:toasts/hide! toast-id]))
   toast)
 

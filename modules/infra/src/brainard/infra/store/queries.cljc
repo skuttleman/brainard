@@ -15,7 +15,7 @@
   [db _]
   (->> (:toasts/toasts db)
        (sort-by key)
-       (take 3)
+       (take 4)
        (map (fn [[toast-id toast]]
               (assoc toast :id toast-id)))))
 

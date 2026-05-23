@@ -5,6 +5,7 @@
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as specs]
     [brainard.infra.stubs.dom :as dom]
+    [brainard.infra.views.controls.core :as ctrls]
     [brainard.notes.api.specs :as snotes]
     [defacto.forms.core :as forms]
     [defacto.resources.core :as res]
@@ -48,19 +49,20 @@
             (some? *:store)))
 
 (defmethod todo-item false
-  [{:keys [on-check on-edit on-remove]} todo]
+  [{:keys [disabled on-check on-edit on-remove]} todo]
   [:li.todo.layout--room-between
-   [:input.checkbox
-    {:checked   (boolean (:todos/completed? todo))
-     :type      :checkbox
-     :on-change #(on-check todo)}]
+   [ctrls/toggle {:disabled  disabled
+                  :value     (boolean (:todos/completed? todo))
+                  :on-change #(on-check todo)}]
    [:span {:class [(when (:todos/completed? todo)
                      "strikethrough")]}
     (:todos/text todo)]
-   [list-action #(on-remove todo)
-    [comp/icon {:class ["is-danger"]} :trash-can]]
-   [list-action #(on-edit todo)
-    [comp/icon :pencil]]])
+   (when on-remove
+     [list-action #(on-remove todo)
+      [comp/icon {:class ["is-danger"]} :trash-can]])
+   (when on-edit
+     [list-action #(on-edit todo)
+      [comp/icon :pencil]])])
 
 (defmethod forms+/re-init ::notes#todo [_ form _] (forms/data form))
 (defmethod res/->request-spec ::notes#todo

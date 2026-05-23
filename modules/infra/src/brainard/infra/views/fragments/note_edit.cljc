@@ -74,7 +74,7 @@
                     complete? "complete")]
           :style {:background-color (case status
                                       :error "red"
-                                      :success "green"
+                                      :complete "green"
                                       "blue")
                   :height           height
                   :width            (str (* 100 percent) "%")}}]])]))

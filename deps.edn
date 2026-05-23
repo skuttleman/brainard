@@ -2,11 +2,11 @@
  :paths   ["resources" "src"]
  :deps    {brainard/api              {:local/root "modules/api"}
            brainard/infra            {:local/root "modules/infra"}
-           org.clojure/clojure       {:mvn/version "1.11.1"}
-           org.clojure/clojurescript {:mvn/version "1.11.60"}}
+           org.clojure/clojure       {:mvn/version "1.12.4"}
+           org.clojure/clojurescript {:mvn/version "1.12.134"}}
  :aliases {:dev      {:extra-paths ["dev/resources" "dev/src"]
-                      :extra-deps  {nrepl/nrepl     {:mvn/version "1.0.0"}
-                                    ring/ring-devel {:mvn/version "1.11.0"}}}
+                      :extra-deps  {nrepl/nrepl     {:mvn/version "1.7.0"}
+                                    ring/ring-devel {:mvn/version "1.15.4"}}}
            :test     {:extra-paths ["dev/src"
                                     "test/resources"
                                     "test/src"
@@ -15,8 +15,8 @@
                                     "modules/infra/test/resources"
                                     "modules/infra/test/src"]
                       :extra-deps  {lambdaisland/kaocha {:mvn/version "1.91.1392"}}}
-           :build    {:extra-deps {io.github.clojure/tools.build {:mvn/version "0.9.6"}}}
-           :shadow   {:extra-deps {thheller/shadow-cljs {:mvn/version "2.26.2"}}}
+           :build    {:extra-deps {io.github.clojure/tools.build {:mvn/version "0.10.13"}}}
+           :shadow   {:extra-deps {thheller/shadow-cljs {:mvn/version "3.4.6"}}}
            :intellij {:extra-paths ["modules/api/resources"
                                     "modules/api/src"
                                     "modules/infra/resources"

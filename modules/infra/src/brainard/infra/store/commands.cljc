@@ -83,11 +83,12 @@
     (emit-cb [:toasts/destroyed toast-id])))
 
 (defmethod defacto/command-handler :toasts/create!
-  [_ [_ level body] emit-cb]
+  [_ [_ level body timeout] emit-cb]
   (let [toast-id (->sortable-id)]
-    (emit-cb [:toasts/created toast-id {:state :init
-                                        :level level
-                                        :body  body}])))
+    (emit-cb [:toasts/created toast-id {:state   :init
+                                        :level   level
+                                        :body    body
+                                        :timeout (or timeout 4500)}])))
 
 (defmethod defacto/command-handler :toasts.notes/succeed!
   [_ [_ note] emit-cb]

@@ -52,12 +52,12 @@
      (some->> result (cache-result! id))
      (info (format \"Can you believe it took %d ms!?\" duration)))"
   [[ctx-binding call] & body]
-  `(let [before# ~(if (:ns &env) `(.getTime (js/Date.)) `(int (/ (System/nanoTime) 1000000)))
+  `(let [before# ~(if (:ns &env) `(.getTime (js/Date.)) `(long (/ (System/nanoTime) 1000000)))
          ctx# (try
                 {:result ~call}
                 (catch ~(if (:ns &env) :default `Throwable) ex#
                   {:ex ex#}))
-         after# ~(if (:ns &env) `(.getTime (js/Date.)) `(int (/ (System/nanoTime) 1000000)))]
+         after# ~(if (:ns &env) `(.getTime (js/Date.)) `(long (/ (System/nanoTime) 1000000)))]
      (let [~ctx-binding (assoc ctx# :duration (- after# before#))]
        ~@body
        (some-> (:ex ctx#) throw)

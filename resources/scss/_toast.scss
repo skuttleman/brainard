@@ -1,9 +1,9 @@
 .toast-container {
     height: 100vh;
-    left: 0;
+    left: 10px;
     pointer-events: none;
     position: fixed;
-    bottom: 0;
+    bottom: 10px;
     width: 100vw;
     z-index: 200;
 
@@ -18,19 +18,15 @@
         .toast-message {
             background-color: white;
             box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, .2);
-            margin: 1px;
+            margin: 2px;
             max-width: 100vw;
             pointer-events: auto;
-            transition: margin-left 0.25s linear,
-                        margin-top 0.25s linear 0.25s;
+            transition: margin-left 0.33s linear,
+                        margin-top 0.33s linear 0.33s;
             width: 400px;
 
-            &.adding {
-                margin-left: -401px;
-            }
-
-            &.removing {
-                margin-left: -401px;
+            &.adding, &.removing {
+                margin-left: -411px;
             }
 
             .message-body {

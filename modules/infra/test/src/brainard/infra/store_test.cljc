@@ -18,10 +18,11 @@
 
           (testing "contains the new toast"
             (is (some? toast-id))
-            (is (= {:id    toast-id
-                    :level :success
-                    :body  [:div "toast body"]
-                    :state :init}
+            (is (= {:id      toast-id
+                    :level   :success
+                    :body    [:div "toast body"]
+                    :state   :init
+                    :timeout 4500}
                    @toast)))
 
           (testing "and when showing the toast"

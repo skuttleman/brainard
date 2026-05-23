@@ -117,7 +117,8 @@
                           :notes/tags        #{:three :two}
                           :notes/pinned?     true
                           :notes/timestamp   (:notes/timestamp note)
-                          :notes/attachments #{}}
+                          :notes/attachments #{}
+                          :notes/todos       #{}}
                          note)))
 
                 (testing "and when searching for pinned notes"
@@ -132,7 +133,8 @@
                                :notes/tags        #{:three :two}
                                :notes/pinned?     true
                                :notes/timestamp   (:notes/timestamp note)
-                               :notes/attachments #{}}]
+                               :notes/attachments #{}
+                               :notes/todos       #{}}]
                              notes))))))
 
               (testing "and when attempting an invalid update"

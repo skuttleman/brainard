@@ -26,8 +26,14 @@
 
 (defn ^:private emit-on-change [on-change *:store]
   (fn [value]
-    (when on-change
-      (store/emit! *:store (conj on-change value)))))
+    (cond
+      (vector? on-change) (store/emit! *:store (conj on-change value))
+      (map? on-change) (let [{:keys [command commands event events]} on-change]
+                         (run! (partial store/dispatch! *:store)
+                               (remove nil? (cons command commands)))
+                         (run! (partial store/emit! *:store)
+                               (remove nil? (cons event events))))
+      (ifn? on-change) (on-change value))))
 
 (defn ^:private with-emit-on-change [component]
   (fn [{:keys [*:store] :as attrs} & args]
