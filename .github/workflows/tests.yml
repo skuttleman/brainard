@@ -2,7 +2,11 @@ name: Tests
 
 on:
   push:
+    branches:
+      - main
   pull_request:
+    branches-ignore:
+      - main
 
 jobs:
   deps:
@@ -25,10 +29,11 @@ jobs:
       - if: steps.cache.outputs.cache-hit != 'true'
         run: |
           clojure -P
-          clojure -P -M:test
-          clojure -P -M:lint:shadow
-          clojure -P -M:shadow
           clojure -P -M:build
+          clojure -P -M:dev
+          clojure -P -M:lint
+          clojure -P -M:shadow
+          clojure -P -M:test
 
   lint:
     name: Lint
