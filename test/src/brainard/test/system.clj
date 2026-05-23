@@ -49,11 +49,10 @@
                                                   (and (keyword? k) (= (name k) "keys"))
                                                   (map #(vector % (keyword (namespace k) (name %))) v)
 
-                                                  (and (symbol? k) (keyword v))
+                                                  (and (symbol? k) (keyword? v) (namespace v))
                                                   [[k v]])]
-                                 [sym k] bindings
-                                 token [sym `(val (ig/find-derived-1 ~sys ~k))]]
-                             token)]
+                                 [sym kw] bindings]
+                             [sym `(val (ig/find-derived-1 ~sys ~kw))])]
     `(let [opts# ~opts
            _# (duct/load-hierarchy)
            ~sys (-> (:config opts# "duct/test.edn")
