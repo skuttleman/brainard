@@ -7,7 +7,7 @@
   `(tsys/with-system [{port# :cfg/server-port} {:config    "duct/ui-test.edn"
                                                 :init-keys [:brainard/webserver]}]
      (let [~base-url-binding (str "http://localhost:" port#)
-           ~driver-binding (eta/chrome {:headless false})]
+           ~driver-binding (eta/chrome {:headless (= "true" (System/getenv "HEADLESS"))})]
        (try
          ~@body
          (finally

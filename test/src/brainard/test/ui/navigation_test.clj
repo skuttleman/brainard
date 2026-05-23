@@ -24,7 +24,8 @@
       (is (true? (eta/wait-visible driver {:xpath "//button[text()='Search']"}))))
 
     (testing "search nav item is active"
-      (is (true? (eta/wait-visible driver {:xpath "//li[contains(@class,'is-active')]//a[text()='Search']"}))))))
+      (let [el (eta/query driver {:css "li.is-active > a"})]
+        (is (= "Search" (eta/get-element-inner-html-el driver el)))))))
 
 (deftest buzz-page-test
   (ui-sys/with-system [driver base-url]
@@ -33,4 +34,5 @@
       (is (true? (eta/wait-visible driver {:css "h1.title"}))))
 
     (testing "buzz nav item is active"
-      (is (true? (eta/wait-visible driver {:xpath "//li[contains(@class,'is-active')]//a[text()='Buzz']"}))))))
+      (let [el (eta/query driver {:css "li.is-active > a"})]
+        (is (= "Buzz" (eta/get-element-inner-html-el driver el)))))))
