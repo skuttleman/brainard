@@ -1,9 +1,8 @@
 (ns brainard.infra.store.specs-test
   (:require
-    [brainard.infra.store.specs :as-alias specs]
+    [brainard.infra.store.specs :as specs]
     [clojure.test :refer [deftest is testing]]
-    [defacto.resources.core :as res]
-    brainard.infra.store.specs))
+    [defacto.resources.core :as res]))
 
 (defn ^:private modify-body [note-id spec]
   (get-in (res/->request-spec [::specs/notes#modify note-id] spec) [:params :body]))

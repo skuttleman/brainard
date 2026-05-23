@@ -27,7 +27,7 @@
                              :notes/id note-id))
     (coll-set (storage/query (:store notes-api)
                              {::storage/type ::get-note
-                             :notes/id      note-id}))))
+                              :notes/id      note-id}))))
 
 (defn delete!
   "Deletes a note by id"
@@ -47,7 +47,7 @@
     (storage/execute! (:store notes-api) (assoc note ::storage/type ::create!))
     (coll-set (storage/query (:store notes-api)
                              {::storage/type ::get-note
-                             :notes/id      note-id}))))
+                              :notes/id      note-id}))))
 
 (defn get-tags
   "Retrieve all tags."
@@ -72,7 +72,7 @@
   "Find note by primary key."
   [notes-api note-id]
   (coll-set (storage/query (:store notes-api) {::storage/type ::get-note
-                                              :notes/id       note-id})))
+                                               :notes/id      note-id})))
 
 (defn get-note-history [notes-api note-id]
   #?(:clj (storage/query (:store notes-api) {::storage/type ::get-note-history
