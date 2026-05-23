@@ -64,7 +64,10 @@
     (when-let [details (validator data)]
       (throw! type {:data data :details details}))))
 
-(defn select-spec-keys [m spec]
+(defn select-spec-keys
+  "Selects keys from a value according to a spec.
+   This is useful for filtering out extra keys from input data before processing it."
+  [m spec]
   (let [spec (m/form spec)]
     (if-not (seqable? spec)
       m
