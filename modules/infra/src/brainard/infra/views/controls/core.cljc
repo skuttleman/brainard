@@ -4,9 +4,9 @@
 
    [input {:on-change [:my-event]}]"
   (:require
-    [brainard.api.utils.dates :as dates]
+    #?@(:cljs [[brainard.api.utils.dates :as dates]
+               [brainard.api.utils.maps :as maps]])
     [brainard.api.utils.fns :as fns]
-    [brainard.api.utils.maps :as maps]
     [brainard.infra.store.core :as store]
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.core :as comp]

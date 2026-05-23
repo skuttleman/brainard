@@ -17,6 +17,7 @@
    :key-codes/down  40})
 
 (def ^:private code->key (set/map-invert key->code))
+
 (defn event->key [e]
   #?(:cljs
      (when-let [key-code (some-> e .-keyCode)]

@@ -1,6 +1,6 @@
 (ns brainard.schedules.api.relevancy-test
   (:require
-    [clojure.test :refer [are deftest is testing]]
+    [clojure.test :refer [are deftest testing]]
     [brainard.schedules.api.relevancy :as relevancy]))
 
 (deftest from-test

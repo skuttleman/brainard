@@ -1,10 +1,10 @@
 (ns brainard.infra.routes.middleware
   (:require
-    [brainard.api.utils.maps :as maps]
-    [brainard.infra.routes.errors :as routes.err]
-    [brainard.infra.routes.interfaces :as iroutes]
-    [brainard.api.utils.logger :as log]
-    [clojure.string :as string]))
+    #?@(:clj [[brainard.api.utils.maps :as maps]
+              [brainard.infra.routes.errors :as routes.err]
+              [brainard.api.utils.logger :as log]
+              [clojure.string :as string]])
+    [brainard.infra.routes.interfaces :as iroutes]))
 
 (defn ^:private success? [status]
   (and (integer? status)
