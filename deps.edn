@@ -20,8 +20,6 @@
            :lint     {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2026.04.15"}}
                       :main-opts  ["-m"
                                    "clj-kondo.main"
-                                   "--config"
-                                   ".clj-kondo/config.edn"
                                    "--lint"
                                    "src"
                                    "modules/api/src"

@@ -23,7 +23,12 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - if: steps.cache.outputs.cache-hit != 'true'
-        run: clojure -P -M:test:lint:shadow:build
+        run: |
+          clojure -P
+          clojure -P -M:test
+          clojure -P -M:lint:shadow
+          clojure -P -M:shadow
+          clojure -P -M:build
 
   lint:
     name: Lint
