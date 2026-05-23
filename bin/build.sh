@@ -12,6 +12,6 @@ sass --style=compressed resources/scss/main.scss resources/public/css/main.css
 
 echo building cljs
 npm install
-clj -A:shadow -M -m shadow.cljs.devtools.cli compile ui
+clojure -A:shadow -M -m shadow.cljs.devtools.cli compile ui
 
-clj -A:build:dev -M -e "(require '[brainard.build :as build])(build/default-uber)"
+clojure -A:build:dev -M -e "(require '[brainard.build :as build])(build/default-uber)"
