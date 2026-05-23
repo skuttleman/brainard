@@ -1,4 +1,4 @@
-.clj-kondo/
+**/.clj-kondo/*/
 .cpcache/
 .datomic-storage/
 .idea/

@@ -1,0 +1,3 @@
+{:linters {:syntax {:level :off}}
+ :lint-as {brainard.test.system/with-system    clojure.core/let
+           brainard.test.ui-system/with-system clojure.core/fn}}
