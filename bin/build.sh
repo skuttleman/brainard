@@ -14,4 +14,4 @@ echo building cljs
 npm install
 clojure -A:shadow -M -m shadow.cljs.devtools.cli compile ui
 
-clojure -A:build:dev -M -e "(require '[brainard.build :as build])(build/default-uber)"
+clojure -A:build:dev -M -e "(require '[brainard.build :as build])(build/uber)"

@@ -2,30 +2,26 @@
   (:require
     [clojure.tools.build.api :as b]))
 
-(defn clean [{:keys [build-folder]}]
-  (b/delete {:path "target"})
+(defn clean [build-folder]
+  (b/delete {:path build-folder})
   (println (format "Build folder \"%s\" removed" build-folder)))
 
-(defn uber [{:keys [jar-content basis main uber-file-name] :as attrs}]
-  (clean attrs)
-
-  (b/copy-dir {:src-dirs   ["resources" "src" "modules/api/src" "modules/infra/src"]
-               :target-dir jar-content})
-
-  (b/compile-clj {:basis      basis
-                  :ns-compile [main]
-                  :class-dir  jar-content})
-
-  (b/uber {:class-dir jar-content
-           :uber-file uber-file-name
-           :basis     basis
-           :main      main})
-
-  (println (format "Uber file created: \"%s\"" uber-file-name)))
-
-(defn default-uber []
-  (uber {:basis          (b/create-basis {:project "deps.edn"})
-         :build-folder   "target"
-         :jar-content    "target/classes"
-         :main           'brainard.core
-         :uber-file-name "target/brainard.jar"}))
+(defn uber []
+  (let [basis (b/create-basis {:project "deps.edn"})
+        build-folder "target"
+        jar-content "target/classes"
+        main 'brainard.core
+        uber-file-name "target/brainard.jar"]
+    (clean build-folder)
+    (b/copy-dir {:src-dirs   ["resources" "src" "modules/api/src" "modules/infra/src"]
+                 :target-dir jar-content})
+    (println "\nCompiling" main)
+    (b/compile-clj {:basis      basis
+                    :ns-compile [main]
+                    :class-dir  jar-content})
+    (println "\nBuilding uberjar" uber-file-name)
+    (b/uber {:class-dir jar-content
+             :uber-file uber-file-name
+             :basis     basis
+             :main      main})
+    (println "\nUberjar file created:" uber-file-name)))
