@@ -68,8 +68,8 @@
     flex-wrap: wrap;
     justify-content: space-between;
 
-    & > *:not(:first-child) {
-        margin-left: 12px;
+    & > *:not(:last-child) {
+        margin-right: 12px;
     }
 }
 
@@ -77,8 +77,8 @@
     display: flex;
     flex-direction: row;
 
-    & > *:not(:first-child) {
-        margin-left: 8px;
+    & > *:not(:last-child) {
+        margin-right: 8px;
     }
 }
 
@@ -109,8 +109,8 @@
 
 .button-row {
     padding: 8px 0;
-    & > *:not(:first-child) {
-        margin-left: 16px;
+    & > *:not(:last-child) {
+        margin-right: 16px;
     }
 }
 

@@ -1,0 +1,8 @@
+[{:notes/id      #uuid "32a598d9-39b7-49aa-a1c2-8face7cc78cd"
+  :notes/context "Some Context"
+  :notes/body    "Some body"
+  :notes/pinned? true
+  :notes/tags    #{:some/tag}
+  :notes/todos   [{:todos/id         #uuid "b5cad831-c696-4b16-b2cd-7df0aa1744dc"
+                   :todos/text       "Do a thing"
+                   :todos/completed? true}]}]
