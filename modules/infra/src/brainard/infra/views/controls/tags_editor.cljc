@@ -27,9 +27,9 @@
   (fn [next-value]
     (let [next-value (cond-> next-value
                        (keyword? next-value) kw/str)]
-      (doto *:store
-        (store/emit! [::forms/changed form-id [:value] next-value])
-        (store/emit! [::forms/changed form-id [:invalid?] false])))))
+      (-> *:store
+          (store/emit! [::forms/changed form-id [:value] next-value])
+          (store/emit! [::forms/changed form-id [:invalid?] false])))))
 
 (defn control [{:keys [*:store form-id] :as attrs}]
   (r/with-let [sub:form (store/form-sub *:store form-id nil)

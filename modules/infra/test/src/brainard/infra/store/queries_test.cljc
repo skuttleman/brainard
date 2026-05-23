@@ -9,10 +9,9 @@
     brainard.infra.store.queries))
 
 (defn ^:private store-with-history [spec history]
-  (let [store (defacto/create {} {})]
-    (store/emit! store [::res/submitted spec])
-    (store/emit! store [::res/succeeded spec history])
-    store))
+  (-> (defacto/create {} {})
+      (store/emit! [::res/submitted spec])
+      (store/emit! [::res/succeeded spec history])))
 
 (deftest notes-history-reconstruction-test
   (testing "when the resource is not loaded"

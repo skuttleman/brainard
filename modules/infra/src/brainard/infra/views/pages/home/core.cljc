@@ -151,5 +151,6 @@
      [comp/with-resource sub:tree [workspace *:store]]
      [comp/with-resources [sub:tags sub:pinned] [pinned *:store route-info]]]
     (finally
-      (store/emit! *:store [::res/destroyed home.act/fetch-ws-key])
-      (store/emit! *:store [::res/destroyed [::home.act/notes#pinned]]))))
+      (-> *:store
+          (store/emit! [::res/destroyed home.act/fetch-ws-key])
+          (store/emit! [::res/destroyed [::home.act/notes#pinned]])))))
