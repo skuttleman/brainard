@@ -24,7 +24,9 @@ jobs:
       - uses: actions/cache@v4
         id: cache
         with:
-          path: ~/.m2
+          path: |
+            ~/.m2
+            ~/.gitlibs
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - if: steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -50,7 +52,9 @@ jobs:
           cli: latest
       - uses: actions/cache@v4
         with:
-          path: ~/.m2
+          path: |
+            ~/.m2
+            ~/.gitlibs
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - run: clojure -M:lint
 
@@ -69,7 +73,9 @@ jobs:
           cli: latest
       - uses: actions/cache@v4
         with:
-          path: ~/.m2
+          path: |
+            ~/.m2
+            ~/.gitlibs
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - run: clojure -M:test -m kaocha.runner :api :infra
 
@@ -88,7 +94,9 @@ jobs:
           cli: latest
       - uses: actions/cache@v4
         with:
-          path: ~/.m2
+          path: |
+            ~/.m2
+            ~/.gitlibs
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - run: clojure -M:test -m kaocha.runner :integration
 
@@ -107,7 +115,9 @@ jobs:
           cli: latest
       - uses: actions/cache@v4
         with:
-          path: ~/.m2
+          path: |
+            ~/.m2
+            ~/.gitlibs
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - uses: browser-actions/setup-chrome@v2
         id: setup-chrome
@@ -136,7 +146,9 @@ jobs:
           cli: latest
       - uses: actions/cache@v4
         with:
-          path: ~/.m2
+          path: |
+            ~/.m2
+            ~/.gitlibs
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - uses: actions/setup-node@v4
         with:
