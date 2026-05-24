@@ -8,8 +8,7 @@
     [clojure.string :as string]
     [ring.util.mime-type :as mime])
   (:import
-    (java.io InputStream StringReader)
-    (org.apache.commons.io.input NullReader)))
+    (java.io InputStream StringReader)))
 
 (defn ^:private fixture->upload [filename]
   {:content-type (mime/ext-mime-type filename)
