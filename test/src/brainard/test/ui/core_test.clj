@@ -5,7 +5,8 @@
     [clojure.string :as string]
     [clojure.test :refer [deftest is testing]]
     [etaoin.api :as eta]
-    [whet.utils.navigation :as nav]))
+    [whet.utils.navigation :as nav])
+  (:import (java.time LocalDate)))
 
 (def ^:private ^:const node-item-selector-fmt
   "//li[contains(@class,'node-item')]//span[text()='%s']")
@@ -24,6 +25,10 @@
   (ui-utils/submit-form! driver
                          ".modal-container.is-active form.form"
                          {"Content" text}))
+
+(defn ^:private note-visible? [driver body]
+  (let [fmt "//ul[contains(@class,'search-results')]//span[contains(@class,'truncate') and text()='%s']"]
+    (eta/exists? driver {:xpath (format fmt body)})))
 
 (deftest navigation-test
   (ui-sys/with-system [driver base-url]
@@ -276,10 +281,7 @@
                                second
                                nav/->query-params)]
                 (println "QUERY PARAMS:" params)
-                (= qp params)))
-            (note-visible? [body]
-              (let [fmt "//ul[contains(@class,'search-results')]//span[contains(@class,'truncate') and text()='%s']"]
-                (eta/exists? driver {:xpath (format fmt body)})))]
+                (= qp params)))]
       (testing "when visiting the search page"
         (testing "and when filtering on a tag"
           (go-to-search!)
@@ -288,11 +290,11 @@
           (search!)
 
           (testing "renders the correct notes"
-            (is (note-visible? "Note A1"))
-            (is (note-visible? "Note A2"))
-            (is (note-visible? "Note B1"))
-            (is (not (note-visible? "Note B2")))
-            (is (not (note-visible? "Note C1"))))
+            (is (note-visible? driver "Note A1"))
+            (is (note-visible? driver "Note A2"))
+            (is (note-visible? driver "Note B1"))
+            (is (not (note-visible? driver "Note B2")))
+            (is (not (note-visible? driver "Note C1"))))
 
           (testing "updates the browser url"
             (is (url-query? {:tags "tag/alpha"})))
@@ -303,9 +305,9 @@
             (search!)
 
             (testing "renders the correct notes"
-              (is (note-visible? "Note A1"))
-              (is (note-visible? "Note A2"))
-              (is (not (note-visible? "Note B1"))))
+              (is (note-visible? driver "Note A1"))
+              (is (note-visible? driver "Note A2"))
+              (is (not (note-visible? driver "Note B1"))))
 
             (testing "updates the browser url"
               (is (url-query? {:tags "tag/alpha" :context "Context A"})))))
@@ -318,10 +320,10 @@
           (search!)
 
           (testing "renders the correct notes"
-            (is (note-visible? "Note A2"))
-            (is (not (note-visible? "Note A1")))
-            (is (not (note-visible? "Note B1")))
-            (is (not (note-visible? "Note B2"))))
+            (is (note-visible? driver "Note A2"))
+            (is (not (note-visible? driver "Note A1")))
+            (is (not (note-visible? driver "Note B1")))
+            (is (not (note-visible? driver "Note B2"))))
 
           (testing "updates the browser url"
             (is (url-query? {:tags #{"tag/alpha" "tag/beta"}})))
@@ -332,8 +334,8 @@
             (search!)
 
             (testing "renders the correct notes"
-              (is (note-visible? "Note A2"))
-              (is (not (note-visible? "Note B2"))))
+              (is (note-visible? driver "Note A2"))
+              (is (not (note-visible? driver "Note B2"))))
 
             (testing "updates the browser url"
               (is (url-query? {:tags #{"tag/alpha" "tag/beta"} :context "Context A"})))))
@@ -345,10 +347,45 @@
           (search!)
 
           (testing "renders the correct notes"
-            (is (note-visible? "Note B1"))
-            (is (note-visible? "Note B2"))
-            (is (not (note-visible? "Note A1")))
-            (is (not (note-visible? "Note C1"))))
+            (is (note-visible? driver "Note B1"))
+            (is (note-visible? driver "Note B2"))
+            (is (not (note-visible? driver "Note A1")))
+            (is (not (note-visible? driver "Note C1"))))
 
           (testing "updates the browser url"
             (is (url-query? {:context "Context B"}))))))))
+
+(deftest ^:focus buzz-test
+  (ui-sys/with-system [driver base-url {buzz "buzz.edn"}]
+    (let [note-id-2 (->> buzz
+                         (filter (comp #{"Note 2"} :notes/body))
+                         first
+                         :notes/id)
+          day-of-the-week (-> (LocalDate/now)
+                              .getDayOfWeek
+                              .name
+                              string/lower-case
+                              keyword)]
+      (testing "when visiting the buzz page"
+        (eta/go driver (str base-url "/buzz"))
+        (eta/wait-visible driver {:css "ul.search-results"})
+
+        (testing "renders the correct notes"
+          (is (note-visible? driver "Note 1"))
+          (is (not (note-visible? driver "Note 2"))))
+
+        (testing "and when editing a note"
+          (eta/go driver (str base-url "/notes/" note-id-2))
+          (eta/wait-visible driver {:css "form.form"})
+
+          (testing "and when adding a schedule to the note"
+            (ui-utils/submit-form! driver "form.form" {"Day of the week" day-of-the-week})
+            (eta/wait-invisible driver {:xpath "//p/em[text()='no related schedules']"})
+
+            (testing "and when visiting the buzz page"
+              (eta/go driver (str base-url "/buzz"))
+              (eta/wait-visible driver {:css "ul.search-results"})
+
+              (testing "renders the correct notes"
+                (is (note-visible? driver "Note 1"))
+                (is (note-visible? driver "Note 2"))))))))))
