@@ -1,12 +1,12 @@
-@import 'variables';
-@import 'normalize';
+@use 'variables';
+@use 'normalize';
 
-@import 'components';
-@import 'dropdown';
-@import 'forms';
-@import 'layout';
-@import 'modals';
-@import 'toast';
+@use 'components';
+@use 'dropdown';
+@use 'forms';
+@use 'layout';
+@use 'modals';
+@use 'toast';
 
 .loader {
     &.large {
