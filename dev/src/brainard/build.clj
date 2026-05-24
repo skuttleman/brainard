@@ -6,7 +6,7 @@
   (b/delete {:path build-folder})
   (println (format "Build folder \"%s\" removed" build-folder)))
 
-(defn uber []
+(defn uber [_opts]
   (let [basis (b/create-basis {:project "deps.edn"})
         build-folder "target"
         jar-content "target/classes"
