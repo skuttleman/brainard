@@ -181,11 +181,16 @@
 (deftest pinned-test
   (ui-sys/with-system [driver base-url {fix "pinned.edn"}]
     (letfn [(expand! [context]
-              (ui-utils/click driver {:xpath (format "//strong[text()='%s']/following::button[1]" context)}))
+              (let [xpath (format "//strong[text()='%s']/following::button[1]" context)]
+                (ui-utils/click driver {:xpath xpath})))
             (note-body-visible? [body]
-              (eta/visible? driver {:xpath (format "//span[contains(@class,'truncate') and text()='%s']" body)}))
+              (let [xpath (format "//span[contains(@class,'truncate') and text()='%s']" body)]
+                (eta/visible? driver {:xpath xpath})))
             (edit-link [note-id]
-              {:xpath (format "//li[@id='%s']//a[text()='edit']" note-id)})]
+              {:xpath (format "//li[@id='%s']//a[text()='edit']" note-id)})
+            (note-absent? [body]
+              (let [xpath (format "//span[contains(@class,'truncate') and text()='%s']" body)]
+                (not (eta/exists? driver {:xpath xpath}))))]
       (let [note-id-1 (->> fix
                            (filter (comp #{"Context 1"} :notes/context))
                            first
@@ -204,15 +209,15 @@
             (testing "renders the correct Context 1 notes"
               (eta/wait-visible driver (edit-link note-id-1))
               (is (note-body-visible? "Note 1A"))
-              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 1B']"})))
+              (is (note-absent? "Note 1B"))
               (is (note-body-visible? "Note 1C")))
 
             (testing "does not render Context 2 notes"
-              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 2A']"})))
-              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 2B']"}))))
+              (is (note-absent? "Note 2A"))
+              (is (note-absent? "Note 2B")))
 
             (testing "does not render Context 3 notes"
-              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 3A']"}))))
+              (is (note-absent? "Note 3A")))
 
             (testing "can navigate to the note's edit page"
               (ui-utils/click driver (edit-link note-id-1))
@@ -228,15 +233,15 @@
             (testing "renders the correct Context 2 notes"
               (eta/wait-visible driver (edit-link note-id-2))
               (is (note-body-visible? "Note 2A"))
-              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 2B']"}))))
+              (is (note-absent? "Note 2B")))
 
             (testing "does not render Context 1 notes"
-              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 1A']"})))
-              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 1B']"})))
-              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 1C']"}))))
+              (is (note-absent? "Note 1A"))
+              (is (note-absent? "Note 1B"))
+              (is (note-absent? "Note 1C")))
 
             (testing "does not render Context 3 notes"
-              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 3A']"}))))
+              (is (note-absent? "Note 3A")))
 
             (testing "can navigate to the note's edit page"
               (ui-utils/click driver (edit-link note-id-2))
