@@ -2,6 +2,7 @@
   (:require
     #?@(:clj [[brainard.attachments.infra.multipart-params :as multi]
               [brainard.infra.utils.routing :as rte]
+              [clojure.string :as string]
               [ring.middleware.keyword-params :as ring.kw-params]
               [ring.middleware.params :as ring.params]])
     [brainard :as-alias b]
@@ -13,10 +14,6 @@
 
 (def ^:private ^:const not-found-resource
   (routes.res/->response 404 (routes.res/errors :UNKNOWN_RESOURCE "Not found")))
-
-#?(:clj
-   (defn ^:private asset? [req]
-     (re-matches #"^/(js|css|img|favicon).*$" (:uri req))))
 
 (defmethod iroutes/req->input :default
   [{::w/keys [route] :as req}]
@@ -54,4 +51,5 @@
          ring.kw-params/wrap-keyword-params
          ring.params/wrap-params
          mw/with-error-handling
-         (mw/with-logging {:xform (remove asset?)}))))
+         (mw/with-logging {:xform (filter (comp (some-fn #{"/"} #(string/starts-with? % "/api/"))
+                                                :uri))}))))

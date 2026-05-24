@@ -108,7 +108,18 @@
 
                 (testing "renders the updated workspace"
                   (wait! driver "updated child")
-                  (is (empty? (nodes "child node"))))))))))))
+                  (is (empty? (nodes "child node"))))
+
+                (testing "and when deleting the updated child"
+                  (edit! driver "updated child" "lni-trash-can")
+                  (eta/wait-visible driver {:css ".modal-container.is-active .modal-item"})
+                  (eta/click driver {:css ".modal-container.is-active button.is-info"})
+
+                  (testing "renders the updated workspace"
+                    (eta/wait-predicate #(empty? (nodes "updated child")))
+                    (is (empty? (nodes "updated child")))
+                    (is (empty? (nodes "grandchild node")))
+                    (is (= 2 (count (eta/query-all driver {:css "li.node-item"}))))))))))))))
 
 (deftest workspace-rearrangement-test
   (ui-sys/with-system [driver base-url]
