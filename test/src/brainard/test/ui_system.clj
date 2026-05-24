@@ -19,12 +19,10 @@
                                                           "--disable-dev-shm-usage"])})
              ~base-url-binding (str "http://localhost:" port#)
              ~@(for [[sym seed] bnds
-                     :when (not= sym '_)
                      token [sym `(cond-> ~seed
                                    (string? ~seed) (->> (str "seed/")
                                                         ui-utils/edn-fixture)
-                                   true (doto (->> (ds/transact! ~db-sym))
-                                              (->> (println "TRANSACTED"))))]]
+                                   true (doto (->> (ds/transact! ~db-sym))))]]
                  token)]
          (try
            ~@body

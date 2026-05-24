@@ -21,3 +21,18 @@
 (defn submit-form! [driver form-selector field-vals]
   (fill-form! driver form-selector field-vals)
   (eta/click driver {:css (str form-selector " button.submit")}))
+
+(defmacro with-retry [n & body]
+  `(loop [tries# ~n]
+     (let [[result# ex#] (try
+                           [(do ~@body)]
+                           (catch Throwable e#
+                             [nil e#]))]
+       (cond
+         (and ex# (pos? tries#)) (recur (dec tries#))
+         ex# (throw ex#)
+         :else result#))))
+
+(defn click [driver q]
+  (with-retry 3
+    (eta/click driver q)))

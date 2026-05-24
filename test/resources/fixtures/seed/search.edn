@@ -1,0 +1,24 @@
+[{:notes/id      #uuid "00000001-0000-0000-0000-000000000001"
+  :notes/context "Context A"
+  :notes/body    "Note A1"
+  :notes/pinned? false
+  :notes/tags    #{:tag/alpha}}
+ {:notes/id      #uuid "00000001-0000-0000-0000-000000000002"
+  :notes/context "Context A"
+  :notes/body    "Note A2"
+  :notes/pinned? false
+  :notes/tags    #{:tag/alpha :tag/beta}}
+ {:notes/id      #uuid "00000002-0000-0000-0000-000000000001"
+  :notes/context "Context B"
+  :notes/body    "Note B1"
+  :notes/pinned? false
+  :notes/tags    #{:tag/alpha}}
+ {:notes/id      #uuid "00000002-0000-0000-0000-000000000002"
+  :notes/context "Context B"
+  :notes/body    "Note B2"
+  :notes/pinned? false
+  :notes/tags    #{:tag/beta}}
+ {:notes/id      #uuid "00000003-0000-0000-0000-000000000001"
+  :notes/context "Context C"
+  :notes/body    "Note C1"
+  :notes/pinned? false}]
