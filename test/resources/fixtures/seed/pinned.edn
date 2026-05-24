@@ -1,0 +1,24 @@
+[{:notes/id      #uuid "51bab8bc-0f39-43bf-ab55-ab9b30e4b9f5"
+  :notes/context "Context 1"
+  :notes/body    "Note 1A"
+  :notes/pinned? true}
+ {:notes/id      #uuid "e59c2309-19f0-46e3-971e-4128da0c813f"
+  :notes/context "Context 1"
+  :notes/body    "Note 1B"
+  :notes/pinned? false}
+ {:notes/id      #uuid "634b46e0-b4fb-40b1-98ba-5ca2cf619103"
+  :notes/context "Context 1"
+  :notes/body    "Note 1C"
+  :notes/pinned? true}
+ {:notes/id      #uuid "8a686818-7dce-414b-9ced-527bb6051c8a"
+  :notes/context "Context 2"
+  :notes/body    "Note 2A"
+  :notes/pinned? true}
+ {:notes/id      #uuid "c5858e26-2e70-41b5-ad04-74618dd537d4"
+  :notes/context "Context 2"
+  :notes/body    "Note 2B"
+  :notes/pinned? false}
+ {:notes/id      #uuid "950259f0-ecd0-4765-8db5-705ff899f555"
+  :notes/context "Context 3"
+  :notes/body    "Note 3A"
+  :notes/pinned? false}]

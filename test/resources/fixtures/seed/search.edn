@@ -1,0 +1,24 @@
+[{:notes/id      #uuid "2c456eee-e131-458d-be50-b63c6dba79f3"
+  :notes/context "Context A"
+  :notes/body    "Note A1"
+  :notes/pinned? false
+  :notes/tags    #{:tag/alpha}}
+ {:notes/id      #uuid "ec7648cd-70f8-4624-afd7-de47f118a956"
+  :notes/context "Context A"
+  :notes/body    "Note A2"
+  :notes/pinned? false
+  :notes/tags    #{:tag/alpha :tag/beta}}
+ {:notes/id      #uuid "e566f5d0-92f0-410b-ab1f-a97b01b311e7"
+  :notes/context "Context B"
+  :notes/body    "Note B1"
+  :notes/pinned? false
+  :notes/tags    #{:tag/alpha}}
+ {:notes/id      #uuid "4c885ffa-cbde-478f-9fd4-32d5f8370129"
+  :notes/context "Context B"
+  :notes/body    "Note B2"
+  :notes/pinned? false
+  :notes/tags    #{:tag/beta}}
+ {:notes/id      #uuid "06229cd8-6106-4193-934c-cfad4b22f192"
+  :notes/context "Context C"
+  :notes/body    "Note C1"
+  :notes/pinned? false}]

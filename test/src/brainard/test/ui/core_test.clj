@@ -2,8 +2,11 @@
   (:require
     [brainard.test.ui-system :as ui-sys]
     [brainard.test.ui.utils :as ui-utils]
+    [clojure.string :as string]
     [clojure.test :refer [deftest is testing]]
-    [etaoin.api :as eta]))
+    [etaoin.api :as eta]
+    [whet.utils.navigation :as nav])
+  (:import (java.time LocalDate)))
 
 (def ^:private ^:const node-item-selector-fmt
   "//li[contains(@class,'node-item')]//span[text()='%s']")
@@ -11,17 +14,21 @@
 (defn ^:private wait! [driver text]
   (eta/wait-visible driver {:xpath (format node-item-selector-fmt text)}))
 
-(defn ^:private edit! [driver node-text icon-class]
+(defn ^:private ws-edit! [driver node-text icon-class]
   (let [edit-selector-fmt (str node-item-selector-fmt
                                "/following::i[contains(@class,'%s')][1]")
         xpath (format edit-selector-fmt node-text icon-class)]
     (wait! driver node-text)
-    (eta/click-el driver (eta/query driver {:xpath xpath}))))
+    (ui-utils/click driver {:xpath xpath})))
 
-(defn ^:private submit! [driver text]
+(defn ^:private ws-submit! [driver text]
   (ui-utils/submit-form! driver
                          ".modal-container.is-active form.form"
                          {"Content" text}))
+
+(defn ^:private note-visible? [driver body]
+  (let [fmt "//ul[contains(@class,'search-results')]//span[contains(@class,'truncate') and text()='%s']"]
+    (eta/exists? driver {:xpath (format fmt body)})))
 
 (deftest navigation-test
   (ui-sys/with-system [driver base-url]
@@ -61,8 +68,8 @@
 
 (deftest workspace-test
   (ui-sys/with-system [driver base-url]
-    (letfn [(nodes [node-text]
-              (eta/query-all driver {:xpath (format node-item-selector-fmt node-text)}))]
+    (letfn [(node-absent? [node-text]
+              (not (eta/exists? driver {:xpath (format node-item-selector-fmt node-text)})))]
       (testing "when visiting the home page"
         (eta/go driver base-url)
 
@@ -71,44 +78,56 @@
           (is (empty? (eta/query-all driver {:css "li.node-item"}))))
 
         (testing "and when creating a workspace root node"
-          (eta/click driver {:css "div.drag-n-drop + button"})
-          (submit! driver "root node")
+          (ui-utils/click driver {:css "div.drag-n-drop + button"})
+          (ws-submit! driver "root node")
 
           (testing "renders the updated workspace"
             (wait! driver "root node")
             (is (= 1 (count (eta/query-all driver {:css "li.node-item"}))))
 
             (testing "and when creating a child node"
-              (edit! driver "root node" "lni-plus")
-              (submit! driver "child node")
+              (ws-edit! driver "root node" "lni-plus")
+              (ws-submit! driver "child node")
 
               (testing "renders the updated workspace"
                 (wait! driver "child node")
                 (is (= 2 (count (eta/query-all driver {:css "li.node-item"}))))
 
                 (testing "and when creating a sibling node"
-                  (edit! driver "root node" "lni-plus")
-                  (submit! driver "sibling node")
+                  (ws-edit! driver "root node" "lni-plus")
+                  (ws-submit! driver "sibling node")
 
                   (testing "renders the updated workspace"
                     (wait! driver "sibling node")
                     (is (= 3 (count (eta/query-all driver {:css "li.node-item"}))))))
 
                 (testing "and when creating a grandchild node"
-                  (edit! driver "child node" "lni-plus")
-                  (submit! driver "grandchild node")
+                  (ws-edit! driver "child node" "lni-plus")
+                  (ws-submit! driver "grandchild node")
 
                   (testing "renders the updated workspace"
                     (wait! driver "grandchild node")
                     (is (= 4 (count (eta/query-all driver {:css "li.node-item"})))))))
 
               (testing "and when updating the child node"
-                (edit! driver "child node" "lni-pencil")
-                (submit! driver "updated child")
+                (ws-edit! driver "child node" "lni-pencil")
+                (ws-submit! driver "updated child")
 
                 (testing "renders the updated workspace"
                   (wait! driver "updated child")
-                  (is (empty? (nodes "child node"))))))))))))
+                  (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 1B']"})))
+                  (is (node-absent? "child node")))
+
+                (testing "and when deleting the updated child"
+                  (ws-edit! driver "updated child" "lni-trash-can")
+                  (eta/wait-visible driver {:css ".modal-container.is-active .modal-item"})
+                  (ui-utils/click driver {:css ".modal-container.is-active button.is-info"})
+
+                  (testing "renders the updated workspace"
+                    (eta/wait-predicate #(node-absent? "updated child"))
+                    (is (node-absent? "updated child"))
+                    (is (node-absent? "grandchild node"))
+                    (is (= 2 (count (eta/query-all driver {:css "li.node-item"}))))))))))))))
 
 (deftest workspace-rearrangement-test
   (ui-sys/with-system [driver base-url]
@@ -140,16 +159,16 @@
       (testing "when visiting the home page"
         (eta/go driver base-url)
         (testing "and when creating a root node"
-          (eta/click driver {:css "div.drag-n-drop + button"})
-          (submit! driver "alpha")
+          (ui-utils/click driver {:css "div.drag-n-drop + button"})
+          (ws-submit! driver "alpha")
           (wait! driver "alpha")
 
           (testing "and when creating another root node with a child"
-            (eta/click driver {:css "div.drag-n-drop + button"})
-            (submit! driver "beta")
+            (ui-utils/click driver {:css "div.drag-n-drop + button"})
+            (ws-submit! driver "beta")
             (wait! driver "beta")
-            (edit! driver "beta" "lni-plus")
-            (submit! driver "gamma")
+            (ws-edit! driver "beta" "lni-plus")
+            (ws-submit! driver "gamma")
             (wait! driver "gamma")
 
             (testing "renders the workspace with two root nodes"
@@ -163,3 +182,210 @@
               (testing "renders alpha as the only root with beta and gamma as descendants"
                 (is (= 1 (count (root-nodes))))
                 (is (= 3 (count (eta/query-all driver {:css "li.node-item"}))))))))))))
+
+(deftest pinned-test
+  (ui-sys/with-system [driver base-url {fix "pinned.edn"}]
+    (letfn [(expand! [context]
+              (let [xpath (format "//strong[text()='%s']/following::button[1]" context)]
+                (ui-utils/click driver {:xpath xpath})))
+            (note-body-visible? [body]
+              (let [xpath (format "//span[contains(@class,'truncate') and text()='%s']" body)]
+                (eta/visible? driver {:xpath xpath})))
+            (edit-link [note-id]
+              {:xpath (format "//li[@id='%s']//a[text()='edit']" note-id)})
+            (note-absent? [body]
+              (let [xpath (format "//span[contains(@class,'truncate') and text()='%s']" body)]
+                (not (eta/exists? driver {:xpath xpath}))))]
+      (let [note-id-1 (->> fix
+                           (filter (comp #{"Context 1"} :notes/context))
+                           first
+                           :notes/id)
+            note-id-2 (->> fix
+                           (filter (comp #{"Context 2"} :notes/context))
+                           first
+                           :notes/id)]
+        (testing "when visiting the home page"
+          (eta/go driver base-url)
+          (eta/wait-visible driver {:xpath "//h1/strong[text()='Pinned notes']"})
+
+          (testing "and when expanding Context 1"
+            (expand! "Context 1")
+
+            (testing "renders the correct Context 1 notes"
+              (eta/wait-visible driver (edit-link note-id-1))
+              (is (note-body-visible? "Note 1A"))
+              (is (note-absent? "Note 1B"))
+              (is (note-body-visible? "Note 1C")))
+
+            (testing "does not render Context 2 notes"
+              (is (note-absent? "Note 2A"))
+              (is (note-absent? "Note 2B")))
+
+            (testing "does not render Context 3 notes"
+              (is (note-absent? "Note 3A")))
+
+            (testing "can navigate to the note's edit page"
+              (ui-utils/click driver (edit-link note-id-1))
+              (eta/wait-predicate #(re-find #"/notes/" (eta/get-url driver)))
+              (is (= (str base-url "/notes/" note-id-1)
+                     (eta/get-url driver)))
+              (eta/go driver base-url)
+              (eta/wait-visible driver {:xpath "//h1/strong[text()='Pinned notes']"})))
+
+          (testing "and when expanding Context 2"
+            (expand! "Context 2")
+
+            (testing "renders the correct Context 2 notes"
+              (eta/wait-visible driver (edit-link note-id-2))
+              (is (note-body-visible? "Note 2A"))
+              (is (note-absent? "Note 2B")))
+
+            (testing "does not render Context 1 notes"
+              (is (note-absent? "Note 1A"))
+              (is (note-absent? "Note 1B"))
+              (is (note-absent? "Note 1C")))
+
+            (testing "does not render Context 3 notes"
+              (is (note-absent? "Note 3A")))
+
+            (testing "can navigate to the note's edit page"
+              (ui-utils/click driver (edit-link note-id-2))
+              (eta/wait-predicate #(re-find #"/notes/" (eta/get-url driver)))
+              (is (= (str base-url "/notes/" note-id-2)
+                     (eta/get-url driver)))
+              (eta/go driver base-url)
+              (eta/wait-visible driver {:xpath "//h1/strong[text()='Pinned notes']"})))
+
+          (testing "there is no section for Context 3"
+            (is (not (eta/exists? driver {:xpath "//strong[text()='Context 3']"})))))))))
+
+(deftest search-test
+  (ui-sys/with-system [driver base-url {_ "search.edn"}]
+    (letfn [(go-to-search! []
+              (eta/go driver (str base-url "/search"))
+              (eta/wait-visible driver {:css "form.form"}))
+            (open-dropdown! [label]
+              (ui-utils/click driver {:xpath (format "//label[text()='%s']/..//button" label)})
+              (eta/wait-visible driver {:css "ul.dropdown-items"}))
+            (pick-option! [item-text]
+              (let [fmt "//ul[contains(@class,'dropdown-items')]//span[text()='%s']"]
+                (ui-utils/click driver {:xpath (format fmt item-text)})))
+            (search! []
+              (ui-utils/click driver {:css "form.form button.submit"})
+              (Thread/sleep 10)
+              (eta/wait-visible driver {:css "ul.search-results"}))
+            (url-query? [qp]
+              (let [url (eta/get-url driver)
+                    params (-> url
+                               (string/split #"\?")
+                               second
+                               nav/->query-params)]
+                (println "QUERY PARAMS:" params)
+                (= qp params)))]
+      (testing "when visiting the search page"
+        (testing "and when filtering on a tag"
+          (go-to-search!)
+          (open-dropdown! "Tag Filter")
+          (pick-option! ":tag/alpha")
+          (search!)
+
+          (testing "renders the correct notes"
+            (is (note-visible? driver "Note A1"))
+            (is (note-visible? driver "Note A2"))
+            (is (note-visible? driver "Note B1"))
+            (is (not (note-visible? driver "Note B2")))
+            (is (not (note-visible? driver "Note C1"))))
+
+          (testing "updates the browser url"
+            (is (url-query? {:tags "tag/alpha"})))
+
+          (testing "and when filtering on context"
+            (open-dropdown! "Topic Filter")
+            (pick-option! "Context A")
+            (search!)
+
+            (testing "renders the correct notes"
+              (is (note-visible? driver "Note A1"))
+              (is (note-visible? driver "Note A2"))
+              (is (not (note-visible? driver "Note B1"))))
+
+            (testing "updates the browser url"
+              (is (url-query? {:tags "tag/alpha" :context "Context A"})))))
+
+        (testing "and when filtering on multiple tags"
+          (go-to-search!)
+          (open-dropdown! "Tag Filter")
+          (pick-option! ":tag/alpha")
+          (pick-option! ":tag/beta")
+          (search!)
+
+          (testing "renders the correct notes"
+            (is (note-visible? driver "Note A2"))
+            (is (not (note-visible? driver "Note A1")))
+            (is (not (note-visible? driver "Note B1")))
+            (is (not (note-visible? driver "Note B2"))))
+
+          (testing "updates the browser url"
+            (is (url-query? {:tags #{"tag/alpha" "tag/beta"}})))
+
+          (testing "and when filtering on context"
+            (open-dropdown! "Topic Filter")
+            (pick-option! "Context A")
+            (search!)
+
+            (testing "renders the correct notes"
+              (is (note-visible? driver "Note A2"))
+              (is (not (note-visible? driver "Note B2"))))
+
+            (testing "updates the browser url"
+              (is (url-query? {:tags #{"tag/alpha" "tag/beta"} :context "Context A"})))))
+
+        (testing "and when filtering on context"
+          (go-to-search!)
+          (open-dropdown! "Topic Filter")
+          (pick-option! "Context B")
+          (search!)
+
+          (testing "renders the correct notes"
+            (is (note-visible? driver "Note B1"))
+            (is (note-visible? driver "Note B2"))
+            (is (not (note-visible? driver "Note A1")))
+            (is (not (note-visible? driver "Note C1"))))
+
+          (testing "updates the browser url"
+            (is (url-query? {:context "Context B"}))))))))
+
+(deftest ^:focus buzz-test
+  (ui-sys/with-system [driver base-url {buzz "buzz.edn"}]
+    (let [note-id-2 (->> buzz
+                         (filter (comp #{"Note 2"} :notes/body))
+                         first
+                         :notes/id)
+          day-of-the-week (-> (LocalDate/now)
+                              .getDayOfWeek
+                              .name
+                              string/lower-case
+                              keyword)]
+      (testing "when visiting the buzz page"
+        (eta/go driver (str base-url "/buzz"))
+        (eta/wait-visible driver {:css "ul.search-results"})
+
+        (testing "renders the correct notes"
+          (is (note-visible? driver "Note 1"))
+          (is (not (note-visible? driver "Note 2"))))
+
+        (testing "and when editing a note"
+          (eta/go driver (str base-url "/notes/" note-id-2))
+          (eta/wait-visible driver {:css "form.form"})
+
+          (testing "and when adding a schedule to the note"
+            (ui-utils/submit-form! driver "form.form" {"Day of the week" day-of-the-week})
+            (eta/wait-invisible driver {:xpath "//p/em[text()='no related schedules']"})
+
+            (testing "and when visiting the buzz page"
+              (eta/go driver (str base-url "/buzz"))
+              (eta/wait-visible driver {:css "ul.search-results"})
+
+              (testing "renders the correct notes"
+                (is (note-visible? driver "Note 1"))
+                (is (note-visible? driver "Note 2"))))))))))

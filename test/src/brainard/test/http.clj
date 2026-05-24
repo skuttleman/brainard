@@ -8,8 +8,7 @@
     [clojure.string :as string]
     [ring.util.mime-type :as mime])
   (:import
-    (java.io InputStream StringReader)
-    (org.apache.commons.io.input NullReader)))
+    (java.io InputStream StringReader)))
 
 (defn ^:private fixture->upload [filename]
   {:content-type (mime/ext-mime-type filename)
@@ -19,15 +18,16 @@
                      io/input-stream)})
 
 (defn request [req apis]
-  (let [response (-> req
+  (let [body-str (pr-str (:body req))
+        response (-> req
                      (assoc :brainard/apis apis)
                      (set/rename-keys {:method :request-method})
                      (cond->
                        (:body req)
-                       (-> (update :body #(if (some? %)
-                                            (StringReader. (pr-str %))
-                                            (NullReader/nullReader)))
-                           (assoc-in [:headers "content-type"] "application/edn"))
+                       (-> (assoc :body (StringReader. body-str))
+                           (update :headers assoc
+                                   "content-type" "application/edn"
+                                   "content-length" (str (count body-str))))
 
                        (:multipart-params req)
                        (update-in [:multipart-params :files] fns/smap fixture->upload))
