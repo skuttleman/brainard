@@ -28,31 +28,3 @@ $ clj -M:test -m kaocha.runner
 ```bash
 $ make uberjar
 ```
-
-
-
-
-
-
-
-
-`(shadow/repl :dev)`
-
-
-- TESTS
-  - run cljc tests as cljs in browser (CI)
-  - searching
-  - buzzing
-  - notes edit page
-    - base editing
-    - todos
-    - scheduling
-    - history (with todos)
-    - reinstatement
-    - history again
-- refactor notes ::notes#sync (should have kept that)
-- <meter\> and <datalist\> HTML tags 
-- notes/timestamp -> update-at/created-at (max|min)
-- fulltext search with opensearch or something
-- save local first / sync later (when online)
-- dark mode
