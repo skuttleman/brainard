@@ -163,3 +163,74 @@
               (testing "renders alpha as the only root with beta and gamma as descendants"
                 (is (= 1 (count (root-nodes))))
                 (is (= 3 (count (eta/query-all driver {:css "li.node-item"}))))))))))))
+
+(deftest pinned-test
+  (ui-sys/with-system [driver base-url {fix "pinned.edn"}]
+    (letfn [(expand! [context]
+              (eta/click driver {:xpath (format "//strong[text()='%s']/following::button[1]" context)}))
+            (note-body-visible? [body]
+              (eta/visible? driver {:xpath (format "//span[contains(@class,'truncate') and text()='%s']" body)}))
+            (edit-link [note-id]
+              {:xpath (format "//li[@id='%s']//a[text()='edit']" note-id)})]
+      (let [note-id-1 (->> fix
+                           (filter (comp #{"Context 1"} :notes/context))
+                           first
+                           :notes/id)
+            note-id-2 (->> fix
+                           (filter (comp #{"Context 2"} :notes/context))
+                           first
+                           :notes/id)]
+        (testing "when visiting the home page"
+          (eta/go driver base-url)
+          (eta/wait-visible driver {:xpath "//h1/strong[text()='Pinned notes']"})
+
+          (testing "and when expanding Context 1"
+            (expand! "Context 1")
+
+            (testing "renders the correct Context 1 notes"
+              (eta/wait-visible driver (edit-link note-id-1))
+              (is (note-body-visible? "Note 1A"))
+              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 1B']"})))
+              (is (note-body-visible? "Note 1C")))
+
+            (testing "does not render Context 2 notes"
+              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 2A']"})))
+              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 2B']"}))))
+
+            (testing "does not render Context 3 notes"
+              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 3A']"}))))
+
+            (testing "can navigate to the note's edit page"
+              (eta/click driver (edit-link note-id-1))
+              (eta/wait-predicate #(re-find #"/notes/" (eta/get-url driver)))
+              (is (= (str base-url "/notes/" note-id-1)
+                     (eta/get-url driver)))
+              (eta/go driver base-url)
+              (eta/wait-visible driver {:xpath "//h1/strong[text()='Pinned notes']"})))
+
+          (testing "and when expanding Context 2"
+            (expand! "Context 2")
+
+            (testing "renders the correct Context 2 notes"
+              (eta/wait-visible driver (edit-link note-id-2))
+              (is (note-body-visible? "Note 2A"))
+              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 2B']"}))))
+
+            (testing "does not render Context 1 notes"
+              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 1A']"})))
+              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 1B']"})))
+              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 1C']"}))))
+
+            (testing "does not render Context 3 notes"
+              (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 3A']"}))))
+
+            (testing "can navigate to the note's edit page"
+              (eta/click driver (edit-link note-id-2))
+              (eta/wait-predicate #(re-find #"/notes/" (eta/get-url driver)))
+              (is (= (str base-url "/notes/" note-id-2)
+                     (eta/get-url driver)))
+              (eta/go driver base-url)
+              (eta/wait-visible driver {:xpath "//h1/strong[text()='Pinned notes']"})))
+
+          (testing "there is no section for Context 3"
+            (is (not (eta/exists? driver {:xpath "//strong[text()='Context 3']"})))))))))
