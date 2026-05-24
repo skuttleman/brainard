@@ -154,6 +154,25 @@
                                         event-ops
                                         event-ops
                                         event-ops))))
+            (reorder-node! [source-text after-text]
+              (let [event-ops "{bubbles: true, cancelable: true, view: window}"
+                    src-xpath (format node-item-selector-fmt source-text)
+                    tgt-xpath (format node-item-selector-fmt after-text)
+                    xpath-fn "const xpath = (q) => document.evaluate(q, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;"]
+                (eta/js-execute driver
+                                (str xpath-fn
+                                     "xpath(\"" src-xpath "\").dispatchEvent(new MouseEvent('mousedown', "
+                                     event-ops "));"))
+                (eta/wait-exists driver {:css "li:not(.node-item) > div[data-target]"})
+                (eta/js-execute driver
+                                (str xpath-fn
+                                     "const opts = " event-ops ";"
+                                     "const li = xpath(\"" tgt-xpath "\").closest('li.node-item');"
+                                     "li.nextElementSibling.querySelector('div[data-target]').dispatchEvent(new MouseEvent('mousemove', opts));"
+                                     "window.dispatchEvent(new MouseEvent('mouseup', opts));"))))
+            (node-order []
+              (->> (eta/query-all driver {:css "li.node-item span.layout--space-after > span[style]"})
+                   (map (comp string/trim (partial eta/get-element-text-el driver)))))
             (root-nodes []
               (eta/query-all driver {:css "div.drag-n-drop > ul.node-list > li.node-item"}))]
       (testing "when visiting the home page"
@@ -181,7 +200,22 @@
 
               (testing "renders alpha as the only root with beta and gamma as descendants"
                 (is (= 1 (count (root-nodes))))
-                (is (= 3 (count (eta/query-all driver {:css "li.node-item"}))))))))))))
+                (is (= 3 (count (eta/query-all driver {:css "li.node-item"})))))
+
+              (testing "and when adding a second child node to alpha"
+                (ws-edit! driver "alpha" "lni-plus")
+                (ws-submit! driver "delta")
+                (wait! driver "delta")
+
+                (testing "renders nodes in the correct order"
+                  (is (= ["alpha" "beta" "gamma" "delta"] (node-order))))
+
+                (testing "and when reordering beta after delta"
+                  (reorder-node! "beta" "delta")
+                  (eta/wait-predicate #(= ["alpha" "delta" "beta" "gamma"] (node-order)))
+
+                  (testing "renders nodes in the new order"
+                    (is (= ["alpha" "delta" "beta" "gamma"] (node-order)))))))))))))
 
 (deftest pinned-test
   (ui-sys/with-system [driver base-url {fix "pinned.edn"}]
@@ -355,7 +389,7 @@
           (testing "updates the browser url"
             (is (url-query? {:context "Context B"}))))))))
 
-(deftest ^:focus buzz-test
+(deftest buzz-test
   (ui-sys/with-system [driver base-url {buzz "buzz.edn"}]
     (let [note-id-2 (->> buzz
                          (filter (comp #{"Note 2"} :notes/body))

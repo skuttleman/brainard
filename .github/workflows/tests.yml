@@ -127,7 +127,7 @@ jobs:
       - name: Install sass
         run: npm install -g sass
       - name: Build uberjar
-        run: bin/build.sh
+        run: make uberjar
       - uses: browser-actions/setup-chrome@v2
         id: setup-chrome
         with:

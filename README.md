@@ -26,7 +26,7 @@ $ clj -M:test -m kaocha.runner
 ## Build
 
 ```bash
-$ ./bin/build.sh
+$ make uberjar
 ```
 
 
