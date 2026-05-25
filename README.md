@@ -11,7 +11,7 @@ their thoughts now, so they can forget them later.
 - Install [JDK](https://docs.oracle.com/en/java/javase/16/install/overview-jdk-installation.html#GUID-8677A77F-231A-40F7-98B9-1FD0B48C346A)
 - Install [Sass](https://sass-lang.com/install)
 
-## Dev
+## Run Dev App
 
 ```bash
 $ foreman start
@@ -20,10 +20,10 @@ $ foreman start
 ## Run Tests
 
 ```bash
-$ clj -M:test -m kaocha.runner
+$ make test
 ```
 
-## Build
+## Build Uberjar
 
 ```bash
 $ make uberjar

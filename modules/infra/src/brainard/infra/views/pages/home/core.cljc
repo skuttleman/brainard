@@ -57,7 +57,7 @@
         [:div.layout--space-after
          [comp/plain-button
           {:*:store  *:store
-           :class    ["is-info"]
+           :class    ["is-info" "note__create-button"]
            :commands [[:modals/create! edit-modal]]}
           "Create note"]]
         [tag-filter {:*:store *:store

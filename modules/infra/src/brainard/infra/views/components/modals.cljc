@@ -4,7 +4,12 @@
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.interfaces :as icomp]
     [brainard.infra.views.components.shared :as scomp]
+    [clojure.string :as string]
     [whet.utils.reagent :as r]))
+
+(defn ^:private modal-type->class [k]
+  (str (some-> (namespace k) (string/split #"\.") peek (str "__"))
+       (name k)))
 
 (defn ^:private close-modal! [*:store modal-id]
   (fn [_]
@@ -40,7 +45,8 @@
        {:class    [(case (:state modal)
                      :init "adding"
                      :hidden "removing"
-                     nil)]
+                     nil)
+                   (modal-type->class modal-type)]
         :style    {:padding-left inset
                    :padding-top  inset
                    :z-index      idx}
