@@ -26,32 +26,32 @@
     (eta/click driver q))
   (Thread/sleep 5))
 
-(defmulti ^{:arglists '([driver el val])} fill-field!
-          (fn [driver el _]
-            (eta/get-element-tag-el driver el)))
+(defmulti ^{:arglists '([driver q val])} fill-field!
+          (fn [driver q _]
+            (eta/get-element-tag driver q)))
 
 (defmethod fill-field! "input"
-  [driver el val]
-  (eta/clear-el driver el)
-  (eta/fill-el driver el val))
+  [driver q val]
+  (eta/clear driver q)
+  (eta/fill driver q val))
 
 (defmethod fill-field! "textarea"
-  [driver el val]
-  (eta/clear-el driver el)
-  (eta/fill-el driver el val))
+  [driver q val]
+  (eta/clear driver q)
+  (eta/fill driver q val))
 
 (defmethod fill-field! "select"
-  [driver el val]
-  (eta/click-el driver el)
-  (let [opt (eta/query-from-shadow-root-el driver el {:css (format "option[value='%s']" val)})]
+  [driver q val]
+  (click driver q)
+  (let [el (eta/query driver q)
+        opt (eta/query-from-shadow-root-el driver el {:css (format "option[value='%s']" val)})]
     (eta/click-el driver opt)))
 
 (defn fill-form! [driver form-selector field-vals]
   (eta/wait-visible driver {:css form-selector})
   (doseq [[label value] field-vals
-          :let [xpath (format "//*[@id=//label[text()='%s']/@for]" label)
-                el (eta/query driver {:xpath xpath})]]
-    (fill-field! driver el value)))
+          :let [xpath (format "//*[@id=//label[text()='%s']/@for]" label)]]
+    (fill-field! driver {:xpath xpath} value)))
 
 (defn submit-form! [driver form-selector field-vals]
   (fill-form! driver form-selector field-vals)
