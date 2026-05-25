@@ -1,6 +1,5 @@
 (ns brainard.infra.views.components.modals
   (:require
-    [brainard.api.utils.keywords :as kw]
     [brainard.infra.store.core :as store]
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.interfaces :as icomp]
