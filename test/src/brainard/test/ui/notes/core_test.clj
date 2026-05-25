@@ -12,7 +12,7 @@
       (eta/wait-visible driver {:css "h1.pinned-notes"})
 
       (testing "and when clicking the create note button"
-        (ui-utils/click driver {:css "button.is-info"})
+        (ui-utils/click driver {:css "button.note__create-button"})
         (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
         (testing "opens the create note modal"
@@ -106,7 +106,7 @@
                                "This note and all related schedules will be deleted")))
 
           (testing "and when confirming the delete"
-            (ui-utils/click driver {:css ".modal-container.is-active button.is-info"})
+            (ui-utils/click driver {:css ".modal-container.is-active button.note__confirm-delete"})
             (eta/wait-invisible driver {:css ".modal-container.is-active"})
 
             (testing "redirects to home page"

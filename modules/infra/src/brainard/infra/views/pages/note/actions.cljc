@@ -70,6 +70,7 @@
 (defn ->delete-modal [{note-id :notes/id}]
   [:modals/sure?
    {:description  "This note and all related schedules will be deleted"
+    :ok-btn-class ["note__confirm-delete"]
     :yes-commands [[::res/submit!
                     [::specs/notes#destroy note-id]
                     {:ok-commands  [[:toasts/succeed! {:message "note deleted"}]

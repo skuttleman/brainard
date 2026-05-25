@@ -132,11 +132,11 @@
                          :commands [[:modals/create! (note.act/->edit-modal note)]]}
       "Edit"]
      [comp/plain-button {:*:store  *:store
-                         :class    ["is-danger"]
+                         :class    ["is-danger" "note__delete-button"]
                          :commands [[:modals/create! (note.act/->delete-modal note)]]}
       "Delete note"]]
     [comp/plain-button {:*:store  *:store
-                        :class    ["is-light"]
+                        :class    ["is-light" "note__history-button"]
                         :commands [[:modals/create! [::note.history/modal {:note note}]]]}
      "View history"]]
    [schedule-editor *:store note]])

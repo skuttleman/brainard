@@ -14,7 +14,7 @@
         (eta/wait-visible driver {:css "h1.pinned-notes"})
 
         (testing "and when clicking the create note button"
-          (ui-utils/click driver {:css "button.is-info"})
+          (ui-utils/click driver {:css "button.note__create-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
           (testing "and when creating a note"
@@ -91,7 +91,7 @@
         (eta/wait-visible driver {:css "h1.pinned-notes"})
 
         (testing "and when creating a note with an attachment"
-          (ui-utils/click driver {:css "button.is-info"})
+          (ui-utils/click driver {:css "button.note__create-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
           (ui-utils/fill-form! driver ".modal-container.is-active form.form"
                                {"Topic" "Edit Attachment Test"
@@ -140,3 +140,54 @@
                   (testing "persists the attachment name change"
                     (eta/wait-visible driver {:css ".attachment-list"})
                     (is (eta/has-text? driver {:css ".attachment-list"} "renamed-attachment.txt"))))))))))))
+
+(deftest remove-attachment-test
+  (ui-sys/with-system [driver base-url]
+    (let [fixture-path (-> "fixtures/sample.txt" io/resource .getPath)]
+      (testing "when visiting the home page"
+        (eta/go driver base-url)
+        (eta/wait-visible driver {:css "h1.pinned-notes"})
+
+        (testing "and when creating a note with two attachments"
+          (ui-utils/click driver {:css "button.note__create-button"})
+          (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
+          (ui-utils/fill-form! driver ".modal-container.is-active form.form"
+                               {"Topic" "Remove Attachment Test"
+                                "Body"  "Note with multiple attachments"})
+          (let [file-input (eta/query driver {:css ".modal-container.is-active input[type='file']"})]
+            (eta/fill-el driver file-input fixture-path))
+          (eta/wait-visible driver {:css "ul.attachment-list li"})
+          (let [file-input (eta/query driver {:css ".modal-container.is-active input[type='file']"})]
+            (eta/fill-el driver file-input fixture-path))
+          (eta/wait-visible driver {:css "ul.attachment-list li + li"})
+
+          (testing "and when saving the note"
+            (ui-utils/click driver {:css ".modal-container.is-active button.submit"})
+            (eta/wait-invisible driver {:css ".modal-container.is-active"})
+
+            (testing "and when navigating to the created note"
+              (eta/wait-visible driver {:css ".context-group[data-context='Remove Attachment Test']"})
+              (ui-utils/click driver {:css ".context-group[data-context='Remove Attachment Test'] .expand-context"})
+              (eta/wait-visible driver {:css "a[href*='/notes/']"})
+              (ui-utils/click driver {:css ".context-group[data-context='Remove Attachment Test'] a[href*='/notes/']"})
+              (eta/wait-visible driver {:css ".attachment-list"})
+
+              (testing "displays both attachments"
+                (is (= 2 (count (eta/query-all driver {:css ".attachment-list li"})))))
+
+              (testing "and when clicking the edit button"
+                (ui-utils/click driver {:css "button.note__edit-button"})
+                (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
+
+                (testing "and when removing an attachment"
+                  (ui-utils/click driver {:css "li.attachment i.lni-trash-can"})
+                  (testing "removes the attachment from the form"
+                    (is (= 1 (count (eta/query-all driver {:css ".modal-container.is-active .attachment-list li"})))))
+
+                  (testing "and when saving the note"
+                    (ui-utils/click driver {:css ".modal-container.is-active button.submit"})
+                    (eta/wait-invisible driver {:css ".modal-container.is-active"}))
+
+                  (testing "persists the removal"
+                    (eta/wait-visible driver {:css ".attachment-list"})
+                    (is (= 1 (count (eta/query-all driver {:css ".attachment-list li"}))))))))))))))
