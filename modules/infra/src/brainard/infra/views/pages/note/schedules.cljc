@@ -77,9 +77,16 @@
                                 [:span (dates/to-iso-datetime-min-precision v)]]
     nil))
 
+(def ^:private schedule-order
+  {:schedules/day              0
+   :schedules/weekday          1
+   :schedules/month            2
+   :schedules/week-index       3
+   :schedules/after-timestamp  4
+   :schedules/before-timestamp 5})
+
 (defn schedule-parts [form-data]
   (->> form-data
-       (sort-by key)
+       (sort-by (comp schedule-order key))
        (keep ->schedule-part)
-       reverse
        seq))
