@@ -90,4 +90,5 @@
 (defn ->delete-sched-modal [sched-id note]
   [:modals/sure?
    {:description  "This schedule will be deleted"
+    :ok-btn-class ["delete-schedule"]
     :yes-commands [[::res/submit! [::schedules#destroy sched-id] note]]}])

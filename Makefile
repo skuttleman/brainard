@@ -19,7 +19,4 @@ uberjar: clean build-sass build-js
 	clojure -T:build uber
 
 test: clean build-sass build-js
-	clojure -M:test -m kaocha.runner
-
-verify: test
-	HEADLESS=true clojure -M:test -m kaocha.runner :ui
+	HEADLESS=true clojure -M:test -m kaocha.runner

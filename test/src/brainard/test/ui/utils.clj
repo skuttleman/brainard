@@ -23,13 +23,19 @@
 
 (defn click [driver q]
   (with-retry 3
-    (eta/click driver q)))
+    (eta/click driver q))
+  (Thread/sleep 5))
 
 (defmulti ^{:arglists '([driver el val])} fill-field!
           (fn [driver el _]
             (eta/get-element-tag-el driver el)))
 
 (defmethod fill-field! "input"
+  [driver el val]
+  (eta/clear-el driver el)
+  (eta/fill-el driver el val))
+
+(defmethod fill-field! "textarea"
   [driver el val]
   (eta/clear-el driver el)
   (eta/fill-el driver el val))

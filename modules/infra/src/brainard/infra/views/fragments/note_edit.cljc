@@ -41,17 +41,18 @@
 
 (defn ^:private body-field [{:keys [*:store form+]}]
   (let [form-data (forms/data form+)]
-    [:<>
-     [:label.label "Body"]
-     [:div {:style {:margin-top 0}}
-      (if (::preview? form-data)
+    [:div {:style {:margin-top 0}}
+     (if (::preview? form-data)
+       [:<>
+        [:label.label "Body"]
         [:div.expanded
-         [comp/markdown (:notes/body form-data)]]
-        [ctrls/textarea (-> {:style       {:font-family :monospace
-                                           :min-height  "250px"}
-                             :*:store     *:store
-                             :auto-focus? (some? (:notes/context form-data))}
-                            (ctrls/with-attrs form+ [:notes/body]))])]]))
+         [comp/markdown (:notes/body form-data)]]]
+       [ctrls/textarea (-> {:style       {:font-family :monospace
+                                          :min-height  "250px"}
+                            :label       "Body"
+                            :*:store     *:store
+                            :auto-focus? (some? (:notes/context form-data))}
+                           (ctrls/with-attrs form+ [:notes/body]))])]))
 
 (defn ^:private progress-bar [{:keys [loaded status total]}]
   (let [height "4px"
@@ -214,7 +215,7 @@
 
 (defmethod icomp/modal-header ::modal
   [_ {:keys [header]}]
-  header)
+  [:h1.note__modal-header header])
 
 (defmethod icomp/modal-body ::modal
   [*:store {modal-id :modals/id :modals/keys [close!] :keys [init params resource-key]}]
@@ -230,7 +231,8 @@
                  :sub:contexts sub:contexts
                  :sub:tags     sub:tags
                  :submit/body  "Save"
-                 :buttons      [[comp/plain-button {:on-click close!}
+                 :buttons      [[comp/plain-button {:class    ["cancel"]
+                                                    :on-click close!}
                                  "Cancel"]]}]]
     (finally
       (store/emit! *:store [::forms+/destroyed resource-key]))))
