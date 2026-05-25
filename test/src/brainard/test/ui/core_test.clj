@@ -6,7 +6,7 @@
     [clojure.test :refer [deftest is testing]]
     [etaoin.api :as eta]
     [whet.utils.navigation :as nav])
-  (:import (java.time LocalDate)))
+  (:import (java.time ZonedDateTime ZoneOffset)))
 
 (def ^:private ^:const node-item-selector-fmt
   "//li[contains(@class,'node-item')]//span[text()='%s']")
@@ -297,15 +297,15 @@
   (ui-sys/with-system [driver base-url {_ "search.edn"}]
     (letfn [(go-to-search! []
               (eta/go driver (str base-url "/search"))
-              (eta/wait-visible driver {:css "form.form"}))
+             (eta/wait-visible driver {:css "form.search-form"}))
             (open-dropdown! [label]
-              (ui-utils/click driver {:xpath (format "//label[text()='%s']/..//button" label)})
+              (ui-utils/click driver {:css (format ".form-field[data-field-label='%s'] button" label)})
               (eta/wait-visible driver {:css "ul.dropdown-items"}))
             (pick-option! [item-text]
               (let [fmt "//ul[contains(@class,'dropdown-items')]//span[text()='%s']"]
                 (ui-utils/click driver {:xpath (format fmt item-text)})))
             (search! []
-              (ui-utils/click driver {:css "form.form button.submit"})
+              (ui-utils/click driver {:css "form.search-form button.submit"})
               (Thread/sleep 10)
               (eta/wait-visible driver {:css "ul.search-results"}))
             (url-query? [qp]
@@ -395,7 +395,7 @@
                          (filter (comp #{"Note 2"} :notes/body))
                          first
                          :notes/id)
-          day-of-the-week (-> (LocalDate/now)
+          day-of-the-week (-> (ZonedDateTime/now ZoneOffset/UTC)
                               .getDayOfWeek
                               .name
                               string/lower-case

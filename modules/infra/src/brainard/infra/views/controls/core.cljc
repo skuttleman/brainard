@@ -81,7 +81,7 @@
         [:li {:class [(name type)]}
          item])])))
 
-(defn ^:private form-field [{:keys [changed? errors form-field-class inline? warnings] :as attrs} & body]
+(defn ^:private form-field [{:keys [changed? errors form-field-class inline? label warnings] :as attrs} & body]
   (let [errors (seq (remove nil? errors))]
     [:div.form-field
      (cond-> {:class (cond-> (into [] form-field-class)
@@ -89,7 +89,8 @@
                        warnings (conj "warnings")
                        changed? (conj "is-changed")
                        inline? (conj "flex" "row"))}
-       inline? (assoc :style {:align-items :center}))
+       inline? (assoc :style {:align-items :center})
+       label (assoc :data-field-label label))
      [:<>
       [form-field-label attrs]
       (into [:div.form-field-control] body)]
