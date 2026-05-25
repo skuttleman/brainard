@@ -90,12 +90,15 @@
                                                          ::ws/children  :children}))))
                  ws-nodes))
 
-(defn ^:private icon-button [*:store modal icon]
-  [comp/plain-button {:*:store  *:store
-                      :commands [[:modals/create! modal]]
-                      :class    ["is-small" "is-white"]
-                      :style    {:padding 0 :height "2em"}}
-   [comp/icon (when (= :trash-can icon) {:class ["is-danger"]}) icon]])
+(defn ^:private icon-button
+  ([*:store modal icon] (icon-button *:store modal icon nil))
+  ([*:store modal icon extra-class]
+   [comp/plain-button {:*:store  *:store
+                       :commands [[:modals/create! modal]]
+                       :class    (cond-> ["is-small" "is-white"]
+                                   extra-class (conj extra-class))
+                       :style    {:padding 0 :height "2em"}}
+    [comp/icon (when (= :trash-can icon) {:class ["is-danger"]}) icon]]))
 
 (defmethod home.act/drag-item :static
   [*:store {:keys [on-drag-begin]} node]
@@ -140,7 +143,7 @@
     [:section.box
      [:h1.workspace {:style {:font-size "1.5rem"}} [:strong "Workspace"]]
      [dnd/control dnd-attrs (->tree ws-nodes)]
-     [icon-button *:store home.act/create-modal :plus]]))
+     [icon-button *:store home.act/create-modal :plus "add-root-node"]]))
 
 (defmethod ipages/page :routes.ui/home
   [*:store route-info]

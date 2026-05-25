@@ -74,6 +74,7 @@
 (defn ->delete-modal [node]
   [:modals/sure?
    {:description  "This node and all ancestors will be deleted"
+    :ok-btn-class ["delete-node"]
     :yes-commands [[::res/submit!
                     [::specs/workspace#destroy (::ws/id node)]
                     {:ok-commands  [[::res/submit! [::specs/workspace#select]]]

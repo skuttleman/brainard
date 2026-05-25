@@ -74,11 +74,11 @@
         (eta/go driver base-url)
 
         (testing "renders the empty workspace"
-          (eta/wait-visible driver {:xpath "//h1/strong[text()='Workspace']"})
+          (eta/wait-visible driver {:css "h1.workspace"})
           (is (empty? (eta/query-all driver {:css "li.node-item"}))))
 
         (testing "and when creating a workspace root node"
-          (ui-utils/click driver {:css "div.drag-n-drop + button"})
+          (ui-utils/click driver {:css ".drag-n-drop + .add-root-node"})
           (ws-submit! driver "root node")
 
           (testing "renders the updated workspace"
@@ -115,13 +115,13 @@
 
                 (testing "renders the updated workspace"
                   (wait! driver "updated child")
-                  (is (not (eta/exists? driver {:xpath "//span[contains(@class,'truncate') and text()='Note 1B']"})))
+                  (is (not (eta/exists? driver {:xpath "//span[text()='Note 1B']"})))
                   (is (node-absent? "child node")))
 
                 (testing "and when deleting the updated child"
                   (ws-edit! driver "updated child" "lni-trash-can")
                   (eta/wait-visible driver {:css ".modal-container.is-active .modal-item"})
-                  (ui-utils/click driver {:css ".modal-container.is-active button.is-info"})
+                  (ui-utils/click driver {:css ".modal-container.is-active button.delete-node"})
 
                   (testing "renders the updated workspace"
                     (eta/wait-predicate #(node-absent? "updated child"))

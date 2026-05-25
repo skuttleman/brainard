@@ -150,11 +150,11 @@
   "Are you sure?")
 
 (defmethod icomp/modal-body :modals/sure?
-  [*:store {:modals/keys [close!] :keys [description no-commands yes-commands]}]
+  [*:store {:modals/keys [close!] :keys [description no-commands ok-btn-class yes-commands]}]
   [:div.layout--stack-between
    [:p description]
    [:div.layout--room-between
-    [plain-button {:class       ["is-info"]
+    [plain-button {:class       (into ["is-info"] ok-btn-class)
                    :auto-focus? true
                    :on-click    (fn [e]
                                   (run! (partial store/dispatch! *:store) yes-commands)
