@@ -99,6 +99,14 @@ jobs:
             ~/.m2
             ~/.gitlibs
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - uses: browser-actions/setup-chrome@v2
+        id: setup-chrome
+        with:
+          chrome-version: 148
+          install-chromedriver: true
       - name: Run clojurescript unit tests
         run: |
           make build-test-cljs
