@@ -75,9 +75,10 @@
      (when (seq children)
        [node-list attrs (:children node)])]))
 
-(defn ^:private node-list [{:keys [sub:form] :as attrs} nodes]
-  (let [{::keys [drag-id target-id]} (forms/data @sub:form)]
-    [:ul.node-list
+(defn ^:private node-list [{:keys [root? sub:form] :as attrs} nodes]
+  (let [{::keys [drag-id target-id]} (forms/data @sub:form)
+        attrs (dissoc attrs :root?)]
+    [:ul {:class (cond-> ["node-list"] root? (conj "root-node-list"))}
      (for [[idx {node-id :id :keys [parent-id] :as node}] (map-indexed vector nodes)
            :let [dragging? (= node-id drag-id)]
            [pos :as target] (cond-> [[:at node-id]]
@@ -106,7 +107,7 @@
     (let [{::keys [drag-id]} (forms/data @sub:form)]
       [:div.drag-n-drop {:on-mouse-leave (when drag-id
                                            (->mouse-leave *:store form-id))}
-       [node-list (assoc attrs :sub:form sub:form :*:pos *:pos) nodes]])
+       [node-list (assoc attrs :sub:form sub:form :*:pos *:pos :root? true) nodes]])
     (finally
       (dom/remove-listener! mouse-move)
       (dom/remove-listener! mouse-up)

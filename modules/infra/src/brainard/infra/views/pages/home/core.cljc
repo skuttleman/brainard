@@ -111,7 +111,7 @@
         delete-modal (home.act/->delete-modal node)]
     [:div.layout--row
      [:span.layout--space-after {:on-mouse-down on-drag-begin}
-      [:span {:style {:cursor :grab}} (::ws/content node)]]
+      [:span.node-content {:style {:cursor :grab}} (::ws/content node)]]
      [:span.layout--space-after
       [icon-button *:store modify-modal :pencil]]
      [:span.layout--space-after

@@ -163,7 +163,7 @@
                                 (str xpath-fn
                                      "xpath(\"" src-xpath "\").dispatchEvent(new MouseEvent('mousedown', "
                                      event-ops "));"))
-                (eta/wait-exists driver {:css "li:not(.node-item) > div[data-target]"})
+                (eta/wait-exists driver {:css "*[data-target]"})
                 (eta/js-execute driver
                                 (str xpath-fn
                                      "const opts = " event-ops ";"
@@ -171,19 +171,19 @@
                                      "li.nextElementSibling.querySelector('div[data-target]').dispatchEvent(new MouseEvent('mousemove', opts));"
                                      "window.dispatchEvent(new MouseEvent('mouseup', opts));"))))
             (node-order []
-              (->> (eta/query-all driver {:css "li.node-item span.layout--space-after > span[style]"})
+              (->> (eta/query-all driver {:css "li.node-item .node-content"})
                    (map (comp string/trim (partial eta/get-element-text-el driver)))))
             (root-nodes []
-              (eta/query-all driver {:css "div.drag-n-drop > ul.node-list > li.node-item"}))]
+              (eta/query-all driver {:css ".root-node-list > li.node-item"}))]
       (testing "when visiting the home page"
         (eta/go driver base-url)
         (testing "and when creating a root node"
-          (ui-utils/click driver {:css "div.drag-n-drop + button"})
+          (ui-utils/click driver {:css ".drag-n-drop + .add-root-node"})
           (ws-submit! driver "alpha")
           (wait! driver "alpha")
 
           (testing "and when creating another root node with a child"
-            (ui-utils/click driver {:css "div.drag-n-drop + button"})
+            (ui-utils/click driver {:css ".drag-n-drop + .add-root-node"})
             (ws-submit! driver "beta")
             (wait! driver "beta")
             (ws-edit! driver "beta" "lni-plus")
