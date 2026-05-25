@@ -23,7 +23,8 @@
 
 (defn click [driver q]
   (with-retry 3
-    (eta/click driver q)))
+    (eta/click driver q))
+  (Thread/sleep 5))
 
 (defmulti ^{:arglists '([driver el val])} fill-field!
           (fn [driver el _]

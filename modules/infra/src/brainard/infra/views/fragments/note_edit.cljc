@@ -231,7 +231,8 @@
                  :sub:contexts sub:contexts
                  :sub:tags     sub:tags
                  :submit/body  "Save"
-                 :buttons      [[comp/plain-button {:on-click close!}
+                 :buttons      [[comp/plain-button {:class    ["cancel"]
+                                                    :on-click close!}
                                  "Cancel"]]}]]
     (finally
       (store/emit! *:store [::forms+/destroyed resource-key]))))

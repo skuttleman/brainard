@@ -128,7 +128,7 @@
    [:div.layout--space-between
     [:div.button-row
      [comp/plain-button {:*:store  *:store
-                         :class    ["is-info"]
+                         :class    ["is-info" "note__edit-button"]
                          :commands [[:modals/create! (note.act/->edit-modal note)]]}
       "Edit"]
      [comp/plain-button {:*:store  *:store
