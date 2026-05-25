@@ -122,9 +122,7 @@
               (testing "and when editing the attachment name"
                 (ui-utils/click driver {:css "li.attachment i.lni-pencil"})
                 (eta/wait-visible driver {:css ".modal-container.is-active .note-edit__attachment-name"})
-                (ui-utils/fill-field! driver
-                                      {:xpath "//*[@id=//label[text()='Attachment name']/@for]"}
-                                      "renamed-attachment.txt")
+                (ui-utils/fill-field! driver "Attachment name" "renamed-attachment.txt")
                 (ui-utils/click driver {:css ".note-edit__attachment-name button.submit"})
                 (eta/wait-invisible driver {:css ".modal-container.is-active .note-edit__attachment-name"})
 

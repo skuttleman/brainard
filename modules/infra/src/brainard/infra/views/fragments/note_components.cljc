@@ -112,7 +112,8 @@
    (when label?
      [:label.label "TODOs:"])
    (when on-create
-     [comp/plain-button {:on-click #(on-create)}
+     [comp/plain-button {:on-click #(on-create)
+                         :class ["note__create-todo-button"]}
       "Create TODO..."])
    [:ul.todo-list
     (for [{todo-id :todos/id :as todo} (sort-by (juxt (complement :todos/completed?) :todos/id) value)]
