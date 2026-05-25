@@ -53,18 +53,18 @@
   [:div
    (if-let [scheds (seq (:notes/schedules note))]
      [:<>
-      [:p.existing-schedules [:em "Existing schedules"]]
-      [:ul.layout--stack-between
+      [:p.schedules__header [:em "Existing schedules"]]
+      [:ul.layout--stack-between.schedules__items
        (for [{sched-id :schedules/id :as sched} scheds
              :let [modal (note.act/->delete-sched-modal sched-id note)]]
          ^{:key sched-id}
-         [:li.layout--room-between.layout--align-center.space--left
+         [:li.layout--room-between.layout--align-center.space--left.schedules__item
           [comp/plain-button {:*:store  *:store
-                              :class    ["is-danger" "is-light" "is-small"]
+                              :class    ["is-danger" "is-light" "is-small" "schedules__delete"]
                               :commands [[:modals/create! modal]]}
            [comp/icon :trash-can]]
           [schedule-item sched]])]]
-     [:p.no-schedules [:em "no related schedules"]])])
+     [:p.schedules__empty [:em "no related schedules"]])])
 
 (defn ^:private schedule-form [{:keys [*:store sub:form+]}]
   (let [form+ @sub:form+]
