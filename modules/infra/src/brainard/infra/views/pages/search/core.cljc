@@ -41,7 +41,8 @@
 
 (defn ^:private search-form [{:keys [*:store form+] :as attrs} contexts tags]
   (let [form-data (forms/data form+)]
-    [ctrls/plain-form {:on-submit   (fn [_]
+    [ctrls/plain-form {:class       ["search-form"]
+                       :on-submit   (fn [_]
                                       (store/dispatch! *:store [::w/with-qp! form-data]))
                        :submit/body "Search"}
      [:div.layout--room-between

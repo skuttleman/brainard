@@ -17,13 +17,14 @@
     [whet.utils.reagent :as r]
     [workspace-nodes :as-alias ws]))
 
-(defn ^:private collapsible [{:keys [*:store expanded? expand]} label & content]
-  (cond-> [:div [:div.layout--row
-                 [:div.layout--space-after label]
-                 [comp/plain-button {:*:store *:store
-                                     :class   ["is-small" "is-white"]
-                                     :events  [expand]}
-                  [comp/icon (if expanded? :chevron-up :chevron-down)]]]]
+(defn ^:private collapsible [{:keys [*:store expanded? expand context]} label & content]
+  (cond-> [:div (when context {:class ["context-group"] :data-context context})
+           [:div.layout--row
+            [:div.layout--space-after label]
+            [comp/plain-button {:*:store *:store
+                                :class   ["is-small" "is-white" "expand-context"]
+                                :events  [expand]}
+             [comp/icon (if expanded? :chevron-up :chevron-down)]]]]
     expanded? (into content)))
 
 (defn ^:private tag-filter [{:keys [*:store form]} tags]
@@ -51,7 +52,7 @@
                                  pinned-notes)
           edit-modal (home.act/->note-edit-modal expanded tag-filters)]
       [:section.box
-       [:h1 {:style {:font-size "1.5rem"}} [:strong "Pinned notes"]]
+       [:h1.pinned-notes {:style {:font-size "1.5rem"}} [:strong "Pinned notes"]]
        [:div.layout--row
         [:div.layout--space-after
          [comp/plain-button
@@ -68,6 +69,7 @@
                      next-context (when-not expanded? context)]]
            ^{:key context}
            [collapsible {:*:store   *:store
+                         :context   context
                          :expanded? expanded?
                          :expand    [::forms/changed form-id [::expanded] next-context]}
             [:strong context]
@@ -90,12 +92,15 @@
                                                          ::ws/children  :children}))))
                  ws-nodes))
 
-(defn ^:private icon-button [*:store modal icon]
-  [comp/plain-button {:*:store  *:store
-                      :commands [[:modals/create! modal]]
-                      :class    ["is-small" "is-white"]
-                      :style    {:padding 0 :height "2em"}}
-   [comp/icon (when (= :trash-can icon) {:class ["is-danger"]}) icon]])
+(defn ^:private icon-button
+  ([*:store modal icon] (icon-button *:store modal icon nil))
+  ([*:store modal icon extra-class]
+   [comp/plain-button {:*:store  *:store
+                       :commands [[:modals/create! modal]]
+                       :class    (cond-> ["is-small" "is-white"]
+                                   extra-class (conj extra-class))
+                       :style    {:padding 0 :height "2em"}}
+    [comp/icon (when (= :trash-can icon) {:class ["is-danger"]}) icon]]))
 
 (defmethod home.act/drag-item :static
   [*:store {:keys [on-drag-begin]} node]
@@ -108,7 +113,7 @@
         delete-modal (home.act/->delete-modal node)]
     [:div.layout--row
      [:span.layout--space-after {:on-mouse-down on-drag-begin}
-      [:span {:style {:cursor :grab}} (::ws/content node)]]
+      [:span.node-content {:style {:cursor :grab}} (::ws/content node)]]
      [:span.layout--space-after
       [icon-button *:store modify-modal :pencil]]
      [:span.layout--space-after
@@ -138,9 +143,9 @@
 (defn ^:private workspace [*:store ws-nodes]
   (r/with-let [dnd-attrs (home.act/->dnd-form-attrs *:store)]
     [:section.box
-     [:h1 {:style {:font-size "1.5rem"}} [:strong "Workspace"]]
+     [:h1.workspace {:style {:font-size "1.5rem"}} [:strong "Workspace"]]
      [dnd/control dnd-attrs (->tree ws-nodes)]
-     [icon-button *:store home.act/create-modal :plus]]))
+     [icon-button *:store home.act/create-modal :plus "add-root-node"]]))
 
 (defmethod ipages/page :routes.ui/home
   [*:store route-info]

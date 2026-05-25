@@ -53,7 +53,7 @@
   [:div
    (if-let [scheds (seq (:notes/schedules note))]
      [:<>
-      [:p [:em "Existing schedules"]]
+      [:p.existing-schedules [:em "Existing schedules"]]
       [:ul.layout--stack-between
        (for [{sched-id :schedules/id :as sched} scheds
              :let [modal (note.act/->delete-sched-modal sched-id note)]]
@@ -64,11 +64,12 @@
                               :commands [[:modals/create! modal]]}
            [comp/icon :trash-can]]
           [schedule-item sched]])]]
-     [:p [:em "no related schedules"]])])
+     [:p.no-schedules [:em "no related schedules"]])])
 
 (defn ^:private schedule-form [{:keys [*:store sub:form+]}]
   (let [form+ @sub:form+]
     [ctrls/form {:*:store      *:store
+                 :class        ["schedule-form"]
                  :form+        form+
                  :horizontal?  true
                  :changed?     (forms/changed? form+)
