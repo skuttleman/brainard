@@ -34,6 +34,11 @@
   (eta/clear-el driver el)
   (eta/fill-el driver el val))
 
+(defmethod fill-field! "textarea"
+  [driver el val]
+  (eta/clear-el driver el)
+  (eta/fill-el driver el val))
+
 (defmethod fill-field! "select"
   [driver el val]
   (eta/click-el driver el)

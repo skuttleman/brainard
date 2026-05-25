@@ -5,6 +5,39 @@
     [clojure.test :refer [deftest is testing]]
     [etaoin.api :as eta]))
 
+(deftest create-note-test
+  (ui-sys/with-system [driver base-url]
+    (testing "when visiting the home page"
+      (eta/go driver base-url)
+      (eta/wait-visible driver {:css "h1.pinned-notes"})
+
+      (testing "and when clicking the create note button"
+        (ui-utils/click driver {:css "button.is-info"})
+        (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
+
+        (testing "opens the create note modal"
+          (is (eta/exists? driver {:css ".modal-container.is-active h1.note__create"}))
+          (is (= "Create note" (eta/get-element-text driver {:css ".modal-container.is-active h1.note__create"}))))
+
+        (testing "and when filling in the note details"
+          (ui-utils/submit-form! driver
+                                 ".modal-container.is-active form.form"
+                                 {"Topic" "Test Context"
+                                  "Body"  "This is a test note created during UI testing"})
+          (eta/wait-invisible driver {:css ".modal-container.is-active"})
+
+          (testing "creates the note and closes the modal"
+            (is (not (eta/exists? driver {:css ".modal-container.is-active"}))))
+
+          (testing "and when expanding the context group"
+            (eta/wait-visible driver {:css ".context-group[data-context='Test Context']"})
+            (ui-utils/click driver {:css ".context-group[data-context='Test Context'] .expand-context"})
+
+            (testing "the note appears in the pinned notes section"
+              (is (eta/has-text? driver
+                                 {:css ".context-group[data-context='Test Context']"}
+                                 "This is a test note created during UI testing")))))))))
+
 (deftest schedules-test
   (ui-sys/with-system [driver base-url {fix "buzz.edn"}]
     (let [note-sched-id (->> fix
