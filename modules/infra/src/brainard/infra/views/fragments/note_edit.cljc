@@ -215,7 +215,7 @@
 
 (defmethod icomp/modal-header ::modal
   [_ {:keys [header]}]
-  [:h1.note__create header])
+  [:h1.note__modal-header header])
 
 (defmethod icomp/modal-body ::modal
   [*:store {modal-id :modals/id :modals/keys [close!] :keys [init params resource-key]}]

@@ -16,8 +16,8 @@
         (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
         (testing "opens the create note modal"
-          (is (eta/exists? driver {:css ".modal-container.is-active h1.note__create"}))
-          (is (= "Create note" (eta/get-element-text driver {:css ".modal-container.is-active h1.note__create"}))))
+          (is (eta/exists? driver {:css ".modal-container.is-active h1.note__modal-header"}))
+          (is (= "Create note" (eta/get-element-text driver {:css ".modal-container.is-active h1.note__modal-header"}))))
 
         (testing "and when filling in the note details"
           (ui-utils/submit-form! driver
@@ -37,6 +37,46 @@
               (is (eta/has-text? driver
                                  {:css ".context-group[data-context='Test Context']"}
                                  "This is a test note created during UI testing")))))))))
+
+(deftest edit-note-test
+  (ui-sys/with-system [driver base-url {fix "buzz.edn"}]
+    (let [note-id (-> fix first :notes/id)]
+      (testing "when visiting a note"
+        (eta/go driver (str base-url "/notes/" note-id))
+        (eta/wait-visible driver {:css "h1.layout--space-after"})
+
+        (testing "and when clicking the edit button"
+          (ui-utils/click driver {:css "button.is-info"})
+          (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
+
+          (testing "opens the edit note modal"
+            (is (eta/exists? driver {:css ".modal-container.is-active h1.note__modal-header"}))
+            (is (= "Edit note" (eta/get-element-text driver {:css ".modal-container.is-active h1.note__modal-header"}))))
+
+          (testing "and when cancelling the edit"
+            (ui-utils/click driver {:css ".modal-container.is-active button:not(.submit)"})
+
+            (testing "closes the modal without saving"
+              (eta/wait-invisible driver {:css ".modal-container.is-active"})
+              (is (not (eta/exists? driver {:css ".modal-container.is-active"})))))
+
+          (testing "and when making a change"
+            (ui-utils/click driver {:css "button.is-info"})
+            (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
+
+            (testing "and when saving the changes"
+              (let [textarea (eta/query driver {:css "textarea"})
+                    current-body (eta/get-element-text-el driver textarea)]
+                (eta/clear-el driver textarea)
+                (eta/fill-el driver textarea (str current-body " [edited]"))
+                (ui-utils/click driver {:css ".modal-container.is-active button.submit"})
+
+                (testing "closes the modal"
+                  (eta/wait-invisible driver {:css ".modal-container.is-active"})
+                  (is (not (eta/exists? driver {:css ".modal-container.is-active"}))))
+
+                (testing "has the changes"
+                  (is (eta/has-text? driver {:css ".content"} "[edited]")))))))))))
 
 (deftest schedules-test
   (ui-sys/with-system [driver base-url {fix "buzz.edn"}]
