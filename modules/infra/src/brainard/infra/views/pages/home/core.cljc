@@ -17,13 +17,14 @@
     [whet.utils.reagent :as r]
     [workspace-nodes :as-alias ws]))
 
-(defn ^:private collapsible [{:keys [*:store expanded? expand]} label & content]
-  (cond-> [:div [:div.layout--row
-                 [:div.layout--space-after label]
-                 [comp/plain-button {:*:store *:store
-                                     :class   ["is-small" "is-white"]
-                                     :events  [expand]}
-                  [comp/icon (if expanded? :chevron-up :chevron-down)]]]]
+(defn ^:private collapsible [{:keys [*:store expanded? expand context]} label & content]
+  (cond-> [:div (when context {:class ["context-group"] :data-context context})
+           [:div.layout--row
+            [:div.layout--space-after label]
+            [comp/plain-button {:*:store *:store
+                                :class   ["is-small" "is-white" "expand-context"]
+                                :events  [expand]}
+             [comp/icon (if expanded? :chevron-up :chevron-down)]]]]
     expanded? (into content)))
 
 (defn ^:private tag-filter [{:keys [*:store form]} tags]
@@ -68,6 +69,7 @@
                      next-context (when-not expanded? context)]]
            ^{:key context}
            [collapsible {:*:store   *:store
+                         :context   context
                          :expanded? expanded?
                          :expand    [::forms/changed form-id [::expanded] next-context]}
             [:strong context]

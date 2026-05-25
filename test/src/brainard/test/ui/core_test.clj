@@ -220,13 +220,13 @@
 (deftest pinned-test
   (ui-sys/with-system [driver base-url {fix "pinned.edn"}]
     (letfn [(expand! [context]
-              (let [xpath (format "//strong[text()='%s']/following::button[1]" context)]
-                (ui-utils/click driver {:xpath xpath})))
-            (note-body-visible? [body]
-              (let [xpath (format "//span[contains(@class,'truncate') and text()='%s']" body)]
-                (eta/visible? driver {:xpath xpath})))
+              (let [css (format ".context-group[data-context='%s'] .expand-context" context)]
+                (ui-utils/click driver {:css css})))
             (edit-link [note-id]
               {:xpath (format "//li[@id='%s']//a[text()='edit']" note-id)})
+            (note-visible? [body]
+              (let [xpath (format "//span[contains(@class,'truncate') and text()='%s']" body)]
+                (eta/visible? driver {:xpath xpath})))
             (note-absent? [body]
               (let [xpath (format "//span[contains(@class,'truncate') and text()='%s']" body)]
                 (not (eta/exists? driver {:xpath xpath}))))]
@@ -240,16 +240,16 @@
                            :notes/id)]
         (testing "when visiting the home page"
           (eta/go driver base-url)
-          (eta/wait-visible driver {:xpath "//h1/strong[text()='Pinned notes']"})
+          (eta/wait-visible driver {:css "h1.pinned-notes"})
 
           (testing "and when expanding Context 1"
             (expand! "Context 1")
 
             (testing "renders the correct Context 1 notes"
               (eta/wait-visible driver (edit-link note-id-1))
-              (is (note-body-visible? "Note 1A"))
+              (is (note-visible? "Note 1A"))
               (is (note-absent? "Note 1B"))
-              (is (note-body-visible? "Note 1C")))
+              (is (note-visible? "Note 1C")))
 
             (testing "does not render Context 2 notes"
               (is (note-absent? "Note 2A"))
@@ -264,14 +264,14 @@
               (is (= (str base-url "/notes/" note-id-1)
                      (eta/get-url driver)))
               (eta/go driver base-url)
-              (eta/wait-visible driver {:xpath "//h1/strong[text()='Pinned notes']"})))
+              (eta/wait-visible driver {:css "h1.pinned-notes"})))
 
           (testing "and when expanding Context 2"
             (expand! "Context 2")
 
             (testing "renders the correct Context 2 notes"
               (eta/wait-visible driver (edit-link note-id-2))
-              (is (note-body-visible? "Note 2A"))
+              (is (note-visible? "Note 2A"))
               (is (note-absent? "Note 2B")))
 
             (testing "does not render Context 1 notes"
@@ -288,10 +288,10 @@
               (is (= (str base-url "/notes/" note-id-2)
                      (eta/get-url driver)))
               (eta/go driver base-url)
-              (eta/wait-visible driver {:xpath "//h1/strong[text()='Pinned notes']"})))
+              (eta/wait-visible driver {:css "h1.pinned-notes"})))
 
           (testing "there is no section for Context 3"
-            (is (not (eta/exists? driver {:xpath "//strong[text()='Context 3']"})))))))))
+            (is (not (eta/exists? driver {:css ".context-group[data-context='Context 3']"})))))))))
 
 (deftest search-test
   (ui-sys/with-system [driver base-url {_ "search.edn"}]
