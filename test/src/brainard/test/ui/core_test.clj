@@ -39,22 +39,22 @@
         (is (= "brainard" (eta/get-element-text driver {:css "h1.title"}))))
 
       (testing "renders pinned notes section"
-        (is (true? (eta/wait-visible driver {:xpath "//h1/strong[text()='Pinned notes']"}))))
+        (is (true? (eta/wait-visible driver {:css "h1.pinned-notes"}))))
 
       (testing "renders workspace section"
-        (is (true? (eta/wait-visible driver {:xpath "//h1/strong[text()='Workspace']"}))))
+        (is (true? (eta/wait-visible driver {:css "h1.workspace"}))))
 
       (testing "home nav item is active"
-        (let [el (eta/query driver {:css "li.is-active > a"})]
+        (let [el (eta/query driver {:css ".navbar .is-active > .navbar-item"})]
           (is (= "Home" (eta/get-element-inner-html-el driver el))))))
 
     (testing "when visiting the search page"
       (eta/go driver (str base-url "/search"))
       (testing "renders search form"
-        (is (true? (eta/wait-visible driver {:xpath "//button[text()='Search']"}))))
+        (is (true? (eta/wait-visible driver {:css "form.search-form"}))))
 
       (testing "search nav item is active"
-        (let [el (eta/query driver {:css "li.is-active > a"})]
+        (let [el (eta/query driver {:css ".navbar .is-active > .navbar-item"})]
           (is (= "Search" (eta/get-element-inner-html-el driver el))))))
 
     (testing "when visiting the buzz page"
@@ -63,7 +63,7 @@
         (is (true? (eta/wait-visible driver {:css "h1.title"}))))
 
       (testing "buzz nav item is active"
-        (let [el (eta/query driver {:css "li.is-active > a"})]
+        (let [el (eta/query driver {:css ".navbar .is-active > .navbar-item"})]
           (is (= "Buzz" (eta/get-element-inner-html-el driver el))))))))
 
 (deftest workspace-test
