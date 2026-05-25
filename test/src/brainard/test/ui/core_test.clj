@@ -410,11 +410,11 @@
 
         (testing "and when editing a note"
           (eta/go driver (str base-url "/notes/" note-id-2))
-          (eta/wait-visible driver {:css "form.form"})
+          (eta/wait-visible driver {:css "form.schedule-form"})
 
           (testing "and when adding a schedule to the note"
-            (ui-utils/submit-form! driver "form.form" {"Day of the week" day-of-the-week})
-            (eta/wait-invisible driver {:xpath "//p/em[text()='no related schedules']"})
+            (ui-utils/submit-form! driver "form.schedule-form" {"Day of the week" day-of-the-week})
+            (eta/wait-invisible driver {:css "p.no-schedules"})
 
             (testing "and when visiting the buzz page"
               (eta/go driver (str base-url "/buzz"))
