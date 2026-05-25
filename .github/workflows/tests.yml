@@ -99,7 +99,7 @@ jobs:
             ~/.m2
             ~/.gitlibs
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
-      - name: Run unit tests
+      - name: Run clojurescript unit tests
         run: |
           make build-test-cljs
           clojure -M:test -m brainard.test.runner

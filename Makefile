@@ -1,4 +1,4 @@
-.PHONY: clean build-sass build-js uberjar test test-cljs
+.PHONY: clean build-sass build-js uberjar test
 
 clean:
 	@echo cleaning...

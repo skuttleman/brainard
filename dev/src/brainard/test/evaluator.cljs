@@ -4,11 +4,11 @@
     [clojure.test :refer [run-tests]]
     brainard.api.utils.maps-test
     brainard.api.validations-test
-    brainard.schedules.api.relevancy-test
     brainard.infra.store-test
     brainard.infra.store.events-test
     brainard.infra.store.queries-test
-    brainard.infra.store.specs-test))
+    brainard.infra.store.specs-test
+    brainard.schedules.api.relevancy-test))
 
 (defn ^:private parse-test-results [results]
   (when-let [[_ tests assertions failures errors]
@@ -50,11 +50,11 @@
   (let [output (with-out-str (run-tests
                                'brainard.api.utils.maps-test
                                'brainard.api.validations-test
-                               'brainard.schedules.api.relevancy-test
                                'brainard.infra.store-test
                                'brainard.infra.store.events-test
                                'brainard.infra.store.queries-test
-                               'brainard.infra.store.specs-test))
+                               'brainard.infra.store.specs-test
+                               'brainard.schedules.api.relevancy-test))
         results (parse-test-results output)]
     (aset js/window "testResults" (clj->js results))
     (aset js/window "testsPassed" (and (pos? (:tests results 0))
