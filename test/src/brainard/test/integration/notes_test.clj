@@ -296,7 +296,13 @@
                              :notes/attachments   {:removed #{attachment-ref}}}
                             {:notes/pinned? {:from true
                                              :to   false}}]
-                           (map :notes/changes history)))))))))))))
+                           (map :notes/changes history))))))))))
+
+      (testing "and when querying the history for an unknown note"
+        (let [history (storage/query storage {::storage/type ::api.notes/get-note-history
+                                              :notes/id      (random-uuid)})]
+          (testing "returns no data"
+            (is (nil? history))))))))
 
 (deftest get-tags-test
   (tsys/with-system [{::b/keys [notes-api]} nil]

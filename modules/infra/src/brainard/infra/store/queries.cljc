@@ -72,7 +72,7 @@
                         (some? to) (assoc attr to)
                         added (update attr (fnil into #{}) added)
                         removed (update attr (partial apply disj) removed)))
-                    (dissoc prev :attachments/changes))
+                    (dissoc prev :attachments/changes :attachments/previous))
          (handle-attachment-changes changes))))
 
 (defn ^:private history-reducer [versions {:notes/keys [changes history-id saved-at]}]

@@ -119,25 +119,26 @@
             (conj combined-history note-hist)))))
 
 (defn ^:private prep-history [db results]
-  (let [note-history (prep-note-history results)
-        attachment-ids (into #{}
-                             (keep (fn [[_ _ _ attr val]]
-                                     (when (= :notes/attachments attr)
-                                       val)))
-                             results)
-        attachment-history (ds/query db
-                                     {:query    '[:find ?e ?tx ?op ?attr ?val ?at ?card
-                                                  :in $ [?e ...]
-                                                  :where
-                                                  [?e ?a ?val ?tx ?op]
-                                                  [?tx :db/txInstant ?at]
-                                                  [?a :db/ident ?attr]
-                                                  [?a :db/cardinality ?c]
-                                                  [?c :db/ident ?card]]
-                                      :args     [attachment-ids]
-                                      :history? true
-                                      :post     prep-attachment-history})]
-    (combine-history note-history attachment-history)))
+  (when (seq results)
+    (let [note-history (prep-note-history results)
+          attachment-ids (into #{}
+                               (keep (fn [[_ _ _ attr val]]
+                                       (when (= :notes/attachments attr)
+                                         val)))
+                               results)
+          attachment-history (ds/query db
+                                       {:query    '[:find ?e ?tx ?op ?attr ?val ?at ?card
+                                                    :in $ [?e ...]
+                                                    :where
+                                                    [?e ?a ?val ?tx ?op]
+                                                    [?tx :db/txInstant ?at]
+                                                    [?a :db/ident ?attr]
+                                                    [?a :db/cardinality ?c]
+                                                    [?c :db/ident ?card]]
+                                        :args     [attachment-ids]
+                                        :history? true
+                                        :post     prep-attachment-history})]
+      (combine-history note-history attachment-history))))
 
 (defn ^:private clean-note [note]
   (-> note
