@@ -54,7 +54,9 @@
             (eta/wait-visible driver {:css ".modal-container.is-active .note-edit__todo"})
 
             (testing "opens the edit todo modal"
-              (is (eta/has-text? driver {:css ".modal-container.is-active .note-edit__todo"} "Edit your TODO")))
+              (is (eta/has-text? driver
+                                 {:css ".modal-container.is-active .note-edit__todo"}
+                                 "Edit your TODO")))
 
             (testing "and when modifying and saving the todo"
               (ui-utils/fill-field! driver "TODO" "Updated todo text")
@@ -62,7 +64,9 @@
               (eta/wait-invisible driver {:css ".modal-container.is-active .note-edit__todo"})
 
               (testing "closes the todo modal and displays the updated todo"
-                (is (eta/has-text? driver {:css ".modal-container.is-active ul.todo-list"} "Updated todo text"))))))))))
+                (is (eta/has-text? driver
+                                   {:css ".modal-container.is-active ul.todo-list"}
+                                   "Updated todo text"))))))))))
 
 (deftest complete-todo-test
   (ui-sys/with-system [driver base-url {fix "base.edn"}]

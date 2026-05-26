@@ -134,7 +134,7 @@
          [:div
           [:span.layout--space-after.green (dates/->str saved-at)]]
          [comp/plain-button {:*:store  *:store
-                             :class    ["is-small" "is-info"]
+                             :class    ["is-small" "is-info" "note__history-show"]
                              :commands [[:modals/create! history-modal]]}
           "show"]]
         (into [:<>] change-list)])]))
