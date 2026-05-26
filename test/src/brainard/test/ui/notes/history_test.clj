@@ -7,9 +7,6 @@
     [clojure.test :refer [deftest is testing]]
     [etaoin.api :as eta]))
 
-;; fix todos
-;; 404 on /history for unknown note
-
 (deftest view-history-test
   (ui-sys/with-system [driver base-url {fix "history.edn"}]
     (let [note-id (-> fix first :notes/id)]
@@ -23,7 +20,7 @@
           (eta/screenshot driver "foo.png")
           (let [[ver-1 ver-2 ver-3 ver-4 ver-5 ver-6]
                 (for [li (eta/query-all driver {:css "ul.note-history > li"})]
-                  (-> (str "\t" (eta/get-element-text-el driver li))
+                  (-> (eta/get-element-text-el driver li)
                       (string/replace #"\s+" " ")))]
 
             (testing "displays version 1 changes"
@@ -63,7 +60,7 @@
                 (is (eta/has-text? driver {:css ".history__view h1"} "Some context"))
                 (is (eta/has-text? driver {:css ".history__view .content p"} "Some body"))
                 (is (not (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='Attachments:']"})))
-                (is (not (eta/exists? driver {:css ".history__view ul.attachment-list li"})))
+                (is (not (eta/exists? driver {:css ".history__view ul.attachment-list"})))
                 (is (= #{:foo :bar :baz/quux}
                        (into #{}
                              (map (comp edn/read-string (partial eta/get-element-text-el driver)))
