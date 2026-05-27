@@ -15,6 +15,12 @@
     [note-comp/attachment-list {:label? true
                                 :value  attachments}]))
 
+(defn ^:private todo-list [note]
+  (when-let [todos (not-empty (:notes/todos note))]
+    [note-comp/todo-list {:label? true
+                          :disabled true
+                          :value  todos}]))
+
 (defmulti ^:private ^{:arglists '([label changes])} history-change
           (fn [label _]
             label))
@@ -132,6 +138,7 @@
     [:h1 [:strong (:notes/context note)]]]
    [comp/markdown (:notes/body note)]
    [attachment-list note]
+   [todo-list note]
    [note-comp/tag-list note]
    (when-not last?
      [:div
@@ -155,7 +162,9 @@
            :let [note (get reconstruction history-id)
                  attachment-changes (:attachments/changes note)
                  todo-changes (:todos/changes note)
-                 note (update note :notes/attachments (partial map (:attachments/state note)))
+                 note (-> note
+                          (update :notes/attachments (partial map (:attachments/state note)))
+                          (update :notes/todos (partial map (:todos/state note))))
                  history-modal [::view {:last?            (= idx last-idx)
                                         :note             note
                                         :prev-tags        prev-tags
