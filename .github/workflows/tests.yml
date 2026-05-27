@@ -168,8 +168,10 @@ jobs:
       - name: Run webdriver tests
         run: |
           set -o pipefail
+          set +e
           clojure -M:test -m kaocha.runner :ui | tee test-output.txt
-          rc=$?
+          rc=${PIPESTATUS[0]}
+          set -e
           set +o pipefail
 
           # if any tests fail/error, rerun failures to counteract webdriver flakiness
@@ -189,6 +191,7 @@ jobs:
           CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
           HEADLESS: "true"
       - name: Upload failed test screenshots
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: screenshots
