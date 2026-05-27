@@ -167,8 +167,29 @@ jobs:
           install-chromedriver: true
       - name: Run webdriver tests
         run: |
-          # Avoid webdriver flakiness
-          clojure -M:test -m kaocha.runner :ui || clojure -M:test -m kaocha.runner :ui
+          set -o pipefail
+          clojure -M:test -m kaocha.runner :ui | tee test-output.txt
+          rc=$?
+          set +o pipefail
+
+          # if any tests fail/error, rerun failures to counteract webdriver flakiness
+          if [ $rc -ne 0 ]; then
+            fails=$(perl -ne 's/\x1b[[0-9;]*[A-Za-z]//g; print "$1\n" if /(?:ERROR|FAIL)\s+in\s+(\S+)/' test-output.txt | sort -u)
+            if [ -n "$fails" ]; then
+             echo "Re-running failed tests with screenshots:"; echo "$fails\n"
+             args=()
+              while IFS= read -r f; do args+=( "--focus" "$f" ); done <<< "$fails"
+              SCREENSHOT=true clojure -M:test -m kaocha.runner :ui "${args[@]}"
+            else
+              echo "No specific failures parsed; re-running full UI suite with screenshots"
+              SCREENSHOT=true clojure -M:test -m kaocha.runner :ui
+            fi
+          fi
         env:
           CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
           HEADLESS: "true"
+      - name: Upload failed test screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: ./*.png

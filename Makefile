@@ -26,4 +26,4 @@ build-test:
 
 test: clean build build-test
 	clojure -M:test -m brainard.test.runner
-	HEADLESS=true clojure -M:test -m kaocha.runner --focus-meta :focus
+	HEADLESS=true SCREENSHOT=true clojure -M:test -m kaocha.runner --focus-meta :focus
