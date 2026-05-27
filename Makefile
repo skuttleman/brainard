@@ -3,6 +3,9 @@
 run:
 	foreman start
 
+install:
+	npm install
+
 clean:
 	@echo cleaning...
 	rm -rf resources/public/css/*
@@ -10,18 +13,16 @@ clean:
 	rm -rf target/classes
 	rm -rf target/cljs-test
 
-build:
+build: install
 	@echo building scss
 	sass --style=compressed resources/scss/main.scss resources/public/css/main.css
 	@echo building cljs
-	npm install
 	clojure -A:shadow -M -m shadow.cljs.devtools.cli compile ui
 
 uberjar: clean build
 	clojure -T:build uber
 
-build-test:
-	npm install
+build-test: install
 	clojure -A:shadow:test -M -m shadow.cljs.devtools.cli compile test
 
 test: clean build build-test
