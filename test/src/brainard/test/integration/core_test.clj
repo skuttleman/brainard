@@ -3,14 +3,14 @@
     [brainard :as-alias b]
     [brainard.api.utils.uuids :as uuids]
     [brainard.schedules.api.core :as api.sched]
-    [brainard.test.http :as thttp]
-    [brainard.test.system :as tsys]
+    [brainard.test.harness.integration.http :as thttp]
+    [brainard.test.harness.integration.system :as tsys]
     [clojure.java.io :as io]
     [clojure.test :refer [deftest is testing]]
     [workspace-nodes :as-alias ws]))
 
 (deftest notes-integration-test
-  (tsys/with-system [{::b/keys [apis]} nil]
+  (tsys/with-app [{::b/keys [apis]} nil]
     (letfn [(http [request]
               (thttp/request request apis))]
       (testing "when creating a note"
@@ -204,7 +204,7 @@
                    (into #{} (map :code) errors)))))))))
 
 (deftest attachments-integration-test
-  (tsys/with-system [{::b/keys [apis]} nil]
+  (tsys/with-app [{::b/keys [apis]} nil]
     (letfn [(http [request]
               (thttp/request request apis))]
       (testing "when uploading an attachment"
@@ -265,7 +265,7 @@
                            (:body download)))))))))))))
 
 (deftest schedules-integration-test
-  (tsys/with-system [{::b/keys [apis]} nil]
+  (tsys/with-app [{::b/keys [apis]} nil]
     (letfn [(http [request] (thttp/request request apis))]
       (let [note-id (-> (http {:method :post
                                :uri    "/api/notes"
@@ -304,13 +304,13 @@
           (let [response (http {:method :post
                                 :uri    "/api/schedules"
                                 :body   {:schedules/note-id note-id}})
-                errors   (-> response :body :errors)]
+                errors (-> response :body :errors)]
             (testing "returns a validation error"
               (is (thttp/client-error? response))
               (is (seq errors)))))))))
 
 (deftest note-delete-cascades-test
-  (tsys/with-system [{::b/keys [apis]} nil]
+  (tsys/with-app [{::b/keys [apis]} nil]
     (letfn [(http [request] (thttp/request request apis))]
       (let [note-id (-> (http {:method :post
                                :uri    "/api/notes"
@@ -332,7 +332,7 @@
             (is (empty? (api.sched/get-by-note-id (:schedules apis) note-id)))))))))
 
 (deftest workspace-integration-test
-  (tsys/with-system [{::b/keys [apis]} nil]
+  (tsys/with-app [{::b/keys [apis]} nil]
     (letfn [(http [request] (thttp/request request apis))]
       (testing "when fetching an empty workspace"
         (let [response (http {:method :get :uri "/api/workspace-nodes"})]
@@ -344,7 +344,7 @@
         (let [response (http {:method :post
                               :uri    "/api/workspace-nodes"
                               :body   {::ws/content "root node"}})
-              node     (-> response :body :data)]
+              node (-> response :body :data)]
           (testing "returns the created node"
             (is (thttp/success? response))
             (is (= "root node" (::ws/content node))))
@@ -366,7 +366,7 @@
 
           (testing "and when deleting the node"
             (let [delete-response (http {:method :delete
-                                          :uri    (str "/api/workspace-nodes/" (::ws/id node))})]
+                                         :uri    (str "/api/workspace-nodes/" (::ws/id node))})]
               (testing "succeeds"
                 (is (thttp/success? delete-response)))
               (testing "and the workspace is empty again"
@@ -378,7 +378,7 @@
           (let [response (http {:method :post
                                 :uri    "/api/workspace-nodes"
                                 :body   {}})
-                errors   (-> response :body :errors)]
+                errors (-> response :body :errors)]
             (testing "returns a validation error"
               (is (thttp/client-error? response))
               (is (seq errors)))))))))

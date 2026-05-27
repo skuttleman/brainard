@@ -14,7 +14,7 @@ their thoughts now, so they can forget them later.
 ## Run Dev App
 
 ```bash
-$ foreman start
+$ make run
 ```
 
 ## Run Tests

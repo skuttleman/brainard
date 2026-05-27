@@ -1,5 +1,8 @@
 .PHONY: clean build-sass build-js uberjar test
 
+run:
+	foreman start
+
 clean:
 	@echo cleaning...
 	rm -rf resources/public/css/*
@@ -7,23 +10,20 @@ clean:
 	rm -rf target/classes
 	rm -rf target/cljs-test
 
-build-sass:
+build:
 	@echo building scss
 	sass --style=compressed resources/scss/main.scss resources/public/css/main.css
-
-build-js:
 	@echo building cljs
 	npm install
 	clojure -A:shadow -M -m shadow.cljs.devtools.cli compile ui
 
-build-test-cljs:
-	@echo building clojurescript tests
+uberjar: clean build
+	clojure -T:build uber
+
+build-test:
 	npm install
 	clojure -A:shadow:test -M -m shadow.cljs.devtools.cli compile test
 
-uberjar: clean build-sass build-js
-	clojure -T:build uber
-
-test: clean build-sass build-js build-test-cljs
+test: clean build build-test
 	clojure -M:test -m brainard.test.runner
 	HEADLESS=true clojure -M:test -m kaocha.runner --focus-meta :focus

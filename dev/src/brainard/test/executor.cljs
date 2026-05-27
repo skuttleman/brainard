@@ -1,4 +1,4 @@
-(ns brainard.test.evaluator
+(ns brainard.test.executor
   (:require
     [clojure.string :as string]
     [clojure.test :refer [run-tests]]

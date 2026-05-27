@@ -1,4 +1,4 @@
-(ns brainard.test.ui.utils
+(ns brainard.test.harness.ui.utils
   (:require
     [brainard.infra.utils.edn :as edn]
     [clojure.java.io :as io]

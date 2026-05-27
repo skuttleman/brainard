@@ -1,4 +1,4 @@
-(ns brainard.test.http
+(ns brainard.test.harness.integration.http
   (:require
     [brainard.api.utils.fns :as fns]
     [brainard.infra.utils.edn :as edn]

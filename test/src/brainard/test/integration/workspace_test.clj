@@ -4,7 +4,7 @@
     [brainard.api.storage.core :as storage]
     [brainard.api.utils.uuids :as uuids]
     [brainard.infra.db.store :as ds]
-    [brainard.test.system :as tsys]
+    [brainard.test.harness.integration.system :as tsys]
     [brainard.workspace.api.core :as api.ws]
     [clojure.test :refer [deftest is testing]]
     [clojure.walk :as walk]
@@ -45,13 +45,13 @@
                     tree))))
 
 (deftest get-tree-test
-  (tsys/with-system [{::b/keys [workspace-api]} nil]
+  (tsys/with-app [{::b/keys [workspace-api]} nil]
     (testing "when there are no workspace nodes"
       (testing "returns an empty list"
         (is (empty? (api.ws/get-tree workspace-api)))))))
 
 (deftest create!-test
-  (tsys/with-system [{::b/keys [IDBConn workspace-api]} nil]
+  (tsys/with-app [{::b/keys [IDBConn workspace-api]} nil]
     (let [[_ _ id3] (seed-tree! IDBConn)]
       (testing "when creating a node with no parent"
         (api.ws/create! workspace-api {::ws/content "parent-less"})
@@ -78,7 +78,7 @@
                    (clean-tree (api.ws/get-tree workspace-api))))))))))
 
 (deftest delete!-test
-  (tsys/with-system [{::b/keys [IDBConn storage workspace-api]} nil]
+  (tsys/with-app [{::b/keys [IDBConn storage workspace-api]} nil]
     (let [[_ _ id3 id4] (seed-tree! IDBConn)]
       (testing "when deleting a node"
         (api.ws/delete! workspace-api id3)
@@ -95,7 +95,7 @@
                                             ::ws/id        id4}))))))))
 
 (deftest update!-test
-  (tsys/with-system [{::b/keys [IDBConn workspace-api]} nil]
+  (tsys/with-app [{::b/keys [IDBConn workspace-api]} nil]
     (let [[id1 id2 id3 id4 id5] (seed-tree! IDBConn)]
       (testing "when updating a node's content"
         (api.ws/update! workspace-api id3 {::ws/content "new content"})
@@ -148,12 +148,12 @@
                                       {::ws/id        id5
                                        ::ws/parent-id id1
                                        ::ws/content   "sub3"
-                                       ::ws/children [{::ws/id        id3
-                                                       ::ws/parent-id id5
-                                                       ::ws/content   "new content"
-                                                       ::ws/children  [{::ws/content   "sub-sub"
-                                                                        ::ws/id        id4
-                                                                        ::ws/parent-id id3}]}]}]}]
+                                       ::ws/children  [{::ws/id        id3
+                                                        ::ws/parent-id id5
+                                                        ::ws/content   "new content"
+                                                        ::ws/children  [{::ws/content   "sub-sub"
+                                                                         ::ws/id        id4
+                                                                         ::ws/parent-id id3}]}]}]}]
                      (clean-tree (api.ws/get-tree workspace-api)
                                  #{::ws/id ::ws/parent-id}))))
 
@@ -168,12 +168,12 @@
                                         {::ws/id        id5
                                          ::ws/parent-id id1
                                          ::ws/content   "sub3"
-                                         ::ws/children [{::ws/id        id3
-                                                         ::ws/parent-id id5
-                                                         ::ws/content   "new content"
-                                                         ::ws/children  [{::ws/content   "sub-sub"
-                                                                          ::ws/id        id4
-                                                                          ::ws/parent-id id3}]}]}]}]
+                                         ::ws/children  [{::ws/id        id3
+                                                          ::ws/parent-id id5
+                                                          ::ws/content   "new content"
+                                                          ::ws/children  [{::ws/content   "sub-sub"
+                                                                           ::ws/id        id4
+                                                                           ::ws/parent-id id3}]}]}]}]
                        (clean-tree (api.ws/get-tree workspace-api)
                                    #{::ws/id ::ws/parent-id})))))
 
@@ -196,11 +196,11 @@
                                   {::ws/id        id5
                                    ::ws/parent-id id1
                                    ::ws/content   "sub3"
-                                   ::ws/children [{::ws/id        id3
-                                                   ::ws/parent-id id5
-                                                   ::ws/content   "new content"
-                                                   ::ws/children  [{::ws/content   "sub-sub"
-                                                                    ::ws/id        id4
-                                                                    ::ws/parent-id id3}]}]}]}]
+                                   ::ws/children  [{::ws/id        id3
+                                                    ::ws/parent-id id5
+                                                    ::ws/content   "new content"
+                                                    ::ws/children  [{::ws/content   "sub-sub"
+                                                                     ::ws/id        id4
+                                                                     ::ws/parent-id id3}]}]}]}]
                  (clean-tree (api.ws/get-tree workspace-api)
                              #{::ws/id ::ws/parent-id}))))))))

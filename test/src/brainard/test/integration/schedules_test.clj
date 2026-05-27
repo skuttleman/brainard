@@ -4,11 +4,11 @@
     [brainard.api.utils.uuids :as uuids]
     [brainard.schedules.api.core :as api.sched]
     [brainard.api.storage.core :as storage]
-    [brainard.test.system :as tsys]
+    [brainard.test.harness.integration.system :as tsys]
     [clojure.test :refer [deftest is testing]]))
 
 (deftest get-schedules-test
-  (tsys/with-system [{::b/keys [storage]} nil]
+  (tsys/with-app [{::b/keys [storage]} nil]
     (testing "when saving a schedule"
       (let [[s1 s2 s3 s4 s5 s6 s7] (repeatedly uuids/random)
             timestamp #inst "2023-12-09T20:31:04.197Z"
@@ -65,7 +65,7 @@
                   (is (= #{s7} (into #{} (map :schedules/id) results))))))))))))
 
 (deftest delete-for-note!-test
-  (tsys/with-system [{::b/keys [schedules-api]} nil]
+  (tsys/with-app [{::b/keys [schedules-api]} nil]
     (let [[note-id-1 note-id-2] (repeatedly uuids/random)]
       (api.sched/create! schedules-api {:schedules/note-id note-id-1 :schedules/weekday :monday})
       (api.sched/create! schedules-api {:schedules/note-id note-id-1 :schedules/weekday :friday})

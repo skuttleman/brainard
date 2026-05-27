@@ -1,18 +1,18 @@
 (ns brainard.test.ui.notes.core-test
   (:require
-    [brainard.test.ui-system :as ui-sys]
-    [brainard.test.ui.utils :as ui-utils]
+    [brainard.test.harness.ui.system :as usys]
+    [brainard.test.harness.ui.utils :as tutils]
     [clojure.test :refer [deftest is testing]]
     [etaoin.api :as eta]))
 
 (deftest create-note-test
-  (ui-sys/with-system [driver base-url]
+  (usys/with-webdriver [driver base-url]
     (testing "when visiting the home page"
       (eta/go driver base-url)
       (eta/wait-visible driver {:css "h1.pinned-notes"})
 
       (testing "and when clicking the create note button"
-        (ui-utils/click driver {:css "button.note__create-button"})
+        (tutils/click driver {:css "button.note__create-button"})
         (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
         (testing "opens the create note modal"
@@ -20,10 +20,10 @@
           (is (= "Create note" (eta/get-element-text driver {:css ".modal-container.is-active h1.note__modal-header"}))))
 
         (testing "and when creating the note"
-          (ui-utils/submit-form! driver
-                                 ".modal-container.is-active form.form"
-                                 {"Topic" "Test Context"
-                                  "Body"  "This is a test note created during UI testing"})
+          (tutils/submit-form! driver
+                               ".modal-container.is-active form.form"
+                               {"Topic" "Test Context"
+                                "Body"  "This is a test note created during UI testing"})
           (eta/wait-invisible driver {:css ".modal-container.is-active"})
 
           (testing "closes the modal"
@@ -31,7 +31,7 @@
 
           (testing "and when expanding the context group"
             (eta/wait-visible driver {:css ".context-group[data-context='Test Context']"})
-            (ui-utils/click driver {:css ".context-group[data-context='Test Context'] .expand-context"})
+            (tutils/click driver {:css ".context-group[data-context='Test Context'] .expand-context"})
 
             (testing "displays the note"
               (is (eta/has-text? driver
@@ -39,14 +39,14 @@
                                  "This is a test note created during UI testing")))))))))
 
 (deftest edit-note-test
-  (ui-sys/with-system [driver base-url {fix "base.edn"}]
+  (usys/with-webdriver [driver base-url {fix "base.edn"}]
     (let [note-id (-> fix first :notes/id)]
       (testing "when visiting a note"
         (eta/go driver (str base-url "/notes/" note-id))
         (eta/wait-visible driver {:css "h1.layout--space-after"})
 
         (testing "and when clicking the edit button"
-          (ui-utils/click driver {:css "button.note__edit-button"})
+          (tutils/click driver {:css "button.note__edit-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
           (testing "opens the edit note modal"
@@ -60,14 +60,14 @@
               (eta/fill-el driver textarea (str current-body " [edited]")))
 
             (testing "and when cancelling the edit"
-              (ui-utils/click driver {:css ".modal-container.is-active button.cancel"})
+              (tutils/click driver {:css ".modal-container.is-active button.cancel"})
 
               (testing "does not display the changes"
                 (eta/wait-invisible driver {:css ".modal-container.is-active"})
                 (is (not (eta/has-text? driver {:css ".content"} "[edited]"))))
 
               (testing "and when clicking the edit button"
-                (ui-utils/click driver {:css "button.note__edit-button"})
+                (tutils/click driver {:css "button.note__edit-button"})
                 (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
                 (testing "opens the edit note modal"
@@ -81,14 +81,14 @@
                     (eta/fill-el driver textarea (str current-body " [edited]")))
 
                   (testing "and when saving"
-                    (ui-utils/click driver {:css ".modal-container.is-active button.submit"})
+                    (tutils/click driver {:css ".modal-container.is-active button.submit"})
 
                     (testing "displays the changes"
                       (eta/wait-invisible driver {:css ".modal-container.is-active"})
                       (is (eta/has-text? driver {:css ".content"} "[edited]")))))))))))))
 
 (deftest delete-note-test
-  (ui-sys/with-system [driver base-url {fix "base.edn"}]
+  (usys/with-webdriver [driver base-url {fix "base.edn"}]
     (let [note-id (->> fix
                        first
                        :notes/id)]
@@ -97,7 +97,7 @@
         (eta/wait-visible driver {:css "h1.layout--space-after"})
 
         (testing "and when clicking the delete button"
-          (ui-utils/click driver {:css "button.is-danger"})
+          (tutils/click driver {:css "button.is-danger"})
           (eta/wait-visible driver {:css ".modal-container.is-active .modal-item"})
 
           (testing "opens the delete confirmation modal"
@@ -106,7 +106,7 @@
                                "This note and all related schedules will be deleted")))
 
           (testing "and when confirming the delete"
-            (ui-utils/click driver {:css ".modal-container.is-active button.note__confirm-delete"})
+            (tutils/click driver {:css ".modal-container.is-active button.note__confirm-delete"})
             (eta/wait-invisible driver {:css ".modal-container.is-active"})
 
             (testing "redirects to home page"
@@ -125,7 +125,7 @@
                        (eta/get-element-text driver {:css ".message.is-warning"})))))))))))
 
 (deftest schedules-test
-  (ui-sys/with-system [driver base-url {fix "buzz.edn"}]
+  (usys/with-webdriver [driver base-url {fix "buzz.edn"}]
     (let [note-sched-id (->> fix
                              (filter (comp #{"Note 1"} :notes/body))
                              first
@@ -151,7 +151,7 @@
           (is (= "no related schedules" (eta/get-element-text driver {:css "p.schedules__empty"}))))
 
         (testing "and when adding a schedule"
-          (ui-utils/submit-form! driver "form.schedule-form" {"Day of the week" :monday})
+          (tutils/submit-form! driver "form.schedule-form" {"Day of the week" :monday})
           (eta/wait-invisible driver {:css "p.schedules__empty"})
 
           (testing "renders the schedule in the list"
@@ -161,9 +161,9 @@
 
           (testing "and when deleting the schedule"
             (eta/wait-invisible driver {:css "div.message-body"})
-            (ui-utils/click driver {:css "button.schedules__delete"})
+            (tutils/click driver {:css "button.schedules__delete"})
             (eta/wait-visible driver {:css ".modal-container.is-active .modal-item"})
-            (ui-utils/click driver {:css ".modal-container.is-active button.delete-schedule"})
+            (tutils/click driver {:css ".modal-container.is-active button.delete-schedule"})
 
             (testing "removes the schedule from the list"
               (eta/wait-visible driver {:css "p.schedules__empty"})

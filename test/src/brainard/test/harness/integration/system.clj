@@ -1,4 +1,4 @@
-(ns brainard.test.system
+(ns brainard.test.harness.integration.system
   (:require
     [brainard.api.storage.interfaces :as istorage]
     [brainard.api.utils.uuids :as uuids]
@@ -41,7 +41,7 @@
   [params]
   params)
 
-(defmacro with-system [[sys-binding opts] & body]
+(defmacro with-app [[sys-binding opts] & body]
   (let [sys (gensym)
         component-bindings (for [[k v] (when (map? sys-binding)
                                          sys-binding)
@@ -67,3 +67,4 @@
          ~@body
          (finally
            (ig/halt! ~sys))))))
+

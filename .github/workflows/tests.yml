@@ -109,7 +109,7 @@ jobs:
           install-chromedriver: true
       - name: Run clojurescript unit tests
         run: |
-          make build-test-cljs
+          make build-test
           clojure -M:test -m brainard.test.runner
 
   integration-tests:

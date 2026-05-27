@@ -5,13 +5,13 @@
     [brainard.api.utils.uuids :as uuids]
     [brainard.attachments.api.core :as api.attachments]
     [brainard.api.storage.core :as storage]
-    [brainard.test.system :as tsys]
+    [brainard.test.harness.integration.system :as tsys]
     [clojure.test :refer [deftest is testing]])
   (:import
     (java.io ByteArrayInputStream)))
 
 (deftest upload!-test
-  (tsys/with-system [{::b/keys [attachments-api obj-storage storage]} nil]
+  (tsys/with-app [{::b/keys [attachments-api obj-storage storage]} nil]
     (testing "when uploading an attachment"
       (let [attachment (-> attachments-api
                            (api.attachments/upload! [{:attachments/content-type "some/type"
@@ -41,7 +41,7 @@
                    (update result :Body slurp)))))))))
 
 (deftest fetch-test
-  (tsys/with-system [{::b/keys [attachments-api]} nil]
+  (tsys/with-app [{::b/keys [attachments-api]} nil]
     (testing "when there is a saved attachment"
       (let [attachment (-> attachments-api
                            (api.attachments/upload! [{:attachments/content-type "some/type"
