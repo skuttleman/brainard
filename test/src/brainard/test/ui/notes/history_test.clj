@@ -17,40 +17,65 @@
         (testing "and when viewing the note history"
           (ui-utils/click driver {:css "button.note__history-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__modal"})
-          (eta/screenshot driver "foo.png")
           (let [[ver-1 ver-2 ver-3 ver-4 ver-5 ver-6]
                 (for [li (eta/query-all driver {:css "ul.note-history > li"})]
                   (-> (eta/get-element-text-el driver li)
                       (string/replace #"\s+" " ")))]
 
-            (testing "displays version 1 changes"
-              (is (string/includes? ver-1 "Topic added Some context"))
-              (is (string/includes? ver-1 "Pin added true"))
-              (is (string/includes? ver-1 "Body added Some body"))
-              (is (string/includes? ver-1 "Tags added :bar, :baz/quux, :foo")))
+            (testing "summarizes initial version"
+              (let [todo-updates (second (string/split ver-1 #"Todos"))]
+                (is (string/includes? ver-1 "Topic added Some context"))
+                (is (string/includes? ver-1 "Pin added true"))
+                (is (string/includes? ver-1 "Body added Some body"))
+                (is (string/includes? ver-1 "Tags added :bar, :baz/quux, :foo"))
+                (is (false? (string/includes? ver-1 "Attachments")))
+                (is (string/includes? todo-updates "added Do a thing marked incomplete"))))
 
-            (testing "displays version 2 changes"
-              (is (string/includes? ver-2 "Body changed Some body to Some edited body goes here"))
-              (is (string/includes? ver-2 "Tags removed :bar")))
+            (testing "summarizes version 2 changes"
+              (let [attach-updates (second (string/split ver-2 #"Attachments"))]
+                (is (string/includes? ver-2 "Body changed Some body to Some edited body goes here"))
+                (is (string/includes? ver-2 "Tags removed :bar"))
+                (is (string/includes? attach-updates "added some-pdf.pdf"))
+                (is (string/includes? attach-updates "added sample.txt"))
+                (is (false? (string/includes? ver-2 "Todos")))))
 
-            (testing "displays version 3 changes"
-              (let [attach-updates (second (string/split ver-3 #"Attachments"))]
-                (is (string/includes? attach-updates "added image.jpg"))))
+            (testing "summarizes version 3 changes"
+              (let [attach-updates (second (string/split ver-3 #"Attachments"))
+                    todo-updates (second (string/split ver-3 #"Todos"))]
+                (is (string/includes? attach-updates "added image.jpg"))
+                (is (false? (string/includes? attach-updates "some-pdf.pdf")))
+                (is (false? (string/includes? attach-updates "sample.txt")))
+                (is (string/includes? todo-updates "added Do another thing marked incomplete"))
+                (is (false? (string/includes? todo-updates "Do a thing")))))
 
-            (testing "displays version 4 changes"
-              (is (string/includes? ver-4 "Pin changed true to false")))
+            (testing "summarizes version 4 changes"
+              (let [todo-updates (second (string/split ver-4 #"Todos"))]
+                (is (string/includes? ver-4 "Pin changed true to false"))
+                (is (false? (string/includes? ver-4 "Attachments")))
+                (is (string/includes? todo-updates "changed Do a thing to Did a thing marked complete"))))
 
-            (testing "displays version 5 changes"
-              (let [attach-updates (second (string/split ver-5 #"Attachments"))]
-                (is (string/includes? attach-updates "changed image.jpg to some other name"))))
+            (testing "summarizes version 5 changes"
+              (let [attach-updates (second (string/split ver-5 #"Attachments"))
+                    todo-updates (second (string/split ver-5 #"Todos"))]
+                (is (string/includes? attach-updates "changed image.jpg to some other name"))
+                (is (false? (string/includes? todo-updates "Do a thing")))
+                (is (false? (string/includes? todo-updates "Did a thing")))
+                (is (string/includes? todo-updates "Do another thing marked complete"))
+                (is (string/includes? todo-updates "added Do some third thing marked incomplete"))))
 
-            (testing "displays version 6 changes"
-              (let [attach-updates (second (string/split ver-6 #"Attachments"))]
+            (testing "summarizes version 6 changes"
+              (let [attach-updates (second (string/split ver-6 #"Attachments"))
+                    todo-updates (second (string/split ver-6 #"Todos"))]
                 (is (string/includes? ver-6 "Topic changed Some context to Some new context"))
                 (is (string/includes? ver-6 "Body changed Some edited body goes here to Some completely different body"))
                 (is (string/includes? ver-6 "Tags added :other/tag removed :baz/quux"))
                 (is (string/includes? attach-updates "removed some-pdf.pdf"))
-                (is (not (string/includes? attach-updates "changed image.jpg to some other name")))))
+                (is (false? (string/includes? attach-updates "image.jpg")))
+                (is (false? (string/includes? attach-updates "sample.txt")))
+                (is (false? (string/includes? attach-updates "some other name")))
+                (is (string/includes? todo-updates "removed Do another thing"))
+                (is (string/includes? todo-updates "changed Do some third thing to Do some third thing still"))
+                (is (false? (string/includes? todo-updates "complete")))))
 
             (testing "and when showing version 1"
               (ui-utils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[1]"})
@@ -59,8 +84,8 @@
                 (is (eta/exists? driver {:css ".history__view .lni-paperclip"}))
                 (is (eta/has-text? driver {:css ".history__view h1"} "Some context"))
                 (is (eta/has-text? driver {:css ".history__view .content p"} "Some body"))
-                (is (not (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='Attachments:']"})))
-                (is (not (eta/exists? driver {:css ".history__view ul.attachment-list"})))
+                (is (false? (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='Attachments:']"})))
+                (is (false? (eta/exists? driver {:css ".history__view ul.attachment-list"})))
                 (is (= #{:foo :bar :baz/quux}
                        (into #{}
                              (map (comp edn/read-string (partial eta/get-element-text-el driver)))
@@ -68,34 +93,15 @@
                 (ui-utils/click driver {:css ".history__view .panel-heading button.button"})
                 (eta/wait-invisible driver {:css ".modal-container.is-active .modal-item.history__view"})))
 
-            (testing "and when showing version 2"
-              (ui-utils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[2]"})
+            (testing "and when showing version 4"
+              (ui-utils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[4]"})
               (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__view"})
-              (testing "displays the 2nd version of the note"
-                (is (eta/exists? driver {:css ".history__view .lni-paperclip"}))
+              (testing "displays the 4th version of the note"
+                (is (false? (eta/exists? driver {:css ".history__view .lni-paperclip"})))
                 (is (eta/has-text? driver {:css ".history__view h1"} "Some context"))
                 (is (eta/has-text? driver {:css ".history__view .content p"} "Some edited body goes here"))
                 (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='Attachments:']"}))
-                (is (= #{"some-pdf.pdf" "sample.txt"}
-                       (into #{}
-                             (map (partial eta/get-element-text-el driver))
-                             (eta/query-all driver {:css ".history__view ul.attachment-list li"}))))
-                (is (= #{:foo :baz/quux}
-                       (into #{}
-                             (map (comp edn/read-string (partial eta/get-element-text-el driver)))
-                             (eta/query-all driver {:css ".history__view .tag-list .tag"}))))
-                (ui-utils/click driver {:css ".history__view .panel-heading button.button"})
-                (eta/wait-invisible driver {:css ".modal-container.is-active .modal-item.history__view"})))
-
-            (testing "and when showing version 5"
-              (ui-utils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[5]"})
-              (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__view"})
-              (testing "displays the 5th version of the note"
-                (is (not (eta/exists? driver {:css ".history__view .lni-paperclip"})))
-                (is (eta/has-text? driver {:css ".history__view h1"} "Some context"))
-                (is (eta/has-text? driver {:css ".history__view .content p"} "Some edited body goes here"))
-                (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='Attachments:']"}))
-                (is (= #{"some-pdf.pdf" "sample.txt" "some other name"}
+                (is (= #{"some-pdf.pdf" "sample.txt" "image.jpg"}
                        (into #{}
                              (map (partial eta/get-element-text-el driver))
                              (eta/query-all driver {:css ".history__view ul.attachment-list li"}))))
@@ -110,7 +116,7 @@
               (ui-utils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[6]"})
               (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__view"})
               (testing "displays the 6th version of the note"
-                (is (not (eta/exists? driver {:css ".history__view .lni-paperclip"})))
+                (is (false? (eta/exists? driver {:css ".history__view .lni-paperclip"})))
                 (is (eta/has-text? driver {:css ".history__view h1"} "Some new context"))
                 (is (eta/has-text? driver {:css ".history__view .content p"} "Some completely different body"))
                 (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='Attachments:']"}))

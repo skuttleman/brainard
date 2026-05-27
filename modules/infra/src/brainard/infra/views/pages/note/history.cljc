@@ -78,6 +78,46 @@
           [:span.space--left.truncate.blue {:style {:max-width "50%"}}
            (str to)]])])]])
 
+(defmethod history-change "Todos"
+  [label changes]
+  [:div
+   [:span.layout--row.purple label]
+   [:ul
+    (for [[id {:keys [added done? from removed to todo]}] changes]
+      ^{:key id}
+      [:li.layout--row.layout--indent
+       (cond
+         added
+         [:<>
+          [:em.space--left "added"]
+          [:span.space--left.truncate.blue added]]
+
+         removed
+         [:<>
+          [:em.space--left "removed"]
+          [:span.space--left.truncate.orange removed]]
+
+         (and from to)
+         [:<>
+          [:em.space--left "changed"]
+          [:span.space--left.truncate.orange {:style {:max-width "50%"}}
+           (str from)]
+          [:em.space--left "to"]
+          [:span.space--left.truncate.blue {:style {:max-width "50%"}}
+           (str to)]]
+
+         (some? done?)
+         [:span.space--left.truncate.purple {:style {:max-width "50%"}}
+          (str (or todo added to))])
+       (when (some? done?)
+         [:<>
+          [:em.space--left "marked"]
+          (if done?
+            [:span.space--left.truncate.green {:style {:max-width "50%"}}
+             "complete"]
+            [:span.space--left.truncate.yellow {:style {:max-width "50%"}}
+             "incomplete"])])])]])
+
 (defmethod icomp/modal-header ::view
   [_ {:notes/keys [saved-at]}]
   (dates/->str saved-at))
@@ -114,6 +154,7 @@
      (for [[idx {:notes/keys [changes history-id saved-at]}] (map-indexed vector entries)
            :let [note (get reconstruction history-id)
                  attachment-changes (:attachments/changes note)
+                 todo-changes (:todos/changes note)
                  note (update note :notes/attachments (partial map (:attachments/state note)))
                  history-modal [::view {:last?            (= idx last-idx)
                                         :note             note
@@ -123,7 +164,8 @@
                                               [:notes/pinned? "Pin"]
                                               [:notes/body "Body"]
                                               [:notes/tags "Tags"]
-                                              [(constantly (not-empty attachment-changes)) "Attachments"]]
+                                              [(constantly (not-empty attachment-changes)) "Attachments"]
+                                              [(constantly (not-empty todo-changes)) "Todos"]]
                                    :let [change (k changes)]
                                    :when change]
                                [history-change label change])]
