@@ -143,7 +143,7 @@
    (when-not last?
      [:div
       [comp/plain-button {:*:store  *:store
-                          :class    ["is-small" "is-info"]
+                          :class    ["is-small" "is-info" "note__history-reinstate"]
                           :commands [[:modals/remove! modal-id]
                                      [::res/submit! [::note.act/notes#reinstate modal-id] params]]}
        "reinstate"]])])
@@ -152,11 +152,15 @@
   (let [last-idx (dec (count entries))
         last-history-id (:notes/history-id (last entries))
         last-entry (get reconstruction last-history-id)
-        prev-tags (:notes/tags last-entry)
         prev-attachments (->> last-entry
                               :notes/attachments
                               (map (:attachments/state last-entry))
-                              set)]
+                              set)
+        prev-tags (:notes/tags last-entry)
+        prev-todos (->> last-entry
+                        :notes/todos
+                        (map (:todos/state last-entry))
+                        set)]
     [:ul.note-history
      (for [[idx {:notes/keys [changes history-id saved-at]}] (map-indexed vector entries)
            :let [note (get reconstruction history-id)
@@ -167,8 +171,9 @@
                           (update :notes/todos (partial map (:todos/state note))))
                  history-modal [::view {:last?            (= idx last-idx)
                                         :note             note
+                                        :prev-attachments prev-attachments
                                         :prev-tags        prev-tags
-                                        :prev-attachments prev-attachments}]
+                                        :prev-todos       prev-todos}]
                  change-list (for [[k label] [[:notes/context "Topic"]
                                               [:notes/pinned? "Pin"]
                                               [:notes/body "Body"]

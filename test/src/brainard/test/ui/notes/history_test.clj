@@ -12,23 +12,24 @@
         (map (partial eta/get-element-text-el driver))
         (eta/query-all driver {:css (str css-prefix " ul.attachment-list li")})))
 
-(defn ^:private collect-todos [driver css-prefix]
+(defn ^:private collect-todos [driver {:keys [css-prefix disabled?]}]
   (into {}
         (map (fn [todo]
                (let [txt (eta/get-element-text-el driver todo)
                      chbox (eta/query-from-shadow-root-el driver
                                                           todo
-                                                          {:css "input[type=checkbox]:disabled"})
+                                                          {:css (cond-> "input[type=checkbox]"
+                                                                  disabled? (str ":disabled"))})
                      checked (eta/get-element-attr-el driver chbox "checked")]
                  [txt (some? checked)])))
-        (eta/query-all driver {:css (str css-prefix " .todo-list .todo")})))
+       (eta/query-all driver {:css (str css-prefix " .todo-list .todo")})))
 
 (defn ^:private collect-tags [driver css-prefix]
   (into #{}
         (map (comp edn/read-string (partial eta/get-element-text-el driver)))
         (eta/query-all driver {:css (str css-prefix " .tag-list .tag")})))
 
-(deftest view-history-test
+(deftest view-test
   (ui-sys/with-system [driver base-url {fix "history.edn"}]
     (let [note-id (-> fix first :notes/id)]
       (testing "when visiting the note page"
@@ -112,12 +113,12 @@
 
               (testing "displays the 1st version todos"
                 (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='TODOs:']"}))
-                (is (= {"Do a thing" false} (collect-todos driver ".history__view"))))
+                (is (= {"Do a thing" false} (collect-todos driver {:css-prefix ".history__view"}))))
 
               (testing "displays the 1st version tags"
                 (is (= #{:foo :bar :baz/quux} (collect-tags driver ".history__view"))))
 
-              (ui-utils/click driver {:css ".history__view .panel-heading button.button"})
+              (ui-utils/click driver {:css ".history__view .panel-heading .lni-close"})
               (eta/wait-invisible driver {:css ".modal-container.is-active .modal-item.history__view"}))
 
             (testing "and when showing version 4"
@@ -135,12 +136,12 @@
                 (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='TODOs:']"}))
                 (is (= {"Did a thing"      true
                         "Do another thing" false}
-                       (collect-todos driver ".history__view"))))
+                       (collect-todos driver {:css-prefix ".history__view"}))))
 
               (testing "displays the 4th version tags"
                 (is (= #{:foo :baz/quux} (collect-tags driver ".history__view"))))
 
-              (ui-utils/click driver {:css ".history__view .panel-heading button.button"})
+              (ui-utils/click driver {:css ".history__view .panel-heading .lni-close"})
               (eta/wait-invisible driver {:css ".modal-container.is-active .modal-item.history__view"}))
 
             (testing "and when showing version 6"
@@ -159,10 +160,134 @@
                 (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='TODOs:']"}))
                 (is (= {"Did a thing"               true
                         "Do some third thing still" false}
-                       (collect-todos driver ".history__view"))))
+                       (collect-todos driver {:css-prefix ".history__view"}))))
 
               (testing "displays the 6th version tags"
                 (is (= #{:foo :other/tag} (collect-tags driver ".history__view"))))
 
-              (ui-utils/click driver {:css ".history__view .panel-heading button.button"})
+              (ui-utils/click driver {:css ".history__view .panel-heading .lni-close"})
               (eta/wait-invisible driver {:css ".modal-container.is-active .modal-item.history__view"}))))))))
+
+(deftest reinstate-test
+  (ui-sys/with-system [driver base-url {fix "history.edn"}]
+    (let [note-id (-> fix first :notes/id)]
+      (testing "when visiting the note page"
+        (eta/go driver (str base-url "/notes/" note-id))
+        (eta/wait-visible driver {:css "h1.layout--space-after"})
+
+        (testing "and when viewing the note history"
+          (ui-utils/click driver {:css "button.note__history-button"})
+          (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__modal"})
+
+          (testing "and when showing version 6"
+            (ui-utils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[6]"})
+            (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__view"})
+
+            (testing "cannot reinstate the current note version"
+              (is (not (eta/exists? driver {:css ".history__view button.note__history-reinstate"}))))
+
+            (ui-utils/click driver {:css ".history__view .panel-heading .lni-close"})
+            (eta/wait-invisible driver {:css ".modal-container.is-active .modal-item.history__view"}))
+
+          (testing "and when showing version 3"
+            (ui-utils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[3]"})
+            (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__view"})
+            (testing "displays the 3rd version of the note"
+              (is (eta/exists? driver {:css ".history__view .lni-paperclip"}))
+              (is (eta/has-text? driver {:css ".history__view h1"} "Some context"))
+              (is (eta/has-text? driver {:css ".history__view .content p"} "Some edited body goes here")))
+
+            (testing "displays the 3rd version attachments"
+              (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='Attachments:']"}))
+              (is (= #{"image.jpg" "sample.txt" "some-pdf.pdf"} (collect-attachments driver ".history__view"))))
+
+            (testing "displays the 3rd version todos"
+              (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='TODOs:']"}))
+              (is (= {"Do a thing"       false
+                      "Do another thing" false}
+                     (collect-todos driver {:css-prefix ".history__view"}))))
+
+            (testing "displays the 3rd version tags"
+              (is (= #{:foo :baz/quux} (collect-tags driver ".history__view"))))
+
+            (testing "and when reinstating the note version"
+              (ui-utils/click driver {:css ".history__view button.note__history-reinstate"})
+              (eta/wait-invisible driver {:css ".modal-container.is-active .modal-item.history__view"})
+              (ui-utils/click driver {:css ".history__modal .lni-close"})
+              (eta/wait-invisible driver {:css ".modal-container.is-active"})
+              (eta/wait-visible driver {:xpath "//h1[.='Some context']"})
+
+              (testing "reinstates the 3rd version of the note"
+                (is (eta/exists? driver {:css "button.is-info i.lni-paperclip"}))
+                (is (eta/exists? driver {:xpath "//h1[.='Some context']"}))
+                (is (eta/has-text? driver {:css ".content p"} "Some edited body goes here")))
+
+              (testing "reinstates the 3rd version attachments"
+                (is (eta/exists? driver {:xpath "//label[text()='Attachments:']"}))
+                (is (= #{"image.jpg" "sample.txt" "some-pdf.pdf"} (collect-attachments driver ""))))
+
+              (testing "reinstates the 3rd version todos"
+                (is (eta/exists? driver {:xpath "//label[text()='TODOs:']"}))
+                (is (= {"Do a thing"       false
+                        "Do another thing" false}
+                       (collect-todos driver {:disabled? false}))))
+
+              (testing "reinstates the 3rd version tags"
+                (is (= #{:foo :baz/quux} (collect-tags driver ""))))
+
+              (testing "and when viewing the note history"
+                (ui-utils/click driver {:css "button.note__history-button"})
+                (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__modal"})
+
+                (testing "and when showing version 7"
+                  (ui-utils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[7]"})
+                  (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__view"})
+                  (testing "displays the 7th version of the note"
+                    (is (eta/exists? driver {:css ".history__view .lni-paperclip"}))
+                    (is (eta/has-text? driver {:css ".history__view h1"} "Some context"))
+                    (is (eta/has-text? driver {:css ".history__view .content p"} "Some edited body goes here")))
+
+                  (testing "displays the 7th version attachments"
+                    (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='Attachments:']"}))
+                    (is (= #{"image.jpg" "sample.txt" "some-pdf.pdf"} (collect-attachments driver ".history__view"))))
+
+                  (testing "displays the 7th version todos"
+                    (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='TODOs:']"}))
+                    (is (= {"Do a thing"       false
+                            "Do another thing" false}
+                           (collect-todos driver {:css-prefix ".history__view"}))))
+
+                  (testing "displays the 7th version tags"
+                    (is (= #{:foo :baz/quux} (collect-tags driver ".history__view"))))
+
+                  (ui-utils/click driver {:css ".history__view .panel-heading .lni-close"})
+                  (eta/wait-invisible driver {:css ".modal-container.is-active .modal-item.history__view"}))
+
+                (testing "and when showing version 6"
+                  (ui-utils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[6]"})
+                  (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__view"})
+
+                  (testing "and when reinstating the note version"
+                    (ui-utils/click driver {:css ".history__view button.note__history-reinstate"})
+                    (eta/wait-invisible driver {:css ".modal-container.is-active .modal-item.history__view"})
+                    (ui-utils/click driver {:css ".history__modal .lni-close"})
+                    (eta/wait-invisible driver {:css ".modal-container.is-active"})
+                    (eta/wait-visible driver {:xpath "//h1[.='Some new context']"})
+
+                    (testing "reinstates the 6th version of the note"
+                      (is (eta/exists? driver {:css "button:not(.is-info) i.lni-paperclip"}))
+                      (is (eta/exists? driver {:xpath "//h1[.='Some new context']"}))
+                      (is (eta/has-text? driver {:css ".content p"} "Some completely different body")))
+
+                    (testing "reinstates the 6th version attachments"
+                      (is (eta/exists? driver {:xpath "//label[text()='Attachments:']"}))
+                      (is (= #{"sample.txt" "some other name"} (collect-attachments driver ""))))
+
+                    (testing "reinstates the 6th version todos"
+                      (is (eta/exists? driver {:xpath "//label[text()='TODOs:']"}))
+                      (is (= {"Did a thing"       true
+                              "Do some third thing still" false}
+                             (collect-todos driver {:disabled? false}))))
+
+                    (testing "reinstates the 6th version tags"
+                      (is (= #{:foo :other/tag} (collect-tags driver ""))))))))))))))

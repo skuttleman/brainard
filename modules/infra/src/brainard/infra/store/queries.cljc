@@ -35,10 +35,10 @@
         next-items (-> {}
                        (into (filter (comp int? key)) (changes-k change))
                        (update-vals (partial into
-                                            {}
-                                            (keep (fn [[k {:keys [to]}]]
-                                                    (when (some? to)
-                                                      [k to]))))))
+                                             {}
+                                             (keep (fn [[k {:keys [to]}]]
+                                                     (when (some? to)
+                                                       [k to]))))))
         item-changes (into {}
                            (keep (partial change-fn prev-items next-items))
                            (into #{}
