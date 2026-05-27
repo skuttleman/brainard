@@ -3,6 +3,8 @@
     [brainard.infra.db.store :as ds]
     [brainard.test.harness.integration.system :as tsys]
     [brainard.test.harness.ui.utils :as tutils]
+    [clojure.string :as string]
+    [clojure.test :as t]
     [etaoin.api :as eta]))
 
 (defn transact-multi! [db data]
@@ -15,12 +17,30 @@
     (doto data
       (->> (ds/transact! db)))))
 
+(defn safe-screenshot! [driver]
+  (try
+    (let [filename (-> t/*testing-vars*
+                       first
+                       str
+                       (string/replace #"/" "__")
+                       (string/replace #"^#'" "")
+                       gensym
+                       (str ".png"))]
+      (eta/set-window-size driver 1920 1080)
+      (eta/screenshot driver filename)
+      (println "saved screenshot"))
+    (catch Throwable e
+      (println "failed to save screenshot")
+      (.printStackTrace e))))
+
 (defmacro with-webdriver [[driver-binding base-url-binding seeds] & body]
   (let [db-sym (gensym "db")]
     `(tsys/with-app [{port# :cfg/server-port ~db-sym :brainard/IDBConn}
-                        {:config    "duct/ui-test.edn"
-                         :init-keys [:brainard/webserver]}]
-                    (let [headless?# (= "true" (System/getenv "HEADLESS"))
+                     {:config    "duct/ui-test.edn"
+                      :init-keys [:brainard/webserver]}]
+       (let [headless?# (= "true" (System/getenv "HEADLESS"))
+             screenshot?# (= "true" (System/getenv "SCREENSHOT"))
+             orig-report# t/report
              ~driver-binding (eta/chrome {:headless    headless?#
                                           :path-driver (or (System/getenv "CHROMEDRIVER_PATH")
                                                            "chromedriver")
@@ -34,7 +54,17 @@
                                       tutils/edn-fixture
                                       (transact-multi! ~db-sym))]]
                  token)]
-         (try
-           ~@body
-           (finally
-             (eta/quit ~driver-binding)))))))
+         (binding [t/report (fn [event#]
+                              (when (and (#{:fail :error} (:type event#))
+                                         screenshot?#)
+                                (safe-screenshot! ~driver-binding))
+                              (orig-report# event#))]
+           (try
+             ~@body
+             (catch Throwable e#
+               (when screenshot?#
+                 (safe-screenshot! ~driver-binding))
+               (throw e#))
+             (finally
+               (eta/quit ~driver-binding)
+               (Thread/sleep 5))))))))
