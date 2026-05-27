@@ -1,5 +1,8 @@
 {:duct.profile/base #duct/include "duct/base.edn"
- :duct.profile/test {[:brainard.web/handler :brainard/IWebHandler]
+ :duct.profile/test {:brainard/webserver
+                     {:server-port #ig/ref :cfg.test/server-port}
+
+                     [:brainard.web/handler :brainard/IWebHandler]
                      {:upload-limit 1000}
 
                      [:brainard.test/db-conn :brainard/IDBConn]
@@ -13,5 +16,5 @@
                      [:brainard.test/fs-invoker :brainard/IObjInvoker]
                      {}
 
-                     [:duct/const :cfg/server-port]
-                     #duct/env ["TEST_SERVER_PORT" Int :or 9998]}}
+                     :cfg.test/server-port
+                     {}}}

@@ -5,7 +5,17 @@
     [brainard.test.harness.ui.utils :as tutils]
     [clojure.string :as string]
     [clojure.test :as t]
-    [etaoin.api :as eta]))
+    [etaoin.api :as eta]
+    [integrant.core :as ig])
+  (:import (java.net ServerSocket)))
+
+(defmethod ig/init-key :cfg.test/server-port
+  [_ _]
+  (let [socket (ServerSocket. 0)]
+    (try
+      (.getLocalPort socket)
+      (finally
+        (.close socket)))))
 
 (defn transact-multi! [db data]
   (if (map? data)
@@ -35,7 +45,7 @@
 
 (defmacro with-webdriver [[driver-binding base-url-binding seeds] & body]
   (let [db-sym (gensym "db")]
-    `(tsys/with-app [{port# :cfg/server-port ~db-sym :brainard/IDBConn}
+    `(tsys/with-app [{port# :cfg.test/server-port ~db-sym :brainard/IDBConn}
                      {:config    "duct/ui-test.edn"
                       :init-keys [:brainard/webserver]}]
        (let [headless?# (= "true" (System/getenv "HEADLESS"))
@@ -66,5 +76,4 @@
                  (safe-screenshot! ~driver-binding))
                (throw e#))
              (finally
-               (eta/quit ~driver-binding)
-               (Thread/sleep 5))))))))
+               (eta/quit ~driver-binding))))))))

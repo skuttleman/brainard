@@ -2,15 +2,9 @@
   (:require
     [clojure.java.io :as io]
     [etaoin.api :as eta]
-    [immutant.web :as web])
-  (:import (java.net ServerSocket)))
-
-(defn ^:private find-free-port []
-  (let [socket (ServerSocket. 0)]
-    (try
-      (.getLocalPort socket)
-      (finally
-        (.close socket)))))
+    [immutant.web :as web]
+    [integrant.core :as ig]
+    brainard.test.harness.ui.system))
 
 (defn handler [request]
   (let [uri (:uri request)]
@@ -57,7 +51,7 @@
         (System/exit 1)))))
 
 (defn -main []
-  (let [port (find-free-port)
+  (let [port (ig/init-key :cfg.test/server-port {})
         url (str "http://localhost:" port)
         server (web/run handler {:port port :host "localhost"})
         driver (eta/chrome {:headless true})]
