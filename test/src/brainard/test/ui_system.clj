@@ -5,6 +5,16 @@
     [brainard.test.ui.utils :as ui-utils]
     [etaoin.api :as eta]))
 
+(defn transact-multi! [db data]
+  (if (map? data)
+    (->> data
+         (sort-by key)
+         (into [] (mapcat (fn [[_ tx-data]]
+                            (ds/transact! db tx-data)
+                            tx-data))))
+    (doto data
+      (->> (ds/transact! db)))))
+
 (defmacro with-system [[driver-binding base-url-binding bnds] & body]
   (let [db-sym (gensym "db")]
     `(tsys/with-system [{port# :cfg/server-port ~db-sym :brainard/IDBConn}
@@ -22,7 +32,7 @@
                      token [sym `(cond-> ~seed
                                    (string? ~seed) (->> (str "seed/")
                                                         ui-utils/edn-fixture)
-                                   true (doto (->> (ds/transact! ~db-sym))))]]
+                                   true (->> (transact-multi! ~db-sym)))]]
                  token)]
          (try
            ~@body

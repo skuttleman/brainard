@@ -72,72 +72,89 @@
        (sort-by second)
        (reduce-history [])))
 
-(defn ^:private prep-attachment-history [_ results]
+(defn ^:private prep-child-history [changes-k results]
   (->> results
        (sort-by second)
        (group-by first)
        (mapcat (fn [[k vals]]
-                 (reduce-history [:attachments/changes k] vals)))
+                 (reduce-history [changes-k k] vals)))
        (sort-by :notes/history-id)))
 
 (defn ^:private combine-history
-  ([note-history attachment-history]
-   (combine-history note-history attachment-history []))
-  ([[note-hist :as note-history] [att-hist :as attachment-history] combined-history]
+  ([note-history sub-history sub-k]
+   (combine-history note-history sub-history sub-k []))
+  ([[note-hist :as note-history] [sub-hist :as sub-history] sub-k combined-history]
    (cond
-     (empty? attachment-history)
+     (empty? sub-history)
      (into combined-history note-history)
 
      (empty? note-history)
-     (into combined-history attachment-history)
+     (into combined-history sub-history)
 
-     (= (:notes/history-id note-hist) (:notes/history-id att-hist))
+     (= (:notes/history-id note-hist) (:notes/history-id sub-hist))
      (recur (update-in note-history
                        [0 :notes/changes]
                        maps/deep-merge
-                       (:notes/changes att-hist))
-            (rest attachment-history)
+                       (:notes/changes sub-hist))
+            (rest sub-history)
+            sub-k
             combined-history)
 
-     (and (> (:notes/history-id note-hist) (:notes/history-id att-hist))
-          (-> note-hist :notes/changes :notes/attachments :added))
+     (and (> (:notes/history-id note-hist) (:notes/history-id sub-hist))
+          (-> note-hist :notes/changes sub-k :added))
      (recur (update-in note-history
                        [0 :notes/changes]
                        maps/deep-merge
-                       (:notes/changes att-hist))
-            (rest attachment-history)
+                       (:notes/changes sub-hist))
+            (rest sub-history)
+            sub-k
             combined-history)
 
-     (> (:notes/history-id note-hist) (:notes/history-id att-hist))
+     (> (:notes/history-id note-hist) (:notes/history-id sub-hist))
      (recur note-history
-            (rest attachment-history)
-            (conj combined-history att-hist))
+            (rest sub-history)
+            sub-k
+            (conj combined-history sub-hist))
 
      :else
      (recur (vec (rest note-history))
-            attachment-history
+            sub-history
+            sub-k
             (conj combined-history note-hist)))))
 
+(def ^:private child-query
+  '[:find ?e ?tx ?op ?attr ?val ?at ?card
+    :in $ [?e ...]
+    :where
+    [?e ?a ?val ?tx ?op]
+    [?tx :db/txInstant ?at]
+    [?a :db/ident ?attr]
+    [?a :db/cardinality ?c]
+    [?c :db/ident ?card]])
+
 (defn ^:private prep-history [db results]
-  (let [note-history (prep-note-history results)
-        attachment-ids (into #{}
-                             (keep (fn [[_ _ _ attr val]]
-                                     (when (= :notes/attachments attr)
-                                       val)))
-                             results)
-        attachment-history (ds/query db
-                                     {:query    '[:find ?e ?tx ?op ?attr ?val ?at ?card
-                                                  :in $ [?e ...]
-                                                  :where
-                                                  [?e ?a ?val ?tx ?op]
-                                                  [?tx :db/txInstant ?at]
-                                                  [?a :db/ident ?attr]
-                                                  [?a :db/cardinality ?c]
-                                                  [?c :db/ident ?card]]
-                                      :args     [attachment-ids]
-                                      :history? true
-                                      :post     prep-attachment-history})]
-    (combine-history note-history attachment-history)))
+  (when (seq results)
+    (let [note-history (prep-note-history results)
+          ids (reduce (fn [ids [_ _ _ attr val]]
+                        (case attr
+                          :notes/attachments (update ids :attachment-ids conj val)
+                          :notes/todos (update ids :todo-ids conj val)
+                          ids))
+                      {:attachment-ids #{} :todo-ids #{}}
+                      results)
+          attachment-history (ds/query db
+                                       {:query    child-query
+                                        :args     [(:attachment-ids ids)]
+                                        :history? true
+                                        :post     #(prep-child-history :attachments/changes %2)})
+          todo-history (ds/query db
+                                 {:query    child-query
+                                  :args     [(:todo-ids ids)]
+                                  :history? true
+                                  :post     #(prep-child-history :todos/changes %2)})]
+      (-> note-history
+          (combine-history attachment-history :notes/attachments)
+          (combine-history todo-history :notes/todos)))))
 
 (defn ^:private clean-note [note]
   (-> note
