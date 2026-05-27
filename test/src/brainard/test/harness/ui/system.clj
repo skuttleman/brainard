@@ -6,16 +6,12 @@
     [clojure.string :as string]
     [clojure.test :as t]
     [etaoin.api :as eta]
-    [integrant.core :as ig])
-  (:import (java.net ServerSocket)))
+    [etaoin.impl.util :as ueta]
+    [integrant.core :as ig]))
 
 (defmethod ig/init-key :cfg.test/server-port
   [_ _]
-  (let [socket (ServerSocket. 0)]
-    (try
-      (.getLocalPort socket)
-      (finally
-        (.close socket)))))
+  (ueta/get-free-port))
 
 (defn transact-multi! [db data]
   (if (map? data)

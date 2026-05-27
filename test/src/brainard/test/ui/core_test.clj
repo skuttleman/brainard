@@ -302,11 +302,13 @@
               (tutils/click driver {:css (format ".form-field[data-field-label='%s'] button" label)})
               (eta/wait-visible driver {:css "ul.dropdown-items"}))
             (pick-option! [item-text]
-              (let [fmt "//ul[contains(@class,'dropdown-items')]//span[text()='%s']"]
-                (tutils/click driver {:xpath (format fmt item-text)})))
+              (let [item-fmt "//ul[contains(@class,'dropdown-items')]//span[text()='%s']"
+                    active-fmt "//ul[contains(@class,'dropdown-items')]//li[contains(@class,'is-active')]//span[text()='%s']"]
+                (tutils/click driver {:xpath (format item-fmt item-text)})
+                (eta/wait-predicate #(or (not (eta/exists? driver {:css "ul.dropdown-items"}))
+                                         (eta/exists? driver {:xpath (format active-fmt item-text)})))))
             (search! []
               (tutils/click driver {:css "form.search-form button.submit"})
-              (Thread/sleep 10)
               (eta/wait-visible driver {:css "ul.search-results"}))
             (url-query? [qp]
               (let [url (eta/get-url driver)
@@ -314,7 +316,6 @@
                                (string/split #"\?")
                                second
                                nav/->query-params)]
-                (println "QUERY PARAMS:" params)
                 (= qp params)))]
       (testing "when visiting the search page"
         (testing "and when filtering on a tag"

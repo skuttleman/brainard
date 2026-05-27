@@ -57,8 +57,6 @@
         driver (eta/chrome {:headless true})]
     (try
       (println (str "Starting test server on port " port))
-      (Thread/sleep 500)
-
       (println (str "Opening test runner: " url))
       (eta/go driver url)
       (eta/wait-visible driver {:css ".complete"})
