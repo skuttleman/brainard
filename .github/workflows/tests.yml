@@ -178,12 +178,12 @@ jobs:
           if [ $rc -ne 0 ]; then
             fails=$(perl -ne 's/\x1b[[0-9;]*[A-Za-z]//g; print "$1\n" if /(?:ERROR|FAIL)\s+in\s+(\S+)/' test-output.txt | sort -u)
             if [ -n "$fails" ]; then
-             echo "Re-running failed tests with screenshots:"; echo "$fails\n"
+             echo "Re-running failed tests:"; echo "$fails\n"
              args=()
               while IFS= read -r f; do args+=( "--focus" "$f" ); done <<< "$fails"
               SCREENSHOT=true clojure -M:test -m kaocha.runner :ui "${args[@]}"
             else
-              echo "No specific failures parsed; re-running full UI suite with screenshots"
+              echo "No specific failures parsed; re-running full UI suite"
               SCREENSHOT=true clojure -M:test -m kaocha.runner :ui
             fi
           fi

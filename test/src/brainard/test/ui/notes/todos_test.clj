@@ -63,9 +63,6 @@
               (tutils/click driver {:css ".note-edit__todo button.submit"})
               (eta/wait-invisible driver {:css ".modal-container.is-active .note-edit__todo"})
 
-              (testing "buckles my shoe"
-                (is false))
-
               (testing "closes the todo modal and displays the updated todo"
                 (is (eta/has-text? driver
                                    {:css ".modal-container.is-active ul.todo-list"}
@@ -113,5 +110,4 @@
 
               (testing "removes the todo from the list"
                 (let [todos-after (count (eta/query-all driver {:css "ul.todo-list li.todo"}))]
-                  (is (= (dec todos-before) todos-after))
-                  (throw (ex-info "boomsy!" {})))))))))))
+                  (is (= (dec todos-before) todos-after)))))))))))
