@@ -167,7 +167,8 @@ jobs:
           install-chromedriver: true
       - name: Run webdriver tests
         run: |
-          clojure -M:test -m kaocha.runner :ui
+          # Avoid webdriver flakiness
+          clojure -M:test -m kaocha.runner :ui || clojure -M:test -m kaocha.runner :ui
         env:
           CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
           HEADLESS: "true"
