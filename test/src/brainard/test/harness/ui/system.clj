@@ -3,11 +3,13 @@
     [brainard.infra.db.store :as ds]
     [brainard.test.harness.integration.system :as tsys]
     [brainard.test.harness.ui.utils :as tutils]
+    [cheshire.core :as json]
     [clojure.string :as string]
     [clojure.test :as t]
     [etaoin.api :as eta]
     [etaoin.impl.util :as ueta]
-    [integrant.core :as ig]))
+    [integrant.core :as ig])
+  (:import (java.io File)))
 
 (defmethod ig/init-key :cfg.test/server-port
   [_ _]
@@ -38,6 +40,21 @@
     (catch Throwable e
       (println "failed to save screenshot")
       (.printStackTrace e))))
+
+(defn export-browser-coverage! [driver ^String out-path]
+  (try
+    (when-let [cov (try
+                     (eta/js-execute driver "return (window.__coverage__ || null);")
+                     (catch Throwable _ nil))]
+      (let [s (json/generate-string cov)
+            f (File. out-path)
+            parent (.getParentFile f)]
+        (when parent
+          (.mkdirs parent))
+        (spit f s)
+        (println "Wrote browser coverage to" (.getAbsolutePath f))))
+    (catch Throwable e
+      (println "Failed to export browser coverage:" (.getMessage e)))))
 
 (defn ->driver []
   (let [headless? (= "true" (System/getenv "HEADLESS"))]
@@ -77,4 +94,10 @@
                  (safe-screenshot! ~driver-binding))
                (throw e#))
              (finally
+               (try
+                 (when-let [out-path# (some-> (System/getenv "BROWSER_COV_DIR")
+                                              (str "/browser-coverage.json"))]
+                   (export-browser-coverage! ~driver-binding out-path#))
+                 (catch Throwable _#
+                   (println "browser coverage export failed")))
                (eta/quit ~driver-binding))))))))

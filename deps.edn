@@ -16,7 +16,8 @@
                                     "modules/infra/test/src"]
                       :extra-deps  {etaoin/etaoin                 {:mvn/version "1.1.43"}
                                     lambdaisland/kaocha           {:mvn/version "1.91.1392"}
-                                    lambdaisland/kaocha-cloverage {:mvn/version "1.1.89"}}}
+                                    lambdaisland/kaocha-cloverage {:mvn/version "1.1.89"}
+                                    cheshire/cheshire             {:mvn/version "5.10.1"}}}
            :build    {:extra-paths ["dev/src"]
                       :deps        {org.clojure/clojure           {:mvn/version "1.12.4"}
                                     io.github.clojure/tools.build {:mvn/version "0.10.13"}}

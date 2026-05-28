@@ -79,7 +79,8 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - name: Run unit tests
         run: |
-          clojure -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/unit --lcov :api :infra
+          clojure -M:test -m kaocha.runner --plugin cloverage \
+            --cov-output target/coverage/unit --lcov :api :infra
       - name: Upload coverage artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -140,7 +141,8 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - name: Run integration tests
         run: |
-          clojure -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/integration --lcov :integration
+          clojure -M:test -m kaocha.runner --plugin cloverage \
+            --cov-output target/coverage/integration --lcov :integration
       - name: Upload coverage artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -183,28 +185,76 @@ jobs:
         run: |
           set -o pipefail
           set +e
-          clojure -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/ui --lcov :ui | tee test-output.txt
+          # initial run - write browser coverage to target/coverage/ui
+          BROWSER_COV_DIR=target/coverage/ui clojure -M:test -m kaocha.runner --plugin cloverage \
+            --cov-output target/coverage/ui --lcov :ui | tee test-output.txt
           rc=${PIPESTATUS[0]}
           set -e
           set +o pipefail
 
           # if any tests fail/error, rerun failures to counteract webdriver flakiness
           if [ $rc -ne 0 ]; then
-            fails=$(perl -ne 's/\x1b[[0-9;]*[A-Za-z]//g; print "$1\n" if /(?:ERROR|FAIL)\s+in\s+(\S+)/' test-output.txt | sort -u)
+            fails=$(perl -ne 's/\x1b[[0-9;]*[A-Za-z]//g; \
+                    print "$1\n" if /(?:ERROR|FAIL)\s+in\s+(\S+)/' test-output.txt | sort -u)
             if [ -n "$fails" ]; then
              echo "Re-running failed tests:"; echo "$fails"
              echo " ---------------------- "
              args=()
               while IFS= read -r f; do args+=( "--focus" "$f" ); done <<< "$fails"
-              SCREENSHOT=true clojure -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/ui --lcov :ui "${args[@]}"
+              # rerun - write browser coverage to target/coverage/ui-rerun
+              SCREENSHOT=true BROWSER_COV_DIR=target/coverage/ui-rerun clojure \
+                -M:test -m kaocha.runner --plugin cloverage \
+                --cov-output target/coverage/ui-rerun --lcov :ui "${args[@]}"
             else
               echo "No specific failures parsed; re-running full UI suite"
-              SCREENSHOT=true clojure -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/ui --lcov :ui
+              # rerun full - write browser coverage to target/coverage/ui-rerun
+              SCREENSHOT=true BROWSER_COV_DIR=target/coverage/ui-rerun clojure \
+                -M:test -m kaocha.runner --plugin cloverage \
+                --cov-output target/coverage/ui-rerun --lcov :ui
             fi
           fi
         env:
           CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
           HEADLESS: "true"
+      - name: Convert browser coverage JSON -> lcov (nyc)
+        if: always()
+        run: |
+          set -euo pipefail
+
+          echo "Converting browser coverage JSON to lcov..."
+
+          # install nyc transiently
+          npm install --no-save nyc
+
+          # ensure nyc input dir exists
+          mkdir -p .nyc_output
+
+          files_copied=0
+          for src in \
+            target/coverage/ui/browser-coverage.json \
+            target/coverage/ui-rerun/browser-coverage.json; do
+            if [ -f "$src" ]; then
+              base=$(basename "$src" .json)
+              dest=".nyc_output/${base}-$(date +%s).json"
+              cp "$src" "$dest"
+              echo "Copied $src -> $dest"
+              files_copied=$((files_copied + 1))
+            fi
+          done
+
+          if [ "$files_copied" -eq 0 ]; then
+            echo "No browser coverage JSON files found; skipping nyc report generation."
+            exit 0
+          fi
+
+          mkdir -p target/coverage/ui
+          npx nyc report --reporter=lcov --report-dir target/coverage/ui
+
+          echo "Generated LCOV files in target/coverage/ui:"
+          ls -la target/coverage/ui || true
+        env:
+          NODE_ENV: test
+
       - name: Upload failed test screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -217,7 +267,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-ui
-          path: target/coverage/ui
+          path: target/coverage/ui*
 
   merge-coverage:
     name: Merge coverage artifacts
