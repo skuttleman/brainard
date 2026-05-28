@@ -1,5 +1,6 @@
 (ns brainard.test.runner
   (:require
+    [brainard.api.utils.logger :as log]
     [clojure.java.io :as io]
     [etaoin.api :as eta]
     [immutant.web :as web]
@@ -23,19 +24,14 @@
       {:status 404
        :body   "Not Found"})))
 
-(def red "\u001b[31m")
-(def green "\u001b[32m")
-(def yellow "\u001b[33m")
-(def reset "\u001b[0m")
-
 (defn ^:private print-logs! [driver]
   (when-let [logs (seq (eta/get-logs driver))]
     (println "\nBrowser Console:")
     (doseq [{:keys [level message]} logs
             :let [[_ msg] (re-find #"\"(.+)\"" message)]
             :let [msg (cond-> (str msg)
-                        (= :severe level) (as-> $ (str red $ reset))
-                        (= :warning level) (as-> $ (str yellow $ reset)))]]
+                        (= :severe level) log/red
+                        (= :warning level) log/yellow)]]
       (println msg))))
 
 (defn ^:private print-results! [driver]
@@ -44,10 +40,10 @@
              (zero? (:failures results 0))
              (zero? (:errors results 0)))
       (do
-        (println green "✓ All tests passed!" reset)
+        (println (log/green "✓ All tests passed!"))
         (System/exit 0))
       (do
-        (println red "✗ Tests failed or no results!" reset)
+        (println (log/red "✗ Tests failed or no results!"))
         (System/exit 1)))))
 
 (defn -main []

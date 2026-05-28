@@ -19,7 +19,13 @@
 #?(:clj
    (defn ^:private log-req [{:keys [ex result duration]} {:keys [uri] :as req}]
      (let [status (:status result)
-           duration (str "[" duration "ms]:")
+           duration (str "["
+                         (cond
+                           (> duration 500) (log/red (str duration "ms"))
+                           (> duration 100) (log/yellow (str duration "ms"))
+                           (> duration 50) (log/blue (str duration "ms"))
+                           :else (str duration "ms"))
+                         "]:")
            method (string/upper-case (name (:request-method req)))]
        (if (and (nil? ex) (success? status))
          (log/info method uri duration status)

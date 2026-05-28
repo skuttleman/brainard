@@ -1,5 +1,6 @@
 (ns brainard.dev
   (:require
+    [brainard.api.utils.logger :as log]
     [brainard.app :as app]
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as-alias specs]
@@ -43,4 +44,5 @@
 (defn init!
   "Called when the DOM finishes loading."
   []
+  (log/info "dev app initialized")
   (app/start! (comp app/store->comp with-dev)))

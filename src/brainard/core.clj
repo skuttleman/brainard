@@ -30,7 +30,7 @@
                                   :xform    (map first)
                                   :history? true})]
       (if-let [orphaned-ids (seq (remove (set db-keys) s3-keys))]
-        (do (log/info (format "cleaning up %s orphaned artifacts ..." (count orphaned-ids)))
+        (do (log/infof "cleaning up %s orphaned artifacts ..." (count orphaned-ids))
             (istorage/read obj-store
                            {:op      :DeleteObjects
                             :request {:Delete {:Objects (map #(hash-map :Key (str %))
