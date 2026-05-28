@@ -236,7 +236,7 @@ jobs:
           set -e
           files=$(find coverage-artifacts -type f -name '*.info' -print)
           if [ -z "$files" ]; then echo "No coverage files found"; exit 0; fi
-          lcov -a $(echo $files | tr '\n' ' ') -o merged.info
+          lcov -a "$(echo $files | tr '\n' ' ')" -o merged.info
           genhtml merged.info -o target/coverage/merged
       - name: Upload merged coverage
         uses: actions/upload-artifact@v4
