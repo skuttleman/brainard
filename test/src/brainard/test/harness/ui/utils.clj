@@ -59,3 +59,11 @@
 (defn submit-form! [driver form-selector field-vals]
   (fill-form! driver form-selector field-vals)
   (eta/click driver {:css (str form-selector " button.submit")}))
+
+(defn js-events [driver css-selector events]
+  (let [code (apply str
+                    (format "var el = document.querySelector('%s');"  css-selector)
+                    (for [event events]
+                      (format "el.dispatchEvent(new MouseEvent('%s', {bubbles: true, cancelable: true}));"
+                              (name event))))]
+    (eta/js-execute driver code)))

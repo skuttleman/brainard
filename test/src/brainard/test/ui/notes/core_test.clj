@@ -3,7 +3,8 @@
     [brainard.test.harness.ui.system :as usys]
     [brainard.test.harness.ui.utils :as tutils]
     [clojure.test :refer [deftest is testing]]
-    [etaoin.api :as eta]))
+    [etaoin.api :as eta]
+    [etaoin.keys :as keys]))
 
 (deftest create-note-test
   (usys/with-webdriver [driver base-url]
@@ -168,3 +169,64 @@
             (testing "removes the schedule from the list"
               (eta/wait-visible driver {:css "p.schedules__empty"})
               (is (not (eta/exists? driver {:css "p.schedules__header"}))))))))))
+
+(deftest modal-closing-test
+  (usys/with-webdriver [driver base-url {fix "base.edn"}]
+    (let [note-id (-> fix first :notes/id)]
+      (testing "when visiting the note page"
+        (eta/go driver (str base-url "/notes/" note-id))
+        (eta/wait-visible driver {:css "h1.layout--space-after"})
+
+        (testing "and when opening the note edit modal"
+          (tutils/click driver {:css "button.note__edit-button"})
+          (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
+
+          (testing "and when opening the todo edit modal"
+            (tutils/click driver {:css ".modal-item.note-edit__modal li.todo button:last-of-type"})
+            (eta/wait-visible driver {:css ".modal-item.note-edit__todo"})
+
+            (testing "and when pressing esc"
+              (eta/fill-active driver keys/escape)
+              (eta/wait-absent driver {:css ".modal-item.note-edit__todo"})
+
+              (testing "closes the todo edit modal"
+                (is (eta/absent? driver {:css ".modal-item.note-edit__todo"})))
+
+              (testing "does not close the note edit modal"
+                (is (eta/visible? driver {:css ".modal-container.is-active .modal-item.note-edit__modal"})))
+
+              (testing "and when pressing esc again"
+                (eta/fill-active driver keys/escape)
+                (eta/wait-invisible driver {:css ".modal-container.is-active"})
+
+                (testing "closes the note edit modal"
+                  (is (not (eta/exists? driver {:css ".modal-container.is-active"}))))))))
+
+        (testing "and when opening the note edit modal"
+          (tutils/click driver {:css "button.note__edit-button"})
+          (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
+
+          (testing "and when opening the todo edit modal"
+            (tutils/click driver {:css ".modal-item.note-edit__modal li.todo button:last-of-type"})
+            (eta/wait-visible driver {:css ".modal-item.note-edit__todo"})
+
+            (testing "and when clicking the modal-list"
+              (tutils/js-events driver ".modal-list" [:click])
+              (eta/wait-absent driver {:css ".modal-item.note-edit__todo"})
+
+              (testing "closes the todo edit modal"
+                (is (eta/absent? driver {:css ".modal-item.note-edit__todo"})))
+
+              (testing "does not close the note edit modal"
+                (is (eta/visible? driver {:css ".modal-container.is-active .modal-item.note-edit__modal"})))))
+
+          (testing "and when opening the todo edit modal"
+            (tutils/click driver {:css ".modal-item.note-edit__modal li.todo button:last-of-type"})
+            (eta/wait-visible driver {:css ".modal-item.note-edit__todo"})
+
+            (testing "and when clicking the modal-stack"
+              (tutils/js-events driver ".modal-stack" [:mousedown :mouseup])
+              (eta/wait-invisible driver {:css ".modal-container.is-active"})
+
+              (testing "closes all modals"
+                (is (not (eta/exists? driver {:css ".modal-container.is-active"})))))))))))
