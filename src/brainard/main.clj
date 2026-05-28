@@ -1,4 +1,4 @@
-(ns brainard.core
+(ns brainard.main
   "brainard: 'cause absent-minded people need help 'membering stuff"
   (:gen-class)
   (:require

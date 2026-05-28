@@ -2,7 +2,7 @@
   (:require
     [brainard :as-alias b]
     [brainard.api.utils.logger :as log]
-    [brainard.core :as core]
+    [brainard.main :as main]
     [brainard.infra.routes.core :as routes]
     [duct.core :as duct]
     [integrant.core :as ig]
@@ -25,7 +25,7 @@
                                  (fn []
                                    (log/info "stopping nREPL server")
                                    (nrepl/stop-server nrepl-server)))))
-    (alter-var-root #'system (constantly (core/start! "duct/dev.edn"
+    (alter-var-root #'system (constantly (main/start! "duct/dev.edn"
                                                       [:duct.profile/base :duct.profile/dev])))
     (duct/await-daemons system)))
 
@@ -45,5 +45,5 @@
 (comment
   (alter-var-root #'system (fn [sys]
                              (some-> sys ig/halt!)
-                             (core/start! "duct/dev.edn" [:duct.profile/base :duct.profile/dev])))
+                             (main/start! "duct/dev.edn" [:duct.profile/base :duct.profile/dev])))
   (ig/halt! system))

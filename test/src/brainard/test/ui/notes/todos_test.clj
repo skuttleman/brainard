@@ -77,16 +77,21 @@
 
         (testing "and when deselecting the todo"
           (tutils/click driver {:css "li.todo .checkbox"})
+          (eta/wait-predicate #(and (eta/exists? driver {:css "li.todo .checkbox"})
+                                    (not (eta/get-element-attr driver {:css "li.todo .checkbox"} "checked"))))
           (testing "marks the todo as active"
-            (eta/wait-predicate #(not (eta/get-element-attr driver {:css "li.todo .checkbox"} "checked")))
             (eta/refresh driver)
+            (eta/wait-visible driver {:css "h1.layout--space-after"})
             (is (not (eta/get-element-attr driver {:css "li.todo .checkbox"} "checked"))))
 
           (testing "and when selecting the todo"
             (tutils/click driver {:css "li.todo .checkbox"})
+            (eta/wait-predicate #(and (eta/exists? driver {:css "li.todo .checkbox"})
+                                      (eta/get-element-attr driver {:css "li.todo .checkbox"} "checked"))
+                                {:timeout 20})
             (testing "marks the todo as active"
-              (eta/wait-predicate #(eta/get-element-attr driver {:css "li.todo .checkbox"} "checked"))
               (eta/refresh driver)
+              (eta/wait-visible driver {:css "h1.layout--space-after"})
               (is (eta/get-element-attr driver {:css "li.todo .checkbox"} "checked")))))))))
 
 (deftest delete-todo-test

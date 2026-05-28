@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 .ONESHELL:
-.PHONY: help check-deps run install clean build build-sass build-cljs build-test uberjar test ci
+.PHONY: help check-deps run install clean build build-sass build-cljs build-test uberjar test coverage
 .DEFAULT_GOAL := help
 
 # Tools (can be overridden in the environment)
@@ -10,18 +10,22 @@ NPM ?= npm
 CLJ ?= clojure
 NPX ?= npx
 SASS ?= sass
+LCOV ?= lcov
+GENHTML ?= genhtml
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort \
 	| awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 check-deps: ## Verify required CLI tools are available (with install hints)
-	@echo "Checking required tools..."
-	@missing=""
-	@if ! command -v $(CLJ) >/dev/null 2>&1; then missing="$$missing $(CLJ)"; fi
-	@if ! command -v $(FOREMAN) >/dev/null 2>&1 && ! command -v $(NPX) >/dev/null 2>&1; then missing="$$missing $(FOREMAN) (or npx)"; fi
-	@if ! command -v $(SASS) >/dev/null 2>&1 && ! command -v $(NPX) >/dev/null 2>&1; then missing="$$missing $(SASS) (or npx)"; fi
-	@if [ -n "$$missing" ]; then \
+	@echo "Checking required tools..."; \
+	missing=""; \
+	if ! command -v $(CLJ) >/dev/null 2>&1; then missing="$$missing $(CLJ)"; fi; \
+	if ! command -v $(FOREMAN) >/dev/null 2>&1 && ! command -v $(NPX) >/dev/null 2>&1; then missing="$$missing $(FOREMAN) (or npx)"; fi; \
+	if ! command -v $(SASS) >/dev/null 2>&1 && ! command -v $(NPX) >/dev/null 2>&1; then missing="$$missing $(SASS) (or npx)"; fi; \
+	if ! command -v $(LCOV) >/dev/null 2>&1; then missing="$$missing $(LCOV)"; fi; \
+	if ! command -v $(GENHTML) >/dev/null 2>&1; then missing="$$missing $(GENHTML)"; fi; \
+	if [ -n "$$missing" ]; then \
 		echo "Missing required tools:$$missing"; \
 		echo ""; \
 		echo "Install hints:"; \
@@ -29,10 +33,11 @@ check-deps: ## Verify required CLI tools are available (with install hints)
 		echo "  - clojure: https://clojure.org/guides/getting_started"; \
 		echo "  - foreman: gem install foreman OR 'npx foreman' (if you have npm)"; \
 		echo "  - sass: npm i -g sass OR 'npx sass'"; \
+		echo "  - lcov (genhtml): apt-get install lcov  OR brew install lcov"; \
 		echo ""; \
 		exit 1; \
-	fi
-	@echo "All required tools available (or npx fallbacks present)."
+	fi; \
+	echo "All required tools available (or npx fallbacks present)."
 
 run: check-deps ## Run the app (uses foreman or npx foreman)
 	@echo "Starting app..."
@@ -80,3 +85,22 @@ test: check-deps clean build build-test ## Run CLJS, server, and UI tests (requi
 	@$(CLJ) -M:test -m brainard.test.runner
 	@echo "running kaocha tests..."
 	@HEADLESS=true SCREENSHOT=true $(CLJ) -M:test -m kaocha.runner --focus-meta :focus
+
+coverage: check-deps ## Run unit/integration/UI test suites with cloverage and merge results
+	@echo "Running coverage for unit and integration suites..."
+	@$(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/unit --lcov :api :infra
+	@$(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/integration --lcov :integration
+	@echo "Running UI coverage..."; \
+	HEADLESS=true $(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/ui --lcov :ui || true;
+	@echo "Merging lcov files..."
+	@mkdir -p target/coverage/merged
+	@files=$$(find target/coverage -type f -name '*.info' -print); \
+		if [ -z "$$files" ]; then \
+			echo "No .info coverage files found under target/coverage"; \
+		else \
+			first=$$(echo "$$files" | head -n1); \
+			$(LCOV) -a "$$first" -o target/coverage/merged/merged.info; \
+			echo "$$files" | tail -n +2 | while read f; do $(LCOV) -a target/coverage/merged/merged.info -a "$$f" -o target/coverage/merged/merged.info; done; \
+			$(GENHTML) target/coverage/merged/merged.info -o target/coverage/merged; \
+			echo "Merged coverage written to target/coverage/merged"; \
+		fi

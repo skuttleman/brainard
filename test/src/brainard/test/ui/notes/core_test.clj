@@ -120,6 +120,7 @@
 
             (testing "and when visiting the deleted note"
               (eta/go driver (str base-url "/notes/" note-id))
+              (eta/wait-visible driver {:css ".message.is-warning"})
 
               (testing "displays a warning message"
                 (is (= "Note not found. Try creating one."

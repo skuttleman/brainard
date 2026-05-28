@@ -78,7 +78,14 @@ jobs:
             ~/.gitlibs
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - name: Run unit tests
-        run: clojure -M:test -m kaocha.runner :api :infra
+        run: |
+          clojure -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/unit --lcov :api :infra
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit
+          path: target/coverage/unit
 
   cljs-unit-tests:
     name: Clojurescript unit tests
@@ -132,7 +139,14 @@ jobs:
             ~/.gitlibs
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - name: Run integration tests
-        run: clojure -M:test -m kaocha.runner :integration
+        run: |
+          clojure -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/integration --lcov :integration
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-integration
+          path: target/coverage/integration
 
   ui-tests:
     name: UI Tests
@@ -169,7 +183,7 @@ jobs:
         run: |
           set -o pipefail
           set +e
-          clojure -M:test -m kaocha.runner :ui | tee test-output.txt
+          clojure -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/ui --lcov :ui | tee test-output.txt
           rc=${PIPESTATUS[0]}
           set -e
           set +o pipefail
@@ -182,10 +196,10 @@ jobs:
              echo " ---------------------- "
              args=()
               while IFS= read -r f; do args+=( "--focus" "$f" ); done <<< "$fails"
-              SCREENSHOT=true clojure -M:test -m kaocha.runner :ui "${args[@]}"
+              SCREENSHOT=true clojure -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/ui --lcov :ui "${args[@]}"
             else
               echo "No specific failures parsed; re-running full UI suite"
-              SCREENSHOT=true clojure -M:test -m kaocha.runner :ui
+              SCREENSHOT=true clojure -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/ui --lcov :ui
             fi
           fi
         env:
@@ -197,3 +211,35 @@ jobs:
         with:
           name: screenshots
           path: ./*.png
+
+      - name: Upload UI coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-ui
+          path: target/coverage/ui
+
+  merge-coverage:
+    name: Merge coverage artifacts
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, ui-tests]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: coverage-artifacts
+      - name: Install lcov
+        run: sudo apt-get update && sudo apt-get install -y lcov
+      - name: Merge lcov files
+        run: |
+          set -e
+          files=$(find coverage-artifacts -type f -name '*.info' -print)
+          if [ -z "$files" ]; then echo "No coverage files found"; exit 0; fi
+          lcov -a $(echo $files | tr '\n' ' ') -o merged.info
+          genhtml merged.info -o target/coverage/merged
+      - name: Upload merged coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-merged
+          path: target/coverage/merged

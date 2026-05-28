@@ -119,7 +119,7 @@
                 (is (= #{:foo :bar :baz/quux} (collect-tags driver ".history__view"))))
 
               (tutils/click driver {:css ".history__view .panel-heading .lni-close"})
-              (eta/wait-invisible driver {:css ".modal-container.is-active .modal-item.history__view"}))
+              (eta/wait-absent driver {:css ".modal-container.is-active .modal-item.history__view"}))
 
             (testing "and when showing version 4"
               (tutils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[4]"})
@@ -142,7 +142,7 @@
                 (is (= #{:foo :baz/quux} (collect-tags driver ".history__view"))))
 
               (tutils/click driver {:css ".history__view .panel-heading .lni-close"})
-              (eta/wait-invisible driver {:css ".modal-container.is-active .modal-item.history__view"}))
+              (eta/wait-absent driver {:css ".modal-container.is-active .modal-item.history__view"}))
 
             (testing "and when showing version 6"
               (tutils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[6]"})
@@ -163,10 +163,7 @@
                        (collect-todos driver {:css-prefix ".history__view"}))))
 
               (testing "displays the 6th version tags"
-                (is (= #{:foo :other/tag} (collect-tags driver ".history__view"))))
-
-              (tutils/click driver {:css ".history__view .panel-heading .lni-close"})
-              (eta/wait-invisible driver {:css ".modal-container.is-active .modal-item.history__view"}))))))))
+                (is (= #{:foo :other/tag} (collect-tags driver ".history__view")))))))))))
 
 (deftest reinstate-test
   (usys/with-webdriver [driver base-url {fix "history.edn"}]
@@ -187,7 +184,7 @@
               (is (not (eta/exists? driver {:css ".history__view button.note__history-reinstate"}))))
 
             (tutils/click driver {:css ".history__view .panel-heading .lni-close"})
-            (eta/wait-invisible driver {:css ".modal-container.is-active .modal-item.history__view"}))
+            (eta/wait-absent driver {:css ".modal-container.is-active .modal-item.history__view"}))
 
           (testing "and when showing version 3"
             (tutils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[3]"})
@@ -212,9 +209,9 @@
 
             (testing "and when reinstating the note version"
               (tutils/click driver {:css ".history__view button.note__history-reinstate"})
-              (eta/wait-invisible driver {:css ".modal-container.is-active .modal-item.history__view"})
+              (eta/wait-absent driver {:css ".modal-container.is-active .modal-item.history__view"})
               (tutils/click driver {:css ".history__modal .lni-close"})
-              (eta/wait-invisible driver {:css ".modal-container.is-active"})
+              (eta/wait-absent driver {:css ".modal-container.is-active"})
               (eta/wait-visible driver {:xpath "//h1[.='Some context']"})
 
               (testing "reinstates the 3rd version of the note"
@@ -261,7 +258,7 @@
                     (is (= #{:foo :baz/quux} (collect-tags driver ".history__view"))))
 
                   (tutils/click driver {:css ".history__view .panel-heading .lni-close"})
-                  (eta/wait-invisible driver {:css ".modal-container.is-active .modal-item.history__view"}))
+                  (eta/wait-absent driver {:css ".modal-container.is-active .modal-item.history__view"}))
 
                 (testing "and when showing version 6"
                   (tutils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[6]"})
@@ -269,9 +266,9 @@
 
                   (testing "and when reinstating the note version"
                     (tutils/click driver {:css ".history__view button.note__history-reinstate"})
-                    (eta/wait-invisible driver {:css ".modal-container.is-active .modal-item.history__view"})
+                    (eta/wait-absent driver {:css ".modal-container.is-active .modal-item.history__view"})
                     (tutils/click driver {:css ".history__modal .lni-close"})
-                    (eta/wait-invisible driver {:css ".modal-container.is-active"})
+                    (eta/wait-absent driver {:css ".modal-container.is-active"})
                     (eta/wait-visible driver {:xpath "//h1[.='Some new context']"})
 
                     (testing "reinstates the 6th version of the note"

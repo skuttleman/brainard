@@ -39,20 +39,25 @@
       (println "failed to save screenshot")
       (.printStackTrace e))))
 
+(defn ->driver []
+  (let [headless? (= "true" (System/getenv "HEADLESS"))]
+    (eta/chrome {:headless    headless?
+                 :path-driver (or (System/getenv "CHROMEDRIVER_PATH")
+                                  "chromedriver")
+                 :args        (when headless?
+                                ["--no-sandbox"
+                                 "--disable-dev-shm-usage"])})))
+
 (defmacro with-webdriver [[driver-binding base-url-binding seeds] & body]
   (let [db-sym (gensym "db")]
     `(tsys/with-app [{port# :cfg.test/server-port ~db-sym :brainard/IDBConn}
                      {:config    "duct/ui-test.edn"
                       :init-keys [:brainard/webserver]}]
-       (let [headless?# (= "true" (System/getenv "HEADLESS"))
-             screenshot?# (= "true" (System/getenv "SCREENSHOT"))
+       (let [screenshot?# (= "true" (System/getenv "SCREENSHOT"))
              orig-report# t/report
-             ~driver-binding (eta/chrome {:headless    headless?#
-                                          :path-driver (or (System/getenv "CHROMEDRIVER_PATH")
-                                                           "chromedriver")
-                                          :args        (when headless?#
-                                                         ["--no-sandbox"
-                                                          "--disable-dev-shm-usage"])})
+             ~driver-binding (try (->driver)
+                                  (catch Throwable _#
+                                    (->driver)))
              ~base-url-binding (str "http://localhost:" port#)
              ~@(for [[sym seed] seeds
                      token [sym `(->> ~seed
