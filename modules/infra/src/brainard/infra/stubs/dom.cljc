@@ -26,6 +26,7 @@
 (def ^{:arglists '([e])} prevent-default! wdom/prevent-default!)
 (def ^{:arglists '([e])} stop-propagation! wdom/stop-propagation!)
 (def ^{:arglists '([e])} target-value wdom/target-value)
+(def ^{:arglists '([e])} target-attr wdom/target-attr)
 (def ^{:arglists '([e])} blur! wdom/blur!)
 (def ^{:arglists '([e])} click! wdom/click!)
 (def ^{:arglists '([e])} focus! wdom/focus!)
@@ -41,10 +42,12 @@
   ([node event cb options]
    #?(:cljs
       (let [key (gensym)
+            opts (clj->js options)
             listener {::cb    cb
                       ::event event
-                      ::node  node}]
-        (.addEventListener node (name event) cb (clj->js options))
+                      ::node  node
+                      ::opts  opts}]
+        (.addEventListener node (name event) cb opts)
         (swap! listeners assoc key listener)
         key))))
 
@@ -55,7 +58,6 @@
    (remove-listener! key)"
   [key]
   #?(:cljs
-     (when-let [{::keys [cb event node]} (get @listeners key)]
+     (when-let [{::keys [cb event node opts]} (get @listeners key)]
        (swap! listeners dissoc key)
-       (.removeEventListener node (name event) cb true)
-       (.removeEventListener node (name event) cb false))))
+       (.removeEventListener node (name event) cb opts))))

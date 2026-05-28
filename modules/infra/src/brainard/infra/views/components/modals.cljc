@@ -15,6 +15,14 @@
   (fn [_]
     (store/dispatch! *:store [:modals/remove! modal-id])))
 
+(defn ^:private pop-modal! [*:store sub:modals]
+  (fn [e]
+    (let [modals @sub:modals]
+      (when-let [classed? (when (next modals)
+                            (set (string/split (str (dom/target-attr e "class")) #"\s+")))]
+        (when (or (classed? "modal-item") (classed? "modal-list"))
+          (store/dispatch! *:store [:modals/remove! (:id (last modals))]))))))
+
 (defn ^:private modal-tile [*:store attrs stop-and-close!]
   [scomp/tile
    [:div.layout--space-between
@@ -59,7 +67,8 @@
   (r/with-let [sub:modals (store/subscribe *:store [:modals/?:modals])
                modal-count (volatile! 0)
                this (volatile! nil)
-               self-click? (volatile! false)]
+               self-click? (volatile! false)
+               listener (dom/add-listener! dom/window :click (pop-modal! *:store sub:modals) true)]
     (when-let [modals (seq @sub:modals)]
       (vreset! modal-count (count modals))
       (let [active? (or (next modals)
@@ -77,4 +86,6 @@
           [:ul.modal-list {:on-mouse-up dom/stop-propagation!}
            (for [[idx modal] (map-indexed vector modals)]
              ^{:key (:id modal)}
-             [modal-view *:store idx modal top?])]]]))))
+             [modal-view *:store idx modal top?])]]]))
+    (finally
+      (dom/remove-listener! listener))))
