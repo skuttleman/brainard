@@ -226,6 +226,25 @@ jobs:
           name: screenshots
           path: ./*.png
 
+      - name: Debug JS coverage artifacts
+        if: always()
+        run: |
+          echo "== resources/public/js/main.js =="
+          if [ -f resources/public/js/main.js ]; then
+            echo "main.js exists"; 
+            grep -n "cov_" resources/public/js/main.js | head -n 5 || true
+            echo "--- first 200 chars of main.js ---";
+            head -c 200 resources/public/js/main.js || true
+          else
+            echo "main.js not present"
+          fi
+
+          echo "== foo.txt preview =="
+          if [ -f foo.txt ]; then head -c 500 foo.txt || true; else echo "foo.txt not present"; fi
+
+          echo "== target/nyc_output =="
+          if [ -d target/nyc_output ]; then ls -la target/nyc_output || true; else echo "target/nyc_output not present"; fi
+
       - name: Generate JS coverage report
         if: always()
         run: |
@@ -285,11 +304,51 @@ jobs:
           set -e
           files=$(find coverage-artifacts -type f -name '*.info' -print)
           if [ -z "$files" ]; then echo "No coverage files found"; exit 0; fi
+
+          # Normalize each lcov file: map cljs-runtime SF paths to repo sources and
+          # drop DA entries whose line numbers exceed the source file's line count.
+          for f in $files; do
+            tmp=$(mktemp)
+            current_lines=0
+            while IFS= read -r line; do
+              if [[ "$line" == SF:* ]]; then
+                sf="${line#SF:}"
+                if [[ "$sf" == resources/public/js/cljs-runtime/* ]]; then
+                  rel="${sf#resources/public/js/cljs-runtime/}"
+                  resolved="$rel"
+                  for srcdir in src modules/api/src modules/infra/src; do
+                    if [ -f "$srcdir/$rel" ]; then
+                      resolved="$srcdir/$rel"
+                      break
+                    fi
+                  done
+                  echo "SF:$resolved" >> "$tmp"
+                  if [ -f "$resolved" ]; then current_lines=$(wc -l < "$resolved"); else current_lines=0; fi
+                else
+                  echo "$line" >> "$tmp"
+                  if [ -f "$sf" ]; then current_lines=$(wc -l < "$sf"); else current_lines=0; fi
+                fi
+              elif [[ "$line" == DA:* ]]; then
+                if [ "$current_lines" -gt 0 ]; then
+                  lineno=$(echo "$line" | cut -d: -f2 | cut -d, -f1)
+                  if [ "$lineno" -le "$current_lines" ]; then echo "$line" >> "$tmp"; fi
+                else
+                  echo "$line" >> "$tmp"
+                fi
+              else
+                echo "$line" >> "$tmp"
+              fi
+            done < "$f"
+            mv "$tmp" "$f"
+          done
+
           mkdir -p target/coverage/merged
           first=$(echo "$files" | head -n1)
           lcov -a "$first" -o target/coverage/merged/merged.info
           echo "$files" | tail -n +2 | while read f; do lcov -a target/coverage/merged/merged.info -a "$f" -o target/coverage/merged/merged.info; done
-          genhtml --ignore-errors=range,category target/coverage/merged/merged.info -o target/coverage/merged
+
+          # Use genhtml without ignore-errors after normalization
+          genhtml target/coverage/merged/merged.info -o target/coverage/merged
       - name: Upload merged coverage
         uses: actions/upload-artifact@v4
         with:
