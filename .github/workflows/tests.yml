@@ -278,3 +278,5 @@ jobs:
         with:
           name: coverage-merged
           path: target/coverage/merged
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
