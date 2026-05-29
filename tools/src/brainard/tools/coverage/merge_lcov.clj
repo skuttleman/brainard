@@ -91,7 +91,6 @@
     (doseq [f files] (process-lcov-file! f workspace))
     (merge-lcov-files! files merged-dir)
     (normalize-merged! merged-dir workspace)
-    (io/copy (io/file merged-dir "merged.info") (io/file "merged.info"))
     (sh! "genhtml"
          "-p" workspace
          "--ignore-errors" "category"

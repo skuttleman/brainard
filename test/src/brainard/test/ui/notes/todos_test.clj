@@ -87,8 +87,7 @@
           (testing "and when selecting the todo"
             (tutils/click driver {:css "li.todo .checkbox"})
             (eta/wait-predicate #(and (eta/exists? driver {:css "li.todo .checkbox"})
-                                      (eta/get-element-attr driver {:css "li.todo .checkbox"} "checked"))
-                                {:timeout 20})
+                                      (eta/get-element-attr driver {:css "li.todo .checkbox"} "checked")))
             (testing "marks the todo as active"
               (eta/refresh driver)
               (eta/wait-visible driver {:css "h1.layout--space-after"})
