@@ -247,6 +247,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2
+            ~/.gitlibs
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - name: Install lcov
         run: |
           sudo apt-get update
