@@ -38,12 +38,15 @@
       rel))
 
 (defn- normalize-sf [sf workspace]
-  (cond-> sf
-    (string/starts-with? sf (str workspace "/"))
-    (subs (inc (count workspace)))
+  (let [sf (cond-> sf
+             (string/starts-with? sf (str workspace "/"))
+             (subs (inc (count workspace)))
 
-    (string/starts-with? sf cljs-prefix)
-    (-> (subs (count cljs-prefix)) resolve-cljs-source)))
+             (string/starts-with? sf cljs-prefix)
+             (-> (subs (count cljs-prefix)) resolve-cljs-source))]
+    (cond->> sf
+      (not (string/starts-with? sf "/"))
+      (str workspace "/"))))
 
 (defn- process-lcov-file! [path workspace]
   (loop [[line & rest-lines] (string/split-lines (slurp path))
@@ -89,10 +92,9 @@
         normalized (map (fn [line]
                           (if (string/starts-with? line "SF:")
                             (let [sf (subs line 3)
-                                  idx (string/index-of sf workspace)
                                   sf (cond-> sf
-                                       idx (-> (subs (+ idx (count workspace)))
-                                               (string/replace-first #"^/" "")))]
+                                       (not (string/starts-with? sf "/"))
+                                       (str workspace "/"))]
                               (str "SF:" sf))
                             line))
                         lines)]
@@ -117,9 +119,8 @@
     (normalize-merged! merged-dir workspace)
     (io/copy (io/file merged-dir "merged.info") (io/file "merged.info"))
     (sh! "genhtml"
-       "--no-prefix"
-       "--ignore-errors" "category"
-       "-o" merged-dir
-       (str merged-dir "/merged.info"))
-    (println (str "Merged coverage written to " merged-dir))
-    (exit! 0)))
+         "-p" workspace
+         "--ignore-errors" "category"
+         "-o" merged-dir
+         (str merged-dir "/merged.info"))
+    (exit! 0 (str "Merged coverage written to " merged-dir))))
