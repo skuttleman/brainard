@@ -178,14 +178,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
+      - name: Build uberjar
+        run: make uberjar
       - name: Prepare JS for coverage
         run: |
           npm ci
           npm install -g sass
           rm -rf resources/public/js target/nyc_output
           clojure -A:shadow:dev -M -m shadow.cljs.devtools.cli compile ui-cov
-      - name: Build uberjar
-        run: make uberjar
       - uses: browser-actions/setup-chrome@v2
         id: setup-chrome
         with:
