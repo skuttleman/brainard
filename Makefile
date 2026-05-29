@@ -145,6 +145,6 @@ coverage: check-deps ## Run unit/integration/UI test suites with cloverage and m
 			first=$$(echo "$$files" | head -n1); \
 			$(LCOV) -a "$$first" -o target/coverage/merged/merged.info; \
 			echo "$$files" | tail -n +2 | while read f; do $(LCOV) -a target/coverage/merged/merged.info -a "$$f" -o target/coverage/merged/merged.info; done; \
-			$(GENHTML) --ignore-errors range,category target/coverage/merged/merged.info -o target/coverage/merged; \
+			$(GENHTML) --ignore-errors=range,category target/coverage/merged/merged.info -o target/coverage/merged; \
 			echo "Merged coverage written to target/coverage/merged"; \
 		fi

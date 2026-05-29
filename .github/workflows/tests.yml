@@ -289,7 +289,7 @@ jobs:
           first=$(echo "$files" | head -n1)
           lcov -a "$first" -o target/coverage/merged/merged.info
           echo "$files" | tail -n +2 | while read f; do lcov -a target/coverage/merged/merged.info -a "$f" -o target/coverage/merged/merged.info; done
-          genhtml --ignore-errors range,category target/coverage/merged/merged.info -o target/coverage/merged
+          genhtml --ignore-errors=range,category target/coverage/merged/merged.info -o target/coverage/merged
       - name: Upload merged coverage
         uses: actions/upload-artifact@v4
         with:
