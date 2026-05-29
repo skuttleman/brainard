@@ -86,7 +86,7 @@ test: check-deps clean build build-test ## Run CLJS, server, and UI tests (requi
 	@echo "running kaocha tests..."
 	@HEADLESS=true SCREENSHOT=true $(CLJ) -M:test -m kaocha.runner --focus-meta :focus
 
-coverage: clean check-deps ## Run unit/integration/UI test suites with coverage instrumentation and merge results
+coverage: clean check-deps build-sass ## Run unit/integration/UI test suites with coverage instrumentation and merge results
 	@echo "Running coverage for unit and integration suites..."
 	@$(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/unit --lcov \
 		--cov-ns-exclude-regex 'brainard\..*\.views\..*' :api :infra
