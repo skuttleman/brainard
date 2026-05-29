@@ -56,7 +56,7 @@ install: ## Install JS dependencies (uses npm)
 
 clean: ## Remove generated assets and build dirs
 	@echo "cleaning..."
-	@rm -rf resources/public/css/* resources/public/js/* target/classes target/cljs-test || true
+	@rm -rf resources/public/css/* resources/public/js/* target/* || true
 	@echo "clean complete"
 
 build-sass: ## Compile SCSS to resources/public/css/main.css
@@ -88,19 +88,66 @@ test: check-deps clean build build-test ## Run CLJS, server, and UI tests (requi
 
 coverage: check-deps ## Run unit/integration/UI test suites with cloverage and merge results
 	@echo "Running coverage for unit and integration suites..."
-	@$(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/unit --lcov :api :infra
-	@$(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/integration --lcov :integration
+	@$(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/unit --lcov \
+		--cov-ns-exclude-regex 'brainard\.infra\.views\..*' \
+		--cov-ns-exclude-regex 'brainard\.infra\.stubs\..*' \
+		:api :infra
+	@$(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/integration --lcov \
+		--cov-ns-exclude-regex 'brainard\.infra\.views\..*' \
+		--cov-ns-exclude-regex 'brainard\.infra\.stubs\..*' \
+		:integration
+	@echo "Building and instrumenting CLJS with source maps for coverage..."
+	@rm -rf resources/public/js target/nyc_output
+	@$(CLJ) -A:shadow:dev -M -m shadow.cljs.devtools.cli compile ui-cov
 	@echo "Running UI coverage..."; \
-	HEADLESS=true $(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/ui --lcov :ui || true;
+	HEADLESS=true JS_COVERAGE=true $(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/ui --lcov \
+		--cov-ns-exclude-regex 'brainard\.infra\.views\..*' \
+		--cov-ns-exclude-regex 'brainard\.infra\.stubs\..*' \
+		:ui || true;
+	@echo "Generating JS coverage report..."
+	@node dev/nyc-report.js
+	@echo "Normalizing JS coverage source paths..."
+	@if [ -f target/coverage/js/lcov.info ]; then \
+		src_dirs="src modules/api/src modules/infra/src"; \
+		cljs_prefix="resources/public/js/cljs-runtime/"; \
+		current_file=""; \
+		current_lines=0; \
+		while IFS= read -r line; do \
+			if [[ "$$line" == SF:* ]]; then \
+				rel="$${line#SF:}"; \
+				rel="$${rel#$$cljs_prefix}"; \
+				resolved="$$rel"; \
+				for srcdir in $$src_dirs; do \
+					if [ -f "$$srcdir/$$rel" ]; then \
+						resolved="$$srcdir/$$rel"; \
+						break; \
+					fi; \
+				done; \
+				current_file="$$resolved"; \
+				current_lines=0; \
+				if [ -f "$$resolved" ]; then current_lines=$$(wc -l < "$$resolved"); fi; \
+				echo "SF:$$resolved"; \
+			elif [[ "$$line" == DA:* && $$current_lines -gt 0 ]]; then \
+				lineno="$$(echo "$$line" | cut -d: -f2 | cut -d, -f1)"; \
+				if [ "$$lineno" -le "$$current_lines" ]; then echo "$$line"; fi; \
+			else \
+				echo "$$line"; \
+			fi; \
+		done < target/coverage/js/lcov.info > target/coverage/js/lcov.normalized.info; \
+		mv target/coverage/js/lcov.normalized.info target/coverage/js/lcov.info; \
+		echo "JS coverage paths normalized"; \
+	else \
+		echo "No JS coverage report generated (skipping)"; \
+	fi
 	@echo "Merging lcov files..."
 	@mkdir -p target/coverage/merged
-	@files=$$(find target/coverage -type f -name '*.info' -print); \
+	@files=$$(find target/coverage -type f -name 'lcov.info' -not -path '*/merged/*' -print); \
 		if [ -z "$$files" ]; then \
-			echo "No .info coverage files found under target/coverage"; \
+			echo "No lcov.info coverage files found under target/coverage"; \
 		else \
 			first=$$(echo "$$files" | head -n1); \
 			$(LCOV) -a "$$first" -o target/coverage/merged/merged.info; \
 			echo "$$files" | tail -n +2 | while read f; do $(LCOV) -a target/coverage/merged/merged.info -a "$$f" -o target/coverage/merged/merged.info; done; \
-			$(GENHTML) target/coverage/merged/merged.info -o target/coverage/merged; \
+			$(GENHTML) --ignore-errors range,category target/coverage/merged/merged.info -o target/coverage/merged; \
 			echo "Merged coverage written to target/coverage/merged"; \
 		fi

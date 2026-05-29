@@ -3,6 +3,7 @@
     [brainard.infra.db.store :as ds]
     [brainard.test.harness.integration.system :as tsys]
     [brainard.test.harness.ui.utils :as tutils]
+    [clojure.java.io :as io]
     [clojure.string :as string]
     [clojure.test :as t]
     [etaoin.api :as eta]
@@ -38,6 +39,18 @@
     (catch Throwable e
       (println "failed to save screenshot")
       (.printStackTrace e))))
+
+(defn collect-js-coverage! [driver]
+  (when (= "true" (System/getenv "JS_COVERAGE"))
+    (try
+      (let [coverage-json (eta/js-execute driver "return JSON.stringify(window.__coverage__ || null)")
+            nyc-output-dir (io/file "target/nyc_output")]
+        (spit "foo.txt" coverage-json)
+        (when (and coverage-json (not= "null" coverage-json))
+          (.mkdirs nyc-output-dir)
+          (spit (io/file nyc-output-dir (str (random-uuid) ".json"))
+                coverage-json)))
+      (catch Throwable _))))
 
 (defn ->driver []
   (let [headless? (= "true" (System/getenv "HEADLESS"))]
@@ -77,4 +90,5 @@
                  (safe-screenshot! ~driver-binding))
                (throw e#))
              (finally
+               (collect-js-coverage! ~driver-binding)
                (eta/quit ~driver-binding))))))))
