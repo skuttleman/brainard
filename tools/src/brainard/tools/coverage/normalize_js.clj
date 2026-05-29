@@ -1,26 +1,10 @@
 (ns brainard.tools.coverage.normalize-js
   (:require
+    [brainard.tools.coverage.common :as cov.common]
     [clojure.java.io :as io]
     [clojure.string :as string]))
 
-(def ^:private src-dirs ["src" "modules/api/src" "modules/infra/src"])
-(def ^:private cljs-prefix "resources/public/js/cljs-runtime/")
-
-(defn- file-line-count [path]
-  (let [f (io/file path)]
-    (if (.exists f)
-      (with-open [rdr (io/reader f)]
-        (count (line-seq rdr)))
-      0)))
-
-(defn- resolve-cljs-source [rel]
-  (or (some (fn [dir]
-              (let [candidate (str dir "/" rel)]
-                (when (.exists (io/file candidate)) candidate)))
-            src-dirs)
-      rel))
-
-(defn- process-lines [lines]
+(defn ^:private process-lines [lines]
   (loop [[line & rest-lines] lines
          current-lines 0
          acc []]
@@ -28,9 +12,9 @@
       acc
       (cond
         (string/starts-with? line "SF:")
-        (let [path (string/replace-first (subs line 3) cljs-prefix "")
-              resolved (resolve-cljs-source path)
-              n (file-line-count resolved)]
+        (let [path (string/replace-first (subs line 3) cov.common/cljs-prefix "")
+              resolved (cov.common/resolve-cljs-source path)
+              n (cov.common/file-line-count resolved)]
           (recur rest-lines n (conj acc (str "SF:" resolved))))
 
         (and (string/starts-with? line "DA:") (pos? current-lines))
