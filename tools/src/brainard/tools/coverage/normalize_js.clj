@@ -1,7 +1,7 @@
 (ns brainard.tools.coverage.normalize-js
   (:require
     [clojure.java.io :as io]
-    [clojure.string :as str]))
+    [clojure.string :as string]))
 
 (def ^:private src-dirs ["src" "modules/api/src" "modules/infra/src"])
 (def ^:private cljs-prefix "resources/public/js/cljs-runtime/")
@@ -27,14 +27,14 @@
     (if (nil? line)
       acc
       (cond
-        (str/starts-with? line "SF:")
-        (let [path (str/replace-first (subs line 3) cljs-prefix "")
+        (string/starts-with? line "SF:")
+        (let [path (string/replace-first (subs line 3) cljs-prefix "")
               resolved (resolve-cljs-source path)
               n (file-line-count resolved)]
           (recur rest-lines n (conj acc (str "SF:" resolved))))
 
-        (and (str/starts-with? line "DA:") (pos? current-lines))
-        (let [lineno (-> (subs line 3) (str/split #",") first parse-long)]
+        (and (string/starts-with? line "DA:") (pos? current-lines))
+        (let [lineno (-> (subs line 3) (string/split #",") first parse-long)]
           (if (<= lineno current-lines)
             (recur rest-lines current-lines (conj acc line))
             (recur rest-lines current-lines acc)))
@@ -48,5 +48,5 @@
       (println "No JS coverage report generated (skipping)")
       (do
         (println "Normalizing JS coverage source paths...")
-        (spit f (str (str/join "\n" (process-lines (str/split-lines (slurp f)))) "\n"))
+        (spit f (str (string/join "\n" (process-lines (string/split-lines (slurp f)))) "\n"))
         (println "JS coverage paths normalized")))))
