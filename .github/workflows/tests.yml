@@ -195,7 +195,7 @@ jobs:
         run: |
           set -o pipefail
           set +e
-          clojure -M:test -m kaocha.runner cloverage :ui | tee test-output.txt
+          clojure -M:test -m kaocha.runner :ui | tee test-output.txt
           rc=${PIPESTATUS[0]}
           set -e
           set +o pipefail
@@ -209,10 +209,10 @@ jobs:
              echo " ---------------------- "
              args=()
               while IFS= read -r f; do args+=( "--focus" "$f" ); done <<< "$fails"
-              SCREENSHOT=true clojure -M:test -m kaocha.runner cloverage :ui "${args[@]}"
+              SCREENSHOT=true clojure -M:test -m kaocha.runner :ui "${args[@]}"
             else
               echo "No specific failures parsed; re-running full UI suite"
-              SCREENSHOT=true clojure -M:test -m kaocha.runner cloverage :ui
+              SCREENSHOT=true clojure -M:test -m kaocha.runner :ui
             fi
           fi
         env:
