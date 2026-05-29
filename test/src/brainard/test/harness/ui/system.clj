@@ -3,6 +3,7 @@
     [brainard.infra.db.store :as ds]
     [brainard.test.harness.integration.system :as tsys]
     [brainard.test.harness.ui.utils :as tutils]
+    [clojure.java.io :as io]
     [clojure.string :as string]
     [clojure.test :as t]
     [etaoin.api :as eta]
@@ -39,20 +40,36 @@
       (println "failed to save screenshot")
       (.printStackTrace e))))
 
+(defn collect-js-coverage! [driver]
+  (when (= "true" (System/getenv "JS_COVERAGE"))
+    (try
+      (let [coverage-json (eta/js-execute driver "return JSON.stringify(window.__coverage__ || null)")
+            nyc-output-dir (io/file "target/nyc_output")]
+        (when (and coverage-json (not= "null" coverage-json))
+          (.mkdirs nyc-output-dir)
+          (spit (io/file nyc-output-dir (str (random-uuid) ".json"))
+                coverage-json)))
+      (catch Throwable _))))
+
+(defn ->driver []
+  (let [headless? (= "true" (System/getenv "HEADLESS"))]
+    (eta/chrome {:headless    headless?
+                 :path-driver (or (System/getenv "CHROMEDRIVER_PATH")
+                                  "chromedriver")
+                 :args        (when headless?
+                                ["--no-sandbox"
+                                 "--disable-dev-shm-usage"])})))
+
 (defmacro with-webdriver [[driver-binding base-url-binding seeds] & body]
   (let [db-sym (gensym "db")]
     `(tsys/with-app [{port# :cfg.test/server-port ~db-sym :brainard/IDBConn}
                      {:config    "duct/ui-test.edn"
                       :init-keys [:brainard/webserver]}]
-       (let [headless?# (= "true" (System/getenv "HEADLESS"))
-             screenshot?# (= "true" (System/getenv "SCREENSHOT"))
+       (let [screenshot?# (= "true" (System/getenv "SCREENSHOT"))
              orig-report# t/report
-             ~driver-binding (eta/chrome {:headless    headless?#
-                                          :path-driver (or (System/getenv "CHROMEDRIVER_PATH")
-                                                           "chromedriver")
-                                          :args        (when headless?#
-                                                         ["--no-sandbox"
-                                                          "--disable-dev-shm-usage"])})
+             ~driver-binding (try (->driver)
+                                  (catch Throwable _#
+                                    (->driver)))
              ~base-url-binding (str "http://localhost:" port#)
              ~@(for [[sym seed] seeds
                      token [sym `(->> ~seed
@@ -72,4 +89,5 @@
                  (safe-screenshot! ~driver-binding))
                (throw e#))
              (finally
+               (collect-js-coverage! ~driver-binding)
                (eta/quit ~driver-binding))))))))

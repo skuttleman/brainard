@@ -7,7 +7,7 @@
     [integrant.core :as ig]
     brainard.test.harness.ui.system))
 
-(defn handler [request]
+(defn ^:private handler [request]
   (let [uri (:uri request)]
     (cond
       (= uri "/cljs-test/test.js")

@@ -1,4 +1,4 @@
-(ns brainard.build
+(ns brainard.tools.build
   (:require
     [clojure.tools.build.api :as b]))
 
@@ -10,7 +10,7 @@
   (let [basis (b/create-basis {:project "deps.edn"})
         build-folder "target"
         jar-content "target/classes"
-        main 'brainard.core
+        main 'brainard.main
         uber-file-name "target/brainard.jar"]
     (clean build-folder)
     (b/copy-dir {:src-dirs   ["resources" "src" "modules/api/src" "modules/infra/src"]

@@ -1,4 +1,19 @@
 {
+  "devDependencies": {
+    "nyc": "^17.1.0"
+  },
+  "nyc": {
+    "sourceMap": true,
+    "include": [
+      "resources/public/js/cljs-runtime/brainard.*.js"
+    ],
+    "exclude": [
+      "resources/public/js/cljs-runtime/brainard.test.*"
+    ],
+    "reporter": ["lcov"],
+    "report-dir": "target/coverage/js",
+    "temp-dir": "target/nyc_output"
+  },
   "dependencies": {
     "@js-joda/core": "3.2.0",
     "katex": "0.12.0",

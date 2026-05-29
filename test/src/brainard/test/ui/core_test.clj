@@ -415,7 +415,7 @@
 
           (testing "and when adding a schedule to the note"
             (tutils/submit-form! driver "form.schedule-form" {"Day of the week" day-of-the-week})
-            (eta/wait-invisible driver {:css "p.schedules__empty"})
+            (eta/wait-absent driver {:css "p.schedules__empty"})
 
             (testing "and when visiting the buzz page"
               (eta/go driver (str base-url "/buzz"))

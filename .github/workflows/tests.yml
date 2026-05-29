@@ -35,6 +35,7 @@ jobs:
           clojure -P -M:lint
           clojure -P -M:shadow
           clojure -P -M:test
+          clojure -P -M:tools
 
   lint:
     name: Lint
@@ -78,7 +79,17 @@ jobs:
             ~/.gitlibs
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - name: Run unit tests
-        run: clojure -M:test -m kaocha.runner :api :infra
+        run: |
+          clojure -M:test -m kaocha.runner --plugin cloverage \
+            --cov-output target/coverage/unit --lcov \
+            --cov-ns-exclude-regex 'brainard\..*\.views\..*' \
+            :api :infra
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit
+          path: target/coverage/unit
 
   cljs-unit-tests:
     name: Clojurescript unit tests
@@ -132,7 +143,17 @@ jobs:
             ~/.gitlibs
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - name: Run integration tests
-        run: clojure -M:test -m kaocha.runner :integration
+        run: |
+          clojure -M:test -m kaocha.runner --plugin cloverage \
+            --cov-output target/coverage/integration --lcov \
+            --cov-ns-exclude-regex 'brainard\..*\.views\..*' \
+            :integration
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-integration
+          path: target/coverage/integration
 
   ui-tests:
     name: UI Tests
@@ -156,10 +177,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
-      - name: Install sass
-        run: npm install -g sass
       - name: Build uberjar
         run: make uberjar
+      - name: Prepare JS for coverage
+        run: |
+          npm ci
+          npm install -g sass
+          rm -rf resources/public/js target/nyc_output
+          clojure -A:shadow:tools -M -m shadow.cljs.devtools.cli compile ui-cov
       - uses: browser-actions/setup-chrome@v2
         id: setup-chrome
         with:
@@ -176,7 +201,8 @@ jobs:
 
           # if any tests fail/error, rerun failures to counteract webdriver flakiness
           if [ $rc -ne 0 ]; then
-            fails=$(perl -ne 's/\x1b[[0-9;]*[A-Za-z]//g; print "$1\n" if /(?:ERROR|FAIL)\s+in\s+(\S+)/' test-output.txt | sort -u)
+            fails=$(perl -ne 's/\x1b[[0-9;]*[A-Za-z]//g; \
+                    print "$1\n" if /(?:ERROR|FAIL)\s+in\s+(\S+)/' test-output.txt | sort -u)
             if [ -n "$fails" ]; then
              echo "Re-running failed tests:"; echo "$fails"
              echo " ---------------------- "
@@ -191,9 +217,70 @@ jobs:
         env:
           CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
           HEADLESS: "true"
+          JS_COVERAGE: "true"
       - name: Upload failed test screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: screenshots
           path: ./*.png
+      - name: Upload nyc_output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nyc_output
+          path: target/nyc_output
+
+  coverage-merge:
+    name: Merge Coverage
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, ui-tests]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: DeLaGuardo/setup-clojure@13
+        with:
+          cli: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2
+            ~/.gitlibs
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
+      - name: Install lcov
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lcov
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: target/coverage
+      - name: Normalize downloaded artifact layout
+        run: |
+          mv target/coverage/coverage-unit target/coverage/unit
+          mv target/coverage/coverage-integration target/coverage/integration
+          mv target/coverage/nyc_output target/nyc_output
+      - name: Install JS dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm i; fi
+      - name: Generate JS coverage report
+        run: |
+          node tools/nyc-report.js
+      - name: Normalize JS coverage
+        run: clojure -M:tools -m brainard.tools.coverage.normalize-js
+      - name: Merge lcov files
+        run: |
+          mkdir -p target/coverage/merged
+          clojure -M:tools -m brainard.tools.coverage.merge-lcov target/coverage target/coverage/merged
+      - name: Upload merged coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-merged
+          path: target/coverage/merged
