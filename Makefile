@@ -90,11 +90,9 @@ coverage: clean check-deps ## Run unit/integration/UI test suites with coverage 
 	@echo "Running coverage for unit and integration suites..."
 	@$(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/unit --lcov \
 		--cov-ns-exclude-regex 'brainard\.infra\.views\..*' \
-		--cov-ns-exclude-regex 'brainard\.infra\.stubs\..*' \
 		:api :infra
 	@$(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/integration --lcov \
 		--cov-ns-exclude-regex 'brainard\.infra\.views\..*' \
-		--cov-ns-exclude-regex 'brainard\.infra\.stubs\..*' \
 		:integration
 	@echo "Building and instrumenting CLJS with source maps for coverage..."
 	@rm -rf resources/public/js target/nyc_output
@@ -103,39 +101,7 @@ coverage: clean check-deps ## Run unit/integration/UI test suites with coverage 
 	HEADLESS=true JS_COVERAGE=true $(CLJ) -M:test -m kaocha.runner :ui || true;
 	@echo "Generating JS coverage report..."
 	@node dev/nyc-report.js
-	@echo "Normalizing JS coverage source paths..."
-	@if [ -f target/coverage/js/lcov.info ]; then \
-		src_dirs="src modules/api/src modules/infra/src"; \
-		cljs_prefix="resources/public/js/cljs-runtime/"; \
-		current_file=""; \
-		current_lines=0; \
-		while IFS= read -r line; do \
-			if [[ "$$line" == SF:* ]]; then \
-				rel="$${line#SF:}"; \
-				rel="$${rel#$$cljs_prefix}"; \
-				resolved="$$rel"; \
-				for srcdir in $$src_dirs; do \
-					if [ -f "$$srcdir/$$rel" ]; then \
-						resolved="$$srcdir/$$rel"; \
-						break; \
-					fi; \
-				done; \
-				current_file="$$resolved"; \
-				current_lines=0; \
-				if [ -f "$$resolved" ]; then current_lines=$$(wc -l < "$$resolved"); fi; \
-				echo "SF:$$resolved"; \
-			elif [[ "$$line" == DA:* && $$current_lines -gt 0 ]]; then \
-				lineno="$$(echo "$$line" | cut -d: -f2 | cut -d, -f1)"; \
-				if [ "$$lineno" -le "$$current_lines" ]; then echo "$$line"; fi; \
-			else \
-				echo "$$line"; \
-			fi; \
-		done < target/coverage/js/lcov.info > target/coverage/js/lcov.normalized.info; \
-		mv target/coverage/js/lcov.normalized.info target/coverage/js/lcov.info; \
-		echo "JS coverage paths normalized"; \
-	else \
-		echo "No JS coverage report generated (skipping)"; \
-	fi
+	@bash dev/normalize-js-coverage.sh
 	@echo "Merging lcov files..."
 	@mkdir -p target/coverage/merged
 	@bash dev/merge-lcov.sh target/coverage target/coverage/merged

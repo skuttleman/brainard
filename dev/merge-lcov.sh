@@ -67,10 +67,7 @@ awk -v repo="$workspace" 'BEGIN{rlen=length(repo)} \
   /^SF:/ { sf=substr($0,4); i=index(sf,repo); if(i) { sf=substr(sf,i+rlen+1) } sub("^/","",sf); print "SF:"sf; next } \
   { print }' "$MERGED_DIR/merged.info" > "$MERGED_DIR/merged.normalized.info" && mv "$MERGED_DIR/merged.normalized.info" "$MERGED_DIR/merged.info"
 
+cp "$MERGED_DIR/merged.info" "merged.info"
 genhtml -p $(git rev-parse --show-toplevel) --ignore-errors range,category -o "$MERGED_DIR" "$MERGED_DIR/merged.info"
 
 echo "Merged coverage written to $MERGED_DIR"
-
-
-
-
