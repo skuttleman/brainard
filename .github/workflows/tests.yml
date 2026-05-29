@@ -228,8 +228,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-ui
-          path: |
-            target/coverage/ui*
+          path: target/coverage/ui*
 
   coverage-merge:
     name: Merge Coverage
@@ -278,4 +277,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-merged
-          path: target/coverage/merged
+          path: |
+            target/coverage/merged
+            merged.info

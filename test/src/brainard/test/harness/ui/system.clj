@@ -45,7 +45,6 @@
     (try
       (let [coverage-json (eta/js-execute driver "return JSON.stringify(window.__coverage__ || null)")
             nyc-output-dir (io/file "target/nyc_output")]
-        (spit "foo.txt" coverage-json)
         (when (and coverage-json (not= "null" coverage-json))
           (.mkdirs nyc-output-dir)
           (spit (io/file nyc-output-dir (str (random-uuid) ".json"))
