@@ -3,22 +3,17 @@
 
 const fs = require('fs');
 const path = require('path');
-
-// nyc's CLI `report` command filters out absolute paths from coverage JSON,
-// so we use the programmatic API instead.
-// If there is no coverage data (no files in target/nyc_output), exit gracefully.
 const coverageDir = path.join(process.cwd(), 'target', 'nyc_output');
-
 
 if (!fs.existsSync(coverageDir)) {
   console.log('No JS coverage data found (target/nyc_output missing), skipping nyc report.');
-  console.log(fs.readFileSync(process.cwd() + '/foo.txt'), 'utf8');
+  console.log(fs.readFileSync(process.cwd() + '/foo.txt', 'utf8'));
   process.exit(1);
 }
 const files = fs.readdirSync(coverageDir).filter(f => f.endsWith('.json'));
 if (files.length === 0) {
   console.log('No JS coverage data files found in target/nyc_output, skipping nyc report.');
-  console.log(fs.readFileSync(process.cwd() + '/foo.txt'), 'utf8');
+  console.log(fs.readFileSync(process.cwd() + '/foo.txt', 'utf8'));
   process.exit(1);
 }
 

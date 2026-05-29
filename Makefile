@@ -100,10 +100,7 @@ coverage: check-deps ## Run unit/integration/UI test suites with cloverage and m
 	@rm -rf resources/public/js target/nyc_output
 	@$(CLJ) -A:shadow:dev -M -m shadow.cljs.devtools.cli compile ui-cov
 	@echo "Running UI coverage..."; \
-	HEADLESS=true JS_COVERAGE=true $(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/ui --lcov \
-		--cov-ns-exclude-regex 'brainard\.infra\.views\..*' \
-		--cov-ns-exclude-regex 'brainard\.infra\.stubs\..*' \
-		:ui || true;
+	HEADLESS=true JS_COVERAGE=true $(CLJ) -M:test -m kaocha.runner :ui || true;
 	@echo "Generating JS coverage report..."
 	@node dev/nyc-report.js
 	@echo "Normalizing JS coverage source paths..."
