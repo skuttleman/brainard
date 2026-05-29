@@ -256,6 +256,7 @@ jobs:
           path: target/coverage
       - name: Normalize downloaded artifact layout
         run: |
+          ls **/*
           mv target/coverage/coverage-unit target/coverage/unit
           mv target/coverage/coverage-integration target/coverage/integration
           mv target/coverage/nyc_output target/nyc_output
@@ -277,9 +278,3 @@ jobs:
         with:
           name: coverage-merged
           path: target/coverage/merged
-      - name: Upload merged.info
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: merged-info
-          path: merged.info
