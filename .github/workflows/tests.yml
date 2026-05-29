@@ -229,6 +229,12 @@ jobs:
         with:
           name: coverage-ui
           path: target/coverage/ui*
+      - name: Upload nyc_output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nyc_output
+          path: target/nyc_output
 
   coverage-merge:
     name: Merge Coverage
@@ -256,10 +262,22 @@ jobs:
           path: target/coverage
       - name: Normalize downloaded artifact layout
         run: |
+          ls target/**/*
           mkdir -p target/coverage/unit target/coverage/integration target/coverage/js
           if [ -d target/coverage/coverage-unit ]; then mv target/coverage/coverage-unit/* target/coverage/unit/ || true; fi
           if [ -d target/coverage/coverage-integration ]; then mv target/coverage/coverage-integration/* target/coverage/integration/ || true; fi
           if [ -d target/coverage/coverage-ui ]; then mv target/coverage/coverage-ui/* target/coverage/js/ || true; fi
+          if [ -d target/coverage/nyc_output ]; then mv target/coverage/nyc_output target/nyc_output || true; fi
+          # Move nyc_output if uploaded as a separate artifact
+          # if [ -d target/coverage/nyc_output ]; then
+          #   mkdir -p target/nyc_output
+          #   mv target/coverage/nyc_output/* target/nyc_output/ || true
+          # fi
+          # # Or if nyc_output was nested inside the coverage-ui artifact
+          # if [ -d target/coverage/coverage-ui/target/nyc_output ]; then
+          #   mkdir -p target/nyc_output
+          #   mv target/coverage/coverage-ui/target/nyc_output/* target/nyc_output/ || true
+          # fi
       - name: Install JS dependencies
         run: |
           if [ -f package-lock.json ]; then npm ci; else npm i; fi
