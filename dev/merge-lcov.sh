@@ -68,6 +68,6 @@ awk -v repo="$workspace" 'BEGIN{rlen=length(repo)} \
   { print }' "$MERGED_DIR/merged.info" > "$MERGED_DIR/merged.normalized.info" && mv "$MERGED_DIR/merged.normalized.info" "$MERGED_DIR/merged.info"
 
 cp "$MERGED_DIR/merged.info" "merged.info"
-genhtml -p $(git rev-parse --show-toplevel) --ignore-errors range,category -o "$MERGED_DIR" "$MERGED_DIR/merged.info"
+genhtml -p $(git rev-parse --show-toplevel) --ignore-errors category -o "$MERGED_DIR" "$MERGED_DIR/merged.info"
 
 echo "Merged coverage written to $MERGED_DIR"
