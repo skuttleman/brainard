@@ -305,14 +305,23 @@ jobs:
           files=$(find coverage-artifacts -type f -name '*.info' -print)
           if [ -z "$files" ]; then echo "No coverage files found"; exit 0; fi
 
-          # Normalize each lcov file: map cljs-runtime SF paths to repo sources and
-          # drop DA entries whose line numbers exceed the source file's line count.
+          # Determine workspace root (GitHub Actions sets GITHUB_WORKSPACE). Fall back to cwd.
+          workspace=${GITHUB_WORKSPACE:-$(pwd)}
+
+          # Normalize each lcov file: strip workspace prefix from SF paths, map
+          # cljs-runtime SF paths to repo sources, and drop DA entries whose line
+          # numbers exceed the source file's line count.
           for f in $files; do
             tmp=$(mktemp)
             current_lines=0
             while IFS= read -r line; do
               if [[ "$line" == SF:* ]]; then
                 sf="${line#SF:}"
+                # Strip workspace prefix if present
+                if [[ "$sf" == "$workspace"/* ]]; then
+                  sf="${sf#$workspace/}"
+                fi
+
                 if [[ "$sf" == resources/public/js/cljs-runtime/* ]]; then
                   rel="${sf#resources/public/js/cljs-runtime/}"
                   resolved="$rel"
@@ -325,7 +334,8 @@ jobs:
                   echo "SF:$resolved" >> "$tmp"
                   if [ -f "$resolved" ]; then current_lines=$(wc -l < "$resolved"); else current_lines=0; fi
                 else
-                  echo "$line" >> "$tmp"
+                  # Write SF without workspace prefix
+                  echo "SF:$sf" >> "$tmp"
                   if [ -f "$sf" ]; then current_lines=$(wc -l < "$sf"); else current_lines=0; fi
                 fi
               elif [[ "$line" == DA:* ]]; then
@@ -345,9 +355,9 @@ jobs:
           mkdir -p target/coverage/merged
           first=$(echo "$files" | head -n1)
           lcov -a "$first" -o target/coverage/merged/merged.info
-          echo "$files" | tail -n +2 | while read f; do lcov -a target/coverage/merged/merged.info -a "$f" -o target/coverage/merged/merged.info; done
+          echo "$files" | tail -n +2 | while read ff; do lcov -a target/coverage/merged/merged.info -a "$ff" -o target/coverage/merged/merged.info; done
 
-          # Use genhtml without ignore-errors after normalization
+          # Use genhtml after normalization
           genhtml target/coverage/merged/merged.info -o target/coverage/merged
       - name: Upload merged coverage
         uses: actions/upload-artifact@v4

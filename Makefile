@@ -86,7 +86,7 @@ test: check-deps clean build build-test ## Run CLJS, server, and UI tests (requi
 	@echo "running kaocha tests..."
 	@HEADLESS=true SCREENSHOT=true $(CLJ) -M:test -m kaocha.runner --focus-meta :focus
 
-coverage: check-deps ## Run unit/integration/UI test suites with cloverage and merge results
+coverage: clean check-deps ## Run unit/integration/UI test suites with coverage instrumentation and merge results
 	@echo "Running coverage for unit and integration suites..."
 	@$(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/unit --lcov \
 		--cov-ns-exclude-regex 'brainard\.infra\.views\..*' \
@@ -138,13 +138,4 @@ coverage: check-deps ## Run unit/integration/UI test suites with cloverage and m
 	fi
 	@echo "Merging lcov files..."
 	@mkdir -p target/coverage/merged
-	@files=$$(find target/coverage -type f -name 'lcov.info' -not -path '*/merged/*' -print); \
-		if [ -z "$$files" ]; then \
-			echo "No lcov.info coverage files found under target/coverage"; \
-		else \
-			first=$$(echo "$$files" | head -n1); \
-			$(LCOV) -a "$$first" -o target/coverage/merged/merged.info; \
-			echo "$$files" | tail -n +2 | while read f; do $(LCOV) -a target/coverage/merged/merged.info -a "$$f" -o target/coverage/merged/merged.info; done; \
-			$(GENHTML) --ignore-errors=range,category target/coverage/merged/merged.info -o target/coverage/merged; \
-			echo "Merged coverage written to target/coverage/merged"; \
-		fi
+	@bash dev/merge-lcov.sh target/coverage target/coverage/merged
