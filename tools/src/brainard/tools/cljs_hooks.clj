@@ -1,4 +1,4 @@
-(ns brainard.build.hooks
+(ns brainard.tools.cljs-hooks
   (:require
     [clojure.java.io :as io]
     [clojure.java.shell :refer [sh]]

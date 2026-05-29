@@ -89,19 +89,17 @@ test: check-deps clean build build-test ## Run CLJS, server, and UI tests (requi
 coverage: clean check-deps ## Run unit/integration/UI test suites with coverage instrumentation and merge results
 	@echo "Running coverage for unit and integration suites..."
 	@$(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/unit --lcov \
-		--cov-ns-exclude-regex 'brainard\.infra\.views\..*' \
-		:api :infra
+		--cov-ns-exclude-regex 'brainard\..*\.views\..*' :api :infra
 	@$(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/integration --lcov \
-		--cov-ns-exclude-regex 'brainard\.infra\.views\..*' \
-		:integration
+		--cov-ns-exclude-regex 'brainard\..*\.views\..*' :integration
 	@echo "Building and instrumenting CLJS with source maps for coverage..."
 	@rm -rf resources/public/js target/nyc_output
-	@$(CLJ) -A:shadow:dev -M -m shadow.cljs.devtools.cli compile ui-cov
+	@$(CLJ) -A:shadow:tools -M -m shadow.cljs.devtools.cli compile ui-cov
 	@echo "Running UI coverage..."; \
 	HEADLESS=true JS_COVERAGE=true $(CLJ) -M:test -m kaocha.runner :ui || true;
 	@echo "Generating JS coverage report..."
-	@node dev/nyc-report.js
-	@bash dev/normalize-js-coverage.sh
+	@node tools/nyc-report.js
+	@$(CLJ) -M:tools -m brainard.tools.coverage.normalize-js
 	@echo "Merging lcov files..."
 	@mkdir -p target/coverage/merged
-	@bash dev/merge-lcov.sh target/coverage target/coverage/merged
+	@$(CLJ) -M:tools -m brainard.tools.coverage.merge-lcov target/coverage target/coverage/merged

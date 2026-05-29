@@ -1,4 +1,4 @@
-(ns brainard.build
+(ns brainard.tools.build
   (:require
     [clojure.tools.build.api :as b]))
 

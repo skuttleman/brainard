@@ -17,7 +17,7 @@
                     :compiler         {:optimizations :none}
                     :compiler-options {:warnings {:redef false}}
                     :modules          {:main {:init-fn brainard.app/init!}}
-                    :build-hooks      [(brainard.build.hooks/instrument-code)]}
+                    :build-hooks      [(brainard.tools.cljs-hooks/instrument-code)]}
             :test {:target            :browser
                    :output-dir        "target/cljs-test"
                    :asset-path        "/cljs-test"

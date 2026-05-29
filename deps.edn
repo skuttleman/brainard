@@ -17,10 +17,10 @@
                       :extra-deps  {etaoin/etaoin                 {:mvn/version "1.1.43"}
                                     lambdaisland/kaocha           {:mvn/version "1.91.1392"}
                                     lambdaisland/kaocha-cloverage {:mvn/version "1.1.89"}}}
-           :build    {:extra-paths ["dev/src"]
+           :build    {:extra-paths ["tools/src"]
                       :deps        {org.clojure/clojure           {:mvn/version "1.12.4"}
                                     io.github.clojure/tools.build {:mvn/version "0.10.13"}}
-                      :ns-default  brainard.build}
+                      :ns-default  brainard.tools.build}
            :lint     {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2026.04.15"}}
                       :main-opts  ["-m"
                                    "clj-kondo.main"
@@ -31,6 +31,7 @@
                                    "test/src"
                                    "modules/api/test/src"
                                    "modules/infra/test/src"]}
+           :tools    {:extra-paths ["tools/src"]}
            :shadow   {:extra-deps {thheller/shadow-cljs {:mvn/version "3.4.6"}}}
            :intellij {:extra-deps  {io.github.clojure/tools.build {:mvn/version "0.10.13"}}
                       :extra-paths ["modules/api/resources"

@@ -35,6 +35,7 @@ jobs:
           clojure -P -M:lint
           clojure -P -M:shadow
           clojure -P -M:test
+          clojure -P -M:tools
 
   lint:
     name: Lint
@@ -81,7 +82,7 @@ jobs:
         run: |
           clojure -M:test -m kaocha.runner --plugin cloverage \
             --cov-output target/coverage/unit --lcov \
-            --cov-ns-exclude-regex 'brainard\.infra\.views\..*' \
+            --cov-ns-exclude-regex 'brainard\..*\.views\..*' \
             :api :infra
       - name: Upload coverage artifact
         if: always()
@@ -145,7 +146,7 @@ jobs:
         run: |
           clojure -M:test -m kaocha.runner --plugin cloverage \
             --cov-output target/coverage/integration --lcov \
-            --cov-ns-exclude-regex 'brainard\.infra\.views\..*' \
+            --cov-ns-exclude-regex 'brainard\..*\.views\..*' \
             :integration
       - name: Upload coverage artifact
         if: always()
@@ -183,7 +184,7 @@ jobs:
           npm ci
           npm install -g sass
           rm -rf resources/public/js target/nyc_output
-          clojure -A:shadow:dev -M -m shadow.cljs.devtools.cli compile ui-cov
+          clojure -A:shadow:tools -M -m shadow.cljs.devtools.cli compile ui-cov
       - uses: browser-actions/setup-chrome@v2
         id: setup-chrome
         with:
@@ -256,7 +257,6 @@ jobs:
           path: target/coverage
       - name: Normalize downloaded artifact layout
         run: |
-          ls **/*
           mv target/coverage/coverage-unit target/coverage/unit
           mv target/coverage/coverage-integration target/coverage/integration
           mv target/coverage/nyc_output target/nyc_output
@@ -265,13 +265,13 @@ jobs:
           if [ -f package-lock.json ]; then npm ci; else npm i; fi
       - name: Generate JS coverage report
         run: |
-          node dev/nyc-report.js
+          node tools/nyc-report.js
       - name: Normalize JS coverage
-        run: bash dev/normalize-js-coverage.sh
+        run: clojure -M:tools -m brainard.tools.coverage.normalize-js
       - name: Merge lcov files
         run: |
           mkdir -p target/coverage/merged
-          bash dev/merge-lcov.sh target/coverage target/coverage/merged
+          clojure -M:tools -m brainard.tools.coverage.merge-lcov target/coverage target/coverage/merged
       - name: Upload merged coverage artifact
         if: always()
         uses: actions/upload-artifact@v4
