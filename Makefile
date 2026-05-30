@@ -86,17 +86,26 @@ test: check-deps clean build build-test ## Run CLJS, server, and UI tests (requi
 	@echo "running kaocha tests..."
 	@HEADLESS=true SCREENSHOT=true $(CLJ) -M:test -m kaocha.runner --focus-meta :focus
 
+lint: ## Check codebase for linting errors
+	@$(CLJ) -M:lint
+
 coverage: clean check-deps build-sass ## Run unit/integration/UI test suites with coverage instrumentation and merge results
 	@echo "Running coverage for unit and integration suites..."
 	@$(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/unit --lcov \
-		--cov-ns-exclude-regex 'brainard\..*\.views\..*' :api :infra
+		--cov-ns-exclude-regex 'brainard\..*\.(multipart-params|routes\.ui)' \
+		--cov-ns-exclude-regex 'brainard\..*\.views.*' :api :infra
 	@$(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/integration --lcov \
-		--cov-ns-exclude-regex 'brainard\..*\.views\..*' :integration
+		--cov-ns-exclude-regex 'brainard\..*\.(multipart-params|routes\.ui)' \
+		--cov-ns-exclude-regex 'brainard\..*\.views.*' :integration
 	@echo "Building and instrumenting CLJS with source maps for coverage..."
-	@rm -rf resources/public/js target/nyc_output
 	@$(CLJ) -A:shadow:tools -M -m shadow.cljs.devtools.cli compile ui-cov
-	@echo "Running UI coverage..."; \
-	HEADLESS=true JS_COVERAGE=true $(CLJ) -M:test -m kaocha.runner :ui || true;
+	@echo "Running UI coverage..."
+	@HEADLESS=true JS_COVERAGE=true $(CLJ) -M:test -m kaocha.runner \
+		--plugin cloverage --cov-output target/coverage/driver --lcov \
+		--cov-ns-regex 'brainard\..*\.db' \
+		--cov-ns-regex 'brainard\.*\.api\..*' \
+		--cov-ns-regex 'brainard\.infra\.store\..*' \
+		--cov-ns-regex 'brainard\..*\.(multipart-params|routes\.ui)' :ui
 	@echo "Generating JS coverage report..."
 	@node tools/nyc-report.js
 	@$(CLJ) -M:tools -m brainard.tools.coverage.normalize-js

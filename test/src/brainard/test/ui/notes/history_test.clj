@@ -34,7 +34,7 @@
     (let [note-id (-> fix first :notes/id)]
       (testing "when visiting the note page"
         (eta/go driver (str base-url "/notes/" note-id))
-        (eta/wait-visible driver {:css "h1.layout--space-after"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when viewing the note history"
           (tutils/click driver {:css "button.note__history-button"})
@@ -170,7 +170,7 @@
     (let [note-id (-> fix first :notes/id)]
       (testing "when visiting the note page"
         (eta/go driver (str base-url "/notes/" note-id))
-        (eta/wait-visible driver {:css "h1.layout--space-after"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when viewing the note history"
           (tutils/click driver {:css "button.note__history-button"})

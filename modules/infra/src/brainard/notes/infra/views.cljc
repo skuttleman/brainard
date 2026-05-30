@@ -5,7 +5,7 @@
     [whet.utils.reagent :as r]))
 
 (defn ^:private edit-link [note-id]
-  [comp/link {:class        ["space--left"]
+  [comp/link {:class        ["space--left" "note__edit-link"]
               :token        :routes.ui/note
               :route-params {:notes/id note-id}}
    "edit"])

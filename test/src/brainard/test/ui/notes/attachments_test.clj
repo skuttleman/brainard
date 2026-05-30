@@ -11,7 +11,7 @@
     (let [fixture-path (-> "fixtures/sample.txt" io/resource .getPath)]
       (testing "when visiting the home page"
         (eta/go driver base-url)
-        (eta/wait-visible driver {:css "h1.pinned-notes"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "and when clicking the create note button"
           (tutils/click driver {:css "button.note__create-button"})
@@ -81,14 +81,48 @@
 
                         (testing "updates the note"
                           (eta/wait-visible driver {:css ".attachment-list"})
-                          (is (= 2 (count (eta/query-all driver {:css ".attachment-list li"})))))))))))))))))
+                          (is (= 2 (count (eta/query-all driver {:css ".attachment-list li"})))))
+
+                        (testing "and when downloading the attachment"
+                          (tutils/click driver {:css ".attachment-list li a"})
+                          (tutils/wait-optimistic #(= (count (eta/get-window-handles driver)) 2))
+                          (eta/switch-window-next driver)
+                          (is (= "some text\ngoes here." (eta/get-element-text driver {:css "body"}))))))))))))))))
+
+(deftest large-attachment-test
+  (usys/with-webdriver [driver base-url]
+    (let [fixture-path (-> "fixtures/large.txt" io/resource .getPath)]
+      (testing "when visiting the home page"
+        (eta/go driver base-url)
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+
+        (testing "and when clicking the create note button"
+          (tutils/click driver {:css "button.note__create-button"})
+          (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
+
+          (testing "and when creating a note"
+            (tutils/fill-form! driver ".modal-container.is-active form.form"
+                               {"Topic" "Test Attachments"
+                                "Body"  "Note with attachments"})
+
+            (testing "and when uploading a file"
+              (let [file-input (eta/query driver {:css ".modal-container.is-active input[type='file']"})]
+                (eta/fill-el driver file-input fixture-path)
+                (eta/wait-visible driver {:css "li.toast-message.message"})
+                (testing "displays an error"
+                  (is (eta/has-text? driver
+                                     {:css "li.toast-message.message .body-text"}
+                                     "A file being uploaded exceeds the maximum allowed size")))
+
+                (testing "does not display the attachment in the list"
+                  (is (eta/absent? driver {:css ".modal-container .attachment-list li"})))))))))))
 
 (deftest edit-attachment-test
   (usys/with-webdriver [driver base-url]
     (let [fixture-path (-> "fixtures/sample.txt" io/resource .getPath)]
       (testing "when visiting the home page"
         (eta/go driver base-url)
-        (eta/wait-visible driver {:css "h1.pinned-notes"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "and when creating a note with an attachment"
           (tutils/click driver {:css "button.note__create-button"})
@@ -144,7 +178,7 @@
     (let [fixture-path (-> "fixtures/sample.txt" io/resource .getPath)]
       (testing "when visiting the home page"
         (eta/go driver base-url)
-        (eta/wait-visible driver {:css "h1.pinned-notes"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "and when creating a note with two attachments"
           (tutils/click driver {:css "button.note__create-button"})

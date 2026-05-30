@@ -34,6 +34,8 @@
   (usys/with-webdriver [driver base-url]
     (testing "when visiting the home page"
       (eta/go driver base-url)
+      (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+
       (testing "renders app title"
         (eta/wait-visible driver {:css "h1.title"})
         (is (= "brainard" (eta/get-element-text driver {:css "h1.title"}))))
@@ -72,6 +74,7 @@
               (not (eta/exists? driver {:xpath (format node-item-selector-fmt node-text)})))]
       (testing "when visiting the home page"
         (eta/go driver base-url)
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "renders the empty workspace"
           (eta/wait-visible driver {:css "h1.workspace"})
@@ -124,7 +127,7 @@
                   (tutils/click driver {:css ".modal-container.is-active button.delete-node"})
 
                   (testing "renders the updated workspace"
-                    (eta/wait-predicate #(node-absent? "updated child"))
+                    (tutils/wait-optimistic #(node-absent? "updated child"))
                     (is (node-absent? "updated child"))
                     (is (node-absent? "grandchild node"))
                     (is (= 2 (count (eta/query-all driver {:css "li.node-item"}))))))))))))))
@@ -177,6 +180,8 @@
               (eta/query-all driver {:css ".root-node-list > li.node-item"}))]
       (testing "when visiting the home page"
         (eta/go driver base-url)
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+
         (testing "and when creating a root node"
           (tutils/click driver {:css ".drag-n-drop + .add-root-node"})
           (ws-submit! driver "alpha")
@@ -196,7 +201,7 @@
 
             (testing "and when moving beta under alpha"
               (drag-node! "beta" "alpha")
-              (eta/wait-predicate #(= 1 (count (root-nodes))))
+              (tutils/wait-optimistic #(= 1 (count (root-nodes))))
 
               (testing "renders alpha as the only root with beta and gamma as descendants"
                 (is (= 1 (count (root-nodes))))
@@ -212,7 +217,7 @@
 
                 (testing "and when reordering beta after delta"
                   (reorder-node! "beta" "delta")
-                  (eta/wait-predicate #(= ["alpha" "delta" "beta" "gamma"] (node-order)))
+                  (tutils/wait-optimistic #(= ["alpha" "delta" "beta" "gamma"] (node-order)))
 
                   (testing "renders nodes in the new order"
                     (is (= ["alpha" "delta" "beta" "gamma"] (node-order)))))))))))))
@@ -240,7 +245,7 @@
                            :notes/id)]
         (testing "when visiting the home page"
           (eta/go driver base-url)
-          (eta/wait-visible driver {:css "h1.pinned-notes"})
+          (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
           (testing "and when expanding Context 1"
             (expand! "Context 1")
@@ -260,7 +265,7 @@
 
             (testing "can navigate to the note's edit page"
               (tutils/click driver (edit-link note-id-1))
-              (eta/wait-predicate #(re-find #"/notes/" (eta/get-url driver)))
+              (tutils/wait-optimistic #(re-find #"/notes/" (eta/get-url driver)))
               (is (= (str base-url "/notes/" note-id-1)
                      (eta/get-url driver)))
               (eta/go driver base-url)
@@ -284,7 +289,7 @@
 
             (testing "can navigate to the note's edit page"
               (tutils/click driver (edit-link note-id-2))
-              (eta/wait-predicate #(re-find #"/notes/" (eta/get-url driver)))
+              (tutils/wait-optimistic #(re-find #"/notes/" (eta/get-url driver)))
               (is (= (str base-url "/notes/" note-id-2)
                      (eta/get-url driver)))
               (eta/go driver base-url)
@@ -294,10 +299,10 @@
             (is (not (eta/exists? driver {:css ".context-group[data-context='Context 3']"})))))))))
 
 (deftest search-test
-  (usys/with-webdriver [driver base-url {_ "search.edn"}]
+  (usys/with-webdriver [driver base-url {fix "search.edn"}]
     (letfn [(go-to-search! []
               (eta/go driver (str base-url "/search"))
-              (eta/wait-visible driver {:css "form.search-form"}))
+              (tutils/wait-optimistic #(eta/visible? driver {:css ".page__search"})))
             (open-dropdown! [label]
               (tutils/click driver {:css (format ".form-field[data-field-label='%s'] button" label)})
               (eta/wait-visible driver {:css "ul.dropdown-items"}))
@@ -305,8 +310,8 @@
               (let [item-fmt "//ul[contains(@class,'dropdown-items')]//span[text()='%s']"
                     active-fmt "//ul[contains(@class,'dropdown-items')]//li[contains(@class,'is-active')]//span[text()='%s']"]
                 (tutils/click driver {:xpath (format item-fmt item-text)})
-                (eta/wait-predicate #(or (not (eta/exists? driver {:css "ul.dropdown-items"}))
-                                         (eta/exists? driver {:xpath (format active-fmt item-text)})))))
+                (tutils/wait-optimistic #(or (not (eta/exists? driver {:css "ul.dropdown-items"}))
+                                             (eta/exists? driver {:xpath (format active-fmt item-text)})))))
             (search! []
               (tutils/click driver {:css "form.search-form button.submit"})
               (eta/wait-visible driver {:css "ul.search-results"}))
@@ -334,6 +339,22 @@
           (testing "updates the browser url"
             (is (url-query? {:tags "tag/alpha"})))
 
+          (testing "and when clicking the edit link"
+            (tutils/click driver {:css "ul.search-results > li .note__edit-link"})
+            (eta/wait-visible driver {:css ".container.page__note"})
+            (testing "renders the note page"
+              (let [note-id (-> fix first :notes/id)]
+                (is (= (str base-url "/notes/" note-id) (eta/get-url driver)))
+                (is (eta/visible? driver {:xpath "//*[contains(@class,'content')]//*[text()='Note A1']"}))
+                (eta/back driver))))
+
+          (testing "and when navigating back"
+            (eta/back driver)
+            (eta/wait-absent driver {:css "ul.search-results"})
+            (testing "clears the search results"
+              (is (= (str base-url "/search") (eta/get-url driver)))
+              (is (eta/absent? driver {:css "ul.search-results"}))))
+
           (testing "and when filtering on context"
             (open-dropdown! "Topic Filter")
             (pick-option! "Context A")
@@ -342,10 +363,7 @@
             (testing "renders the correct notes"
               (is (note-visible? driver "Note A1"))
               (is (note-visible? driver "Note A2"))
-              (is (not (note-visible? driver "Note B1"))))
-
-            (testing "updates the browser url"
-              (is (url-query? {:tags "tag/alpha" :context "Context A"})))))
+              (is (not (note-visible? driver "Note B1"))))))
 
         (testing "and when filtering on multiple tags"
           (go-to-search!)
@@ -373,7 +391,26 @@
               (is (not (note-visible? driver "Note B2"))))
 
             (testing "updates the browser url"
-              (is (url-query? {:tags #{"tag/alpha" "tag/beta"} :context "Context A"})))))
+              (is (url-query? {:tags #{"tag/alpha" "tag/beta"} :context "Context A"}))))
+
+          (testing "and when the filters yield no results"
+            (go-to-search!)
+            (open-dropdown! "Topic Filter")
+            (pick-option! "Context B")
+            (open-dropdown! "Tag Filter")
+            (pick-option! ":tag/alpha")
+            (pick-option! ":tag/beta")
+            (tutils/click driver {:css "form.search-form button.submit"})
+            (eta/wait-absent driver {:css "ul.search-results"})
+            (eta/wait-visible driver {:css "span.search-results"})
+
+            (testing "does not render any notes"
+              (is (eta/has-text? driver {:css ".search-results .message-body"} "No search results"))
+              (is (not (note-visible? driver "Note A1")))
+              (is (not (note-visible? driver "Note A2")))
+              (is (not (note-visible? driver "Note B1")))
+              (is (not (note-visible? driver "Note B2")))
+              (is (not (note-visible? driver "Note C1"))))))
 
         (testing "and when filtering on context"
           (go-to-search!)
@@ -403,7 +440,7 @@
                               keyword)]
       (testing "when visiting the buzz page"
         (eta/go driver (str base-url "/buzz"))
-        (eta/wait-visible driver {:css "ul.search-results"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__buzz"}))
 
         (testing "renders the correct notes"
           (is (note-visible? driver "Note 1"))

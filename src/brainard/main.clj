@@ -12,12 +12,18 @@
     [integrant.core :as ig]
     brainard.infra.system))
 
-(defn ^:private with-env-file [env]
-  (merge env (some-> (io/file ".env") edn/read)))
+(def ^:const ^long twelve-hours (* 1000 60 60 12))
 
-(defn ^:private cleanup-orphaned-artifacts! [db-conn obj-store]
+(defn ^:private with-env-file [env]
+  (let [f (io/file ".env")]
+    (merge env (when (.exists f)
+                 (edn/read f)))))
+
+(defn cleanup-orphaned-artifacts! [sys]
   (try
-    (let [s3-keys (->> (istorage/read obj-store
+    (let [db-conn (val (ig/find-derived-1 sys :brainard/storage))
+          obj-store (val (ig/find-derived-1 sys :brainard/obj-storage))
+          s3-keys (->> (istorage/read obj-store
                                       {:op :ListObjectsV2})
                        :Contents
                        (map (comp uuids/->uuid :Key)))
@@ -40,29 +46,25 @@
     (catch Throwable ex
       (log/error ex "Failed to cleanup orphaned s3 objects"))))
 
-(def ^:const ^long twelve-hours (* 1000 60 60 12))
-
 (defn start!
   "Starts a duct component system from a configuration expressed in an `edn` file."
   [config-file profiles]
   (duct/load-hierarchy)
   (binding [duct.env/*env* (with-env-file duct.env/*env*)]
-    (let [sys (-> config-file
-                  duct/resource
-                  duct/read-config
-                  (duct/prep-config profiles)
-                  (ig/init [:duct/daemon]))
-          thread (doto (Thread. (fn []
-                                  (let [db (val (ig/find-derived-1 sys :brainard/storage))
-                                        obj (val (ig/find-derived-1 sys :brainard/obj-storage))]
-                                    (while true
-                                      (cleanup-orphaned-artifacts! db obj)
-                                      (Thread/sleep twelve-hours)))))
-                   .start)]
-      (duct/add-shutdown-hook ::stop-thread #(.interrupt thread))
-      sys)))
+    (-> config-file
+        duct/resource
+        duct/read-config
+        (duct/prep-config profiles)
+        (ig/init [:duct/daemon]))))
 
 (defn -main
   "Entry point for running the `brainard` web application from the command line."
   [& _]
-  (duct/await-daemons (start! "duct/prod.edn" [:duct.profile/base :duct.profile/prod])))
+  (let [sys (start! "duct/prod.edn" [:duct.profile/base :duct.profile/prod])
+        thread (doto (Thread. (fn []
+                                (cleanup-orphaned-artifacts! sys)
+                                (Thread/sleep twelve-hours)
+                                (recur)))
+                 .start)]
+    (duct/add-shutdown-hook ::stop-thread #(.interrupt thread))
+    (duct/await-daemons sys)))
