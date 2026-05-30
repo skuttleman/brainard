@@ -82,8 +82,9 @@ jobs:
         run: |
           clojure -M:test -m kaocha.runner --plugin cloverage \
             --cov-output target/coverage/unit --lcov \
-            --cov-ns-exclude-regex 'brainard\..*\.multipart-params' \
+            --cov-ns-exclude-regex 'brainard\..*\.(multipart-params|routes\.ui)' \
             --cov-ns-exclude-regex 'brainard\..*\.views.*' \
+            --cov-ns-regex 'brainard\.*\.api\..*' \
             :api :infra
       - name: Upload coverage artifact
         if: always()
@@ -146,9 +147,10 @@ jobs:
       - name: Run integration tests
         run: |
           clojure -M:test -m kaocha.runner --plugin cloverage \
-            --cov-ns-exclude-regex 'brainard\..*\.multipart-params' \
+            --cov-ns-exclude-regex 'brainard\..*\.(multipart-params|routes\.ui)' \
             --cov-output target/coverage/integration --lcov \
             --cov-ns-exclude-regex 'brainard\..*\.views.*' \
+            --cov-ns-regex 'brainard\.*\.api\..*' \
             :integration
       - name: Upload coverage artifact
         if: always()
@@ -197,7 +199,7 @@ jobs:
           set -o pipefail
           set +e
           clojure -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/driver \
-            --lcov --cov-ns-regex 'brainard\..*\.multipart-params' :ui | tee test-output.txt
+            --lcov --cov-ns-regex 'brainard\..*\.(multipart-params|routes\.ui)' :ui | tee test-output.txt
           rc=${PIPESTATUS[0]}
           set -e
           set +o pipefail
@@ -213,7 +215,7 @@ jobs:
               while IFS= read -r f; do args+=( "--focus" "$f" ); done <<< "$fails"
               SCREENSHOT=true clojure -M:test -m kaocha.runner --plugin cloverage \
                 --cov-output target/coverage/driver --lcov \
-                --cov-ns-regex 'brainard\..*\.multipart-params' :ui "${args[@]}"
+                --cov-ns-regex 'brainard\..*\.(multipart-params|routes\.ui)' :ui "${args[@]}"
             else
               echo "No specific failures parsed; re-running full UI suite"
               SCREENSHOT=true clojure -M:test -m kaocha.runner --plugin cloverage \

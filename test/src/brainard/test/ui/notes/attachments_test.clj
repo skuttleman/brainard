@@ -81,7 +81,13 @@
 
                         (testing "updates the note"
                           (eta/wait-visible driver {:css ".attachment-list"})
-                          (is (= 2 (count (eta/query-all driver {:css ".attachment-list li"})))))))))))))))))
+                          (is (= 2 (count (eta/query-all driver {:css ".attachment-list li"})))))
+
+                        (testing "and when downloading the attachment"
+                          (tutils/click driver {:css ".attachment-list li a"})
+                          (tutils/wait-optimistic #(= (count (eta/get-window-handles driver)) 2))
+                          (eta/switch-window-next driver)
+                          (is (= "some text\ngoes here." (eta/get-element-text driver {:css "body"}))))))))))))))))
 
 (deftest large-attachment-test
   (usys/with-webdriver [driver base-url]

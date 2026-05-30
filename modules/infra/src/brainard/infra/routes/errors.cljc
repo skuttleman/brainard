@@ -22,13 +22,6 @@
                                      "Invalid input"
                                      {:details (:details data)})))
 
-(defmethod ex->response ::valid/output-validation
-  [data]
-  (->err-response 500
-                  (routes.res/errors :INVALID_OUTPUT
-                                     "Unable to generate valid output"
-                                     {:details (:details data)})))
-
 (defmethod ex->response ::valid/upload-too-big
   [data]
   (->err-response 400
