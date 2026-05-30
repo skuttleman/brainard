@@ -194,6 +194,7 @@ jobs:
         run: |
           clojure -M:test -m kaocha.runner --plugin cloverage \
             --cov-output target/coverage/driver --lcov \
+            --cov-ns-regex 'brainard\..*\.db' \
             --cov-ns-regex 'brainard\.*\.api\..*' \
             --cov-ns-regex 'brainard\.infra\.store\..*' \
             --cov-ns-regex 'brainard\..*\.(multipart-params|routes\.ui)' :ui

@@ -4,8 +4,11 @@
     [brainard.api.utils.uuids :as uuids]
     [brainard.schedules.api.core :as api.sched]
     [brainard.api.storage.core :as storage]
+    [brainard.schedules.api.relevancy :as relevancy]
     [brainard.test.harness.integration.system :as tsys]
-    [clojure.test :refer [deftest is testing]]))
+    [clojure.test :refer [deftest is testing]])
+  (:import
+    (java.util Date)))
 
 (deftest get-schedules-test
   (tsys/with-app [{::b/keys [storage]} nil]
@@ -76,3 +79,47 @@
           (is (empty? (api.sched/get-by-note-id schedules-api note-id-1))))
         (testing "does not remove schedules for other notes"
           (is (= 1 (count (api.sched/get-by-note-id schedules-api note-id-2)))))))))
+
+(deftest relevant-schedules-test
+  (tsys/with-app [{::b/keys [schedules-api storage]} nil]
+    (let [[s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11] (repeatedly uuids/random)
+          now (Date.)
+          later (-> now .toInstant (.plusSeconds 100) Date/from)
+          earlier (-> now .toInstant (.minusSeconds 100) Date/from)
+          {:keys [weekday month day week-index]} (relevancy/from now)
+          other-weekday (if (= :sunday weekday) :monday :sunday)
+          other-month (if (= :january month) :february :january)
+          other-day (if (= 1 day) 2 1)
+          other-week (if (= 1 week-index) 2 1)]
+      (testing "when saving schedules"
+        (storage/execute! storage
+                          [{:schedules/id    s1
+                            :schedules/month month}
+                           {:schedules/id  s2
+                            :schedules/day day}
+                           {:schedules/id         s3
+                            :schedules/week-index week-index}
+                           {:schedules/id               s4
+                            :schedules/after-timestamp  earlier
+                            :schedules/before-timestamp later}
+                           {:schedules/id      s5
+                            :schedules/weekday weekday}
+                           ;; other schedules
+                           {:schedules/id    s6
+                            :schedules/month other-month}
+                           {:schedules/id  s7
+                            :schedules/day other-day}
+                           {:schedules/id         s8
+                            :schedules/week-index other-week}
+                           {:schedules/id              s9
+                            :schedules/after-timestamp later}
+                           {:schedules/id               s10
+                            :schedules/before-timestamp earlier}
+                           {:schedules/id      s11
+                            :schedules/weekday other-weekday}])
+
+        (testing "and when retrieving relevant schedules"
+          (let [actual (api.sched/relevant-schedules schedules-api now)]
+            (testing "returns expected schedules"
+              (is (= #{s1 s2 s3 s4 s5}
+                     (into #{} (map :schedules/id) actual))))))))))

@@ -99,9 +99,10 @@ coverage: clean check-deps build-sass ## Run unit/integration/UI test suites wit
 	@echo "Running UI coverage..."
 	@HEADLESS=true JS_COVERAGE=true $(CLJ) -M:test -m kaocha.runner \
 		--plugin cloverage --cov-output target/coverage/driver --lcov \
-		--cov-ns-regex 'brainard\..*\.(multipart-params|routes\.ui)' \
+		--cov-ns-regex 'brainard\..*\.db' \
+		--cov-ns-regex 'brainard\.*\.api\..*' \
 		--cov-ns-regex 'brainard\.infra\.store\..*' \
-		--cov-ns-regex 'brainard\.*\.api\..*' :ui
+		--cov-ns-regex 'brainard\..*\.(multipart-params|routes\.ui)' :ui
 	@echo "Generating JS coverage report..."
 	@node tools/nyc-report.js
 	@$(CLJ) -M:tools -m brainard.tools.coverage.normalize-js
