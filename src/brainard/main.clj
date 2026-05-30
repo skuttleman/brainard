@@ -15,7 +15,9 @@
 (def ^:const ^long twelve-hours (* 1000 60 60 12))
 
 (defn ^:private with-env-file [env]
-  (merge env (some-> (io/file ".env") edn/read)))
+  (let [f (io/file ".env")]
+    (merge env (when (.exists f)
+                 (edn/read f)))))
 
 (defn cleanup-orphaned-artifacts! [sys]
   (try
