@@ -52,7 +52,7 @@
              [:span.tag.is-info.space--left.is-rounded buzzes])]]]]])))
 
 (defn page [*:store route]
-  [:div.container
+  [:div.container {:class [(str "page__" (name (:token route)))]}
    [header]
    [navbar *:store route]
    [ipages/page *:store route]

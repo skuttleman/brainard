@@ -82,7 +82,7 @@ jobs:
         run: |
           clojure -M:test -m kaocha.runner --plugin cloverage \
             --cov-output target/coverage/unit --lcov \
-            --cov-ns-exclude-regex 'brainard\..*\.views\..*' \
+            --cov-ns-exclude-regex 'brainard\..*\.views.*' \
             :api :infra
       - name: Upload coverage artifact
         if: always()
@@ -146,7 +146,7 @@ jobs:
         run: |
           clojure -M:test -m kaocha.runner --plugin cloverage \
             --cov-output target/coverage/integration --lcov \
-            --cov-ns-exclude-regex 'brainard\..*\.views\..*' \
+            --cov-ns-exclude-regex 'brainard\..*\.views.*' \
             :integration
       - name: Upload coverage artifact
         if: always()
