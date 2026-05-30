@@ -11,7 +11,7 @@
     (let [fixture-path (-> "fixtures/sample.txt" io/resource .getPath)]
       (testing "when visiting the home page"
         (eta/go driver base-url)
-        (eta/wait-visible driver {:css "h1.pinned-notes"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "and when clicking the create note button"
           (tutils/click driver {:css "button.note__create-button"})
@@ -94,7 +94,7 @@
     (let [fixture-path (-> "fixtures/large.txt" io/resource .getPath)]
       (testing "when visiting the home page"
         (eta/go driver base-url)
-        (eta/wait-visible driver {:css "h1.pinned-notes"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "and when clicking the create note button"
           (tutils/click driver {:css "button.note__create-button"})
@@ -122,7 +122,7 @@
     (let [fixture-path (-> "fixtures/sample.txt" io/resource .getPath)]
       (testing "when visiting the home page"
         (eta/go driver base-url)
-        (eta/wait-visible driver {:css "h1.pinned-notes"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "and when creating a note with an attachment"
           (tutils/click driver {:css "button.note__create-button"})
@@ -178,7 +178,7 @@
     (let [fixture-path (-> "fixtures/sample.txt" io/resource .getPath)]
       (testing "when visiting the home page"
         (eta/go driver base-url)
-        (eta/wait-visible driver {:css "h1.pinned-notes"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "and when creating a note with two attachments"
           (tutils/click driver {:css "button.note__create-button"})

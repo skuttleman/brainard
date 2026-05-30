@@ -34,6 +34,8 @@
   (usys/with-webdriver [driver base-url]
     (testing "when visiting the home page"
       (eta/go driver base-url)
+      (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+
       (testing "renders app title"
         (eta/wait-visible driver {:css "h1.title"})
         (is (= "brainard" (eta/get-element-text driver {:css "h1.title"}))))
@@ -72,6 +74,7 @@
               (not (eta/exists? driver {:xpath (format node-item-selector-fmt node-text)})))]
       (testing "when visiting the home page"
         (eta/go driver base-url)
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "renders the empty workspace"
           (eta/wait-visible driver {:css "h1.workspace"})
@@ -177,6 +180,8 @@
               (eta/query-all driver {:css ".root-node-list > li.node-item"}))]
       (testing "when visiting the home page"
         (eta/go driver base-url)
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+
         (testing "and when creating a root node"
           (tutils/click driver {:css ".drag-n-drop + .add-root-node"})
           (ws-submit! driver "alpha")
@@ -240,7 +245,7 @@
                            :notes/id)]
         (testing "when visiting the home page"
           (eta/go driver base-url)
-          (eta/wait-visible driver {:css "h1.pinned-notes"})
+          (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
           (testing "and when expanding Context 1"
             (expand! "Context 1")
@@ -297,7 +302,7 @@
   (usys/with-webdriver [driver base-url {fix "search.edn"}]
     (letfn [(go-to-search! []
               (eta/go driver (str base-url "/search"))
-              (eta/wait-visible driver {:css "form.search-form"}))
+              (tutils/wait-optimistic #(eta/visible? driver {:css ".page__search"})))
             (open-dropdown! [label]
               (tutils/click driver {:css (format ".form-field[data-field-label='%s'] button" label)})
               (eta/wait-visible driver {:css "ul.dropdown-items"}))
@@ -435,7 +440,7 @@
                               keyword)]
       (testing "when visiting the buzz page"
         (eta/go driver (str base-url "/buzz"))
-        (eta/wait-visible driver {:css "ul.search-results"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__buzz"}))
 
         (testing "renders the correct notes"
           (is (note-visible? driver "Note 1"))

@@ -10,7 +10,7 @@
     (let [note-id (-> fix first :notes/id)]
       (testing "when visiting a note"
         (eta/go driver (str base-url "/notes/" note-id))
-        (eta/wait-visible driver {:css "h1.layout--space-after"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when clicking the edit button"
           (tutils/click driver {:css "button.note__edit-button"})
@@ -43,7 +43,7 @@
     (let [note-id (-> fix first :notes/id)]
       (testing "when visiting a note with existing todos"
         (eta/go driver (str base-url "/notes/" note-id))
-        (eta/wait-visible driver {:css "h1.layout--space-after"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when clicking the edit button"
           (tutils/click driver {:css "button.note__edit-button"})
@@ -73,7 +73,7 @@
     (let [note-id (-> fix first :notes/id)]
       (testing "when visiting a note with existing todos"
         (eta/go driver (str base-url "/notes/" note-id))
-        (eta/wait-visible driver {:css "h1.layout--space-after"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when deselecting the todo"
           (tutils/click driver {:css "li.todo .checkbox"})
@@ -98,7 +98,7 @@
     (let [note-id (-> fix first :notes/id)]
       (testing "when visiting a note with existing todos"
         (eta/go driver (str base-url "/notes/" note-id))
-        (eta/wait-visible driver {:css "h1.layout--space-after"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when clicking the edit button"
           (tutils/click driver {:css "button.note__edit-button"})

@@ -10,7 +10,7 @@
   (usys/with-webdriver [driver base-url]
     (testing "when visiting the home page"
       (eta/go driver base-url)
-      (eta/wait-visible driver {:css "h1.pinned-notes"})
+      (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
       (testing "and when clicking the create note button"
         (tutils/click driver {:css "button.note__create-button"})
@@ -44,7 +44,7 @@
     (let [note-id (-> fix first :notes/id)]
       (testing "when visiting a note"
         (eta/go driver (str base-url "/notes/" note-id))
-        (eta/wait-visible driver {:css "h1.layout--space-after"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when clicking the edit button"
           (tutils/click driver {:css "button.note__edit-button"})
@@ -95,7 +95,7 @@
                        :notes/id)]
       (testing "when visiting a note"
         (eta/go driver (str base-url "/notes/" note-id))
-        (eta/wait-visible driver {:css "h1.layout--space-after"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "and when clicking the delete button"
           (tutils/click driver {:css "button.is-danger"})
@@ -138,7 +138,7 @@
                                 :notes/id)]
       (testing "when visiting a note with an existing schedule"
         (eta/go driver (str base-url "/notes/" note-sched-id))
-        (eta/wait-visible driver {:css "form.schedule-form"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "renders the existing schedule"
           (is (eta/exists? driver {:css "p.schedules__header"}))
@@ -176,7 +176,7 @@
     (let [note-id (-> fix first :notes/id)]
       (testing "when visiting the note page"
         (eta/go driver (str base-url "/notes/" note-id))
-        (eta/wait-visible driver {:css "h1.layout--space-after"})
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when opening the note edit modal"
           (tutils/click driver {:css "button.note__edit-button"})

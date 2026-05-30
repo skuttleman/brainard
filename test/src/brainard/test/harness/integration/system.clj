@@ -4,6 +4,7 @@
     [brainard.api.utils.uuids :as uuids]
     [brainard.infra.db.store :as ds]
     [clojure.java.io :as io]
+    [clojure.test :refer [testing]]
     [datomic.client.api :as d]
     [duct.core :as duct]
     [integrant.core :as ig]
@@ -43,6 +44,7 @@
 
 (defmacro with-app [[sys-binding opts] & body]
   (let [sys (gensym)
+        test (str (gensym "testing with-app "))
         component-bindings (for [[k v] (when (map? sys-binding)
                                          sys-binding)
                                  :let [bindings (cond
@@ -64,7 +66,8 @@
            ~sys-binding ~sys
            ~@component-bindings]
        (try
-         ~@body
+         (testing ~test
+           ~@body)
          (finally
            (ig/halt! ~sys))))))
 

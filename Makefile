@@ -95,13 +95,13 @@ coverage: clean check-deps build-sass ## Run unit/integration/UI test suites wit
 		--cov-ns-exclude-regex 'brainard\..*\.(multipart-params|routes\.ui)' \
 		--cov-ns-exclude-regex 'brainard\..*\.views.*' :integration
 	@echo "Building and instrumenting CLJS with source maps for coverage..."
-	@rm -rf resources/public/js target/nyc_output
 	@$(CLJ) -A:shadow:tools -M -m shadow.cljs.devtools.cli compile ui-cov
-	@echo "Running UI coverage..."; \
-	HEADLESS=true JS_COVERAGE=true $(CLJ) -M:test -m kaocha.runner \
+	@echo "Running UI coverage..."
+	@HEADLESS=true JS_COVERAGE=true $(CLJ) -M:test -m kaocha.runner \
 		--plugin cloverage --cov-output target/coverage/driver --lcov \
-		--cov-ns-regex 'brainard\.*\.api\..*' \
-		--cov-ns-regex 'brainard\..*\.(multipart-params|routes\.ui)' :ui || true;
+		--cov-ns-regex 'brainard\..*\.(multipart-params|routes\.ui)' \
+		--cov-ns-regex 'brainard\.infra\.store\..*' \
+		--cov-ns-regex 'brainard\.*\.api\..*' :ui
 	@echo "Generating JS coverage report..."
 	@node tools/nyc-report.js
 	@$(CLJ) -M:tools -m brainard.tools.coverage.normalize-js
