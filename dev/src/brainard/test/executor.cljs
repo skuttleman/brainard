@@ -2,6 +2,8 @@
   (:require
     [clojure.string :as string]
     [clojure.test :refer [run-tests]]
+    brainard.api.utils.fns-test
+    brainard.api.utils.keywords-test
     brainard.api.utils.maps-test
     brainard.api.validations-test
     brainard.infra.store-test
@@ -48,6 +50,8 @@
 
 (defn ^:export test! []
   (let [output (with-out-str (run-tests
+                               'brainard.api.utils.fns-test
+                               'brainard.api.utils.keywords-test
                                'brainard.api.utils.maps-test
                                'brainard.api.validations-test
                                'brainard.infra.store-test

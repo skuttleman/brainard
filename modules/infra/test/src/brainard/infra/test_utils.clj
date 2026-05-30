@@ -9,3 +9,6 @@
 
 (defn calls [spy]
   (-> spy meta ::state deref ::calls))
+
+(defn called-with? [spy args]
+  (boolean (first (filter #{args} (calls spy)))))
