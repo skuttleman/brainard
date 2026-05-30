@@ -124,7 +124,7 @@
                   (tutils/click driver {:css ".modal-container.is-active button.delete-node"})
 
                   (testing "renders the updated workspace"
-                    (eta/wait-predicate #(node-absent? "updated child"))
+                    (tutils/wait-optimistic #(node-absent? "updated child"))
                     (is (node-absent? "updated child"))
                     (is (node-absent? "grandchild node"))
                     (is (= 2 (count (eta/query-all driver {:css "li.node-item"}))))))))))))))
@@ -196,7 +196,7 @@
 
             (testing "and when moving beta under alpha"
               (drag-node! "beta" "alpha")
-              (eta/wait-predicate #(= 1 (count (root-nodes))))
+              (tutils/wait-optimistic #(= 1 (count (root-nodes))))
 
               (testing "renders alpha as the only root with beta and gamma as descendants"
                 (is (= 1 (count (root-nodes))))
@@ -212,7 +212,7 @@
 
                 (testing "and when reordering beta after delta"
                   (reorder-node! "beta" "delta")
-                  (eta/wait-predicate #(= ["alpha" "delta" "beta" "gamma"] (node-order)))
+                  (tutils/wait-optimistic #(= ["alpha" "delta" "beta" "gamma"] (node-order)))
 
                   (testing "renders nodes in the new order"
                     (is (= ["alpha" "delta" "beta" "gamma"] (node-order)))))))))))))
@@ -260,7 +260,7 @@
 
             (testing "can navigate to the note's edit page"
               (tutils/click driver (edit-link note-id-1))
-              (eta/wait-predicate #(re-find #"/notes/" (eta/get-url driver)))
+              (tutils/wait-optimistic #(re-find #"/notes/" (eta/get-url driver)))
               (is (= (str base-url "/notes/" note-id-1)
                      (eta/get-url driver)))
               (eta/go driver base-url)
@@ -284,7 +284,7 @@
 
             (testing "can navigate to the note's edit page"
               (tutils/click driver (edit-link note-id-2))
-              (eta/wait-predicate #(re-find #"/notes/" (eta/get-url driver)))
+              (tutils/wait-optimistic #(re-find #"/notes/" (eta/get-url driver)))
               (is (= (str base-url "/notes/" note-id-2)
                      (eta/get-url driver)))
               (eta/go driver base-url)
@@ -305,8 +305,8 @@
               (let [item-fmt "//ul[contains(@class,'dropdown-items')]//span[text()='%s']"
                     active-fmt "//ul[contains(@class,'dropdown-items')]//li[contains(@class,'is-active')]//span[text()='%s']"]
                 (tutils/click driver {:xpath (format item-fmt item-text)})
-                (eta/wait-predicate #(or (not (eta/exists? driver {:css "ul.dropdown-items"}))
-                                         (eta/exists? driver {:xpath (format active-fmt item-text)})))))
+                (tutils/wait-optimistic #(or (not (eta/exists? driver {:css "ul.dropdown-items"}))
+                                             (eta/exists? driver {:xpath (format active-fmt item-text)})))))
             (search! []
               (tutils/click driver {:css "form.search-form button.submit"})
               (eta/wait-visible driver {:css "ul.search-results"}))

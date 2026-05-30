@@ -12,6 +12,19 @@
 
 (defonce system nil)
 
+(defmethod ig/init-key :brainard.web/dev-handler
+  [_ {:keys [upload-limit]}]
+  (-> #'routes/be-handler
+      ((fn [handler] (fn [req] (handler (assoc req
+                                               ::b/env :dev
+                                               ::b/file-limit-bytes upload-limit)))))
+      (ring.rel/wrap-reload {:dirs ["../defacto"
+                                    "../whet"
+                                    "modules/api/src"
+                                    "modules/infra/src"
+                                    "src"
+                                    "dev"]})))
+
 (defn -main
   "Entry point for building/running the `brainard` web application from the command line.
    Runs an nREPL when `NREPL_PORT` env var is set."
@@ -25,22 +38,10 @@
                                  (fn []
                                    (log/info "stopping nREPL server")
                                    (nrepl/stop-server nrepl-server)))))
-    (alter-var-root #'system (constantly (main/start! "duct/dev.edn"
-                                                      [:duct.profile/base :duct.profile/dev])))
-    (duct/await-daemons system)))
-
-(defmethod ig/init-key :brainard.web/dev-handler
-  [_ {:keys [upload-limit]}]
-  (-> #'routes/be-handler
-      ((fn [handler] (fn [req] (handler (assoc req
-                                               ::b/env :dev
-                                               ::b/file-limit-bytes upload-limit)))))
-      (ring.rel/wrap-reload {:dirs ["../defacto"
-                                    "../whet"
-                                    "modules/api/src"
-                                    "modules/infra/src"
-                                    "src"
-                                    "dev"]})))
+    (let [sys (main/start! "duct/dev.edn" [:duct.profile/base :duct.profile/dev])]
+      (main/cleanup-orphaned-artifacts! sys)
+      (alter-var-root #'system (constantly sys))
+      (duct/await-daemons system))))
 
 (comment
   (alter-var-root #'system (fn [sys]

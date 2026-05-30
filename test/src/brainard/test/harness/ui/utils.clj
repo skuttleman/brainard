@@ -26,6 +26,12 @@
     (eta/click driver q))
   (Thread/sleep 5))
 
+(defn wait-optimistic [pred]
+  (or (try (eta/wait-predicate #(try (pred)
+                                     (catch Throwable _)))
+           (catch Throwable _))
+      true))
+
 (defmulti ^{:arglists '([driver q val])} ^:private fill!
           (fn [driver q _]
             (eta/get-element-tag driver q)))
