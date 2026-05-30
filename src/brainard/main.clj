@@ -62,9 +62,9 @@
   [& _]
   (let [sys (start! "duct/prod.edn" [:duct.profile/base :duct.profile/prod])
         thread (doto (Thread. (fn []
-                                (while true
-                                  (cleanup-orphaned-artifacts! sys)
-                                  (Thread/sleep twelve-hours))))
+                                (cleanup-orphaned-artifacts! sys)
+                                (Thread/sleep twelve-hours)
+                                (recur)))
                  .start)]
     (duct/add-shutdown-hook ::stop-thread #(.interrupt thread))
     (duct/await-daemons sys)))
