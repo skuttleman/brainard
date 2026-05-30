@@ -82,6 +82,7 @@ jobs:
         run: |
           clojure -M:test -m kaocha.runner --plugin cloverage \
             --cov-output target/coverage/unit --lcov \
+            --cov-ns-exclude-regex 'brainard\..*\.multipart-params' \
             --cov-ns-exclude-regex 'brainard\..*\.views.*' \
             :api :infra
       - name: Upload coverage artifact
@@ -145,6 +146,7 @@ jobs:
       - name: Run integration tests
         run: |
           clojure -M:test -m kaocha.runner --plugin cloverage \
+            --cov-ns-exclude-regex 'brainard\..*\.multipart-params' \
             --cov-output target/coverage/integration --lcov \
             --cov-ns-exclude-regex 'brainard\..*\.views.*' \
             :integration
@@ -194,7 +196,8 @@ jobs:
         run: |
           set -o pipefail
           set +e
-          clojure -M:test -m kaocha.runner :ui | tee test-output.txt
+          clojure -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/driver \
+            --lcov --cov-ns-regex 'brainard\..*\.multipart-params' :ui | tee test-output.txt
           rc=${PIPESTATUS[0]}
           set -e
           set +o pipefail
@@ -204,14 +207,18 @@ jobs:
             fails=$(perl -ne 's/\x1b[[0-9;]*[A-Za-z]//g; \
                     print "$1\n" if /(?:ERROR|FAIL)\s+in\s+(\S+)/' test-output.txt | sort -u)
             if [ -n "$fails" ]; then
-             echo "Re-running failed tests:"; echo "$fails"
-             echo " ---------------------- "
-             args=()
+              echo "Re-running failed tests:"; echo "$fails"
+              echo " ---------------------- "
+              args=()
               while IFS= read -r f; do args+=( "--focus" "$f" ); done <<< "$fails"
-              SCREENSHOT=true clojure -M:test -m kaocha.runner :ui "${args[@]}"
+              SCREENSHOT=true clojure -M:test -m kaocha.runner --plugin cloverage \
+                --cov-output target/coverage/driver --lcov \
+                --cov-ns-regex 'brainard\..*\.multipart-params' :ui "${args[@]}"
             else
               echo "No specific failures parsed; re-running full UI suite"
-              SCREENSHOT=true clojure -M:test -m kaocha.runner :ui
+              SCREENSHOT=true clojure -M:test -m kaocha.runner --plugin cloverage \
+                --cov-output target/coverage/driver --lcov \
+                --cov-ns-regex 'brainard\..*\.multipart-params' :ui
             fi
           fi
         env:
@@ -224,6 +231,12 @@ jobs:
         with:
           name: screenshots
           path: ./*.png
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-driver
+          path: target/coverage/driver
       - name: Upload nyc_output
         if: always()
         uses: actions/upload-artifact@v4
@@ -265,6 +278,7 @@ jobs:
         run: |
           mv target/coverage/coverage-unit target/coverage/unit
           mv target/coverage/coverage-integration target/coverage/integration
+          mv target/coverage/coverage-driver target/coverage/driver
           mv target/coverage/nyc_output target/nyc_output
       - name: Install JS dependencies
         run: |
