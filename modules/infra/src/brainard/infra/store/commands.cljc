@@ -7,7 +7,6 @@
     [whet.utils.navigation :as nav]
     [clojure.core.async :as async]
     [defacto.core :as defacto]
-    [defacto.resources.core :as res]
     [whet.core :as-alias w]))
 
 (defonce ^:private ->sortable-id
