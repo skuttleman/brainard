@@ -1,11 +1,21 @@
+@use 'variables' as *;
+
 .tile {
     .panel {
         min-width: 400px;
-        background-color: #fcfcfc;
+        background-color: $off-white;
 
         .panel-tabs {
             padding: 8px;
             justify-content: flex-start;
         }
+    }
+}
+
+.type-ahead .dropdown-content {
+    box-shadow: 3px 2px 2px $light-grey;
+
+    &,.dropdown-item {
+        background-color: $off-white;
     }
 }
