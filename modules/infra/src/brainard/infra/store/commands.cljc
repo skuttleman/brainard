@@ -78,7 +78,7 @@
     (emit-cb [:toasts/created toast-id {:state   :init
                                         :level   level
                                         :body    body
-                                        :timeout (or timeout 4500)}])))
+                                        :timeout timeout}])))
 
 (defmethod defacto/command-handler :toasts.notes/succeed!
   [_ [_ note] emit-cb]

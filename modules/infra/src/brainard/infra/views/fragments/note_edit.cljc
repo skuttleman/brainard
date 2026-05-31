@@ -27,13 +27,14 @@
   (let [form-data (forms/data form+)]
     [:div.layout--space-between
      [:div.flex-grow
-      [ctrls/type-ahead (-> {:*:store     *:store
-                             :label       "Topic"
-                             :sub:items   sub:contexts
-                             :on-blur     on-context-blur
-                             :auto-focus? (nil? (:notes/context form-data))}
-                            (ctrls/with-attrs form+ [:notes/context])
-                            (with-trim-on-blur *:store))]]
+      [:div {:style {:margin-bottom "16px"}}
+       [ctrls/type-ahead (-> {:*:store     *:store
+                              :label       "Topic"
+                              :sub:items   sub:contexts
+                              :on-blur     on-context-blur
+                              :auto-focus? (nil? (:notes/context form-data))}
+                             (ctrls/with-attrs form+ [:notes/context])
+                             (with-trim-on-blur *:store))]]]
      [ctrls/icon-toggle (-> {:*:store *:store
                              :label   "Pin"
                              :icon    :paperclip}

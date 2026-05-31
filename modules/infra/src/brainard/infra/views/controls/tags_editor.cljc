@@ -37,20 +37,25 @@
     (let [form (forms+/->form+ @sub:form @(:sub:items attrs))
           form-data (forms/data form)
           add-tag (->add-tag attrs form-id form-data)]
-      [:div.tags-editor
-       [:div.field.has-addons
-        [type-ahead/control (-> attrs
-                                (shared/with-attrs form [:value])
-                                (assoc :placeholder "Add tag..."
-                                       :on-change on-change
-                                       :on-add add-tag))]
-        [comp/plain-button {:tab-index -1
-                            :class     ["is-link"]
-                            :on-click  add-tag
-                            :disabled  #?(:clj true :default false)}
-         "+"]]
-       (when (:invalid? form-data)
-         [:span.form-field.errors [:span.error-list [:span.error "invalid tag"]]])
+      [:div.tags-editor.layout--stack-between
+       [:div {:style {:height        (when-not (:invalid? form-data)
+                                       "40px")
+                      :margin-bottom 0}}
+        [:div.field.has-addons (when (:invalid? form-data)
+                                 {:style {:margin-bottom 0}})
+         [type-ahead/control (-> attrs
+                                 (shared/with-attrs form [:value])
+                                 (assoc :placeholder "Add tag..."
+                                        :on-change on-change
+                                        :on-add add-tag))]
+         [comp/plain-button {:tab-index -1
+                             :class     ["is-link"]
+                             :on-click  add-tag
+                             :disabled  #?(:clj true :default false)}
+          "+"]]
+        (when (:invalid? form-data)
+          [:span.form-field.errors
+           [:span.error-list [:span.error "invalid tag"]]])]
        [comp/tag-list attrs]])
     (finally
       (store/emit! *:store [::forms/destroyed form-id]))))

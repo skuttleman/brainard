@@ -128,7 +128,7 @@
   [:div.tag-list.field.is-grouped.is-grouped-multiline.layout--space-between
    (for [tag value]
      ^{:key tag}
-     [:div.tags.has-addons
+     [:div.tags.has-addons {:style {:margin-bottom 0}}
       [:span.tag.is-info.is-light (str tag)]
       (when on-change
         [plain-button {:tab-index -1

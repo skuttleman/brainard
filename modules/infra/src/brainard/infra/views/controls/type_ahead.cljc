@@ -44,7 +44,7 @@
                                                   (when selected-idx
                                                     (on-change (nth matches selected-idx))))))
 
-        (#{:key-codes/enter :key-codes/tab} key)
+        (= :key-codes/enter key)
         (on-add e)))))
 
 (defn ^:private type-ahead-trigger [{:keys [*:state on-change] :as attrs}]
@@ -103,7 +103,7 @@
                                :dd-active? dd-active?
                                :selected-idx (when-let [idx (:selected-idx state)]
                                                (min idx (dec (count matches))))))]
-      [:div.type-ahead
+      [:div.type-ahead {:style {:height "40px"}}
        [type-ahead-trigger sub-attrs]
        [type-ahead-dd sub-attrs]])))
 

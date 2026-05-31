@@ -11,7 +11,7 @@
 (deftest toast-test
   (testing "when creating a toast"
     (let [store (defacto/create {} {})]
-      (store/dispatch! store [:toasts/create! :success [:div "toast body"]])
+      (store/dispatch! store [:toasts/create! :success [:div "toast body"] 1234])
       (testing "and when querying the db"
         (let [{toast-id :id} (first (store/query store [:toasts/?:toasts]))
               toast (store/subscribe store [:toasts/?:toast toast-id])]
@@ -22,7 +22,7 @@
                     :level   :success
                     :body    [:div "toast body"]
                     :state   :init
-                    :timeout 4500}
+                    :timeout 1234}
                    @toast)))
 
           (testing "and when showing the toast"

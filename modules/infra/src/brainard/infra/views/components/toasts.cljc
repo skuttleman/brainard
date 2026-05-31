@@ -15,7 +15,7 @@
   (when (= :init (:state toast))
     (store/emit! *:store [:toasts/shown toast-id]))
   (async/go
-    (async/<! (async/timeout timeout))
+    (async/<! (async/timeout (or timeout 4500)))
     (store/dispatch! *:store [:toasts/hide! toast-id]))
   toast)
 
