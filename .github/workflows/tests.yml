@@ -202,6 +202,7 @@ jobs:
           CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
           HEADLESS: "true"
           JS_COVERAGE: "true"
+          SCREENSHOT: "true"
       - name: Upload failed test screenshots
         if: always()
         uses: actions/upload-artifact@v4
