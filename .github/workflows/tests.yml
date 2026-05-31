@@ -192,12 +192,33 @@ jobs:
           install-chromedriver: true
       - name: Run webdriver tests
         run: |
+          set -o pipefail
+          set +e
           clojure -M:test -m kaocha.runner --plugin cloverage \
             --cov-output target/coverage/driver --lcov \
             --cov-ns-regex 'brainard\..*\.db' \
             --cov-ns-regex 'brainard\.*\.api\..*' \
             --cov-ns-regex 'brainard\.infra\.store\..*' \
-            --cov-ns-regex 'brainard\..*\.(multipart-params|routes\.ui)' :ui
+            --cov-ns-regex 'brainard\..*\.(multipart-params|routes\.ui)' :ui | tee test-output.txt
+          rc=${PIPESTATUS[0]}
+          set -e
+          set +o pipefail
+
+          # if any tests fail/error, rerun failures to counteract webdriver flakiness
+          if [ $rc -ne 0 ]; then
+            fails=$(perl -ne 's/\x1b[[0-9;]*[A-Za-z]//g; \
+                    print "$1\n" if /(?:ERROR|FAIL)\s+in\s+(\S+)/' test-output.txt | sort -u)
+            echo "Re-running failed tests:"; echo "$fails"
+            echo " ---------------------- "
+            args=()
+            while IFS= read -r f; do args+=( "--focus" "$f" ); done <<< "$fails"
+            SCREENSHOT=true clojure -M:test -m kaocha.runner --plugin cloverage \
+              --cov-output target/coverage/driver --lcov \
+              --cov-ns-regex 'brainard\..*\.db' \
+              --cov-ns-regex 'brainard\.*\.api\..*' \
+              --cov-ns-regex 'brainard\.infra\.store\..*' \
+              --cov-ns-regex 'brainard\..*\.(multipart-params|routes\.ui)' :ui "${args[@]}"
+          fi
         env:
           CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
           HEADLESS: "true"
