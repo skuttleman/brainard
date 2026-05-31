@@ -19,7 +19,7 @@
                                "/following::i[contains(@class,'%s')][1]")
         xpath (format edit-selector-fmt node-text icon-class)]
     (wait! driver node-text)
-    (tutils/click driver {:xpath xpath})))
+    (tutils/click! driver {:xpath xpath})))
 
 (defn ^:private ws-submit! [driver text]
   (tutils/submit-form! driver
@@ -81,7 +81,7 @@
           (is (empty? (eta/query-all driver {:css "li.node-item"}))))
 
         (testing "and when creating a workspace root node"
-          (tutils/click driver {:css ".drag-n-drop + .add-root-node"})
+          (tutils/click! driver {:css ".drag-n-drop + .add-root-node"})
           (ws-submit! driver "root node")
 
           (testing "renders the updated workspace"
@@ -124,7 +124,7 @@
                 (testing "and when deleting the updated child"
                   (ws-edit! driver "updated child" "lni-trash-can")
                   (eta/wait-visible driver {:css ".modal-container.is-active .modal-item"})
-                  (tutils/click driver {:css ".modal-container.is-active button.delete-node"})
+                  (tutils/click! driver {:css ".modal-container.is-active button.delete-node"})
 
                   (testing "renders the updated workspace"
                     (tutils/wait-optimistic #(node-absent? "updated child"))
@@ -183,12 +183,12 @@
         (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "and when creating a root node"
-          (tutils/click driver {:css ".drag-n-drop + .add-root-node"})
+          (tutils/click! driver {:css ".drag-n-drop + .add-root-node"})
           (ws-submit! driver "alpha")
           (wait! driver "alpha")
 
           (testing "and when creating another root node with a child"
-            (tutils/click driver {:css ".drag-n-drop + .add-root-node"})
+            (tutils/click! driver {:css ".drag-n-drop + .add-root-node"})
             (ws-submit! driver "beta")
             (wait! driver "beta")
             (ws-edit! driver "beta" "lni-plus")
@@ -226,7 +226,7 @@
   (usys/with-webdriver [driver base-url {fix "pinned.edn"}]
     (letfn [(expand! [context]
               (let [css (format ".context-group[data-context='%s'] .expand-context" context)]
-                (tutils/click driver {:css css})))
+                (tutils/click! driver {:css css})))
             (edit-link [note-id]
               {:xpath (format "//li[@id='%s']//a[text()='edit']" note-id)})
             (note-visible? [body]
@@ -264,7 +264,7 @@
               (is (note-absent? "Note 3A")))
 
             (testing "can navigate to the note's edit page"
-              (tutils/click driver (edit-link note-id-1))
+              (tutils/click! driver (edit-link note-id-1))
               (tutils/wait-optimistic #(re-find #"/notes/" (eta/get-url driver)))
               (is (= (str base-url "/notes/" note-id-1)
                      (eta/get-url driver)))
@@ -288,7 +288,7 @@
               (is (note-absent? "Note 3A")))
 
             (testing "can navigate to the note's edit page"
-              (tutils/click driver (edit-link note-id-2))
+              (tutils/click! driver (edit-link note-id-2))
               (tutils/wait-optimistic #(re-find #"/notes/" (eta/get-url driver)))
               (is (= (str base-url "/notes/" note-id-2)
                      (eta/get-url driver)))
@@ -304,16 +304,16 @@
               (eta/go driver (str base-url "/search"))
               (tutils/wait-optimistic #(eta/visible? driver {:css ".page__search"})))
             (open-dropdown! [label]
-              (tutils/click driver {:css (format ".form-field[data-field-label='%s'] button" label)})
+              (tutils/click! driver {:css (format ".form-field[data-field-label='%s'] button" label)})
               (eta/wait-visible driver {:css "ul.dropdown-items"}))
             (pick-option! [item-text]
               (let [item-fmt "//ul[contains(@class,'dropdown-items')]//span[text()='%s']"
                     active-fmt "//ul[contains(@class,'dropdown-items')]//li[contains(@class,'is-active')]//span[text()='%s']"]
-                (tutils/click driver {:xpath (format item-fmt item-text)})
+                (tutils/click! driver {:xpath (format item-fmt item-text)})
                 (tutils/wait-optimistic #(or (not (eta/exists? driver {:css "ul.dropdown-items"}))
                                              (eta/exists? driver {:xpath (format active-fmt item-text)})))))
             (search! []
-              (tutils/click driver {:css "form.search-form button.submit"})
+              (tutils/click! driver {:css "form.search-form button.submit"})
               (eta/wait-visible driver {:css "ul.search-results"}))
             (url-query? [qp]
               (let [url (eta/get-url driver)
@@ -340,7 +340,7 @@
             (is (url-query? {:tags "tag/alpha"})))
 
           (testing "and when clicking the edit link"
-            (tutils/click driver {:css "ul.search-results > li .note__edit-link"})
+            (tutils/click! driver {:css "ul.search-results > li .note__edit-link"})
             (eta/wait-visible driver {:css ".container.page__note"})
             (testing "renders the note page"
               (let [note-id (-> fix first :notes/id)]
@@ -400,7 +400,7 @@
             (open-dropdown! "Tag Filter")
             (pick-option! ":tag/alpha")
             (pick-option! ":tag/beta")
-            (tutils/click driver {:css "form.search-form button.submit"})
+            (tutils/click! driver {:css "form.search-form button.submit"})
             (eta/wait-absent driver {:css "ul.search-results"})
             (eta/wait-visible driver {:css "span.search-results"})
 

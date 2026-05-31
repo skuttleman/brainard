@@ -13,11 +13,11 @@
         (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when clicking the edit button"
-          (tutils/click driver {:css "button.note__edit-button"})
+          (tutils/click! driver {:css "button.note__edit-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active h1.note__modal-header"})
 
           (testing "and when clicking the create todo button"
-            (tutils/click driver {:css "button.note__create-todo-button"})
+            (tutils/click! driver {:css "button.note__create-todo-button"})
             (eta/wait-visible driver {:css ".modal-container.is-active .note-edit__todo"})
 
             (testing "opens the create todo modal"
@@ -29,7 +29,7 @@
               (eta/wait-visible driver {:css ".modal-container.is-active input"})
               (tutils/fill-field! driver "TODO" "New test todo")
               (eta/wait-visible driver {:css ".modal-container.is-active button.submit"})
-              (eta/click driver {:css ".note-edit__todo button.submit"})
+              (tutils/click! driver {:css ".note-edit__todo button.submit"})
 
               (testing "closes the todo modal and displays the new todo"
                 (eta/wait-invisible driver {:css ".modal-container.is-active .note-edit__todo"})
@@ -46,11 +46,11 @@
         (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when clicking the edit button"
-          (tutils/click driver {:css "button.note__edit-button"})
+          (tutils/click! driver {:css "button.note__edit-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active ul.todo-list"})
 
           (testing "and when clicking the edit icon on a todo"
-            (tutils/click driver {:css ".modal-container.is-active i.lni-pencil"})
+            (tutils/click! driver {:css ".modal-container.is-active i.lni-pencil"})
             (eta/wait-visible driver {:css ".modal-container.is-active .note-edit__todo"})
 
             (testing "opens the edit todo modal"
@@ -60,7 +60,7 @@
 
             (testing "and when modifying and saving the todo"
               (tutils/fill-field! driver "TODO" "Updated todo text")
-              (tutils/click driver {:css ".note-edit__todo button.submit"})
+              (tutils/click! driver {:css ".note-edit__todo button.submit"})
               (eta/wait-invisible driver {:css ".modal-container.is-active .note-edit__todo"})
 
               (testing "closes the todo modal and displays the updated todo"
@@ -76,7 +76,7 @@
         (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when deselecting the todo"
-          (tutils/click driver {:css "li.todo .checkbox"})
+          (tutils/click! driver {:css "li.todo .checkbox"})
           (tutils/wait-optimistic #(and (eta/exists? driver {:css "li.todo .checkbox"})
                                         (not (eta/get-element-attr driver {:css "li.todo .checkbox"} "checked"))))
           (testing "marks the todo as active"
@@ -85,7 +85,7 @@
             (is (not (eta/get-element-attr driver {:css "li.todo .checkbox"} "checked"))))
 
           (testing "and when selecting the todo"
-            (tutils/click driver {:css "li.todo .checkbox"})
+            (tutils/click! driver {:css "li.todo .checkbox"})
             (tutils/wait-optimistic #(and (eta/exists? driver {:css "li.todo .checkbox"})
                                           (eta/get-element-attr driver {:css "li.todo .checkbox"} "checked")))
             (testing "marks the todo as active"
@@ -101,15 +101,15 @@
         (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when clicking the edit button"
-          (tutils/click driver {:css "button.note__edit-button"})
+          (tutils/click! driver {:css "button.note__edit-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
           (testing "and when clicking the delete icon on a todo"
             (let [todos-before (count (eta/query-all driver {:css ".modal-container.is-active ul.todo-list li.todo"}))]
-              (tutils/click driver {:css ".modal-container.is-active i.lni-trash-can"})
+              (tutils/click! driver {:css ".modal-container.is-active i.lni-trash-can"})
 
               (testing "and when saving the note"
-                (tutils/click driver {:css ".note-edit__modal button.submit"})
+                (tutils/click! driver {:css ".note-edit__modal button.submit"})
                 (eta/wait-invisible driver {:css ".modal-container.is-active"}))
 
               (testing "removes the todo from the list"

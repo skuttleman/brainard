@@ -21,7 +21,7 @@
          ex# (throw ex#)
          :else result#))))
 
-(defn click [driver q]
+(defn click! [driver q]
   (with-retry 3
     (eta/click driver q))
   (Thread/sleep 5))
@@ -51,7 +51,7 @@
 
 (defmethod fill! "select"
   [driver q val]
-  (click driver q)
+  (click! driver q)
   (let [el (eta/query driver q)
         opt (eta/query-from-shadow-root-el driver el {:css (format "option[value='%s']" val)})]
     (eta/click-el driver opt)))
@@ -67,7 +67,7 @@
 
 (defn submit-form! [driver form-selector field-vals]
   (fill-form! driver form-selector field-vals)
-  (eta/click driver {:css (str form-selector " button.submit")}))
+  (click! driver {:css (str form-selector " button.submit")}))
 
 (defn js-events [driver css-selector events]
   (let [code (apply str

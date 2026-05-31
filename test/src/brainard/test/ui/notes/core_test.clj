@@ -14,7 +14,7 @@
       (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
       (testing "and when clicking the create note button"
-        (tutils/click driver {:css "button.note__create-button"})
+        (tutils/click! driver {:css "button.note__create-button"})
         (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
         (testing "opens the create note modal"
@@ -27,13 +27,14 @@
                                {"Topic" "Test Context"
                                 "Body"  "This is a test note created during UI testing"})
           (eta/wait-invisible driver {:css ".modal-container.is-active"})
+          (eta/wait-absent driver {:css ".toast-message"})
 
           (testing "closes the modal"
             (is (not (eta/exists? driver {:css ".modal-container.is-active"}))))
 
           (testing "and when expanding the context group"
             (eta/wait-visible driver {:css ".context-group[data-context='Test Context']"})
-            (tutils/click driver {:css ".context-group[data-context='Test Context'] .expand-context"})
+            (tutils/click! driver {:css ".context-group[data-context='Test Context'] .expand-context"})
 
             (testing "displays the note"
               (is (eta/has-text? driver
@@ -48,7 +49,7 @@
         (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when clicking the edit button"
-          (tutils/click driver {:css "button.note__edit-button"})
+          (tutils/click! driver {:css "button.note__edit-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
           (testing "opens the edit note modal"
@@ -62,14 +63,14 @@
               (eta/fill-el driver textarea (str current-body " [edited]")))
 
             (testing "and when cancelling the edit"
-              (tutils/click driver {:css ".modal-container.is-active button.cancel"})
+              (tutils/click! driver {:css ".modal-container.is-active button.cancel"})
 
               (testing "does not display the changes"
                 (eta/wait-invisible driver {:css ".modal-container.is-active"})
                 (is (not (eta/has-text? driver {:css ".content"} "[edited]"))))
 
               (testing "and when clicking the edit button"
-                (tutils/click driver {:css "button.note__edit-button"})
+                (tutils/click! driver {:css "button.note__edit-button"})
                 (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
                 (testing "opens the edit note modal"
@@ -83,7 +84,7 @@
                     (eta/fill-el driver textarea (str current-body " [edited]")))
 
                   (testing "and when saving"
-                    (tutils/click driver {:css ".modal-container.is-active button.submit"})
+                    (tutils/click! driver {:css ".modal-container.is-active button.submit"})
 
                     (testing "displays the changes"
                       (eta/wait-invisible driver {:css ".modal-container.is-active"})
@@ -99,7 +100,7 @@
         (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "and when clicking the delete button"
-          (tutils/click driver {:css "button.is-danger"})
+          (tutils/click! driver {:css "button.is-danger"})
           (eta/wait-visible driver {:css ".modal-container.is-active .modal-item"})
 
           (testing "opens the delete confirmation modal"
@@ -108,7 +109,7 @@
                                "This note and all related schedules will be deleted")))
 
           (testing "and when confirming the delete"
-            (tutils/click driver {:css ".modal-container.is-active button.note__confirm-delete"})
+            (tutils/click! driver {:css ".modal-container.is-active button.note__confirm-delete"})
             (eta/wait-invisible driver {:css ".modal-container.is-active"})
 
             (testing "redirects to home page"
@@ -164,9 +165,9 @@
 
           (testing "and when deleting the schedule"
             (eta/wait-invisible driver {:css "div.message-body"})
-            (tutils/click driver {:css "button.schedules__delete"})
+            (tutils/click! driver {:css "button.schedules__delete"})
             (eta/wait-visible driver {:css ".modal-container.is-active .modal-item"})
-            (tutils/click driver {:css ".modal-container.is-active button.delete-schedule"})
+            (tutils/click! driver {:css ".modal-container.is-active button.delete-schedule"})
 
             (testing "removes the schedule from the list"
               (eta/wait-visible driver {:css "p.schedules__empty"})
@@ -180,11 +181,11 @@
         (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when opening the note edit modal"
-          (tutils/click driver {:css "button.note__edit-button"})
+          (tutils/click! driver {:css "button.note__edit-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
           (testing "and when opening the todo edit modal"
-            (tutils/click driver {:css ".modal-item.note-edit__modal li.todo button:last-of-type"})
+            (tutils/click! driver {:css ".modal-item.note-edit__modal li.todo button:last-of-type"})
             (eta/wait-visible driver {:css ".modal-item.note-edit__todo"})
 
             (testing "and when pressing esc"
@@ -205,11 +206,11 @@
                   (is (not (eta/exists? driver {:css ".modal-container.is-active"}))))))))
 
         (testing "and when opening the note edit modal"
-          (tutils/click driver {:css "button.note__edit-button"})
+          (tutils/click! driver {:css "button.note__edit-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
           (testing "and when opening the todo edit modal"
-            (tutils/click driver {:css ".modal-item.note-edit__modal li.todo button:last-of-type"})
+            (tutils/click! driver {:css ".modal-item.note-edit__modal li.todo button:last-of-type"})
             (eta/wait-visible driver {:css ".modal-item.note-edit__todo"})
 
             (testing "and when clicking the modal-list"
@@ -223,7 +224,7 @@
                 (is (eta/visible? driver {:css ".modal-container.is-active .modal-item.note-edit__modal"})))))
 
           (testing "and when opening the todo edit modal"
-            (tutils/click driver {:css ".modal-item.note-edit__modal li.todo button:last-of-type"})
+            (tutils/click! driver {:css ".modal-item.note-edit__modal li.todo button:last-of-type"})
             (eta/wait-visible driver {:css ".modal-item.note-edit__todo"})
 
             (testing "and when clicking the modal-stack"
@@ -241,7 +242,7 @@
         (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when opening the note edit modal"
-          (tutils/click driver {:css "button.note__edit-button"})
+          (tutils/click! driver {:css "button.note__edit-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
           (testing "and when editing the tags"
@@ -249,7 +250,7 @@
                   tag-list-q {:css ".modal-container.is-active .tag-list"}]
 
               (testing "and when typing a tag with no matches"
-                (tutils/click driver input-q)
+                (tutils/click! driver input-q)
                 (tutils/fill-field! driver "Tags" "auniquetag")
 
                 (testing "and when pressing enter"
@@ -260,7 +261,7 @@
                     (is (eta/has-text? driver tag-list-q ":auniquetag")))))
 
               (testing "and when typing a tag with matches"
-                (tutils/click driver input-q)
+                (tutils/click! driver input-q)
                 (tutils/fill-field! driver "Tags" "ba")
                 (eta/wait-visible driver {:css ".modal-container.is-active .type-ahead .dropdown.is-active"})
 
@@ -279,12 +280,12 @@
                       (is (eta/has-text? driver tag-list-q ":ba"))))))
 
               (testing "and when typing another tag with matches"
-                (tutils/click driver input-q)
+                (tutils/click! driver input-q)
                 (tutils/fill-field! driver "Tags" "som")
 
                 (testing "and when clicking one"
                   (eta/wait-visible driver {:css ".modal-container.is-active .type-ahead .dropdown.is-active"})
-                  (tutils/click driver {:xpath "//div[contains(@class,'type-ahead')]
+                  (tutils/click! driver {:xpath "//div[contains(@class,'type-ahead')]
                                                 //li[contains(@class,'dropdown-item') and text()=':some/tag']"})
 
                   (testing "does not add the tag to the list"
@@ -292,17 +293,17 @@
                     (is (not (eta/has-text? driver tag-list-q ":some/tag"))))
 
                   (testing "and when clicking add"
-                    (tutils/click driver {:css ".modal-container.is-active .tags-editor button.is-link"})
+                    (tutils/click! driver {:css ".modal-container.is-active .tags-editor button.is-link"})
 
                     (testing "adds the tag to the list"
                       (tutils/wait-optimistic #(eta/has-text? driver tag-list-q ":some/tag"))
                       (is (eta/has-text? driver tag-list-q ":some/tag"))))))
 
               (testing "and when typing an invalid tag"
-                (tutils/click driver input-q)
+                (tutils/click! driver input-q)
                 (tutils/fill-field! driver "Tags" "some/bad/input")
 
-                (testing "and when pressing enter again"
+                (testing "and when pressing enter"
                   (eta/fill-active driver keys/enter)
 
                   (testing "displays an error"

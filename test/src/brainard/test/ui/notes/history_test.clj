@@ -37,7 +37,7 @@
         (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when viewing the note history"
-          (tutils/click driver {:css "button.note__history-button"})
+          (tutils/click! driver {:css "button.note__history-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__modal"})
           (let [[ver-1 ver-2 ver-3 ver-4 ver-5 ver-6]
                 (for [li (eta/query-all driver {:css "ul.note-history > li"})]
@@ -100,7 +100,7 @@
                 (is (false? (string/includes? todo-updates "complete")))))
 
             (testing "and when showing version 1"
-              (tutils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[1]"})
+              (tutils/click! driver {:xpath "(//button[contains(@class,'note__history-show')])[1]"})
               (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__view"})
               (testing "displays the 1st version of the note"
                 (is (eta/exists? driver {:css ".history__view .lni-paperclip"}))
@@ -118,11 +118,11 @@
               (testing "displays the 1st version tags"
                 (is (= #{:foo :bar :baz/quux} (collect-tags driver ".history__view"))))
 
-              (tutils/click driver {:css ".history__view .panel-heading .lni-close"})
+              (tutils/click! driver {:css ".history__view .panel-heading .lni-close"})
               (eta/wait-absent driver {:css ".modal-container.is-active .modal-item.history__view"}))
 
             (testing "and when showing version 4"
-              (tutils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[4]"})
+              (tutils/click! driver {:xpath "(//button[contains(@class,'note__history-show')])[4]"})
               (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__view"})
               (testing "displays the 4th version of the note"
                 (is (false? (eta/exists? driver {:css ".history__view .lni-paperclip"})))
@@ -141,11 +141,11 @@
               (testing "displays the 4th version tags"
                 (is (= #{:foo :baz/quux} (collect-tags driver ".history__view"))))
 
-              (tutils/click driver {:css ".history__view .panel-heading .lni-close"})
+              (tutils/click! driver {:css ".history__view .panel-heading .lni-close"})
               (eta/wait-absent driver {:css ".modal-container.is-active .modal-item.history__view"}))
 
             (testing "and when showing version 6"
-              (tutils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[6]"})
+              (tutils/click! driver {:xpath "(//button[contains(@class,'note__history-show')])[6]"})
               (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__view"})
               (testing "displays the 6th version of the note"
                 (is (false? (eta/exists? driver {:css ".history__view .lni-paperclip"})))
@@ -173,21 +173,21 @@
         (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when viewing the note history"
-          (tutils/click driver {:css "button.note__history-button"})
+          (tutils/click! driver {:css "button.note__history-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__modal"})
 
           (testing "and when showing version 6"
-            (tutils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[6]"})
+            (tutils/click! driver {:xpath "(//button[contains(@class,'note__history-show')])[6]"})
             (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__view"})
 
             (testing "cannot reinstate the current note version"
               (is (not (eta/exists? driver {:css ".history__view button.note__history-reinstate"}))))
 
-            (tutils/click driver {:css ".history__view .panel-heading .lni-close"})
+            (tutils/click! driver {:css ".history__view .panel-heading .lni-close"})
             (eta/wait-absent driver {:css ".modal-container.is-active .modal-item.history__view"}))
 
           (testing "and when showing version 3"
-            (tutils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[3]"})
+            (tutils/click! driver {:xpath "(//button[contains(@class,'note__history-show')])[3]"})
             (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__view"})
             (testing "displays the 3rd version of the note"
               (is (eta/exists? driver {:css ".history__view .lni-paperclip"}))
@@ -208,9 +208,9 @@
               (is (= #{:foo :baz/quux} (collect-tags driver ".history__view"))))
 
             (testing "and when reinstating the note version"
-              (tutils/click driver {:css ".history__view button.note__history-reinstate"})
+              (tutils/click! driver {:css ".history__view button.note__history-reinstate"})
               (eta/wait-absent driver {:css ".modal-container.is-active .modal-item.history__view"})
-              (tutils/click driver {:css ".history__modal .lni-close"})
+              (tutils/click! driver {:css ".history__modal .lni-close"})
               (eta/wait-absent driver {:css ".modal-container.is-active"})
               (eta/wait-visible driver {:xpath "//h1[.='Some context']"})
 
@@ -233,11 +233,11 @@
                 (is (= #{:foo :baz/quux} (collect-tags driver ""))))
 
               (testing "and when viewing the note history"
-                (tutils/click driver {:css "button.note__history-button"})
+                (tutils/click! driver {:css "button.note__history-button"})
                 (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__modal"})
 
                 (testing "and when showing version 7"
-                  (tutils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[7]"})
+                  (tutils/click! driver {:xpath "(//button[contains(@class,'note__history-show')])[7]"})
                   (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__view"})
                   (testing "displays the 7th version of the note"
                     (is (eta/exists? driver {:css ".history__view .lni-paperclip"}))
@@ -257,17 +257,17 @@
                   (testing "displays the 7th version tags"
                     (is (= #{:foo :baz/quux} (collect-tags driver ".history__view"))))
 
-                  (tutils/click driver {:css ".history__view .panel-heading .lni-close"})
+                  (tutils/click! driver {:css ".history__view .panel-heading .lni-close"})
                   (eta/wait-absent driver {:css ".modal-container.is-active .modal-item.history__view"}))
 
                 (testing "and when showing version 6"
-                  (tutils/click driver {:xpath "(//button[contains(@class,'note__history-show')])[6]"})
+                  (tutils/click! driver {:xpath "(//button[contains(@class,'note__history-show')])[6]"})
                   (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__view"})
 
                   (testing "and when reinstating the note version"
-                    (tutils/click driver {:css ".history__view button.note__history-reinstate"})
+                    (tutils/click! driver {:css ".history__view button.note__history-reinstate"})
                     (eta/wait-absent driver {:css ".modal-container.is-active .modal-item.history__view"})
-                    (tutils/click driver {:css ".history__modal .lni-close"})
+                    (tutils/click! driver {:css ".history__modal .lni-close"})
                     (eta/wait-absent driver {:css ".modal-container.is-active"})
                     (eta/wait-visible driver {:xpath "//h1[.='Some new context']"})
 

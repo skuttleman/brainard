@@ -2,6 +2,8 @@
   (:require
     [brainard.api.utils.fns :as fns]
     [brainard.api.utils.uuids :as uuids]
+    [brainard.api.validations :as valid]
+    [brainard.attachments.api.specs :as sattachments]
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.stubs.dom :as dom]
@@ -9,6 +11,7 @@
     [brainard.infra.views.components.interfaces :as icomp]
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.fragments.note-components :as note-comp]
+    [brainard.notes.api.specs :as snotes]
     [clojure.string :as string]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
@@ -244,10 +247,12 @@
 
 (defmethod icomp/modal-body ::attachment-name
   [*:store {:modals/keys [close!] :keys [init ok-events]}]
-  (r/with-let [sub:form (store/form-sub *:store [::attachment-edit!] init)]
+  (r/with-let [sub:form (store/form-sub *:store [::attachment-edit!] init)
+               validate (valid/->validator sattachments/modify)]
     (let [form @sub:form]
       [ctrls/plain-form
-       {:on-submit   (fn [_]
+       {:disabled    (validate (forms/data form))
+        :on-submit   (fn [_]
                        (close!)
                        (run! (fn [event]
                                (store/emit! *:store (conj event (:attachments/name (forms/data form)))))
@@ -268,10 +273,12 @@
 
 (defmethod icomp/modal-body ::todo
   [*:store {:modals/keys [close!] :keys [new? init ok-events]}]
-  (r/with-let [sub:form (store/form-sub *:store [::todo-edit] init)]
+  (r/with-let [sub:form (store/form-sub *:store [::todo-edit] init)
+               validate (valid/->validator snotes/todo-create)]
     (let [form @sub:form]
       [ctrls/plain-form
-       {:on-submit   (fn [_]
+       {:disabled    (validate (forms/data form))
+        :on-submit   (fn [_]
                        (close!)
                        (run! (fn [event]
                                (store/emit! *:store (conj event (forms/data form))))
