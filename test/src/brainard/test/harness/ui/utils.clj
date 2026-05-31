@@ -32,6 +32,9 @@
            (catch Throwable _))
       true))
 
+(defn wait-ambiguous []
+  (Thread/sleep 100))
+
 (defmulti ^{:arglists '([driver q val])} ^:private fill!
           (fn [driver q _]
             (eta/get-element-tag driver q)))

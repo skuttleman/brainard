@@ -2,6 +2,7 @@
   (:require
     [brainard.test.harness.ui.system :as usys]
     [brainard.test.harness.ui.utils :as tutils]
+    [clojure.string :as string]
     [clojure.test :refer [deftest is testing]]
     [etaoin.api :as eta]
     [etaoin.keys :as keys]))
@@ -231,3 +232,84 @@
 
               (testing "closes all modals"
                 (is (not (eta/exists? driver {:css ".modal-container.is-active"})))))))))))
+
+(deftest tags-editor-test
+  (usys/with-webdriver [driver base-url {fix "tags.edn"}]
+    (let [note-id (-> fix first :notes/id)]
+      (testing "when visiting the note page"
+        (eta/go driver (str base-url "/notes/" note-id))
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
+
+        (testing "and when opening the note edit modal"
+          (tutils/click driver {:css "button.note__edit-button"})
+          (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
+
+          (testing "and when editing the tags"
+            (let [input-q {:css ".modal-container.is-active .tags-editor input.input"}
+                  tag-list-q {:css ".modal-container.is-active .tag-list"}]
+
+              (testing "and when typing a tag with no matches"
+                (tutils/click driver input-q)
+                (tutils/fill-field! driver "Tags" "auniquetag")
+
+                (testing "and when pressing enter"
+                  (eta/fill-active driver keys/enter)
+
+                  (testing "adds the tag to the list"
+                    (tutils/wait-optimistic #(eta/has-text? driver tag-list-q ":auniquetag"))
+                    (is (eta/has-text? driver tag-list-q ":auniquetag")))))
+
+              (testing "and when typing a tag with matches"
+                (tutils/click driver input-q)
+                (tutils/fill-field! driver "Tags" "ba")
+                (eta/wait-visible driver {:css ".modal-container.is-active .type-ahead .dropdown.is-active"})
+
+                (testing "and when pressing enter"
+                  (eta/fill-active driver keys/enter)
+
+                  (testing "does not add the tag to the list"
+                    (tutils/wait-ambiguous)
+                    (is (not (eta/has-text? driver tag-list-q ":ba"))))
+
+                  (testing "and when pressing enter again"
+                    (eta/fill-active driver keys/enter)
+
+                    (testing "adds the tag to the list"
+                      (tutils/wait-optimistic #(eta/has-text? driver tag-list-q ":ba"))
+                      (is (eta/has-text? driver tag-list-q ":ba"))))))
+
+              (testing "and when typing another tag with matches"
+                (tutils/click driver input-q)
+                (tutils/fill-field! driver "Tags" "som")
+
+                (testing "and when clicking one"
+                  (eta/wait-visible driver {:css ".modal-container.is-active .type-ahead .dropdown.is-active"})
+                  (tutils/click driver {:xpath "//div[contains(@class,'type-ahead')]
+                                                //li[contains(@class,'dropdown-item') and text()=':some/tag']"})
+
+                  (testing "does not add the tag to the list"
+                    (tutils/wait-ambiguous)
+                    (is (not (eta/has-text? driver tag-list-q ":some/tag"))))
+
+                  (testing "and when clicking add"
+                    (tutils/click driver {:css ".modal-container.is-active .tags-editor button.is-link"})
+
+                    (testing "adds the tag to the list"
+                      (tutils/wait-optimistic #(eta/has-text? driver tag-list-q ":some/tag"))
+                      (is (eta/has-text? driver tag-list-q ":some/tag"))))))
+
+              (testing "and when typing an invalid tag"
+                (tutils/click driver input-q)
+                (tutils/fill-field! driver "Tags" "some/bad/input")
+
+                (testing "and when pressing enter again"
+                  (eta/fill-active driver keys/enter)
+
+                  (testing "displays an error"
+                    (is (eta/exists? driver {:xpath "//*[contains(@class,'tags-editor')]
+                                                     //*[contains(@class,'error-list')]
+                                                     //*[text()='invalid tag']"})))
+
+                  (testing "does not add the tag to the list"
+                    (is (not (string/includes? (eta/get-element-text driver tag-list-q)
+                                               "some/bad/input")))))))))))))

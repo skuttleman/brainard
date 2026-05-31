@@ -7,8 +7,18 @@
     [clojure.string :as string]
     [whet.utils.reagent :as r]))
 
+(defn ^:private ->pattern [s]
+  (->> s
+       (map (fn [c]
+              (-> (case c
+                    (\$ \^ \( \) \[ \] \{ \} \. \?) (str "\\" c)
+                    (str c))
+                  string/lower-case)))
+       string/join
+       re-pattern))
+
 (defn ^:private filter-matches [value items]
-  (let [re (re-pattern (string/lower-case (str value)))]
+  (let [re (->pattern value)]
     (filter (fn [item]
               (re-find re (string/lower-case (str item))))
             items)))
