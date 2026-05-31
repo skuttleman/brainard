@@ -6,10 +6,14 @@
     [brainard.main :as main]
     [clojure.java.io :as io]
     [clojure.test :refer [deftest is testing]]
+    [duct.core.env :as duct.env]
     [integrant.core :as ig]))
 
 (deftest cleanup-orphaned-artifacts!-test
-  (let [sys (main/start! "duct/test.edn" [:duct.profile/base :duct.profile/test])]
+  (let [sys (binding [duct.env/*env* (assoc duct.env/*env*
+                                            "SERVER_PORT"
+                                            (str (+ 9000 (rand-int 1000))))]
+              (main/start! "duct/test.edn" [:duct.profile/base :duct.profile/test]))]
     (try
       (let [obj-storage (val (ig/find-derived-1 sys ::b/obj-storage))
             attachment-id (random-uuid)

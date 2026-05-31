@@ -83,7 +83,9 @@
                      more)
           :map-of (into {}
                         (map (fn [[k v]]
-                               [k (select-spec-keys v spec')]))
+                               (let [k-spec (last (butlast more))]
+                                 [(select-spec-keys k k-spec)
+                                  (select-spec-keys v spec')])))
                         m)
           :set (into #{}
                      (map #(select-spec-keys % spec'))
