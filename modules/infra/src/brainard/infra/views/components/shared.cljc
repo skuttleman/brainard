@@ -1,4 +1,5 @@
 (ns brainard.infra.views.components.shared
+  "Reusable components."
   (:require
     [brainard.api.utils.maps :as maps]
     [brainard.infra.store.core :as store]

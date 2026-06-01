@@ -6,19 +6,29 @@
     [defacto.forms.plus :as-alias forms+]
     [defacto.resources.core :as-alias res]))
 
-(defn dispatch! [store command]
+(defn dispatch!
+  "Dispatch a command to the defacto store."
+  [store command]
   (defacto/dispatch! store command))
 
-(defn emit! [store event]
+(defn emit!
+  "Emit an event into the defacto store."
+  [store event]
   (defacto/emit! store event))
 
-(defn subscribe [store query]
+(defn subscribe
+  "Subscribe to a defacto query. Returns a reactive atom that updates when the
+   query results update."
+  [store query]
   (defacto/subscribe store query))
 
-(defn query [store query]
+(defn query
+  "Query the store's responder for the given query."
+  [store query]
   (defacto/query-responder @store query))
 
 (defn res-sub
+  "Ensure the resource identified by spec-key is loaded and return a resource subscription."
   ([store spec-key]
    (res-sub store spec-key nil))
   ([store spec-key opts]
@@ -27,6 +37,7 @@
        (subscribe [::res/?:resource spec-key]))))
 
 (defn form-sub
+  "Ensure a form resource is initialized and return its subscription."
   ([store form-id init]
    (form-sub store form-id init nil))
   ([store form-id init opts]
@@ -35,6 +46,7 @@
        (subscribe [::forms/?:form form-id]))))
 
 (defn form+-sub
+  "Ensure a forms+ resource is initialized and return its subscription."
   ([store spec-key init]
    (form+-sub store spec-key init nil))
   ([store spec-key init opts]

@@ -58,7 +58,9 @@
                   :err-events [[::res/destroyed resource-key]]
                   :err-commands [[:toasts/fail!]]))
 
-(defn ->pin-form-attrs [*:store form+ note-id init-form]
+(defn ->pin-form-attrs
+  "Return form attrs for a pin/unpin form integrated with the store and callbacks."
+  [*:store form+ note-id init-form]
   {:*:store      *:store
    :form+        form+
    :no-buttons?  true
@@ -67,7 +69,9 @@
    :params       {:ok-events  [[::res/swapped [::specs/notes#find note-id]]]
                   :err-events [[::forms/created pin-note-key init-form]]}})
 
-(defn ->delete-modal [{note-id :notes/id}]
+(defn ->delete-modal
+  "Return modal data for confirming deletion of a note and its schedules."
+  [{note-id :notes/id}]
   [:modals/sure?
    {:description  "This note and all related schedules will be deleted"
     :ok-btn-class ["note__confirm-delete"]
@@ -77,7 +81,9 @@
                                     [:nav/navigate! {:token :routes.ui/home}]]
                      :err-commands [[:toasts/fail!]]}]]}])
 
-(defn ->edit-modal [{note-id :notes/id :as note}]
+(defn ->edit-modal
+  "Return a modal descriptor for editing a note; wires init data and submit callbacks."
+  [{note-id :notes/id :as note}]
   [::note-edit/modal
    {:init         note
     :header       "Edit note"
@@ -88,7 +94,9 @@
                                       [::forms/created pin-note-key]]}
     :resource-key update-note-key}])
 
-(defn ->delete-sched-modal [sched-id note]
+(defn ->delete-sched-modal
+  "Return modal data for confirming deletion of a schedule."
+  [sched-id note]
   [:modals/sure?
    {:description  "This schedule will be deleted"
     :ok-btn-class ["delete-schedule"]

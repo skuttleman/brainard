@@ -42,7 +42,7 @@
         (map (juxt identity identity))
         (range 1 32)))
 
-(defn ->radix [v]
+(defn ^:private ->radix [v]
   (pp/cl-format nil "~:R" v))
 
 (def ^:const week-index-options
@@ -85,7 +85,9 @@
    :schedules/after-timestamp  4
    :schedules/before-timestamp 5})
 
-(defn schedule-parts [form-data]
+(defn schedule-parts
+  "Return a sequence of hiccup display parts for non-empty schedule fields in form-data."
+  [form-data]
   (->> form-data
        (sort-by (comp schedule-order key))
        (keep ->schedule-part)

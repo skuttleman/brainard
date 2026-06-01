@@ -86,7 +86,10 @@
   (memoize (fn [api]
              (log/warn "no input-spec defined for API:" api))))
 
-(defn invoke-api [api apis input]
+(defn invoke-api
+  "Validate input for an API and invoke the corresponding handler, returning the result.
+   Call this fn instead of calling invoke-api* directly."
+  [api apis input]
   (if-let [input-spec (valid/input-specs api)]
     (valid/validate! input-spec input ::valid/input-validation)
     (missing-spec api))

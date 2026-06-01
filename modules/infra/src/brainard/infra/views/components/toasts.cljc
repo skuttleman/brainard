@@ -1,4 +1,5 @@
 (ns brainard.infra.views.components.toasts
+  "Page-level component for displaying toast messages."
   (:require
     [brainard.infra.store.core :as store]
     [clojure.core.async :as async]

@@ -28,7 +28,9 @@
         (with-msgs :prog-events params spec)
         (with-msgs :prog-commands params spec))))
 
-(defn with-cbs [spec & kvs]
+(defn with-cbs
+  "Attach callback vectors (events/commands) to a request spec under the given keys."
+  [spec & kvs]
   (->> kvs
        (partition-all 2)
        (reduce (fn [spec [k cbs]]
