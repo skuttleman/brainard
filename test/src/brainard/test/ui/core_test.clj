@@ -201,6 +201,21 @@
               (is (= 2 (count (root-nodes))))
               (is (= 3 (count (eta/query-all driver {:css "li.node-item"})))))
 
+            (testing "and when moving beta under alpha fails"
+              (tutils/with-http-failure driver "drag-n-drop test failure"
+                (drag-node! "beta" "alpha")
+
+                (testing "closes the modal"
+                  (eta/wait-absent driver {:css ".modal-container"})
+                  (is (eta/absent? driver {:css ".modal-container"})))
+
+                (testing "displays a toast message"
+                  (eta/wait-visible driver {:css ".toast-message.is-danger"})
+                  (is (eta/has-text? driver
+                                     {:css ".toast-message.is-danger .body-text"}
+                                     "drag-n-drop test failure"))
+                  (eta/wait-absent driver {:css ".toast-message"}))))
+
             (testing "and when moving beta under alpha"
               (drag-node! "beta" "alpha")
               (tutils/wait-optimistic #(= 1 (count (root-nodes))))

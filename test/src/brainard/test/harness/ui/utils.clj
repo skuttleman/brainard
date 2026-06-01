@@ -77,11 +77,11 @@
                               (name event))))]
     (eta/js-execute driver code)))
 
-(defmacro with-http-failure [[driver status msg] & body]
+(defmacro with-http-failure [driver msg & body]
   `(try
      (eta/js-execute ~driver (format "window.brainard.test.set_fail_BANG_(%d, '%s')"
-                                     (or ~status 500)
-                                     (or ~msg "Test failure simulation")))
+                                     (rand-nth [400 401 403 404 500 501 502 503 504])
+                                     ~msg))
 
      ~@body
      (finally

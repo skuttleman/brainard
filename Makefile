@@ -74,7 +74,7 @@ build: install build-sass build-cljs ## install + build-sass + build-cljs
 
 build-test: install ## Build test CLJS
 	@echo "building cljs tests..."
-	@$(CLJ) -A:shadow:test -M -m shadow.cljs.devtools.cli compile test ui-test
+	@$(CLJ) -A:shadow:test -M -m shadow.cljs.devtools.cli compile ui-test
 
 uberjar: clean build ## Build standalone uberjar
 	@echo "building uberjar"
@@ -82,6 +82,7 @@ uberjar: clean build ## Build standalone uberjar
 
 test: check-deps clean build-sass build-test ## Run CLJS, server, and UI tests (requires clojure)
 	@if [ "$(INCLUDE_CLJS_TESTS)" = "true" ]; then \
+		@$(CLJ) -A:shadow:test -M -m shadow.cljs.devtools.cli compile test; \
 		echo "running CLJS tests..."; \
 		$(CLJ) -M:test -m brainard.test.runner; \
 	fi
