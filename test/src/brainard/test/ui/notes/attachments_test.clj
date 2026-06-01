@@ -201,6 +201,7 @@
           (testing "and when saving the note"
             (tutils/click! driver {:css ".modal-container.is-active button.submit"})
             (eta/wait-invisible driver {:css ".modal-container.is-active"})
+            (eta/wait-absent driver {:css ".toast-message"})
 
             (testing "and when navigating to the created note"
               (eta/wait-visible driver {:css ".context-group[data-context='Remove Attachment Test']"})
