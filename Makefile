@@ -78,9 +78,9 @@ uberjar: clean build ## Build standalone uberjar
 
 build-test: install ## Build test CLJS
 	@echo "building cljs tests..."
-	@$(CLJ) -A:shadow:test -M -m shadow.cljs.devtools.cli compile test
+	@$(CLJ) -A:shadow:test -M -m shadow.cljs.devtools.cli compile test ui-test
 
-test: check-deps clean build build-test ## Run CLJS, server, and UI tests (requires clojure)
+test: check-deps clean build-sass build-test ## Run CLJS, server, and UI tests (requires clojure)
 	@echo "running CLJS tests..."
 	@$(CLJ) -M:test -m brainard.test.runner
 	@echo "running kaocha tests..."
@@ -89,7 +89,7 @@ test: check-deps clean build build-test ## Run CLJS, server, and UI tests (requi
 lint: ## Check codebase for linting errors
 	@$(CLJ) -M:lint
 
-coverage: clean check-deps build-sass ## Run unit/integration/UI test suites with coverage instrumentation and merge results
+coverage: clean check-deps build-sass build-test ## Run unit/integration/UI test suites with coverage instrumentation and merge results
 	@echo "Running coverage for unit and integration suites..."
 	@$(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/unit --lcov \
 		--cov-ns-exclude-regex 'brainard\..*\.(multipart-params|routes\.ui)' \

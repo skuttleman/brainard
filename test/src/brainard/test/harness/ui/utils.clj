@@ -71,8 +71,18 @@
 
 (defn js-events [driver css-selector events]
   (let [code (apply str
-                    (format "var el = document.querySelector('%s');"  css-selector)
+                    (format "var el = document.querySelector('%s');" css-selector)
                     (for [event events]
                       (format "el.dispatchEvent(new MouseEvent('%s', {bubbles: true, cancelable: true}));"
                               (name event))))]
     (eta/js-execute driver code)))
+
+(defmacro with-http-failure [[driver status msg] & body]
+  `(try
+     (eta/js-execute ~driver (format "window.brainard.test.set_fail_BANG_(%d, '%s')"
+                                     (or ~status 500)
+                                     (or ~msg "Test failure simulation")))
+
+     ~@body
+     (finally
+       (eta/js-execute ~driver "window.brainard.test.clear_fail_BANG_()"))))

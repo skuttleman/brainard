@@ -9,7 +9,8 @@
     [duct.core :as duct]
     [integrant.core :as ig]
     brainard.dev.s3
-    brainard.infra.system))
+    brainard.infra.system
+    brainard.test))
 
 (defmethod ig/init-key :brainard.test/db-name
   [_ _]

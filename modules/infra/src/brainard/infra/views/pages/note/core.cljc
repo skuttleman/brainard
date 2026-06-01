@@ -35,7 +35,7 @@
       [:div
        [ctrls/form (note.act/->pin-form-attrs *:store form+ (:notes/id note) init-form)
         [ctrls/icon-toggle (-> {:*:store  *:store
-                                :class    ["is-small"]
+                                :class    ["is-small" "note__toggle-pinned"]
                                 :disabled (res/requesting? form+)
                                 :icon     :paperclip
                                 :type     :submit}
