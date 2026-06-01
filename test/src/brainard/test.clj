@@ -2,7 +2,6 @@
   (:require
     [brainard :as-alias b]
     [brainard.infra.routes.core :as routes]
-    [clojure.test :refer :all]
     [integrant.core :as ig]))
 
 (defn ^:private with-test-middleware [handler upload-limit]
