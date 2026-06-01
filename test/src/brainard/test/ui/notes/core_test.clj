@@ -27,9 +27,21 @@
                                {"Topic" "Test Context"
                                 "Body"  "This is a test note created during UI testing"})
           (eta/wait-invisible driver {:css ".modal-container.is-active"})
-          (eta/wait-absent driver {:css ".toast-message"})
+          (eta/wait-visible driver {:css ".toast-message.is-success"})
+
+          (let [note (eta/query driver {:css ".toast-message.is-success .body-text"})
+                note-link (eta/query-from-shadow-root-el driver note {:css "a"})
+                href (eta/get-element-attr-el driver note-link "href")]
+            (testing "displays a toast message"
+              (is (= "new note" (eta/get-element-text-el driver note-link)))
+              (is (= "a new note was created"
+                     (string/replace (eta/get-element-text-el driver note) #"\s+" " "))))
+
+            (testing "points to the note resource"
+              (is (re-find #"/notes/" href))))
 
           (testing "closes the modal"
+            (eta/wait-absent driver {:css ".toast-message"})
             (is (not (eta/exists? driver {:css ".modal-container.is-active"}))))
 
           (testing "and when expanding the context group"
@@ -112,6 +124,13 @@
             (tutils/click! driver {:css ".modal-container.is-active button.note__confirm-delete"})
             (eta/wait-invisible driver {:css ".modal-container.is-active"})
 
+            (testing "displays a toast message"
+              (eta/wait-visible driver {:css ".toast-message.is-success"})
+              (is (eta/has-text? driver
+                                 {:css ".toast-message.is-success .body-text"}
+                                 "note deleted"))
+              (eta/wait-absent driver {:css ".toast-message"}))
+
             (testing "redirects to home page"
               (eta/wait-visible driver {:css "h1.pinned-notes"})
               (is (contains? #{base-url (str base-url "/")}
@@ -158,6 +177,13 @@
           (tutils/submit-form! driver "form.schedule-form" {"Day of the week" :monday})
           (eta/wait-invisible driver {:css "p.schedules__empty"})
 
+          (testing "displays a toast message"
+            (eta/wait-visible driver {:css ".toast-message.is-success"})
+            (is (eta/has-text? driver
+                               {:css ".toast-message.is-success .body-text"}
+                               "schedule created"))
+            (eta/wait-absent driver {:css ".toast-message"}))
+
           (testing "renders the schedule in the list"
             (is (eta/exists? driver {:css "p.schedules__header"}))
             (is (= "Existing schedules" (eta/get-element-text driver {:css "p.schedules__header"})))
@@ -168,6 +194,13 @@
             (tutils/click! driver {:css "button.schedules__delete"})
             (eta/wait-visible driver {:css ".modal-container.is-active .modal-item"})
             (tutils/click! driver {:css ".modal-container.is-active button.delete-schedule"})
+
+            (testing "displays a toast message"
+              (eta/wait-visible driver {:css ".toast-message.is-success"})
+              (is (eta/has-text? driver
+                                 {:css ".toast-message.is-success .body-text"}
+                                 "schedule deleted"))
+              (eta/wait-absent driver {:css ".toast-message"}))
 
             (testing "removes the schedule from the list"
               (eta/wait-visible driver {:css "p.schedules__empty"})

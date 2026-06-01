@@ -2,11 +2,13 @@
   (:require
     [brainard.test.harness.ui.system :as usys]
     [brainard.test.harness.ui.utils :as tutils]
+    [cljc.java-time.day-of-week :as dow]
+    [cljc.java-time.zoned-date-time :as zdt]
+    [cljc.java-time.zone-offset :as zo]
     [clojure.string :as string]
     [clojure.test :refer [deftest is testing]]
     [etaoin.api :as eta]
-    [whet.utils.navigation :as nav])
-  (:import (java.time ZonedDateTime ZoneOffset)))
+    [whet.utils.navigation :as nav]))
 
 (def ^:private ^:const node-item-selector-fmt
   "//li[contains(@class,'node-item')]//span[text()='%s']")
@@ -166,7 +168,7 @@
                                 (str xpath-fn
                                      "xpath(\"" src-xpath "\").dispatchEvent(new MouseEvent('mousedown', "
                                      event-ops "));"))
-                (eta/wait-exists driver {:css "*[data-target]"})
+                (eta/wait-exists driver {:css ".node-item *[data-target]"})
                 (eta/js-execute driver
                                 (str xpath-fn
                                      "const opts = " event-ops ";"
@@ -433,9 +435,9 @@
                          (filter (comp #{"Note 2"} :notes/body))
                          first
                          :notes/id)
-          day-of-the-week (-> (ZonedDateTime/now ZoneOffset/UTC)
-                              .getDayOfWeek
-                              .name
+          day-of-the-week (-> (zdt/now zo/utc)
+                              zdt/get-day-of-week
+                              dow/name
                               string/lower-case
                               keyword)]
       (testing "when visiting the buzz page"

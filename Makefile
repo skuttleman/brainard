@@ -81,10 +81,12 @@ uberjar: clean build ## Build standalone uberjar
 	@$(CLJ) -T:build uber
 
 test: check-deps clean build-sass build-test ## Run CLJS, server, and UI tests (requires clojure)
-	@echo "running CLJS tests..."
-	@$(CLJ) -M:test -m brainard.test.runner
+	@if [ "$(INCLUDE_CLJS_TESTS)" = "true" ]; then \
+		echo "running CLJS tests..."; \
+		$(CLJ) -M:test -m brainard.test.runner; \
+	fi
 	@echo "running kaocha tests..."
-	@HEADLESS=true SCREENSHOT=true $(CLJ) -M:test -m kaocha.runner --focus-meta :focus
+	@HEADLESS=true SCREENSHOT=true $(CLJ) -M:test -m kaocha.runner
 
 lint: ## Check codebase for linting errors
 	@$(CLJ) -M:lint

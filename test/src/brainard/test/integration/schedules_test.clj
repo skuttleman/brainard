@@ -6,6 +6,7 @@
     [brainard.api.storage.core :as storage]
     [brainard.schedules.api.relevancy :as relevancy]
     [brainard.test.harness.integration.system :as tsys]
+    [cljc.java-time.instant :as inst]
     [clojure.test :refer [deftest is testing]])
   (:import
     (java.util Date)))
@@ -84,8 +85,8 @@
   (tsys/with-app [{::b/keys [schedules-api storage]} nil]
     (let [[s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11] (repeatedly uuids/random)
           now (Date.)
-          later (-> now .toInstant (.plusSeconds 100) Date/from)
-          earlier (-> now .toInstant (.minusSeconds 100) Date/from)
+          later (-> now .toInstant (inst/plus-seconds 100) Date/from)
+          earlier (-> now .toInstant (inst/minus-seconds 100) Date/from)
           {:keys [weekday month day week-index]} (relevancy/from now)
           other-weekday (if (= :sunday weekday) :monday :sunday)
           other-month (if (= :january month) :february :january)

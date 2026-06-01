@@ -20,7 +20,7 @@ $ make run
 ## Run Tests
 
 ```bash
-$ make test
+$ INCLUDE_CLJS_TESTS=true make test
 ```
 
 ### Run Tests with Coverage
