@@ -23,6 +23,13 @@ $ make run
 $ make test
 ```
 
+### Run Tests with Coverage
+
+```bash
+$ make coverage
+$ open target/coverage/merged/index.html
+```
+
 ## Build Uberjar
 
 ```bash

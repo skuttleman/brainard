@@ -36,7 +36,7 @@
  {:invoker #ig/ref :brainard/IObjInvoker}
 
  [:duct/const :cfg.ds/schema]
- #duct/include "schema.edn"
+ #duct/include "db/schema.edn"
 
 
  ;; env

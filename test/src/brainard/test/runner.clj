@@ -34,8 +34,10 @@
                         (= :warning level) log/yellow)]]
       (println msg))))
 
-(defn ^:private print-results! [driver]
+(defn ^:private print-results! [server driver]
   (let [results (eta/js-execute driver "return window.testResults")]
+    (eta/quit driver)
+    (web/stop server)
     (if (and results
              (zero? (:failures results 0))
              (zero? (:errors results 0)))
@@ -67,11 +69,10 @@
       (eta/wait-visible driver {:css ".complete"})
 
       (print-logs! driver)
-      (print-results! driver)
+      (print-results! server driver)
       (catch Throwable ex
         (println (str "\nError retrieving test results: " (.getMessage ex)))
         (.printStackTrace ex)
-        (System/exit 1))
-      (finally
         (eta/quit driver)
-        (web/stop server)))))
+        (web/stop server)
+        (System/exit 1)))))

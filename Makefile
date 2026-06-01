@@ -72,13 +72,13 @@ build-cljs: ## Build ClojureScript via shadow-cljs
 build: install build-sass build-cljs ## install + build-sass + build-cljs
 	@echo "build complete"
 
-uberjar: clean build ## Build standalone uberjar
-	@echo "building uberjar"
-	@$(CLJ) -T:build uber
-
 build-test: install ## Build test CLJS
 	@echo "building cljs tests..."
 	@$(CLJ) -A:shadow:test -M -m shadow.cljs.devtools.cli compile test ui-test
+
+uberjar: clean build ## Build standalone uberjar
+	@echo "building uberjar"
+	@$(CLJ) -T:build uber
 
 test: check-deps clean build-sass build-test ## Run CLJS, server, and UI tests (requires clojure)
 	@echo "running CLJS tests..."
@@ -98,7 +98,7 @@ coverage: clean check-deps build-sass build-test ## Run unit/integration/UI test
 		--cov-ns-exclude-regex 'brainard\..*\.(multipart-params|routes\.ui)' \
 		--cov-ns-exclude-regex 'brainard\..*\.views.*' :integration
 	@echo "Building and instrumenting CLJS with source maps for coverage..."
-	@$(CLJ) -A:shadow:tools -M -m shadow.cljs.devtools.cli compile ui-cov
+	@$(CLJ) -A:shadow:test:tools -M -m shadow.cljs.devtools.cli compile ui-cov
 	@echo "Running UI coverage..."
 	@HEADLESS=true JS_COVERAGE=true $(CLJ) -M:test -m kaocha.runner \
 		--plugin cloverage --cov-output target/coverage/driver --lcov \
