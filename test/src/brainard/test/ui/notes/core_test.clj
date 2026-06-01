@@ -305,6 +305,7 @@
 
                 (testing "and when pressing enter"
                   (eta/fill-active driver keys/enter)
+                  (tutils/wait-optimistic #(eta/exists? driver {:css ".error-list"}))
 
                   (testing "displays an error"
                     (is (eta/exists? driver {:xpath "//*[contains(@class,'tags-editor')]

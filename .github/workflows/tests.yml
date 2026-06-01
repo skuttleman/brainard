@@ -195,7 +195,7 @@ jobs:
           set -o pipefail
           set +e
           clojure -M:test -m kaocha.runner --plugin cloverage \
-            --cov-output target/coverage/driver --lcov \
+            --cov-output target/coverage/driver1 --lcov \
             --cov-ns-regex 'brainard\..*\.db' \
             --cov-ns-regex 'brainard\.*\.api\..*' \
             --cov-ns-regex 'brainard\.infra\.store\..*' \
@@ -213,7 +213,7 @@ jobs:
             args=()
             while IFS= read -r f; do args+=( "--focus" "$f" ); done <<< "$fails"
             SCREENSHOT=true clojure -M:test -m kaocha.runner --plugin cloverage \
-              --cov-output target/coverage/driver --lcov \
+              --cov-output target/coverage/driver2 --lcov \
               --cov-ns-regex 'brainard\..*\.db' \
               --cov-ns-regex 'brainard\.*\.api\..*' \
               --cov-ns-regex 'brainard\.infra\.store\..*' \
@@ -223,7 +223,6 @@ jobs:
           CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
           HEADLESS: "true"
           JS_COVERAGE: "true"
-          SCREENSHOT: "true"
       - name: Upload failed test screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -234,7 +233,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-driver
-          path: target/coverage/driver
+          path: target/coverage/driver*
       - name: Upload nyc_output
         if: always()
         uses: actions/upload-artifact@v4
