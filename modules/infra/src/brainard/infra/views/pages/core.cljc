@@ -17,7 +17,7 @@
   [_ _]
   [:div "Not found"])
 
-(defn ^:private header []
+(defn header []
   [:div.layout--row
    [:a {:href "https://disney.fandom.com/wiki/Professor_Brainard" :target "_blank"}
     [:img.logo.layout--space-after {:src "/img/brainard.png" :height "120px" :width "120px"}]]

@@ -8,6 +8,20 @@
 @use 'modals';
 @use 'toast';
 
+#unavailable {
+    display: none;
+}
+
+@media (max-width: 1080px), (max-height: 640px) {
+    #root {
+        display: none;
+    }
+
+    #unavailable {
+        display: block;
+    }
+}
+
 .loader {
     &.large {
         border-width: 8px;

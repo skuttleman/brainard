@@ -6,6 +6,7 @@
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.infra.routes.response :as routes.res]
     [brainard.infra.store.specs :as-alias specs]
+    [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.pages.core :as pages]
     [defacto.core :as defacto]
     [defacto.resources.core :as res]
@@ -34,6 +35,14 @@
           :href "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css"
           :type "text/css"}])
 
+(def ^:private unavailable
+  [:div#unavailable.layout--stack-between
+   (pages/header)
+   (comp/alert :warn
+               [:div
+                [:p "This app cannot be rendered on screens/windows this small."]
+                [:p "Please increase window size or view on a different device."]])])
+
 (defn ^:private ui-handler [apis req]
   (-> req
       (assoc ::b/apis apis)
@@ -46,7 +55,8 @@
                                       route
                                       (partial ui-handler apis)
                                       (partial store->tree env route))
-                     (w/with-html-heads icon-lib css-lib))]
+                     (w/with-html-heads icon-lib css-lib)
+                     (update 3 conj unavailable))]
     (routes.res/->response 200
                            (w/render-template template)
                            {"content-type" "text/html"})))
