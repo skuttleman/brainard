@@ -6,7 +6,6 @@
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.infra.routes.response :as routes.res]
     [brainard.infra.store.specs :as-alias specs]
-    [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.pages.core :as pages]
     [defacto.core :as defacto]
     [defacto.resources.core :as res]
@@ -38,10 +37,10 @@
 (def ^:private unavailable
   [:div#unavailable.layout--stack-between
    (pages/header)
-   (comp/alert :warn
-               [:div
-                [:p "This app cannot be rendered on screens/windows this small."]
-                [:p "Please increase window size or view on a different device."]])])
+   [:div.message.is-warning
+    [:div.message-body
+     [:p "This app cannot be rendered on screens/windows this small."]
+     [:p "Please increase window size or view on a different device."]]]])
 
 (defn ^:private ui-handler [apis req]
   (-> req

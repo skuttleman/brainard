@@ -34,11 +34,8 @@
                        (string/replace #"^#'" "")
                        gensym
                        (str ".png"))]
-      (eta/set-window-size driver 1920 1080)
-      (eta/screenshot driver filename)
-      (println "saved screenshot"))
+      (eta/screenshot driver filename))
     (catch Throwable e
-      (println "failed to save screenshot")
       (.printStackTrace e))))
 
 (defn collect-js-coverage! [driver]
@@ -57,9 +54,10 @@
     (eta/chrome {:headless    headless?
                  :path-driver (or (System/getenv "CHROMEDRIVER_PATH")
                                   "chromedriver")
-                 :args        (when headless?
-                                ["--no-sandbox"
-                                 "--disable-dev-shm-usage"])})))
+                 :args        (into ["--window-size=1200,900"]
+                                    (when headless?
+                                      ["--no-sandbox"
+                                       "--disable-dev-shm-usage"]))})))
 
 (defmacro with-webdriver [[driver-binding base-url-binding seeds] & body]
   (let [db-sym (gensym "db")]

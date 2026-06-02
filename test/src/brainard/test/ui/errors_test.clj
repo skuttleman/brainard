@@ -247,3 +247,22 @@
           (testing "does not close the modal"
             (eta/wait-absent driver {:css ".toast-message"})
             (is (eta/exists? driver {:css ".modal-container.is-active"}))))))))
+
+(deftest small-screen-test
+  (usys/with-webdriver [driver base-url]
+    (testing "when the screen is too small"
+      (eta/set-window-size driver {:height 500 :width 1000})
+
+      (doseq [path ["/" "/search" "/foo"]]
+        (testing (str "and when visiting: " path)
+          (eta/go driver (str base-url path))
+          (eta/wait-visible driver {:css "#unavailable h1.title"})
+
+          (testing "displays alert"
+            (is (eta/invisible? driver {:css "#root"}))
+            (is (eta/visible? driver {:css "#unavailable"}))
+
+            (is (= ["This app cannot be rendered on screens/windows this small."
+                    "Please increase window size or view on a different device."]
+                   (map (partial eta/get-element-text-el driver)
+                        (eta/query-all driver {:css "#unavailable .message.is-warning p"}))))))))))
