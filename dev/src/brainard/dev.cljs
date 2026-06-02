@@ -33,6 +33,25 @@
   (set! *store* store)
   (doto store add-dev-logger!))
 
+(defn ^:private handler-mw [handler ctx [action :as cmd] emit-cb]
+  #_(when-not (#{:defacto.core/emit!} action)
+      (log/info "command:" action))
+  (handler ctx cmd emit-cb))
+
+(defn ^:private reducer-mw [reducer db [type :as event]]
+  #_(if (contains? (methods defacto.core/event-reducer) type)
+      (log/info "event:  " type)
+      (log/warn "UNevent:" type))
+  (reducer db event))
+
+(def ^:private store-mw
+  {:handler-mw (fn [handler]
+                 (fn [ctx cmd emit-cb]
+                   (handler-mw handler ctx cmd emit-cb)))
+   :reducer-mw (fn [reducer]
+                 (fn [db event]
+                   (reducer-mw reducer db event)))})
+
 (defn load!
   "Called when new code is compiled in the browser."
   []
@@ -45,4 +64,4 @@
   "Called when the DOM finishes loading."
   []
   (log/info "dev app initialized")
-  (app/start! (comp app/store->comp with-dev)))
+  (app/start! (comp app/store->comp with-dev) store-mw))
