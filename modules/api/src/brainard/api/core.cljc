@@ -68,15 +68,18 @@
 
 (defmethod invoke-api* :api.workspace-nodes/create!
   [_ apis node]
-  (api.ws/create! (:workspace apis) node))
+  (api.ws/create! (:workspace apis) node)
+  (invoke-api* :api.workspace-nodes/select-tree apis nil))
 
 (defmethod invoke-api* :api.workspace-nodes/delete!
   [_ apis node]
-  (api.ws/delete! (:workspace apis) (:workspace-nodes/id node)))
+  (api.ws/delete! (:workspace apis) (:workspace-nodes/id node))
+  (invoke-api* :api.workspace-nodes/select-tree apis nil))
 
 (defmethod invoke-api* :api.workspace-nodes/update!
   [_ apis node]
-  (api.ws/update! (:workspace apis) (:workspace-nodes/id node) node))
+  (api.ws/update! (:workspace apis) (:workspace-nodes/id node) node)
+  (invoke-api* :api.workspace-nodes/select-tree apis nil))
 
 (defmethod invoke-api* :api.attachments/upload!
   [_ apis attachments]

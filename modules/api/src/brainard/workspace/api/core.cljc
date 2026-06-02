@@ -17,10 +17,6 @@
        (sort-by ::ws/index)
        (map ->node)))
 
-(defn ^:private get-node [ws-api node-id]
-  (storage/query (:store ws-api) {::storage/type ::fetch-by-id
-                                  ::ws/id        node-id}))
-
 (defn ^:private get-nodes [ws-api]
   (storage/query (:store ws-api)
                  {::storage/type ::select-by-parent-id}))
@@ -33,8 +29,7 @@
                       (cond-> {::storage/type ::create!
                                ::ws/id        node-id
                                ::ws/content   content}
-                        parent-id (assoc ::ws/parent-id parent-id)))
-    (->node (get-node ws-api node-id))))
+                        parent-id (assoc ::ws/parent-id parent-id)))))
 
 (defn get-tree
   "Fetches the workspace tree"
@@ -56,5 +51,4 @@
                                          ::ws/id        node-id}
                                         (merge (select-keys params #{::ws/content
                                                                      ::ws/prev-sibling-id}))
-                                        (cond-> parent-id (assoc ::ws/parent-id parent-id))))
-  (->node (get-node ws-api node-id)))
+                                        (cond-> parent-id (assoc ::ws/parent-id parent-id)))))

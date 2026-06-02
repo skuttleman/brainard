@@ -344,35 +344,28 @@
         (let [response (http {:method :post
                               :uri    "/api/workspace-nodes"
                               :body   {::ws/content "root node"}})
-              node (-> response :body :data)]
-          (testing "returns the created node"
+              nodes (-> response :body :data)]
+          (testing "returns the workspace"
             (is (thttp/success? response))
-            (is (= "root node" (::ws/content node))))
-
-          (testing "and the tree includes the node"
-            (is (= ["root node"]
-                   (map ::ws/content
-                        (-> (http {:method :get :uri "/api/workspace-nodes"})
-                            :body
-                            :data)))))
+            (is (= ["root node"] (map ::ws/content nodes))))
 
           (testing "and when updating the node"
             (let [update-response (http {:method :patch
-                                         :uri    (str "/api/workspace-nodes/" (::ws/id node))
-                                         :body   {::ws/content "updated content"}})]
-              (testing "returns the updated node"
+                                         :uri    (str "/api/workspace-nodes/" (::ws/id (first nodes)))
+                                         :body   {::ws/content "updated content"}})
+                  nodes (-> update-response :body :data)]
+              (testing "returns the updated workspace"
                 (is (thttp/success? update-response))
-                (is (= "updated content" (-> update-response :body :data ::ws/content))))))
+                (is (= ["updated content"] (map ::ws/content nodes))))))
 
           (testing "and when deleting the node"
             (let [delete-response (http {:method :delete
-                                         :uri    (str "/api/workspace-nodes/" (::ws/id node))})]
+                                         :uri    (str "/api/workspace-nodes/" (::ws/id (first nodes)))})
+                  nodes (-> delete-response :body :data)]
               (testing "succeeds"
                 (is (thttp/success? delete-response)))
               (testing "and the workspace is empty again"
-                (is (empty? (-> (http {:method :get :uri "/api/workspace-nodes"})
-                                :body
-                                :data)))))))
+                (is (empty? nodes))))))
 
         (testing "when creating an invalid workspace node"
           (let [response (http {:method :post
