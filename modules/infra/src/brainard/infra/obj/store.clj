@@ -13,7 +13,7 @@
   (write! [_ params]
     (run! invoker params)))
 
-(defn ->invoker [{:keys [bucket region access-key secret-key]} ->client invoke-fn]
+(defn ^:no-doc ->invoker [{:keys [bucket region access-key secret-key]} ->client invoke-fn]
   (let [client (->client {:api                  :s3
                           :region               region
                           :credentials-provider (aws.creds/basic-credentials-provider
@@ -30,5 +30,8 @@
           (throw (ex-info "failed to upload" err)))
         result))))
 
-(defn ->invoke-fn [cfg]
+(defn ->invoke-fn
+  "Create an S3 invoker function using ->client and invoke-fn.
+   The returned function attaches the configured bucket and throws on errors."
+  [cfg]
   (->invoker cfg aws/client aws/invoke))

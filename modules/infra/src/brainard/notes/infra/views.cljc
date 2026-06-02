@@ -1,4 +1,5 @@
 (ns brainard.notes.infra.views
+  "Reagent components that render notes."
   (:require
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.core :as comp]

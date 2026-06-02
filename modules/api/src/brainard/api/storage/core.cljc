@@ -3,8 +3,12 @@
   (:require
     [brainard.api.storage.interfaces :as istorage]))
 
-(defn query [this params]
+(defn query
+  "Run a storage query using the underlying istorage implementation."
+  [this params]
   (istorage/read this (istorage/->input params)))
 
-(defn execute! [this & params]
+(defn execute!
+  "Execute write operations on the given storage implementation."
+  [this & params]
   (istorage/write! this (mapcat istorage/->input params)))

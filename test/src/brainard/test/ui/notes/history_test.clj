@@ -214,6 +214,13 @@
               (eta/wait-absent driver {:css ".modal-container.is-active"})
               (eta/wait-visible driver {:xpath "//h1[.='Some context']"})
 
+              (testing "displays a toast message"
+                (eta/wait-visible driver {:css ".toast-message.is-success"})
+                (is (eta/has-text? driver
+                                   {:css ".toast-message.is-success .body-text"}
+                                   "previous version of note was reinstated"))
+                (eta/wait-absent driver {:css ".toast-message"}))
+
               (testing "reinstates the 3rd version of the note"
                 (is (eta/exists? driver {:css "button.is-info i.lni-paperclip"}))
                 (is (eta/exists? driver {:xpath "//h1[.='Some context']"}))

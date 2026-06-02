@@ -10,7 +10,9 @@
        (java.io PushbackReader))))
 
 #?(:clj
-   (defn read [stream]
+   (defn read
+     "Read EDN from a stream, returning nil when stream is empty."
+     [stream]
      (with-open [reader (-> stream
                             io/reader
                             PushbackReader.)]
@@ -19,6 +21,8 @@
            (.unread reader byte)
            (edn*/read reader))))))
 
-(defn read-string [s]
+(defn read-string
+  "Read EDN from a string, returning nil for blank input."
+  [s]
   (when-not (string/blank? s)
     (edn*/read-string s)))

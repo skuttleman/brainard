@@ -72,24 +72,26 @@ build-cljs: ## Build ClojureScript via shadow-cljs
 build: install build-sass build-cljs ## install + build-sass + build-cljs
 	@echo "build complete"
 
+build-test: install ## Build test CLJS
+	@echo "building cljs tests..."
+	@$(CLJ) -A:shadow:test -M -m shadow.cljs.devtools.cli compile test ui-test
+
 uberjar: clean build ## Build standalone uberjar
 	@echo "building uberjar"
 	@$(CLJ) -T:build uber
 
-build-test: install ## Build test CLJS
-	@echo "building cljs tests..."
-	@$(CLJ) -A:shadow:test -M -m shadow.cljs.devtools.cli compile test
-
-test: check-deps clean build build-test ## Run CLJS, server, and UI tests (requires clojure)
-	@echo "running CLJS tests..."
-	@$(CLJ) -M:test -m brainard.test.runner
+test: check-deps clean build-sass build-test ## Run CLJS, server, and UI tests (requires clojure)
+	@if [ "$(INCLUDE_CLJS_TESTS)" = "true" ]; then \
+		echo "running CLJS tests..."; \
+		$(CLJ) -M:test -m brainard.test.runner; \
+	fi
 	@echo "running kaocha tests..."
-	@HEADLESS=true SCREENSHOT=true $(CLJ) -M:test -m kaocha.runner --focus-meta :focus
+	@HEADLESS=true SCREENSHOT=true $(CLJ) -M:test -m kaocha.runner
 
 lint: ## Check codebase for linting errors
 	@$(CLJ) -M:lint
 
-coverage: clean check-deps build-sass ## Run unit/integration/UI test suites with coverage instrumentation and merge results
+coverage: clean check-deps build-sass build-test ## Run unit/integration/UI test suites with coverage instrumentation and merge results
 	@echo "Running coverage for unit and integration suites..."
 	@$(CLJ) -M:test -m kaocha.runner --plugin cloverage --cov-output target/coverage/unit --lcov \
 		--cov-ns-exclude-regex 'brainard\..*\.(multipart-params|routes\.ui)' \
@@ -98,7 +100,7 @@ coverage: clean check-deps build-sass ## Run unit/integration/UI test suites wit
 		--cov-ns-exclude-regex 'brainard\..*\.(multipart-params|routes\.ui)' \
 		--cov-ns-exclude-regex 'brainard\..*\.views.*' :integration
 	@echo "Building and instrumenting CLJS with source maps for coverage..."
-	@$(CLJ) -A:shadow:tools -M -m shadow.cljs.devtools.cli compile ui-cov
+	@$(CLJ) -A:shadow:test:tools -M -m shadow.cljs.devtools.cli compile ui-cov
 	@echo "Running UI coverage..."
 	@HEADLESS=true JS_COVERAGE=true $(CLJ) -M:test -m kaocha.runner \
 		--plugin cloverage --cov-output target/coverage/driver --lcov \

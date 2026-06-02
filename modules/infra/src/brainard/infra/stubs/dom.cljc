@@ -18,7 +18,9 @@
 
 (def ^:private code->key (set/map-invert key->code))
 
-(defn event->key [e]
+(defn event->key
+  "Return a keyword representing the event's keyCode."
+  [e]
   #?(:cljs
      (when-let [key-code (some-> e .-keyCode)]
        (code->key key-code key-code))))
@@ -33,7 +35,7 @@
 
 (defn add-listener!
   "Adds an event listener to a node and stores it. Returns a key which can be used
-   to remove it with [[remove-listener]]. An optional 4th arg will be converted to js
+   to remove it with [[remove-listener!]]. An optional 4th arg will be converted to js
    and passed to `.addEventListener`.
 
    (add-listener! window :keypress (fn [event] ...) opts)"

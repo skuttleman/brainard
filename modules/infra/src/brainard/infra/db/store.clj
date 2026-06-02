@@ -25,7 +25,9 @@
     only? first
     post (->> (post db))))
 
-(defn connect! [{:keys [storage-dir db-name schema]}]
+(defn connect!
+  "Connect to a local Datomic instance and initialize the given schema."
+  [{:keys [storage-dir db-name schema]}]
   (let [client (d/client {:server-type :datomic-local
                           :storage-dir (or storage-dir
                                            (format "%s/.datomic-storage"

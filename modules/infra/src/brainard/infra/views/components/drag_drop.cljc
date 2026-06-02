@@ -1,4 +1,5 @@
 (ns brainard.infra.views.components.drag-drop
+  "Drag-n-drop UI component."
   (:require
     [brainard.infra.store.core :as store]
     [brainard.infra.stubs.dom :as dom]

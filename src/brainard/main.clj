@@ -19,7 +19,9 @@
     (merge env (when (.exists f)
                  (edn/read f)))))
 
-(defn cleanup-orphaned-artifacts! [sys]
+(defn cleanup-orphaned-artifacts!
+  "Remove orphaned artifacts from object storage that are no longer referenced in the database."
+  [sys]
   (try
     (let [db-conn (val (ig/find-derived-1 sys :brainard/storage))
           obj-store (val (ig/find-derived-1 sys :brainard/obj-storage))

@@ -43,7 +43,9 @@
     (specs/with-cbs (res/->request-spec [::specs/workspace#modify resource-id] spec)
                     :err-commands [[:toasts/fail!]])))
 
-(defn expanded-change [*:store route-info]
+(defn expanded-change
+  "Return a listener that updates the route query-params when the expanded node changes."
+  [*:store route-info]
   (fn [_ _ old new]
     (let [old-expanded (::expanded (forms/data old))
           new-expanded (::expanded (forms/data new))
@@ -54,7 +56,9 @@
       (when next-route
         (store/dispatch! *:store [:nav/replace! next-route])))))
 
-(defn ->on-drop [*:store]
+(defn ->on-drop
+  "Return a drop handler that dispatches a workspace modify request on drop."
+  [*:store]
   (fn [node-id [_ parent-id sibling-id]]
     (store/dispatch! *:store [::res/submit!
                               [::specs/workspace#modify node-id]
@@ -71,7 +75,9 @@
 (def modify-modal
   [::edit! {:header "Edit the workspace node"}])
 
-(defn ->delete-modal [node]
+(defn ->delete-modal
+  "Return modal data for confirming deletion of a workspace node and its ancestors."
+  [node]
   [:modals/sure?
    {:description  "This node and all ancestors will be deleted"
     :ok-btn-class ["delete-node"]
@@ -80,7 +86,9 @@
                     {:ok-commands  [[::res/submit! [::specs/workspace#select]]]
                      :err-commands [[:toasts/fail!]]}]]}])
 
-(defn ->note-edit-modal [context tags]
+(defn ->note-edit-modal
+  "Return modal descriptor for creating a new note prefilled with context and tags."
+  [context tags]
   [::note-edit/modal
    {:init         {:notes/context     context
                    :notes/pinned?     true
@@ -90,14 +98,18 @@
     :params       {:ok-commands [[::res/submit! [::notes#pinned]]]}
     :resource-key create-note-key}])
 
-(defn ->node-form-attrs [*:store form+ resource-key]
+(defn ->node-form-attrs
+  "Return common form attributes for workspace node modals (create/modify)."
+  [*:store form+ resource-key]
   {:*:store      *:store
    :form+        form+
    :params       {:ok-commands [[::res/submit! fetch-ws-key]
                                 [:modals/remove-all!]]}
    :resource-key resource-key})
 
-(defn ->dnd-form-attrs [*:store]
+(defn ->dnd-form-attrs
+  "Return attributes for the drag-and-drop workspace form."
+  [*:store]
   {:*:store *:store
    :comp    [drag-item *:store]
    :id      ::workspace

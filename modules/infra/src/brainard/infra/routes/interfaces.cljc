@@ -53,7 +53,9 @@
 
    [:post :routes.api/attachments]      :api.attachments/upload!})
 
-(defn router [{:keys [request-method] ::w/keys [route]}]
+(defn router
+  "Return a tuple [request-method token] used for routing multimethod dispatch."
+  [{:keys [request-method] ::w/keys [route]}]
   [request-method (:token route)])
 
 (defmulti ^{:arglists '([req])} handler

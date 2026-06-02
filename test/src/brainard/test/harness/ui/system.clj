@@ -8,7 +8,8 @@
     [clojure.test :as t]
     [etaoin.api :as eta]
     [etaoin.impl.util :as ueta]
-    [integrant.core :as ig]))
+    [integrant.core :as ig]
+    brainard.test))
 
 (defmethod ig/init-key :cfg.test/server-port
   [_ _]

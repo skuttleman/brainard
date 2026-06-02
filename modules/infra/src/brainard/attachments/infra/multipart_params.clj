@@ -52,12 +52,16 @@
                file-item-seq
                (map (partial parse-file-item file-limit-bytes)))})
 
-(defn multipart-params-request [request]
+(defn ^:private multipart-params-request [request]
   (let [req-encoding (or (req/character-encoding request) "UTF-8")
         params (when (multipart-form? request)
                  (parse-multipart-params request req-encoding))]
     (cond-> request
       params (assoc :multipart-params params))))
 
-(defn wrap-multipart-params [handler]
+(defn wrap-multipart-params
+  "Ring middleware that parses multipart form uploads and adds :multipart-params to the request.
+   Like [[ring.middleware.multipart-params/wrap-multipart-params]], except wraps every stream as
+   [[org.apache.commons.fileupload.util.LimitedInputStream]] instead of creating tempfile."
+  [handler]
   (comp handler multipart-params-request))

@@ -3,7 +3,15 @@
 (defn ^:private pad-date-segment [num]
   (str (when (< num 10) \0) num))
 
-(defn to-iso-datetime-min-precision [date]
+#?(:cljs
+   (def ^:private formatter
+     (js/Intl.DateTimeFormat. "en-US"
+                              #js {:dateStyle "full"
+                                   :timeStyle "short"})))
+
+(defn to-iso-datetime-min-precision
+  "Format a JS Date to an ISO-like string with minute precision (cljs)."
+  [date]
   #?(:cljs
      (when date
        (str (.getFullYear date)
@@ -12,10 +20,8 @@
             \T (pad-date-segment (.getHours date))
             \: (pad-date-segment (.getMinutes date))))))
 
-(def ^{:arglists '([date])} ->str
-  (let [#?@(:cljs [formatter (js/Intl.DateTimeFormat. "en-US"
-                                                      #js {:dateStyle "full"
-                                                           :timeStyle "short"})])]
-    (fn [date]
-      #?(:cljs
-         (.format formatter date)))))
+(defn ->str
+  "Formats a JS Date in a human-readable format"
+  [date]
+  #?(:cljs
+     (.format formatter date)))

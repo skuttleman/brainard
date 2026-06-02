@@ -1,4 +1,5 @@
 (ns brainard.infra.views.components.modals
+  "Page-level component for displaying modals."
   (:require
     [brainard.infra.store.core :as store]
     [brainard.infra.stubs.dom :as dom]
@@ -37,7 +38,7 @@
                   :width      "100%"}}
     [icomp/modal-body *:store attrs]]])
 
-(defn modal-view [*:store idx {modal-id :id :as modal} top?]
+(defn ^:private modal-view [*:store idx {modal-id :id :as modal} top?]
   (r/with-let [close! (close-modal! *:store modal-id)
                stop-and-close! (comp close! dom/stop-propagation!)
                listener (dom/add-listener! dom/window

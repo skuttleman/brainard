@@ -47,7 +47,9 @@
                          (map-indexed (fn [idx node]
                                         (assoc node ::ws/index idx))))))))
 
-(defn delete-and-reindex [db id]
+(defn delete-and-reindex
+  "Delete a node by id and emit transactions to reindex sibling nodes."
+  [db id]
   (when-let [node (ds/query db (istorage/->input {::storage/type ::api.ws/fetch-by-id
                                                   ::ws/id        id}))]
     (let [nodes (ds/query db (istorage/->input {::storage/type ::api.ws/select-by-parent-id
@@ -58,7 +60,9 @@
                                  {::ws/id id ::ws/index idx})))
             (sort-by ::ws/index nodes)))))
 
-(defn insert-sibling [db {::ws/keys [parent-id] :as node}]
+(defn insert-sibling
+  "Insert a node as a sibling under `parent-id` and return DB transactions for the insertion."
+  [db {::ws/keys [parent-id] :as node}]
   (let [parent (when parent-id
                  (ds/query db (istorage/->input {::storage/type ::api.ws/fetch-by-id
                                                  ::ws/id        parent-id})))
@@ -76,7 +80,9 @@
         ::ws/children [node]}]
       [node])))
 
-(defn update-node [db {node-id ::ws/id ::ws/keys [parent-id] :as input}]
+(defn update-node
+  "Update or move a node in the DB and return transactions reflecting the change."
+  [db {node-id ::ws/id ::ws/keys [parent-id] :as input}]
   (let [same? (= :same parent-id)]
     (when-let [node (ds/query db (istorage/->input {::storage/type ::api.ws/fetch-by-id
                                                     ::ws/id        node-id}))]

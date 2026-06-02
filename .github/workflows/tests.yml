@@ -184,7 +184,7 @@ jobs:
           npm ci
           npm install -g sass
           rm -rf resources/public/js target/nyc_output
-          clojure -A:shadow:tools -M -m shadow.cljs.devtools.cli compile ui-cov
+          clojure -A:shadow:test:tools -M -m shadow.cljs.devtools.cli compile ui-cov
       - uses: browser-actions/setup-chrome@v2
         id: setup-chrome
         with:

@@ -5,10 +5,14 @@
 
 (def ^:const regex #"(?i)[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}")
 
-(defn random []
+(defn random
+  "Generate a time-ordered UUID (squuid)."
+  []
   #?(:clj  (uuid/squuid)
      :cljs (uuid/generate-squuid)))
 
-(defn ->uuid [x]
+(defn ->uuid
+  "Convert x to a UUID."
+  [x]
   #?(:clj  (uuid/as-uuid x)
      :cljs (cond-> x (string? x) uuid)))
