@@ -97,18 +97,34 @@
     {:notes/todos!remove removals
      :notes/todos        todos}))
 
+(defn ^:private modify-note-body [{:keys [payload prev-attachments prev-tags prev-todos]}]
+  (-> payload
+      (select-keys #{:notes/context
+                     :notes/pinned?
+                     :notes/body})
+      (merge (diff-attachments prev-attachments (:notes/attachments payload))
+             (diff-tags prev-tags (:notes/tags payload))
+             (diff-todos prev-todos (:notes/todos payload)))))
+
 (defmethod res/->request-spec ::notes#modify
-  [[_ resource-id] {:keys [payload prev-attachments prev-tags prev-todos] :as spec}]
+  [[_ resource-id] spec]
   (->req {:route  :routes.api/note
           :params {:notes/id resource-id}
           :method :patch
-          :body   (-> payload
-                      (select-keys #{:notes/context
-                                     :notes/pinned?
-                                     :notes/body})
-                      (merge (diff-attachments prev-attachments (:notes/attachments payload))
-                             (diff-tags prev-tags (:notes/tags payload))
-                             (diff-todos prev-todos (:notes/todos payload))))}
+          :body   (modify-note-body spec)}
+         spec))
+
+(defmethod res/->request-spec ::notes#reinstate
+  [[_ resource-id] {:keys [resource-key] :as spec}]
+  (->req {:route        :routes.api/note!reinstate
+          :params       {:notes/id resource-id}
+          :method       :post
+          :body         (modify-note-body spec)
+          :ok-events    [[::res/destroyed resource-key]]
+          :ok-commands  [[:toasts/succeed! {:message "previous version of note was reinstated"}]
+                         [::res/submit! [::notes#find resource-id]]
+                         [::res/submit! [::note#history resource-id]]]
+          :err-commands [[:toasts/fail!]]}
          spec))
 
 (defmethod res/->request-spec ::notes#destroy
@@ -150,18 +166,18 @@
   (let [workspace-id (or (::ws/id data) (::ws/id spec))
         payload (or data payload)
         params (case action
-                 :create {:route        :routes.api/workspace-nodes
-                          :method       :post
-                          :body         (valid/select-spec-keys payload sws/create)}
+                 :create {:route  :routes.api/workspace-nodes
+                          :method :post
+                          :body   (valid/select-spec-keys payload sws/create)}
 
-                 :modify {:route        :routes.api/workspace-node
-                          :method       :patch
-                          :params       {:workspace-nodes/id workspace-id}
-                          :body         (valid/select-spec-keys payload sws/modify)}
+                 :modify {:route  :routes.api/workspace-node
+                          :method :patch
+                          :params {:workspace-nodes/id workspace-id}
+                          :body   (valid/select-spec-keys payload sws/modify)}
 
-                 :destroy {:route        :routes.api/workspace-node
-                           :method       :delete
-                           :params       {:workspace-nodes/id workspace-id}}
+                 :destroy {:route  :routes.api/workspace-node
+                           :method :delete
+                           :params {:workspace-nodes/id workspace-id}}
 
                  {:route  :routes.api/workspace-nodes
                   :method :get})

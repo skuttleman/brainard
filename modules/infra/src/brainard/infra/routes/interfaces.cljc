@@ -13,6 +13,7 @@
       (derive :routes.api/notes :routes/api)
       (derive :routes.api/note :routes/api)
       (derive :routes.api/note?history :routes/api)
+      (derive :routes.api/note!reinstate :routes/api)
       (derive :routes.api/notes?scheduled :routes/api)
       (derive :routes.api/schedules :routes/api)
       (derive :routes.api/schedule :routes/api)
@@ -37,6 +38,7 @@
    [:post :routes.api/notes]            :api.notes/create!
    [:get :routes.api/note]              :api.notes/fetch
    [:get :routes.api/note?history]      :api.notes/fetch?history
+   [:post :routes.api/note!reinstate]   :api.notes/reinstate!
    [:patch :routes.api/note]            :api.notes/update!
    [:delete :routes.api/note]           :api.notes/delete!
 

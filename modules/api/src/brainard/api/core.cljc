@@ -17,6 +17,10 @@
   [_ apis note]
   (api.notes/update! (:notes apis) (:notes/id note) note))
 
+(defmethod invoke-api* :api.notes/reinstate!
+  [_ apis note]
+  (api.notes/update! (:notes apis) (:notes/id note) note))
+
 (defmethod invoke-api* :api.notes/delete!
   [_ apis {note-id :notes/id}]
   (api.notes/delete! (:notes apis) note-id)
