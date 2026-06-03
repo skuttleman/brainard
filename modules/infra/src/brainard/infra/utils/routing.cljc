@@ -7,6 +7,7 @@
 (def ^:private token->coercers
   {:routes.api/note             {:notes/id uuids/->uuid}
    :routes.api/note?history     {:notes/id uuids/->uuid}
+   :routes.api/note!reinstate   {:notes/id uuids/->uuid}
    :routes.api/schedule         {:schedules/id uuids/->uuid}
    :routes.api/workspace-node   {:workspace-nodes/id uuids/->uuid}
    :routes.resources/attachment {:attachments/id uuids/->uuid}
@@ -27,7 +28,8 @@
 (def ^:private api-routes
   ["/api" [["/notes" [["" :routes.api/notes]
                       [["/" [uuids/regex :notes/id]] [["" :routes.api/note]
-                                                      ["/history" :routes.api/note?history]]]
+                                                      ["/history" :routes.api/note?history]
+                                                      ["/reinstate" :routes.api/note!reinstate]]]
                       ["/scheduled" :routes.api/notes?scheduled]]]
            ["/schedules" [["" :routes.api/schedules]
                           [["/" [uuids/regex :schedules/id]] :routes.api/schedule]]]
