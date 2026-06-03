@@ -2,8 +2,8 @@
  :paths   ["resources" "src"]
  :deps    {brainard/api              {:local/root "modules/api"}
            brainard/infra            {:local/root "modules/infra"}
-           org.clojure/clojure       {:mvn/version "1.12.4"}
-           org.clojure/clojurescript {:mvn/version "1.12.134"}}
+           org.clojure/clojure       {:mvn/version "1.12.5"}
+           org.clojure/clojurescript {:mvn/version "1.12.145"}}
  :aliases {:dev      {:extra-paths ["dev/resources" "dev/src"]
                       :extra-deps  {nrepl/nrepl     {:mvn/version "1.7.0"}
                                     ring/ring-devel {:mvn/version "1.15.4"}}}
@@ -18,10 +18,10 @@
                                     lambdaisland/kaocha           {:mvn/version "1.91.1392"}
                                     lambdaisland/kaocha-cloverage {:mvn/version "1.1.89"}}}
            :build    {:extra-paths ["tools/src"]
-                      :deps        {org.clojure/clojure           {:mvn/version "1.12.4"}
+                      :deps        {org.clojure/clojure           {:mvn/version "1.12.5"}
                                     io.github.clojure/tools.build {:mvn/version "0.10.13"}}
                       :ns-default  brainard.tools.build}
-           :lint     {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2026.04.15"}}
+           :lint     {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2026.05.25"}}
                       :main-opts  ["-m"
                                    "clj-kondo.main"
                                    "--lint"
@@ -32,7 +32,7 @@
                                    "modules/api/test/src"
                                    "modules/infra/test/src"]}
            :tools    {:extra-paths ["tools/src"]}
-           :shadow   {:extra-deps {thheller/shadow-cljs {:mvn/version "3.4.6"}}}
+           :shadow   {:extra-deps {thheller/shadow-cljs {:mvn/version "3.4.11"}}}
            :intellij {:extra-deps  {io.github.clojure/tools.build {:mvn/version "0.10.13"}}
                       :extra-paths ["modules/api/resources"
                                     "modules/api/src"

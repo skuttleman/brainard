@@ -2,13 +2,13 @@
  :deps    {bidi/bidi                             {:mvn/version "2.1.6"
                                                   :exclusions  [ring/ring-core]}
            brainard/api                          {:local/root "../api"}
-           com.cognitect.aws/api                 {:mvn/version "0.8.723"}
-           com.cognitect.aws/endpoints           {:mvn/version "871.2.29.52"}
-           com.cognitect.aws/s3                  {:mvn/version "871.2.29.52"}
-           com.datomic/local                     {:mvn/version "1.0.277"}
-           duct/core                             {:mvn/version "0.8.0"}
-           io.github.nextjournal/markdown        {:mvn/version "0.6.157"}
-           commons-fileupload/commons-fileupload {:mvn/version "1.4"}
+           com.cognitect.aws/api                 {:mvn/version "0.8.824"}
+           com.cognitect.aws/endpoints           {:mvn/version "871.2.44.8"}
+           com.cognitect.aws/s3                  {:mvn/version "871.2.43.0"}
+           com.datomic/local                     {:mvn/version "1.0.291"}
+           duct/core                             {:mvn/version "0.8.1"}
+           io.github.nextjournal/markdown        {:mvn/version "0.7.225"}
+           commons-fileupload/commons-fileupload {:mvn/version "1.6.0"}
            org.immutant/immutant                 {:mvn/version "2.1.10"
                                                   :exclusions  [ch.qos.logback/logback-classic
                                                                 org.jboss.naming/jnpserver
@@ -16,4 +16,4 @@
            skuttleman/whet                       {:git/url "https://github.com/skuttleman/whet"
                                                   :git/sha "a1a45bc2e4b6543368e2a0f292f7eb1d77f9e849"}}
  :aliases {:test     {:extra-paths ["test/resources" "test/src"]}
-           :intellij {:extra-deps {org.clojure/clojurescript {:mvn/version "1.11.60"}}}}}
+           :intellij {:extra-deps {org.clojure/clojurescript {:mvn/version "1.12.145"}}}}}

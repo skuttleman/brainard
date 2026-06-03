@@ -32,7 +32,7 @@
 
 (defmethod res/->request-spec ::notes#reinstate
   [resource-key {:keys [note] :as spec}]
-  (let [payload (valid/select-spec-keys note snotes/modify)
+  (let [payload (valid/select-spec-keys note snotes/reinstate)
         note-id (:notes/id note)]
     (specs/with-cbs (res/->request-spec [::specs/notes#modify note-id] (assoc spec :payload payload))
                     :ok-events [[::res/destroyed resource-key]]
