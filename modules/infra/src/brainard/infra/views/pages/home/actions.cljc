@@ -12,9 +12,7 @@
     [workspace-nodes :as-alias ws]))
 
 (def ^:const create-note-key [::forms+/valid [::notes#create]])
-(def ^:const fetch-ws-key [::specs/workspace#select])
-(def ^:const create-ws-node-key [::forms+/valid [::workspace#create]])
-(defn ->modify-node-key [node-id] [::forms+/valid [::workspace#modify node-id]])
+(def ^:const ws-form-key [::forms+/valid [::specs/workspace#sync]])
 
 (defmulti drag-item (fn [_ attrs _] (:type attrs)))
 
@@ -26,22 +24,16 @@
                     :ok-commands [[:toasts.notes/succeed!]]
                     :err-commands [[:toasts/fail!]])))
 
-(forms+/validated ::workspace#create (valid/->validator sws/create)
-  [_ {::forms/keys [data] :as spec}]
-  (let [spec (assoc spec :payload (valid/select-spec-keys data sws/create))]
-    (specs/with-cbs (res/->request-spec [::specs/workspace#create] spec)
-                    :err-commands [[:toasts/fail!]])))
-
 (defmethod res/->request-spec ::notes#pinned
   [_ spec]
   (res/->request-spec [::specs/notes#select] (assoc spec :params {:pinned true})))
 
-
-(forms+/validated ::workspace#modify (valid/->validator sws/modify)
-  [[_ resource-id] {::forms/keys [data] :as spec}]
-  (let [spec (assoc spec :payload (valid/select-spec-keys data sws/modify))]
-    (specs/with-cbs (res/->request-spec [::specs/workspace#modify resource-id] spec)
-                    :err-commands [[:toasts/fail!]])))
+(defmethod forms+/validate ::specs/workspace#sync
+  [_ data]
+  (let [validator (if (::ws/id data)
+                    (valid/->validator sws/modify)
+                    (valid/->validator sws/create))]
+    (validator data)))
 
 (defn expanded-change
   "Return a listener that updates the route query-params when the expanded node changes."
@@ -56,24 +48,23 @@
       (when next-route
         (store/dispatch! *:store [:nav/replace! next-route])))))
 
-(defn ->on-drop
-  "Return a drop handler that dispatches a workspace modify request on drop."
-  [*:store]
+(defn ^:private ->on-drop [*:store]
   (fn [node-id [_ parent-id sibling-id]]
     (store/dispatch! *:store [::res/submit!
-                              [::specs/workspace#modify node-id]
-                              {:payload      (cond-> {::ws/parent-id parent-id}
-                                               sibling-id (assoc ::ws/prev-sibling-id sibling-id))
-                               :ok-commands  [[::res/submit! fetch-ws-key]
-                                              [:modals/remove-all!]]
-                               :err-commands [[:toasts/fail!]]}])))
+                              [::specs/workspace#sync]
+                              {::ws/id        node-id
+                               ::specs/action :modify
+                               :payload       (cond-> {::ws/parent-id parent-id}
+                                                sibling-id (assoc ::ws/prev-sibling-id sibling-id))}])))
 
 (def create-modal
   [::edit! {:header       "Create new item in your workspace"
-            :resource-key create-ws-node-key}])
+            :resource-key ws-form-key
+            :params       {::specs/action :create}}])
 
 (def modify-modal
-  [::edit! {:header "Edit the workspace node"}])
+  [::edit! {:header "Edit the workspace node"
+            :params {::specs/action :modify}}])
 
 (defn ->delete-modal
   "Return modal data for confirming deletion of a workspace node and its ancestors."
@@ -82,9 +73,9 @@
    {:description  "This node and all ancestors will be deleted"
     :ok-btn-class ["delete-node"]
     :yes-commands [[::res/submit!
-                    [::specs/workspace#destroy (::ws/id node)]
-                    {:ok-commands  [[::res/submit! [::specs/workspace#select]]]
-                     :err-commands [[:toasts/fail!]]}]]}])
+                    [::specs/workspace#sync]
+                    {::ws/id        (::ws/id node)
+                     ::specs/action :destroy}]]}])
 
 (defn ->note-edit-modal
   "Return modal descriptor for creating a new note prefilled with context and tags."
@@ -100,11 +91,10 @@
 
 (defn ->node-form-attrs
   "Return common form attributes for workspace node modals (create/modify)."
-  [*:store form+ resource-key]
+  [*:store form+ resource-key params]
   {:*:store      *:store
    :form+        form+
-   :params       {:ok-commands [[::res/submit! fetch-ws-key]
-                                [:modals/remove-all!]]}
+   :params       (assoc params :ok-commands [[:modals/remove-all!]])
    :resource-key resource-key})
 
 (defn ->dnd-form-attrs

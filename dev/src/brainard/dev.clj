@@ -22,12 +22,14 @@
   [_ {:keys [upload-limit]}]
   (-> #'routes/be-handler
       (with-dev-middleware upload-limit)
-      (ring.rel/wrap-reload {:dirs ["../defacto"
-                                    "../whet"
+      (ring.rel/wrap-reload {:dirs ["../defacto/core/src"
+                                    "../defacto/forms/src"
+                                    "../defacto/forms+/src"
+                                    "../whet/src"
                                     "modules/api/src"
                                     "modules/infra/src"
                                     "src"
-                                    "dev"]})))
+                                    "dev/src"]})))
 
 (defn -main
   "Entry point for building/running the `brainard` web application from the command line.

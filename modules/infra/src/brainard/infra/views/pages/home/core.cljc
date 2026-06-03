@@ -109,7 +109,7 @@
         modify-modal (update home.act/modify-modal 1 merge
                              {:init-data    (select-keys node #{::ws/id
                                                                 ::ws/content})
-                              :resource-key (home.act/->modify-node-key (::ws/id node))})
+                              :resource-key home.act/ws-form-key})
         delete-modal (home.act/->delete-modal node)]
     [:div.layout--row
      [:span.layout--space-after {:on-mouse-down on-drag-begin}
@@ -129,10 +129,10 @@
   header)
 
 (defmethod icomp/modal-body ::home.act/edit!
-  [*:store {:keys [init-data resource-key]}]
+  [*:store {:keys [init-data params resource-key]}]
   (r/with-let [sub:form+ (store/form+-sub *:store resource-key init-data)]
     (let [form+ @sub:form+]
-      [ctrls/form (home.act/->node-form-attrs *:store form+ resource-key)
+      [ctrls/form (home.act/->node-form-attrs *:store form+ resource-key params)
        [ctrls/input (-> {:*:store     *:store
                          :auto-focus? true
                          :label       "Content"}
@@ -151,11 +151,11 @@
   [*:store route-info]
   (r/with-let [sub:tags (store/res-sub *:store [::specs/tags#select])
                sub:pinned (store/res-sub *:store [::home.act/notes#pinned])
-               sub:tree (store/res-sub *:store home.act/fetch-ws-key)]
+               sub:tree (store/res-sub *:store [::specs/workspace#sync])]
     [:div.layout--stack-between
      [comp/with-resource sub:tree [workspace *:store]]
      [comp/with-resources [sub:tags sub:pinned] [pinned *:store route-info]]]
     (finally
       (-> *:store
-          (store/emit! [::res/destroyed home.act/fetch-ws-key])
+          (store/emit! [::res/destroyed [::specs/workspace#sync]])
           (store/emit! [::res/destroyed [::home.act/notes#pinned]])))))

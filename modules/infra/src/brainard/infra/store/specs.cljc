@@ -1,7 +1,11 @@
 (ns brainard.infra.store.specs
   (:require
+    [brainard.api.validations :as valid]
+    [brainard.workspace.api.specs :as sws]
     [clojure.set :as set]
-    [defacto.resources.core :as res]))
+    [defacto.forms.core :as-alias forms]
+    [defacto.resources.core :as res]
+    [workspace-nodes :as-alias ws]))
 
 (defn ^:private with-msgs [m k params spec]
   (if-let [v (seq (concat (get spec k) (get params k) (get-in spec [:params k])))]
@@ -141,33 +145,28 @@
           :params {:schedules/id resource-id}}
          spec))
 
-(defmethod res/->request-spec ::workspace#select
-  [_ spec]
-  (->req {:route  :routes.api/workspace-nodes
-          :method :get}
-         spec))
+(defmethod res/->request-spec ::workspace#sync
+  [_ {::keys [action] ::forms/keys [data] :keys [payload] :as spec}]
+  (let [workspace-id (or (::ws/id data) (::ws/id spec))
+        payload (or data payload)
+        params (case action
+                 :create {:route        :routes.api/workspace-nodes
+                          :method       :post
+                          :body         (valid/select-spec-keys payload sws/create)}
 
-(defmethod res/->request-spec ::workspace#create
-  [_ {:keys [payload] :as spec}]
-  (->req {:route  :routes.api/workspace-nodes
-          :method :post
-          :body   payload}
-         spec))
+                 :modify {:route        :routes.api/workspace-node
+                          :method       :patch
+                          :params       {:workspace-nodes/id workspace-id}
+                          :body         (valid/select-spec-keys payload sws/modify)}
 
-(defmethod res/->request-spec ::workspace#modify
-  [[_ resource-id] {:keys [payload] :as spec}]
-  (->req {:route  :routes.api/workspace-node
-          :method :patch
-          :params {:workspace-nodes/id resource-id}
-          :body   payload}
-         spec))
+                 :destroy {:route        :routes.api/workspace-node
+                           :method       :delete
+                           :params       {:workspace-nodes/id workspace-id}}
 
-(defmethod res/->request-spec ::workspace#destroy
-  [[_ resource-id] spec]
-  (->req {:route  :routes.api/workspace-node
-          :method :delete
-          :params {:workspace-nodes/id resource-id}}
-         spec))
+                 {:route  :routes.api/workspace-nodes
+                  :method :get})
+        params (assoc params :err-commands [[:toasts/fail!]])]
+    (->req params spec)))
 
 (defmethod res/->request-spec ::attachment#upload
   [_ spec]

@@ -364,7 +364,7 @@
                   nodes (-> delete-response :body :data)]
               (testing "succeeds"
                 (is (thttp/success? delete-response)))
-              (testing "and the workspace is empty again"
+              (testing "returns the empty workspace"
                 (is (empty? nodes))))))
 
         (testing "when creating an invalid workspace node"
