@@ -13,14 +13,11 @@
 (def ^:private ^:const node-item-selector-fmt
   "//li[contains(@class,'node-item')]//span[text()='%s']")
 
-(defn ^:private wait! [driver text]
-  (eta/wait-visible driver {:xpath (format node-item-selector-fmt text)}))
-
 (defn ^:private ws-edit! [driver node-text icon-class]
   (let [edit-selector-fmt (str node-item-selector-fmt
                                "/following::i[contains(@class,'%s')][1]")
         xpath (format edit-selector-fmt node-text icon-class)]
-    (wait! driver node-text)
+    (eta/wait-visible driver {:xpath (format node-item-selector-fmt node-text)})
     (tutils/click! driver {:xpath xpath})))
 
 (defn ^:private ws-submit! [driver text]
@@ -85,41 +82,41 @@
         (testing "and when creating a workspace root node"
           (tutils/click! driver {:css ".drag-n-drop + .add-root-node"})
           (ws-submit! driver "root node")
+          (eta/wait-absent driver {:css ".modal-container.is-active .modal-item"})
 
           (testing "renders the updated workspace"
-            (wait! driver "root node")
             (is (= 1 (count (eta/query-all driver {:css "li.node-item"}))))
 
             (testing "and when creating a child node"
               (ws-edit! driver "root node" "lni-plus")
               (ws-submit! driver "child node")
+              (eta/wait-absent driver {:css ".modal-container.is-active .modal-item"})
 
               (testing "renders the updated workspace"
-                (wait! driver "child node")
                 (is (= 2 (count (eta/query-all driver {:css "li.node-item"}))))
 
                 (testing "and when creating a sibling node"
                   (ws-edit! driver "root node" "lni-plus")
                   (ws-submit! driver "sibling node")
+                  (eta/wait-absent driver {:css ".modal-container.is-active .modal-item"})
 
                   (testing "renders the updated workspace"
-                    (wait! driver "sibling node")
                     (is (= 3 (count (eta/query-all driver {:css "li.node-item"}))))))
 
                 (testing "and when creating a grandchild node"
                   (ws-edit! driver "child node" "lni-plus")
                   (ws-submit! driver "grandchild node")
+                  (eta/wait-absent driver {:css ".modal-container.is-active .modal-item"})
 
                   (testing "renders the updated workspace"
-                    (wait! driver "grandchild node")
                     (is (= 4 (count (eta/query-all driver {:css "li.node-item"})))))))
 
               (testing "and when updating the child node"
                 (ws-edit! driver "child node" "lni-pencil")
                 (ws-submit! driver "updated child")
+                (eta/wait-absent driver {:css ".modal-container.is-active .modal-item"})
 
                 (testing "renders the updated workspace"
-                  (wait! driver "updated child")
                   (is (not (eta/exists? driver {:xpath "//span[text()='Note 1B']"})))
                   (is (node-absent? "child node")))
 
@@ -127,9 +124,9 @@
                   (ws-edit! driver "updated child" "lni-trash-can")
                   (eta/wait-visible driver {:css ".modal-container.is-active .modal-item"})
                   (tutils/click! driver {:css ".modal-container.is-active button.delete-node"})
+                  (eta/wait-absent driver {:css ".modal-container.is-active .modal-item"})
 
                   (testing "renders the updated workspace"
-                    (tutils/wait-optimistic #(node-absent? "updated child"))
                     (is (node-absent? "updated child"))
                     (is (node-absent? "grandchild node"))
                     (is (= 2 (count (eta/query-all driver {:css "li.node-item"}))))))))))))))
@@ -149,16 +146,11 @@
                                      const tgt = xpath(\"" node-item-selector-fmt "\")
                                        .closest('li.node-item')
                                        .querySelector('div[data-target]');
-                                     src.dispatchEvent(new MouseEvent('mousedown', %s));
-                                     tgt.dispatchEvent(new MouseEvent('mousemove', %s));
-                                     window.dispatchEvent(new MouseEvent('mouseup', %s));")]
-                (eta/js-execute driver
-                                (format script-fmt
-                                        source-text
-                                        target-text
-                                        event-ops
-                                        event-ops
-                                        event-ops))))
+                                     const opts = %s;
+                                     src.dispatchEvent(new MouseEvent('mousedown', opts));
+                                     tgt.dispatchEvent(new MouseEvent('mousemove', opts));
+                                     window.dispatchEvent(new MouseEvent('mouseup', opts));")]
+                (eta/js-execute driver (format script-fmt source-text target-text event-ops))))
             (reorder-node! [source-text after-text]
               (let [event-ops "{bubbles: true, cancelable: true, view: window}"
                     src-xpath (format node-item-selector-fmt source-text)
@@ -174,7 +166,8 @@
                                      "const opts = " event-ops ";"
                                      "const li = xpath(\"" tgt-xpath "\").closest('li.node-item');"
                                      "li.nextElementSibling.querySelector('div[data-target]').dispatchEvent(new MouseEvent('mousemove', opts));"
-                                     "window.dispatchEvent(new MouseEvent('mouseup', opts));"))))
+                                     "const target = document.querySelector('.drag-n-drop > .node-list');"
+                                     "target.dispatchEvent(new MouseEvent('mouseup', opts));"))))
             (node-order []
               (->> (eta/query-all driver {:css "li.node-item .node-content"})
                    (map (comp string/trim (partial eta/get-element-text-el driver)))))
@@ -187,15 +180,15 @@
         (testing "and when creating a root node"
           (tutils/click! driver {:css ".drag-n-drop + .add-root-node"})
           (ws-submit! driver "alpha")
-          (wait! driver "alpha")
+          (eta/wait-absent driver {:css ".modal-container.is-active .modal-item"})
 
           (testing "and when creating another root node with a child"
             (tutils/click! driver {:css ".drag-n-drop + .add-root-node"})
             (ws-submit! driver "beta")
-            (wait! driver "beta")
+            (eta/wait-absent driver {:css ".modal-container.is-active .modal-item"})
             (ws-edit! driver "beta" "lni-plus")
             (ws-submit! driver "gamma")
-            (wait! driver "gamma")
+            (eta/wait-absent driver {:css ".modal-container.is-active .modal-item"})
 
             (testing "renders the workspace with two root nodes"
               (is (= 2 (count (root-nodes))))
@@ -227,7 +220,7 @@
               (testing "and when adding a second child node to alpha"
                 (ws-edit! driver "alpha" "lni-plus")
                 (ws-submit! driver "delta")
-                (wait! driver "delta")
+                (eta/wait-absent driver {:css ".modal-container.is-active .modal-item"})
 
                 (testing "renders nodes in the correct order"
                   (is (= ["alpha" "beta" "gamma" "delta"] (node-order))))

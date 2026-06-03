@@ -50,7 +50,7 @@
 
 (defn ^:private ->on-drop [*:store]
   (fn [node-id [_ parent-id sibling-id]]
-    (store/dispatch! *:store [::res/submit!
+    (store/dispatch! *:store [::res/resubmit!
                               [::specs/workspace#sync]
                               {::ws/id        node-id
                                ::specs/action :modify
@@ -72,7 +72,7 @@
   [:modals/sure?
    {:description  "This node and all ancestors will be deleted"
     :ok-btn-class ["delete-node"]
-    :yes-commands [[::res/submit!
+    :yes-commands [[::res/resubmit!
                     [::specs/workspace#sync]
                     {::ws/id        (::ws/id node)
                      ::specs/action :destroy}]]}])
