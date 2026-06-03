@@ -1,5 +1,8 @@
 {:linters {:unused-binding          {:level :off}
            :unused-private-function {:level :off}
            :unused-private-var      {:level :off}}
- :lint-as {brainard.test.harness.integration.system/with-app clojure.core/let
-           brainard.test.harness.ui.system/with-webdriver    clojure.core/fn}}
+ :lint-as {brainard.api.utils.logger/with-duration           clojure.core/let
+           brainard.test.harness.integration.system/with-app clojure.core/let
+           brainard.test.harness.ui.system/with-webdriver    clojure.core/fn
+           defacto.forms.plus/validated                      clojure.core/defmethod
+           whet.utils.reagent/with-let                       clojure.core/let}}
