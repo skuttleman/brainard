@@ -151,11 +151,11 @@
   [*:store route-info]
   (r/with-let [sub:tags (store/res-sub *:store [::specs/tags#select])
                sub:pinned (store/res-sub *:store [::home.act/notes#pinned])
-               sub:tree (store/res-sub *:store [::specs/workspace#sync])]
+               sub:tree (store/res-sub *:store [::home.act/workspace#sync])]
     [:div.layout--stack-between
      [comp/with-resource sub:tree [workspace *:store]]
      [comp/with-resources [sub:tags sub:pinned] [pinned *:store route-info]]]
     (finally
       (-> *:store
-          (store/emit! [::res/destroyed [::specs/workspace#sync]])
+          (store/emit! [::res/destroyed [::home.act/workspace#sync]])
           (store/emit! [::res/destroyed [::home.act/notes#pinned]])))))
