@@ -115,16 +115,11 @@
          spec))
 
 (defmethod res/->request-spec ::notes#reinstate
-  [[_ resource-id] {:keys [resource-key] :as spec}]
+  [[_ resource-id] spec]
   (->req {:route        :routes.api/note!reinstate
           :params       {:notes/id resource-id}
           :method       :post
-          :body         (modify-note-body spec)
-          :ok-events    [[::res/destroyed resource-key]]
-          :ok-commands  [[:toasts/succeed! {:message "previous version of note was reinstated"}]
-                         [::res/submit! [::notes#find resource-id]]
-                         [::res/submit! [::note#history resource-id]]]
-          :err-commands [[:toasts/fail!]]}
+          :body         (modify-note-body spec)}
          spec))
 
 (defmethod res/->request-spec ::notes#destroy

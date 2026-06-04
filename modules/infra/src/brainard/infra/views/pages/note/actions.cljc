@@ -34,9 +34,14 @@
   [resource-key {:keys [note] :as spec}]
   (let [payload (valid/select-spec-keys note snotes/reinstate)
         note-id (:notes/id note)]
-    (res/->request-spec [::specs/notes#reinstate note-id] (assoc spec
-                                                                 :payload payload
-                                                                 :resource-key resource-key))))
+    (res/->request-spec [::specs/notes#reinstate note-id]
+                        (assoc spec
+                               :payload payload
+                               :ok-events    [[::res/destroyed resource-key]]
+                               :ok-commands  [[:toasts/succeed! {:message "previous version of note was reinstated"}]
+                                              [::res/submit! [::notes#find note-id]]
+                                              [::res/submit! [::note#history note-id]]]
+                               :err-commands [[:toasts/fail!]]))))
 
 (forms+/validated ::schedules#create (valid/->validator ssched/create)
   [_ {::forms/keys [data] :as spec}]

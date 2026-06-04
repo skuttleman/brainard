@@ -28,12 +28,15 @@
   [_ spec]
   (res/->request-spec [::specs/notes#select] (assoc spec :params {:pinned true})))
 
-(forms+/validated ::workspace#sync (let [create (valid/->validator sws/create)
-                                         modify (valid/->validator sws/modify)]
-                                     (fn [data]
-                                       (if (::ws/id data)
-                                         (modify data)
-                                         (create data))))
+(def ^:no-doc workspace-validator
+  (let [create (valid/->validator sws/create)
+        modify (valid/->validator sws/modify)]
+    (fn [data]
+      (if (::ws/id data)
+        (modify data)
+        (create data)))))
+
+(forms+/validated ::workspace#sync workspace-validator
   [_ {::forms/keys [data] :keys [payload] :as spec}]
   (let [spec-key (case (::action spec)
                    ::create ::specs/workspace#create
