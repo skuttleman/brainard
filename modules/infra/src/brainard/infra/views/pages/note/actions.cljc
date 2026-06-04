@@ -39,8 +39,8 @@
                                :payload payload
                                :ok-events    [[::res/destroyed resource-key]]
                                :ok-commands  [[:toasts/succeed! {:message "previous version of note was reinstated"}]
-                                              [::res/submit! [::notes#find note-id]]
-                                              [::res/submit! [::note#history note-id]]]
+                                              [::res/submit! [::specs/notes#find note-id]]
+                                              [::res/submit! [::specs/note#history note-id]]]
                                :err-commands [[:toasts/fail!]]))))
 
 (forms+/validated ::schedules#create (valid/->validator ssched/create)
