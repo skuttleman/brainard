@@ -42,9 +42,9 @@ check-deps: ## Verify required CLI tools are available (with install hints)
 run: check-deps ## Run the app (uses foreman or npx foreman)
 	@echo "Starting app..."
 	@if command -v $(FOREMAN) >/dev/null 2>&1; then \
-		$(FOREMAN) start; \
+		$(FOREMAN) start || killall -15 node java clj sass; \
 	else \
-		$(NPX) foreman start; \
+		$(NPX) foreman start || killall -15 node java clj sass; \
 	fi
 
 install: ## Install JS dependencies (uses npm)
@@ -106,6 +106,7 @@ coverage: clean check-deps build-sass build-test ## Run unit/integration/UI test
 		--plugin cloverage --cov-output target/coverage/driver --lcov \
 		--cov-ns-regex 'brainard\..*\.db' \
 		--cov-ns-regex 'brainard\.*\.api\..*' \
+		--cov-ns-regex 'brainard\.*\.system\..*' \
 		--cov-ns-regex 'brainard\.infra\.store\..*' \
 		--cov-ns-regex 'brainard\..*\.(multipart-params|routes\.ui)' :ui
 	@echo "Generating JS coverage report..."

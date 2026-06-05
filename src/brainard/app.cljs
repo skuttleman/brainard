@@ -6,8 +6,7 @@
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.pages.core :as pages]
-    [clojure.core.async :as async]
-    [defacto.core :as defacto]
+    [brainard.events.infra.handler :as handler]
     [defacto.resources.core :as-alias res]
     [whet.core :as w]
     brainard.infra.store.commands
@@ -19,9 +18,11 @@
 (defn store->comp
   "Takes initialized defacto store and returns the component tree"
   [store]
-  (async/go
-    (async/<! (async/timeout 600000))
-    (defacto/dispatch! store [::res/poll! 600000 [::specs/notes#buzz]]))
+  (log/info "connecting event stream...")
+  (doto (js/EventSource. "/api/ws")
+    (dom/add-listener! :open (fn [_] (log/info "event stream connected")))
+    (dom/add-listener! :error (fn [_] (log/warn "event stream closed")))
+    (dom/add-listener! :message (handler/->handler store)))
   (dom/add-listener! js/navigation
                      :navigate
                      (fn [^js/NavigateEvent e]
