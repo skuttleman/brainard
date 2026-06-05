@@ -1,13 +1,13 @@
 (ns brainard.infra.system.core
   (:require
     [brainard :as-alias b]
-    [brainard.api.notifications.core :as notifications]
+    [brainard.api.events.core :as events]
     [brainard.api.utils.logger :as log]
     [brainard.infra.db.store :as ds]
     [brainard.infra.obj.store :as os]
     [brainard.infra.routes.core :as routes]
     [brainard.infra.system.daemons :as daemons]
-    [brainard.notifications.infra.manager :as manager]
+    [brainard.events.infra.manager :as manager]
     [immutant.web :as web]
     [integrant.core :as ig]
     brainard.attachments.infra.db
@@ -15,7 +15,7 @@
     brainard.infra.routes.ui
     brainard.notes.infra.db
     brainard.notes.infra.routes
-    brainard.notifications.infra.routes
+    brainard.events.infra.routes
     brainard.schedules.infra.db
     brainard.workspace.infra.db)
   (:import
@@ -27,10 +27,10 @@
     (routes/be-handler (assoc req ::b/file-limit-bytes upload-limit))))
 
 (defmethod ig/init-key ::b/webserver
-  [_ {:keys [apis handler server-port ws]}]
+  [_ {:keys [apis events handler server-port]}]
   (log/info "starting webserver on port" server-port)
   (web/run (fn [req]
-             (handler (assoc req ::b/apis apis ::b/ws ws)))
+             (handler (assoc req ::b/apis apis ::b/events events)))
            {:port server-port :host "0.0.0.0"}))
 
 (defmethod ig/halt-key! ::b/webserver
@@ -54,13 +54,13 @@
   [_ params]
   (os/->invoke-fn params))
 
-(defmethod ig/init-key :brainard.ws/manager
+(defmethod ig/init-key :brainard/events
   [_ _]
-  (manager/->NotificationManager (ref {})))
+  (manager/->EventsManager (ref {})))
 
-(defmethod ig/halt-key! :brainard.ws/manager
+(defmethod ig/halt-key! :brainard/events
   [_ manager]
-  (notifications/close! manager))
+  (events/close! manager))
 
 (defmacro ^:private thread-loop [interval & body]
   `(let [interval# (long ~interval)
@@ -77,10 +77,10 @@
          (recur)))))
 
 (defmethod ig/init-key ::b/buzzer
-  [_ {:keys [apis interval ws]}]
+  [_ {:keys [apis events interval]}]
   (log/info "starting buzzer")
   (doto (Thread. ^Runnable (thread-loop interval
-                             (daemons/update-buzz! apis ws (Date.))))
+                             (daemons/update-buzz! apis events (Date.))))
     .start))
 
 (defmethod ig/halt-key! ::b/buzzer

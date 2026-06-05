@@ -6,7 +6,7 @@
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.pages.core :as pages]
-    [brainard.notifications.infra.manager :as manager]
+    [brainard.events.infra.handler :as handler]
     [defacto.resources.core :as-alias res]
     [whet.core :as w]
     brainard.infra.store.commands
@@ -18,7 +18,11 @@
 (defn store->comp
   "Takes initialized defacto store and returns the component tree"
   [store]
-  (manager/loop! store)
+  (log/info "connecting event stream...")
+  (doto (js/EventSource. "/api/ws")
+    (dom/add-listener! :open (fn [_] (log/info "event stream connected")))
+    (dom/add-listener! :error (fn [_] (log/warn "event stream closed")))
+    (dom/add-listener! :message (handler/->handler store)))
   (dom/add-listener! js/navigation
                      :navigate
                      (fn [^js/NavigateEvent e]

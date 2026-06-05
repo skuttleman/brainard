@@ -1,4 +1,4 @@
-(ns brainard.api.notifications.interfaces)
+(ns brainard.api.events.interfaces)
 
 (defprotocol IConnect
   "Connectable Resource"

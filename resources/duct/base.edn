@@ -3,15 +3,15 @@
 
  :brainard/webserver
  {:apis        #ig/ref :brainard/apis
+  :events      #ig/ref :brainard/events
   :handler     #ig/ref :brainard/IWebHandler
-  :server-port #ig/ref :cfg/server-port
-  :ws          #ig/ref :brainard.ws/manager}
+  :server-port #ig/ref :cfg/server-port}
 
 
  [:brainard/buzzer :duct/daemon]
  {:apis     #ig/ref :brainard/apis
-  :interval #ig/ref :cfg.ws/interval
-  :ws       #ig/ref :brainard.ws/manager}
+  :events   #ig/ref :brainard/events
+  :interval #ig/ref :cfg.ws/interval}
 
  [:brainard/artifact-cleaner :duct/daemon]
  {:interval  #ig/ref :cfg.cleanup/interval
@@ -46,7 +46,7 @@
  :brainard/obj-storage
  {:invoker #ig/ref :brainard/IObjInvoker}
 
- :brainard.ws/manager
+ :brainard/events
  {}
 
  [:duct/const :cfg.ds/schema]

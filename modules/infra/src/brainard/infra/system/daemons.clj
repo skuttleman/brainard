@@ -4,7 +4,7 @@
     [brainard.api.storage.interfaces :as istorage]
     [brainard.api.utils.logger :as log]
     [brainard.api.utils.uuids :as uuids]
-    [brainard.api.notifications.core :as notifications]))
+    [brainard.api.events.core :as events]))
 
 (defn cleanup-orphaned-artifacts!
   "Cleanup all objects in the object store that have no corresponding
@@ -38,6 +38,6 @@
 
 (defn update-buzz!
   "Broadcasts relevant notes to all connections."
-  [apis ws timestamp]
+  [apis events timestamp]
   (let [notes (api/invoke-api :api.notes/relevant apis {:timestamp timestamp})]
-    (notifications/broadcast! ws [:notes/relevant {:data notes}])))
+    (events/broadcast! events [:notes/relevant {:data notes}])))

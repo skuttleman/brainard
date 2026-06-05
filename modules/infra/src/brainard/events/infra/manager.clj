@@ -1,14 +1,14 @@
-(ns brainard.notifications.infra.manager
+(ns brainard.events.infra.manager
   (:require
-    [brainard.api.notifications.interfaces :as inotifications]
+    [brainard.api.events.interfaces :as ievents]
     [immutant.web.async :as web.async]))
 
 (defn ^:private fmt-event [msg]
   (str "event: message" \newline
        "data: " (pr-str msg) \newline \newline))
 
-(deftype NotificationManager [subs]
-  inotifications/IConnect
+(deftype EventsManager [subs]
+  ievents/IConnect
   (connect! [_ ch-id ch]
     (dosync
       (alter subs assoc ch-id ch)))
@@ -21,7 +21,7 @@
     (dosync
       (alter subs dissoc ch-id)))
 
-  inotifications/ISend
+  ievents/ISend
   (broadcast! [_ msg]
     (let [event (fmt-event msg)]
       (doseq [ch (vals @subs)]

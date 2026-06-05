@@ -1,7 +1,7 @@
 (ns brainard.test.integration.daemons-test
   (:require
     [brainard :as-alias b]
-    [brainard.api.notifications.interfaces :as inotifications]
+    [brainard.api.events.interfaces :as ievents]
     [brainard.api.storage.core :as storage]
     [brainard.api.utils.uuids :as uuids]
     [brainard.attachments.api.core :as api.attachments]
@@ -48,11 +48,11 @@
 (deftest update-buzz!-test
   (tsys/with-app [{::b/keys [apis storage]} nil]
     (let [msgs (atom [])
-          mock-ws (reify inotifications/ISend
-                    (broadcast! [_ msg]
-                      (swap! msgs conj msg)))
+          mock-events (reify ievents/ISend
+                        (broadcast! [_ msg]
+                          (swap! msgs conj msg)))
           [n1 n2 s1] (repeatedly uuids/random)
-          timestamp   (Date.)
+          timestamp (Date.)
           weekday (-> timestamp
                       .getTime
                       inst/of-epoch-milli
@@ -80,7 +80,7 @@
                               :schedules/weekday weekday}])
 
           (testing "and when updating buzz"
-            (daemons/update-buzz! apis mock-ws timestamp)
+            (daemons/update-buzz! apis mock-events timestamp)
 
             (testing "broadcasts the relevant note"
               (let [notes (->> @msgs
