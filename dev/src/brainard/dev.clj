@@ -45,7 +45,6 @@
                                    (log/info "stopping nREPL server")
                                    (nrepl/stop-server nrepl-server)))))
     (let [sys (main/start! "duct/dev.edn" [:duct.profile/base :duct.profile/dev])]
-      (main/cleanup-orphaned-artifacts! sys)
       (alter-var-root #'system (constantly sys))
       (duct/await-daemons system))))
 
