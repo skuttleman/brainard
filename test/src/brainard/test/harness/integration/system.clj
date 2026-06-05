@@ -7,7 +7,6 @@
     [clojure.java.io :as io]
     [clojure.test :refer [testing]]
     [datomic.client.api :as d]
-    [duct.core :as duct]
     [integrant.core :as ig]
     brainard.dev.s3
     brainard.infra.system.core
