@@ -29,13 +29,9 @@ jobs:
       - name: Install all deps
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          clojure -P
-          clojure -P -M:build
-          clojure -P -M:dev
-          clojure -P -M:lint
-          clojure -P -M:shadow
-          clojure -P -M:test
-          clojure -P -M:tools
+          for alias in '' :build :dev :lint :shadow :test :tools; do
+            clojure -P -M$alias
+          done
 
   lint:
     name: Lint
