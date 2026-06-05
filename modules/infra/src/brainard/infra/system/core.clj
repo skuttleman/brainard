@@ -17,7 +17,9 @@
     brainard.notes.infra.routes
     brainard.notifications.infra.routes
     brainard.schedules.infra.db
-    brainard.workspace.infra.db))
+    brainard.workspace.infra.db)
+  (:import
+    (java.util Date)))
 
 (defmethod ig/init-key :brainard.web/handler
   [_ {:keys [upload-limit]}]
@@ -75,10 +77,10 @@
          (recur)))))
 
 (defmethod ig/init-key ::b/buzzer
-  [_ {:keys [interval notes-api ws]}]
+  [_ {:keys [apis interval ws]}]
   (log/info "starting buzzer")
   (doto (Thread. ^Runnable (thread-loop interval
-                             (daemons/update-buzz! notes-api ws)))
+                             (daemons/update-buzz! apis ws (Date.))))
     .start))
 
 (defmethod ig/halt-key! ::b/buzzer

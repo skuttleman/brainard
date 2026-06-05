@@ -1,12 +1,14 @@
 (ns brainard.infra.system.daemons
   (:require
+    [brainard.api.core :as api]
     [brainard.api.storage.interfaces :as istorage]
     [brainard.api.utils.logger :as log]
     [brainard.api.utils.uuids :as uuids]
     [brainard.api.notifications.core :as notifications]))
 
 (defn cleanup-orphaned-artifacts!
-  ""
+  "Cleanup all objects in the object store that have no corresponding
+   entity in the data store."
   [store obj-store]
   (try
     (let [s3-keys (->> (istorage/read obj-store
@@ -35,6 +37,7 @@
       (log/error ex "Failed to cleanup orphaned S3 objects"))))
 
 (defn update-buzz!
-  ""
-  [_notes-api ws]
-  (notifications/broadcast! ws [:message/ping!]))
+  "Broadcasts relevant notes to all connections."
+  [apis ws timestamp]
+  (let [notes (api/invoke-api :api.notes/relevant apis {:timestamp timestamp})]
+    (notifications/broadcast! ws [:notes/relevant {:data notes}])))

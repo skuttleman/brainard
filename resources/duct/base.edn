@@ -9,9 +9,9 @@
 
 
  [:brainard/buzzer :duct/daemon]
- {:interval  #ig/ref :cfg.ws/interval
-  :notes-api #ig/ref :brainard/notes-api
-  :ws        #ig/ref :brainard.ws/manager}
+ {:apis     #ig/ref :brainard/apis
+  :interval #ig/ref :cfg.ws/interval
+  :ws       #ig/ref :brainard.ws/manager}
 
  [:brainard/artifact-cleaner :duct/daemon]
  {:interval  #ig/ref :cfg.cleanup/interval
