@@ -19,4 +19,4 @@
                              (log/infof "ws disconnected: %s" ch-id))}]
     (-> req
         (web.async/as-channel handler)
-        (assoc ::w/raw? true))))
+        (assoc-in [:headers "content-type"] "text/event-stream"))))

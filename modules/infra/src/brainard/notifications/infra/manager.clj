@@ -3,6 +3,10 @@
     [brainard.api.notifications.interfaces :as inotifications]
     [immutant.web.async :as web.async]))
 
+(defn ^:private fmt-event [msg]
+  (str "event: message" \newline
+       "data: " (pr-str msg) \newline \newline))
+
 (deftype NotificationManager [subs]
   inotifications/IConnect
   (connect! [_ ch-id ch]
@@ -19,5 +23,6 @@
 
   inotifications/ISend
   (broadcast! [_ msg]
-    (doseq [ch (vals @subs)]
-      (web.async/send! ch (pr-str msg)))))
+    (let [event (fmt-event msg)]
+      (doseq [ch (vals @subs)]
+        (web.async/send! ch event)))))

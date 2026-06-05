@@ -2,32 +2,31 @@
   (:require
     [brainard.api.utils.logger :as log]
     [brainard.infra.store.specs :as-alias specs]
+    [brainard.infra.stubs.dom :as dom]
     [brainard.infra.utils.edn :as edn]
-    [clojure.core.async :as async]
     [defacto.core :as defacto]
-    [defacto.resources.core :as-alias res]
-    [haslett.client :as ws]))
+    [defacto.resources.core :as-alias res]))
 
-(defn ^:private ->conn []
-  (log/info "establishing websocket connection...")
-  (ws/connect "/api/ws" {:in (async/chan 10 (map edn/read-string))}))
+(defmulti ^:private event-handler*
+          (fn [_ [type]]
+            type))
 
-(defn ^:private backoff [wait-ms]
-  (-> wait-ms
-      (* 7)
-      (max 1)
-      (min 3000)))
+(defn ^:private e->clj [e]
+  (edn/read-string (.-data e)))
 
-(defn loop! [store]
-  (async/go-loop [stream (async/<! (->conn))
-                  new? true
-                  wait 0]
-    (when (and new? (ws/connected? stream))
-      (log/info "websocket connection established"))
-    (if (ws/connected? stream)
-      (let [[_ {:keys [data]} :as val] (async/<! (:in stream))]
-        (when val
-          (defacto/emit! store [::res/swapped [::specs/notes#buzz] data]))
-        (recur stream false 0))
-      (do (async/<! (async/timeout wait))
-          (recur (async/<! (->conn)) true (backoff wait))))))
+(defn ^:private ->event-handler [store]
+  (fn [e]
+    (event-handler* store (e->clj e))))
+
+(defn loop!
+  "Establishes event stream connection"
+  [store]
+  (log/info "connecting event stream...")
+  (doto (js/EventSource. "/api/ws")
+    (dom/add-listener! :open (fn [_] (log/info "event stream connected")))
+    (dom/add-listener! :error (fn [_] (log/warn "event stream closed")))
+    (dom/add-listener! :message (->event-handler store))))
+
+(defmethod event-handler* :notes/relevant
+  [store [_ {:keys [data]}]]
+  (defacto/emit! store [::res/swapped [::specs/notes#buzz] data]))

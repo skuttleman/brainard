@@ -7,7 +7,6 @@
            com.cognitect.aws/s3                  {:mvn/version "871.2.43.0"}
            com.datomic/local                     {:mvn/version "1.0.291"}
            duct/core                             {:mvn/version "0.8.1"}
-           haslett/haslett                       {:mvn/version "0.2.0"}
            io.github.nextjournal/markdown        {:mvn/version "0.7.225"}
            commons-fileupload/commons-fileupload {:mvn/version "1.6.0"}
            org.immutant/immutant                 {:mvn/version "2.1.10"

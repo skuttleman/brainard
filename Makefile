@@ -106,6 +106,7 @@ coverage: clean check-deps build-sass build-test ## Run unit/integration/UI test
 		--plugin cloverage --cov-output target/coverage/driver --lcov \
 		--cov-ns-regex 'brainard\..*\.db' \
 		--cov-ns-regex 'brainard\.*\.api\..*' \
+		--cov-ns-regex 'brainard\.*\.system\..*' \
 		--cov-ns-regex 'brainard\.infra\.store\..*' \
 		--cov-ns-regex 'brainard\..*\.(multipart-params|routes\.ui)' :ui
 	@echo "Generating JS coverage report..."
