@@ -18,14 +18,16 @@
 
 (defn start!
   "Starts a duct component system from a configuration expressed in an `edn` file."
-  [config-file profiles]
-  (duct/load-hierarchy)
-  (binding [duct.env/*env* (with-env-file duct.env/*env*)]
-    (-> config-file
-        duct/resource
-        duct/read-config
-        (duct/prep-config profiles)
-        (ig/init [:duct/daemon]))))
+  ([config-file profiles]
+   (start! config-file profiles [:duct/daemon]))
+  ([config-file profiles init-keys]
+   (duct/load-hierarchy)
+   (binding [duct.env/*env* (with-env-file duct.env/*env*)]
+     (-> config-file
+         duct/resource
+         duct/read-config
+         (duct/prep-config profiles)
+         (ig/init init-keys)))))
 
 (defn -main
   "Entry point for running the `brainard` web application from the command line."

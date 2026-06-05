@@ -3,6 +3,7 @@
     [brainard.api.storage.interfaces :as istorage]
     [brainard.api.utils.uuids :as uuids]
     [brainard.infra.db.store :as ds]
+    [brainard.main :as main]
     [clojure.java.io :as io]
     [clojure.test :refer [testing]]
     [datomic.client.api :as d]
@@ -58,12 +59,9 @@
                                  token [sym `(val (ig/find-derived-1 ~sys ~kw))]]
                              token)]
     `(let [opts# ~opts
-           _# (duct/load-hierarchy)
-           ~sys (-> (:config opts# "duct/test.edn")
-                    duct/resource
-                    duct/read-config
-                    (duct/prep-config [:duct.profile/base :duct.profile/test])
-                    (ig/init (:init-keys opts# [:brainard/apis])))
+           ~sys (main/start! (:config opts# "duct/test.edn")
+                             [:duct.profile/base :duct.profile/test]
+                             (:init-keys opts# [:brainard/apis]))
            ~sys-binding ~sys
            ~@component-bindings]
        (try
