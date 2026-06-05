@@ -13,6 +13,7 @@
   (let [ch-id (uuids/random)
         handler {:on-open  (fn [ch]
                              (ievents/connect! events ch-id ch)
+                             (web.async/send! ch "event: connected\n\n")
                              (log/infof "ws connected: %s" ch-id))
                  :on-close (fn [_ _]
                              (ievents/disconnect! events ch-id)
