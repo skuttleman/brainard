@@ -37,7 +37,7 @@
 (defn from
   "Given a timestamp returns a map of relevancy characteristics to match against."
   [timestamp]
-  (let [millis #?(:cljs (.getTime timestamp) :default (.getTime ^Date millis))
+  (let [millis #?(:cljs (.getTime timestamp) :default (.getTime ^Date timestamp))
         dt (zdt/of-instant (inst/of-epoch-milli millis) (zi/of "UTC"))
         day (zdt/get-day-of-month dt)]
     {:weekday    (->weekday dt)
