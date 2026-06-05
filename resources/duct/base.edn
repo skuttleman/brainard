@@ -79,4 +79,4 @@
  #duct/env ["CLEANUP_INTERVAL" Int :or 43200000]
 
  [:duct/const :cfg.ws/interval]
- #duct/env ["BUZZ_INTERVAL" Int :or 10000]}
+ #duct/env ["BUZZ_INTERVAL" Int :or 60000]}
