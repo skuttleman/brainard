@@ -4,8 +4,19 @@
  :brainard/webserver
  {:apis        #ig/ref :brainard/apis
   :handler     #ig/ref :brainard/IWebHandler
-  :server-port #ig/ref :cfg/server-port}
+  :server-port #ig/ref :cfg/server-port
+  :ws          #ig/ref :brainard.ws/manager}
 
+
+ [:brainard/buzzer :duct/daemon]
+ {:interval  #ig/ref :cfg.ws/interval
+  :notes-api #ig/ref :brainard/notes-api
+  :ws        #ig/ref :brainard.ws/manager}
+
+ [:brainard/artifact-cleaner :duct/daemon]
+ {:interval  #ig/ref :cfg.cleanup/interval
+  :obj-store #ig/ref :brainard/obj-storage
+  :store     #ig/ref :brainard/storage}
 
  ;; apis
  [:duct/const :brainard/apis]
@@ -35,6 +46,9 @@
  :brainard/obj-storage
  {:invoker #ig/ref :brainard/IObjInvoker}
 
+ :brainard.ws/manager
+ {}
+
  [:duct/const :cfg.ds/schema]
  #duct/include "db/schema.edn"
 
@@ -59,4 +73,10 @@
  #duct/env "AWS_ACCESS_KEY"
 
  [:duct/const :cfg.obj/secret-key]
- #duct/env "AWS_SECRET_KEY"}
+ #duct/env "AWS_SECRET_KEY"
+
+ [:duct/const :cfg.cleanup/interval] ;; twelve-hours
+ #duct/env ["CLEANUP_INTERVAL" Int :or 43200000]
+
+ [:duct/const :cfg.ws/interval]
+ #duct/env ["BUZZ_INTERVAL" Int :or 10000]}
