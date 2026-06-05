@@ -6,8 +6,7 @@
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.utils.routing :as rte]
     [brainard.infra.views.pages.core :as pages]
-    [clojure.core.async :as async]
-    [defacto.core :as defacto]
+    [brainard.notifications.infra.manager :as manager]
     [defacto.resources.core :as-alias res]
     [whet.core :as w]
     brainard.infra.store.commands
@@ -19,9 +18,7 @@
 (defn store->comp
   "Takes initialized defacto store and returns the component tree"
   [store]
-  (async/go
-    (async/<! (async/timeout 600000))
-    (defacto/dispatch! store [::res/poll! 600000 [::specs/notes#buzz]]))
+  (manager/loop! store)
   (dom/add-listener! js/navigation
                      :navigate
                      (fn [^js/NavigateEvent e]
