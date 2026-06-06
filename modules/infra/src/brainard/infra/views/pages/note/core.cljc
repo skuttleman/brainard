@@ -15,8 +15,8 @@
 
 (defn ^:private attachment-list [note]
   (when-let [attachments (not-empty (:notes/attachments note))]
-    [note-comp/attachment-list {:label?    true
-                                :value     attachments}]))
+    [note-comp/attachment-list {:label? true
+                                :value  attachments}]))
 
 (defmethod note-comp/todo-item true
   [{:keys [*:store disabled? note-id]} todo]
@@ -59,7 +59,7 @@
       :disabled? disabled?}]))
 
 (defn ^:private pin-toggle [*:store note disabled?]
-  (r/with-let [pin-note-key (note.act/->pin-note-key (:notes/id note))
+  (r/with-let [pin-note-key (note.act/->pin-key (:notes/id note))
                sub:form+ (store/form+-sub *:store pin-note-key note)]
     (let [form+ @sub:form+]
       [:div
@@ -80,57 +80,66 @@
           (interpose [:span "AND"])
           parts)))
 
-(defn ^:private schedule-list [*:store note]
+(defn ^:private schedule-list [*:store note scheds disabled?]
   [:div
-   (if-let [scheds (seq (:notes/schedules note))]
+   (if (seq scheds)
      [:<>
       [:p.schedules__header [:em "Existing schedules"]]
       [:ul.layout--stack-between.schedules__items
        (for [{sched-id :schedules/id :as sched} scheds
-             :let [modal (note.act/->delete-sched-modal sched-id note)]]
+             :let [modal (note.sched/->delete-sched-modal (:notes/id note) sched-id)]]
          ^{:key sched-id}
          [:li.layout--room-between.layout--align-center.space--left.schedules__item
           [comp/plain-button {:*:store  *:store
                               :class    ["is-danger" "is-light" "is-small" "schedules__delete"]
-                              :commands [[:modals/create! modal]]}
+                              :commands [[:modals/create! modal]]
+                              :disabled disabled?}
            [comp/icon :trash-can]]
           [schedule-item sched]])]]
      [:p.schedules__empty [:em "no related schedules"]])])
 
-(defn ^:private schedule-form [{:keys [*:store sub:form+]}]
+(defn ^:private schedule-form [{:keys [*:store disabled? sub:form+]}]
   (let [form+ @sub:form+]
     [ctrls/form {:*:store      *:store
                  :class        ["schedule-form"]
                  :form+        form+
                  :horizontal?  true
                  :changed?     (forms/changed? form+)
+                 :disabled     disabled?
+                 :params       {::note.sched/action ::note.sched/create}
                  :resource-key (forms/id form+)
                  :submit/body  "Save"}
-     [ctrls/select (-> {:label   "Day of the month"
-                        :*:store *:store}
+     [ctrls/select (-> {:label    "Day of the month"
+                        :*:store  *:store
+                        :disabled disabled?}
                        (ctrls/with-attrs form+ [:schedules/day]))
       note.sched/day-options]
-     [ctrls/select (-> {:label   "Day of the week"
-                        :*:store *:store}
+     [ctrls/select (-> {:label    "Day of the week"
+                        :*:store  *:store
+                        :disabled disabled?}
                        (ctrls/with-attrs form+ [:schedules/weekday]))
       note.sched/weekday-options]
-     [ctrls/select (-> {:label   "Week of the month"
-                        :*:store *:store}
+     [ctrls/select (-> {:label    "Week of the month"
+                        :*:store  *:store
+                        :disabled disabled?}
                        (ctrls/with-attrs form+ [:schedules/week-index]))
       note.sched/week-index-options]
-     [ctrls/select (-> {:label   "Month of the year"
-                        :*:store *:store}
+     [ctrls/select (-> {:label    "Month of the year"
+                        :*:store  *:store
+                        :disabled disabled?}
                        (ctrls/with-attrs form+ [:schedules/month]))
       note.sched/month-options]
-     [ctrls/datetime (-> {:label   "Earliest Moment"
-                          :*:store *:store}
+     [ctrls/datetime (-> {:label    "Earliest Moment"
+                          :*:store  *:store
+                          :disabled disabled?}
                          (ctrls/with-attrs form+ [:schedules/after-timestamp]))]
-     [ctrls/datetime (-> {:label   "Latest Moment"
-                          :*:store *:store}
+     [ctrls/datetime (-> {:label    "Latest Moment"
+                          :*:store  *:store
+                          :disabled disabled?}
                          (ctrls/with-attrs form+ [:schedules/before-timestamp]))]]))
 
-(defn ^:private schedule-editor [*:store note]
-  (r/with-let [schedule-create-key (note.sched/->sched-create-key note)
+(defn ^:private schedule-editor [*:store note scheds disabled?]
+  (r/with-let [schedule-create-key (note.sched/->create-key (:notes/id note))
                sub:form+ (store/form+-sub *:store
                                           schedule-create-key
                                           {:schedules/note-id (:notes/id note)}
@@ -139,13 +148,13 @@
      [:div.flex.row
       [:em "Add a schedule: "]
       [:span.space--left [schedule-item (forms/data @sub:form+)]]]
-     [schedule-form {:*:store *:store :sub:form+ sub:form+}]
-     [schedule-list *:store note]]
+     [schedule-form {:*:store *:store :disabled? disabled? :sub:form+ sub:form+}]
+     [schedule-list *:store note scheds disabled?]]
     (finally
       (store/emit! *:store [::forms/destroyed schedule-create-key]))))
 
-(defn ^:private root [*:store note disabled?]
-  [:div.layout--stack-between
+(defn ^:private note-root [_ *:store disabled? note]
+  [:<>
    [:div.layout--row
     [:h1.layout--space-after.flex-grow [:strong (:notes/context note)]]
     [pin-toggle *:store note disabled?]]
@@ -157,48 +166,53 @@
      [attachment-list note]]]
    [note-comp/tag-list note]
    [:div.layout--space-between
-      [:div.button-row
-       [comp/plain-button {:*:store  *:store
-                           :class    ["is-info" "note__edit-button"]
-                           :commands [[:modals/create! (note.act/->edit-modal note)]]
-                           :disabled disabled?}
-        "Edit"]
-       [comp/plain-button {:*:store  *:store
-                           :class    ["is-danger" "note__delete-button"]
-                           :commands [[:modals/create! (note.act/->delete-modal note)]]
-                           :disabled disabled?}
-        "Delete note"]]
-      #_[comp/plain-button {:*:store  *:store
+    [:div.button-row
+     [comp/plain-button {:*:store  *:store
+                         :class    ["is-info" "note__edit-button"]
+                         :commands [[:modals/create! (note.act/->edit-modal note)]]
+                         :disabled disabled?}
+      "Edit"]
+     [comp/plain-button {:*:store  *:store
+                         :class    ["is-danger" "note__delete-button"]
+                         :commands [[:modals/create! (note.act/->delete-modal note)]]
+                         :disabled disabled?}
+      "Delete note"]]
+    #_[comp/plain-button {:*:store  *:store
                           :class    ["is-light" "note__history-button"]
                           :commands [[:modals/create! [;; ::note.history/modal
                                                        {:note note}]]]
-                            :disabled disabled?}
-       "View history"]]
-   [schedule-editor *:store note]])
+                          :disabled disabled?}
+       "View history"]]])
+
+(defn ^:private note-err [_]
+  [comp/alert :warn
+   [:div
+    "Note not found. Try "
+    [comp/link {:token :routes.ui/home} "creating one"]
+    "."]])
+
+(defn ^:private schedule-root [*:store disabled? [note scheds]]
+  [schedule-editor *:store note scheds disabled?])
 
 (defn ^:private page [*:store note-id]
-  (r/with-let [resource-key (note.act/->sync-key note-id)
-               sub:note (store/res-sub *:store resource-key)]
-    (let [resource @sub:note]
-      (cond
-        (res/success? resource)
-        [root *:store (res/payload resource) false]
-
-        (and (res/requesting? resource) (res/payload resource))
-        [:div "bidness"]
-        #_[root *:store (res/payload resource) true]
-
-        (res/error? resource)
-        [comp/alert :warn
-         [:div
-          "Note not found. Try "
-          [comp/link {:token :routes.ui/home} "creating one"]
-          "."]]
-
-        :else
-        [comp/spinner {:size :large}]))
+  (r/with-let [note-key (note.act/->sync-key note-id)
+               sched-key (note.sched/->sync-key note-id)
+               sub:note (store/res-sub *:store note-key)
+               sub:sched (store/res-sub *:store sched-key)
+               sched-err (constantly nil)]
+    [:div.layout--stack-between
+     [comp/with-resource* sub:note
+      [note-root {:size :large} *:store false]
+      note-err
+      [note-root {} *:store true]]
+     [comp/with-resources* [sub:note sub:sched]
+      [schedule-root *:store false]
+      sched-err
+      [schedule-root *:store true]]]
     (finally
-      (store/emit! *:store [::res/destroyed resource-key]))))
+      (-> *:store
+          (store/emit! [::res/destroyed sched-key])
+          (store/emit! [::res/destroyed note-key])))))
 
 (defmethod ipages/page :routes.ui/note
   [*:store {{note-id :notes/id} :route-params}]

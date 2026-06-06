@@ -10,9 +10,9 @@
     [defacto.resources.core :as res]))
 
 (defn ->sync-key [note-id] [::notes#sync note-id])
-(defn ->pin-note-key [note-id] [::forms+/std (->sync-key note-id) [::forms/pin-note]])
+(defn ->pin-key [note-id] [::forms+/std (->sync-key note-id) [::forms/pin-note]])
 (defn ->todo-key [note-id todo-id] [::forms+/std (->sync-key note-id) [::forms/todo todo-id]])
-(defn ->edit-note-key [note-id] [::forms+/valid (->sync-key note-id) [::forms/edit-note]])
+(defn ->edit-key [note-id] [::forms+/valid (->sync-key note-id) [::forms/edit-note]])
 
 (def ^:private modify-note-validator (valid/->validator snotes/modify))
 (defmethod forms+/validate ::notes#sync [_ data] (modify-note-validator data))
@@ -43,31 +43,10 @@
                                     (mapv #(select-keys % #{:todos/id :todos/completed?})))}
     (forms/data form)))
 
-(defn ^:private ->schedule-spec [spec-key note-id spec success-msg]
-  (specs/with-cbs (res/->request-spec spec-key spec)
-                  :ok-events [[:api.schedules/modified note-id]]
-                  :ok-commands [[:toasts/succeed! {:message success-msg}]]
-                  :err-commands [[:toasts/fail!]]))
-
-(forms+/validated ::schedules#create (valid/->validator ssched/create)
-  [_ {::forms/keys [data] :as spec}]
-  (let [spec (assoc spec :payload (valid/select-spec-keys data ssched/create))]
-    (->schedule-spec [::specs/schedules#create]
-                     (:schedules/note-id data)
-                     spec
-                     "schedule created")))
-
-(defmethod res/->request-spec ::schedules#destroy
-  [[_ resource-id] spec]
-  (->schedule-spec [::specs/schedules#destroy resource-id]
-                   (:notes/id spec)
-                   spec
-                   "schedule deleted"))
-
 (defn ->pin-form-attrs
   "Return form attrs for a pin/unpin form integrated with the store and callbacks."
   [*:store form+ {note-id :notes/id :as note}]
-  (let [pin-note-key (->pin-note-key note-id)]
+  (let [pin-note-key (->pin-key note-id)]
     {:*:store      *:store
      :form+        form+
      :no-buttons?  true
@@ -100,12 +79,4 @@
                    :prev-attachments (:notes/attachments note)
                    :prev-tags        (:notes/tags note)
                    :prev-todos       (:notes/todos note)}
-    :resource-key (->edit-note-key note-id)}])
-
-(defn ->delete-sched-modal
-  "Return modal data for confirming deletion of a schedule."
-  [sched-id note]
-  [:modals/sure?
-   {:description   "This schedule will be deleted"
-    :yes-btn-class ["delete-schedule"]
-    :yes-commands  [[::res/do! [::schedules#destroy sched-id] note]]}])
+    :resource-key (->edit-key note-id)}])

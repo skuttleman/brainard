@@ -33,9 +33,7 @@
 
 (defmethod invoke-api* :api.notes/fetch
   [_ apis {note-id :notes/id}]
-  (when-let [note (api.notes/get-note (:notes apis) note-id)]
-    (let [schedules (api.sched/get-by-note-id (:schedules apis) note-id)]
-      (assoc note :notes/schedules schedules))))
+  (api.notes/get-note (:notes apis) note-id))
 
 (defmethod invoke-api* :api.notes/fetch?history
   [_ apis {note-id :notes/id}]
@@ -48,6 +46,10 @@
 (defmethod invoke-api* :api.contexts/select
   [_ apis _]
   (api.notes/get-contexts (:notes apis)))
+
+(defmethod invoke-api* :api.schedules/select
+  [_ apis {note-id :notes/id}]
+  (api.sched/get-by-note-id (:schedules apis) note-id))
 
 (defmethod invoke-api* :api.schedules/create!
   [_ apis {:schedules/keys [note-id] :as schedule}]

@@ -99,6 +99,33 @@
     (finally
       (run! dom/remove-listener! listeners))))
 
+(defn with-resources* [sub:resources comp & [err-comp reload-comp]]
+  (let [[_ opts :as comp] (colls/wrap-vector comp)
+        reload-comp (some-> reload-comp colls/wrap-vector)
+        err-comp (some-> err-comp colls/wrap-vector)
+        resources (map deref sub:resources)
+        payloads (map res/payload resources)
+        success? (every? res/success? resources)]
+    (when (or success?
+              (not (:hide-init? opts))
+              (not (some res/init? resources)))
+      (cond
+        success?
+        (conj comp payloads)
+
+        (and reload-comp (some res/requesting? resources) (every? some? payloads))
+        (conj reload-comp payloads)
+
+        (and err-comp (some res/error? resources))
+        (conj err-comp payloads)
+
+        (some res/error? resources)
+        (when-not (some ::forms/errors payloads)
+          [:div.error [alert :error "An error occurred."]])
+
+        :else
+        [spinner opts]))))
+
 (defn with-resources [sub:resources comp]
   (let [[_ opts :as comp] (colls/wrap-vector comp)
         [success? data-or-res] (loop [[sub:res :as subs] sub:resources
@@ -119,6 +146,13 @@
 
 (defn ^:private single-resource [_opts comp [value]]
   (conj comp value))
+
+(defn with-resource* [sub:resource comp & [err-comp reload-comp]]
+  (let [[_ opts :as comp] (colls/wrap-vector comp)]
+    [with-resources* [sub:resource]
+     [single-resource opts comp]
+     (when err-comp [single-resource opts err-comp])
+     (when reload-comp [single-resource opts reload-comp])]))
 
 (defn with-resource [sub:resource comp]
   (let [[_ opts :as comp] (colls/wrap-vector comp)]

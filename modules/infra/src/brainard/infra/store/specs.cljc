@@ -116,10 +116,10 @@
 
 (defmethod res/->request-spec ::notes#reinstate
   [[_ resource-id] spec]
-  (->req {:route        :routes.api/note!reinstate
-          :params       {:notes/id resource-id}
-          :method       :post
-          :body         (modify-note-body spec)}
+  (->req {:route  :routes.api/note!reinstate
+          :params {:notes/id resource-id}
+          :method :post
+          :body   (modify-note-body spec)}
          spec))
 
 (defmethod res/->request-spec ::notes#destroy
@@ -138,6 +138,13 @@
 (defmethod res/->request-spec ::note#history
   [[_ note-id] spec]
   (->req {:route  :routes.api/note?history
+          :method :get
+          :params {:notes/id note-id}}
+         spec))
+
+(defmethod res/->request-spec ::schedules#select
+  [[_ note-id] spec]
+  (->req {:route  :routes.api/note#schedules
           :method :get
           :params {:notes/id note-id}}
          spec))

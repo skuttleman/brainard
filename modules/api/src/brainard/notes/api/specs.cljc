@@ -35,7 +35,6 @@
             [:map
              [:notes/id uuid?]
              [:notes/timestamp inst?]
-             [:notes/schedules {:optional true} [:sequential ssched/full]]
              [:notes/todos {:optional true} [:seqable todo-full]]]))
 
 (def history

@@ -1,14 +1,34 @@
 (ns brainard.infra.views.pages.note.schedules
   (:require
     [brainard.api.utils.dates :as dates]
-    [brainard.infra.store.specs :as-alias specs]
-    [brainard.infra.views.pages.note.actions :as-alias note.act]
+    [brainard.api.validations :as valid]
+    [brainard.infra.store.specs :as specs]
+    [brainard.schedules.api.specs :as ssched]
     [clojure.pprint :as pp]
-    [defacto.forms.plus :as-alias forms+]
-    [defacto.resources.core :as-alias res]))
+    [defacto.forms.core :as-alias forms]
+    [defacto.forms.plus :as forms+]
+    [defacto.resources.core :as res]))
 
-(defn ->sched-create-key [note]
-  [::forms+/valid [::note.act/schedules#create (:notes/id note)]])
+(defn ->sync-key [note-id] [::schedules#sync note-id])
+(defn ->create-key [note-id] [::forms+/valid (->sync-key note-id) [::forms/edit-schedule]])
+
+
+(defn ^:private ->schedule-spec [spec-key spec success-msg]
+  (specs/with-cbs (res/->request-spec spec-key spec)
+                  :ok-commands [[:toasts/succeed! {:message success-msg}]]
+                  :err-commands [[:toasts/fail!]]))
+
+(forms+/validated ::schedules#sync (valid/->validator ssched/create)
+  [[_ note-id] {::forms/keys [data] :as spec}]
+  (case (::action spec)
+    ::delete (->schedule-spec [::specs/schedules#destroy (:schedules/id spec)]
+                              spec
+                              "schedule deleted")
+    ::create (let [spec (assoc spec :payload (valid/select-spec-keys data ssched/create))]
+               (->schedule-spec [::specs/schedules#create (:schedules/id spec)]
+                                spec
+                                "schedule created"))
+    (res/->request-spec [::specs/schedules#select note-id] spec)))
 
 (def ^:const month-options
   (into [[nil "(any)"]]
@@ -92,3 +112,14 @@
        (sort-by (comp schedule-order key))
        (keep ->schedule-part)
        seq))
+
+(defn ->delete-sched-modal
+  "Return modal data for confirming deletion of a schedule."
+  [note-id sched-id]
+  [:modals/sure?
+   {:description   "This schedule will be deleted"
+    :yes-btn-class ["delete-schedule"]
+    :yes-commands  [[::res/submit!
+                     (->sync-key note-id)
+                     {::action      ::delete
+                      :schedules/id sched-id}]]}])

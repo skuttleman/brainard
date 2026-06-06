@@ -8,6 +8,7 @@
   {:routes.api/note             {:notes/id uuids/->uuid}
    :routes.api/note?history     {:notes/id uuids/->uuid}
    :routes.api/note!reinstate   {:notes/id uuids/->uuid}
+   :routes.api/note#schedules   {:notes/id uuids/->uuid}
    :routes.api/schedule         {:schedules/id uuids/->uuid}
    :routes.api/workspace-node   {:workspace-nodes/id uuids/->uuid}
    :routes.resources/attachment {:attachments/id uuids/->uuid}
@@ -31,7 +32,8 @@
            ["/notes" [["" :routes.api/notes]
                       [["/" [uuids/regex :notes/id]] [["" :routes.api/note]
                                                       ["/history" :routes.api/note?history]
-                                                      ["/reinstate" :routes.api/note!reinstate]]]
+                                                      ["/reinstate" :routes.api/note!reinstate]
+                                                      ["/schedules" :routes.api/note#schedules]]]
                       ["/scheduled" :routes.api/notes?scheduled]]]
            ["/schedules" [["" :routes.api/schedules]
                           [["/" [uuids/regex :schedules/id]] :routes.api/schedule]]]

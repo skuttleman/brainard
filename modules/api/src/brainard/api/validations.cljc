@@ -16,6 +16,7 @@
    :api.notes/update!           snotes/modify
    :api.notes/reinstate!        snotes/reinstate
 
+   :api.schedules/select        [:map [:notes/id uuid?]]
    :api.schedules/create!       ssched/create
    :api.schedules/delete!       [:map [:schedules/id uuid?]]
 
@@ -35,6 +36,7 @@
    :api.tags/select                 [:set keyword?]
    :api.contexts/select             [:set string?]
 
+   :api.schedules/select            [:sequential ssched/full]
    :api.schedules/create!           [:sequential ssched/full]
    :api.schedules/delete!           [:sequential ssched/full]
 

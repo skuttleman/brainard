@@ -68,11 +68,3 @@
 
       (and context (res/success? ctx-res))
       (receive [::specs/contexts#select] (conj (res/payload ctx-res) context)))))
-
-(defmethod defacto/event-reducer :api.schedules/modified
-  [db [_ note-id schedules]]
-  (let [key [::note.act/notes#sync note-id]
-        res (defacto/query-responder db [::res/?:resource key])]
-    (cond-> db
-      (res/success? res)
-      (receive key (assoc (res/payload res) :notes/schedules schedules)))))
