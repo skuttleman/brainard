@@ -2,7 +2,6 @@
   (:require
     [brainard.api.specs :as scommon]
     [brainard.attachments.api.specs :as sattachments]
-    [brainard.schedules.api.specs :as ssched]
     [malli.util :as mu]))
 
 (def todo-create
