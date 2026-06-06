@@ -40,11 +40,12 @@ check-deps: ## Verify required CLI tools are available (with install hints)
 	echo "All required tools available (or npx fallbacks present)."
 
 run: check-deps ## Run the app (uses foreman or npx foreman)
+	@killall -15 node java clj sass || true;
 	@echo "Starting app..."
 	@if command -v $(FOREMAN) >/dev/null 2>&1; then \
-		$(FOREMAN) start || killall -15 node java clj sass; \
+		$(FOREMAN) start; \
 	else \
-		$(NPX) foreman start || killall -15 node java clj sass; \
+		$(NPX) foreman start; \
 	fi
 
 install: ## Install JS dependencies (uses npm)

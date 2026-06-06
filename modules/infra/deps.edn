@@ -14,6 +14,6 @@
                                                                 org.jboss.naming/jnpserver
                                                                 ring/ring-core]}
            skuttleman/whet                       {:git/url "https://github.com/skuttleman/whet"
-                                                  :git/sha "4a7132c2d68e4488e971fd69c294bf31883ad7d2"}}
+                                                  :git/sha "d4a3857a8ce4e54321bb1b654028d12e7f60f47c"}}
  :aliases {:test     {:extra-paths ["test/resources" "test/src"]}
            :intellij {:extra-deps {org.clojure/clojurescript {:mvn/version "1.12.145"}}}}}
