@@ -16,6 +16,8 @@
   [store [_ {:keys [data]}]]
   (defacto/emit! store [::res/swapped [::specs/notes#buzz] data]))
 
-(defn ->handler [store]
+(defn ->event-handler
+  "Creates an SSE event handler"
+  [store]
   (fn [e]
     (event-handler store (e->clj e))))

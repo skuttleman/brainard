@@ -38,7 +38,7 @@
            ["/tags" :routes.api/tags]
            ["/workspace-nodes" [["" :routes.api/workspace-nodes]
                                 [["/" [uuids/regex :workspace-nodes/id]] :routes.api/workspace-node]]]
-           ["/ws" :routes.ws/connection]
+           ["/events" :routes.api/events]
            [true :routes.api/not-found]]])
 
 (def ^:private resource-routes

@@ -9,20 +9,24 @@
     [brainard.events.infra.handler :as handler]
     [defacto.resources.core :as-alias res]
     [whet.core :as w]
+    [whet.utils.navigation :as nav]
     brainard.infra.store.commands
     brainard.infra.store.events
     brainard.infra.store.queries))
 
 (enable-console-print!)
 
+(defn ^:private ->EventSource [route]
+  (js/EventSource. (nav/path-for rte/all-routes route)))
+
 (defn store->comp
   "Takes initialized defacto store and returns the component tree"
   [store]
   (log/info "connecting event stream...")
-  (doto (js/EventSource. "/api/ws")
+  (doto (->EventSource :routes.api/events)
     (dom/add-listener! :open (fn [_] (log/info "event stream connected")))
     (dom/add-listener! :error (fn [_] (log/warn "event stream closed")))
-    (dom/add-listener! :message (handler/->handler store)))
+    (dom/add-listener! :message (handler/->event-handler store)))
   (dom/add-listener! js/navigation
                      :navigate
                      (fn [^js/NavigateEvent e]

@@ -8,7 +8,7 @@
     [immutant.web.async :as web.async]
     [whet.core :as-alias w]))
 
-(defmethod iroutes/handler [:get :routes.ws/connection]
+(defmethod iroutes/handler [:get :routes.api/events]
   [{::b/keys [events] :as req}]
   (let [ch-id (uuids/random)
         handler {:on-open  (fn [ch]
