@@ -85,12 +85,12 @@
   "Return modal data for confirming deletion of a workspace node and its ancestors."
   [node]
   [:modals/sure?
-   {:description  "This node and all ancestors will be deleted"
-    :ok-btn-class ["delete-node"]
-    :yes-commands [[::res/resubmit!
-                    [::workspace#sync]
-                    {::ws/id  (::ws/id node)
-                     ::action ::destroy}]]}])
+   {:description   "This node and all ancestors will be deleted"
+    :yes-btn-class ["delete-node"]
+    :yes-commands  [[::res/resubmit!
+                     [::workspace#sync]
+                     {::ws/id  (::ws/id node)
+                      ::action ::destroy}]]}])
 
 (defn ->note-edit-modal
   "Return modal descriptor for creating a new note prefilled with context and tags."

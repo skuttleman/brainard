@@ -284,7 +284,7 @@
                             :attempted? (and (not init?) (not changed?) errors)
                             :disabled (or disabled requesting?)
                             :requesting? requesting?)
-        form-attrs (-> (select-keys attrs #{:class :style :on-submit})
+        form-attrs (-> (select-keys attrs #{:class :disabled :on-submit :style})
                        (update :on-submit comp dom/prevent-default!)
                        (cond->
                          any-errors? (update :class conj "errors")
@@ -302,11 +302,13 @@
      (when-not (or no-buttons? inline-buttons?)
        [form-button-row button-attrs])]))
 
-(defn form [{:keys [*:store params resource-key] :as attrs} & fields]
-  (into [plain-form (assoc attrs
-                           :on-submit
-                           (fn [_]
-                             (store/dispatch! *:store [::forms+/submit! resource-key params])))]
+(defn form [{:keys [*:store params resource-key resubmit?] :as attrs} & fields]
+  (into [plain-form
+         (assoc attrs
+                :on-submit
+                (fn [_]
+                  (let [action (if resubmit? ::forms+/resubmit! ::forms+/submit!)]
+                    (store/dispatch! *:store [action resource-key params]))))]
         fields))
 
 (def ^{:arglists '([attrs form+ path])} with-attrs

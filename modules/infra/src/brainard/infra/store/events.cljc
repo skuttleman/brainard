@@ -1,6 +1,7 @@
 (ns brainard.infra.store.events
   (:require
     [brainard.infra.store.specs :as-alias specs]
+    [brainard.infra.views.pages.note.actions :as-alias note.act]
     [defacto.core :as defacto]
     [defacto.resources.core :as res]))
 
@@ -52,26 +53,26 @@
   [db [_ toast-id]]
   (update db :toasts/toasts dissoc toast-id))
 
+(defn ^:private receive [db resource-key val]
+  (-> db
+      (defacto/event-reducer [::res/submitted resource-key])
+      (defacto/event-reducer [::res/succeeded resource-key val])))
+
 (defmethod defacto/event-reducer :api.notes/saved
   [db [_ {:notes/keys [context tags]}]]
   (let [tag-res (defacto/query-responder db [::res/?:resource [::specs/tags#select]])
         ctx-res (defacto/query-responder db [::res/?:resource [::specs/contexts#select]])]
     (cond-> db
       (res/success? tag-res)
-      (-> (defacto/event-reducer [::res/submitted [::specs/tags#select]])
-          (defacto/event-reducer [::res/succeeded [::specs/tags#select]
-                                  (into (res/payload tag-res) tags)]))
+      (receive [::specs/tags#select] (into (res/payload tag-res) tags))
 
       (and context (res/success? ctx-res))
-      (-> (defacto/event-reducer [::res/submitted [::specs/contexts#select]])
-          (defacto/event-reducer [::res/succeeded [::specs/contexts#select]
-                                  (conj (res/payload ctx-res) context)])))))
+      (receive [::specs/contexts#select] (conj (res/payload ctx-res) context)))))
 
 (defmethod defacto/event-reducer :api.schedules/modified
   [db [_ note-id schedules]]
-  (let [note-res (defacto/query-responder db [::res/?:resource [::specs/notes#find note-id]])]
+  (let [key [::note.act/notes#sync note-id]
+        res (defacto/query-responder db [::res/?:resource key])]
     (cond-> db
-      (res/success? note-res)
-      (-> (defacto/event-reducer [::res/submitted [::specs/notes#find note-id]])
-          (defacto/event-reducer [::res/succeeded [::specs/notes#find note-id]
-                                  (assoc (res/payload note-res) :notes/schedules schedules)])))))
+      (res/success? res)
+      (receive key (assoc (res/payload res) :notes/schedules schedules)))))
