@@ -1,20 +1,4 @@
-{:kaocha/tests                       [{:kaocha.testable/id       :integration
-                                       :kaocha.filter/focus-meta [:focus]
-                                       :kaocha.testable/type     :kaocha.type/clojure.test
-                                       :kaocha/ns-patterns       ["^brainard\\.test\\.integration\\..*-test$"]
-                                       :kaocha/source-paths      ["src"
-                                                                  "modules/api/src"
-                                                                  "modules/infra/src"]
-                                       :kaocha/test-paths        ["test/src"]}
-                                      {:kaocha.testable/id       :ui
-                                       :kaocha.filter/focus-meta [:focus]
-                                       :kaocha.testable/type     :kaocha.type/clojure.test
-                                       :kaocha/ns-patterns       ["^brainard\\.test\\.ui\\..*-test$"]
-                                       :kaocha/source-paths      ["src"
-                                                                  "modules/api/src"
-                                                                  "modules/infra/src"]
-                                       :kaocha/test-paths        ["test/src"]}
-                                      {:kaocha.testable/id       :api
+{:kaocha/tests                       [{:kaocha.testable/id       :api
                                        :kaocha.filter/focus-meta [:focus]
                                        :kaocha.testable/type     :kaocha.type/clojure.test
                                        :kaocha/ns-patterns       ["-test$"]
@@ -26,7 +10,31 @@
                                        :kaocha/ns-patterns       ["-test$"]
                                        :kaocha/source-paths      ["modules/api/src"
                                                                   "modules/infra/src"]
-                                       :kaocha/test-paths        ["modules/infra/test/src"]}]
+                                       :kaocha/test-paths        ["modules/infra/test/src"]}
+                                      {:kaocha.testable/id       :integration
+                                       :kaocha.filter/focus-meta [:focus]
+                                       :kaocha.testable/type     :kaocha.type/clojure.test
+                                       :kaocha/ns-patterns       ["^brainard\\.test\\.integration\\..*-test$"]
+                                       :kaocha/source-paths      ["src"
+                                                                  "modules/api/src"
+                                                                  "modules/infra/src"]
+                                       :kaocha/test-paths        ["test/src"]}
+                                      {:kaocha.testable/id       :ui-core
+                                       :kaocha.filter/focus-meta [:focus]
+                                       :kaocha.testable/type     :kaocha.type/clojure.test
+                                       :kaocha/ns-patterns       ["^brainard\\.test\\.ui\\.[^\\.]*-test$"]
+                                       :kaocha/source-paths      ["src"
+                                                                  "modules/api/src"
+                                                                  "modules/infra/src"]
+                                       :kaocha/test-paths        ["test/src"]}
+                                      {:kaocha.testable/id       :ui-notes
+                                       :kaocha.filter/focus-meta [:focus]
+                                       :kaocha.testable/type     :kaocha.type/clojure.test
+                                       :kaocha/ns-patterns       ["^brainard\\.test\\.ui\\.notes\\..*-test$"]
+                                       :kaocha/source-paths      ["src"
+                                                                  "modules/api/src"
+                                                                  "modules/infra/src"]
+                                       :kaocha/test-paths        ["test/src"]}]
  :kaocha/fail-fast?                  false
  :kaocha/color?                      true
  :kaocha/reporter                    [kaocha.report/documentation]
