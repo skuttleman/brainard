@@ -4,7 +4,6 @@
     [brainard.infra.store.specs :as specs]
     [brainard.infra.views.fragments.note-edit :as-alias note-edit]
     [brainard.notes.api.specs :as snotes]
-    [brainard.schedules.api.specs :as ssched]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
     [defacto.resources.core :as res]))
@@ -17,7 +16,7 @@
 (def ^:private modify-note-validator (valid/->validator snotes/modify))
 (defmethod forms+/validate ::notes#sync [_ data] (modify-note-validator data))
 (defmethod res/->request-spec ::notes#sync
-  [[_ note-id] {::forms/keys [data] :as spec}]
+  [[_ note-id] {::forms/keys [data] :keys [note] :as spec}]
   (case (::action spec)
     ::pin (let [spec (assoc spec :payload (select-keys data #{:notes/pinned?}))]
             (specs/with-cbs (res/->request-spec [::specs/notes#modify note-id] spec)
@@ -31,6 +30,13 @@
     ::edit (let [spec (assoc spec :payload (valid/select-spec-keys data snotes/modify))]
              (res/->request-spec [::specs/notes#modify note-id] spec))
     ::delete (res/->request-spec [::specs/notes#destroy note-id] spec)
+    ::reinstate (let [payload (valid/select-spec-keys note snotes/reinstate)]
+                  (res/->request-spec [::specs/notes#reinstate note-id]
+                                      (assoc spec
+                                             :payload payload
+                                             :ok-commands [[:toasts/succeed! {:message "previous version of note was reinstated"}]
+                                                           [::res/submit! [::note#history note-id]]]
+                                             :err-commands [[:toasts/fail!]])))
     (res/->request-spec [::specs/notes#find note-id] spec)))
 
 (defmethod forms+/re-init ::notes#sync [[_ [_ note-id] [res-type child-id]] form result]
@@ -42,6 +48,10 @@
                                     (filter (comp #{child-id} :todos/id))
                                     (mapv #(select-keys % #{:todos/id :todos/completed?})))}
     (forms/data form)))
+
+(defmethod res/->request-spec ::note#history
+  [[_ note-id] spec]
+  (res/->request-spec [::specs/note#history note-id] spec))
 
 (defn ->pin-form-attrs
   "Return form attrs for a pin/unpin form integrated with the store and callbacks."

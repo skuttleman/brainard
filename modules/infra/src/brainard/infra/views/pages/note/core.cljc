@@ -6,6 +6,7 @@
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.fragments.note-components :as note-comp]
     [brainard.infra.views.pages.interfaces :as ipages]
+    [brainard.infra.views.pages.note.history :as note.history]
     [brainard.infra.views.pages.note.actions :as note.act]
     [brainard.infra.views.pages.note.schedules :as note.sched]
     [defacto.forms.core :as forms]
@@ -177,9 +178,9 @@
                          :commands [[:modals/create! (note.act/->delete-modal note)]]
                          :disabled disabled?}
       "Delete note"]]
-    #_[comp/plain-button {:*:store  *:store
+    [comp/plain-button {:*:store  *:store
                           :class    ["is-light" "note__history-button"]
-                          :commands [[:modals/create! [;; ::note.history/modal
+                          :commands [[:modals/create! [::note.history/modal
                                                        {:note note}]]]
                           :disabled disabled?}
        "View history"]]])
