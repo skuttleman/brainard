@@ -67,21 +67,11 @@
           (defacto/event-reducer [::res/succeeded [::specs/contexts#select]
                                   (conj (res/payload ctx-res) context)])))))
 
-(defmethod defacto/event-reducer :api.schedules/saved
-  [db [_ note-id sched]]
+(defmethod defacto/event-reducer :api.schedules/modified
+  [db [_ note-id schedules]]
   (let [note-res (defacto/query-responder db [::res/?:resource [::specs/notes#find note-id]])]
     (cond-> db
       (res/success? note-res)
       (-> (defacto/event-reducer [::res/submitted [::specs/notes#find note-id]])
           (defacto/event-reducer [::res/succeeded [::specs/notes#find note-id]
-                                  (update (res/payload note-res) :notes/schedules conj sched)])))))
-
-(defmethod defacto/event-reducer :api.schedules/deleted
-  [db [_ sched-id note-id]]
-  (let [note-res (defacto/query-responder db [::res/?:resource [::specs/notes#find note-id]])]
-    (cond-> db
-      (res/success? note-res)
-      (-> (defacto/event-reducer [::res/submitted [::specs/notes#find note-id]])
-          (defacto/event-reducer [::res/succeeded [::specs/notes#find note-id]
-                                  (update (res/payload note-res) :notes/schedules
-                                          (partial remove (comp #{sched-id} :schedules/id)))])))))
+                                  (assoc (res/payload note-res) :notes/schedules schedules)])))))

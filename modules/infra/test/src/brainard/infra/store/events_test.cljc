@@ -102,7 +102,7 @@
           store   (defacto/create {} {})]
       (-> store
           (store/emit! [::res/destroyed [::specs/notes#find note-id]])
-          (store/emit! [:api.schedules/saved note-id {:schedules/id (random-uuid)}]))
+          (store/emit! [:api.schedules/modified note-id [{:schedules/id (random-uuid)}]]))
       (testing "no resource is created"
         (is (res/init? (store/query store [::res/?:resource [::specs/notes#find note-id]]))))))
 
@@ -111,10 +111,13 @@
           sched-id (random-uuid)
           store    (loaded-store [::specs/notes#find note-id] {:notes/id        note-id
                                                                :notes/schedules []})]
-      (store/emit! store [:api.schedules/saved note-id {:schedules/id sched-id :schedules/label "weekly"}])
+      (store/emit! store [:api.schedules/modified note-id [{:schedules/id sched-id :schedules/label "weekly"}]])
       (testing "the schedule is appended to the note"
         (is (= [{:schedules/id sched-id :schedules/label "weekly"}]
-               (:notes/schedules (res/payload (store/query store [::res/?:resource [::specs/notes#find note-id]])))))))))
+               (-> store
+                   (store/query [::res/?:resource [::specs/notes#find note-id]])
+                   res/payload
+                   :notes/schedules)))))))
 
 (deftest api-schedules-deleted-test
   (testing "when the note resource is not loaded"
@@ -123,7 +126,7 @@
           store    (defacto/create {} {})]
       (-> store
           (store/emit! [::res/destroyed [::specs/notes#find note-id]])
-          (store/emit! [:api.schedules/deleted sched-id note-id]))
+          (store/emit! [:api.schedules/modified sched-id note-id]))
       (testing "no resource is created"
         (is (res/init? (store/query store [::res/?:resource [::specs/notes#find note-id]]))))))
 
@@ -133,8 +136,11 @@
           store     (loaded-store [::specs/notes#find note-id] {:notes/id        note-id
                                                                 :notes/schedules [{:schedules/id s1}
                                                                                   {:schedules/id s2}]})]
-      (store/emit! store [:api.schedules/deleted s1 note-id])
+      (store/emit! store [:api.schedules/modified note-id [{:schedules/id s2}]])
       (testing "the deleted schedule is removed"
-        (let [schedules (:notes/schedules (res/payload (store/query store [::res/?:resource [::specs/notes#find note-id]])))]
+        (let [schedules (-> store
+                            (store/query [::res/?:resource [::specs/notes#find note-id]])
+                            res/payload
+                            :notes/schedules)]
           (is (= 1 (count schedules)))
           (is (= s2 (:schedules/id (first schedules)))))))))

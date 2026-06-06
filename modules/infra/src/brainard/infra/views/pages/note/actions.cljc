@@ -47,14 +47,14 @@
   [_ {::forms/keys [data] :as spec}]
   (let [spec (assoc spec :payload (valid/select-spec-keys data ssched/create))]
     (specs/with-cbs (res/->request-spec [::specs/schedules#create] spec)
-                    :ok-events [[:api.schedules/saved (:schedules/note-id data)]]
+                    :ok-events [[:api.schedules/modified (:schedules/note-id data)]]
                     :ok-commands [[:toasts/succeed! {:message "schedule created"}]]
                     :err-commands [[:toasts/fail!]])))
 
 (defmethod res/->request-spec ::schedules#destroy
   [[_ resource-id :as resource-key] spec]
   (specs/with-cbs (res/->request-spec [::specs/schedules#destroy resource-id] spec)
-                  :ok-events [[:api.schedules/deleted resource-id (:notes/id spec)]
+                  :ok-events [[:api.schedules/modified (:notes/id spec)]
                               [::res/destroyed resource-key]]
                   :ok-commands [[:toasts/succeed! {:message "schedule deleted"}]]
                   :err-events [[::res/destroyed resource-key]]
