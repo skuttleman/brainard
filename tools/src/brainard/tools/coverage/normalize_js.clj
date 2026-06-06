@@ -27,7 +27,7 @@
         (recur rest-lines current-lines (conj acc line))))))
 
 (defn -main [& _]
-  (let [f (io/file "target/coverage/js/lcov.info")]
+  (let [f (io/file "target/coverage-js/lcov.info")]
     (if-not (.exists f)
       (println "No JS coverage report generated (skipping)")
       (do

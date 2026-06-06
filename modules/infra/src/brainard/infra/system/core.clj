@@ -22,9 +22,11 @@
     (java.util Date)))
 
 (defmethod ig/init-key :brainard.web/handler
-  [_ {:keys [upload-limit]}]
+  [_ {:keys [env upload-limit] :as cfg}]
+  (when-not (or env (int? upload-limit))
+    (throw (ex-info "handler requires env and upload-limits" cfg)))
   (fn [req]
-    (routes/be-handler (assoc req ::b/file-limit-bytes upload-limit))))
+    (routes/be-handler (assoc req ::b/env env ::b/file-limit-bytes upload-limit))))
 
 (defmethod ig/init-key ::b/webserver
   [_ {:keys [apis events handler server-port]}]

@@ -23,10 +23,10 @@ const nyc = new NYC({
   include: ['**/*.js'],
   exclude: ['**/cljs-runtime/brainard.test.*'],
   reporter: ['lcov'],
-  reportDir: 'target/coverage/js',
+  reportDir: 'target/coverage-js',
   sourceMap: true,
 });
 
 nyc.report()
-  .then(() => console.log('JS coverage report written to target/coverage/js/lcov.info'))
+  .then(() => console.log('JS coverage report written to target/coverage-js/lcov.info'))
   .catch(err => { console.error('nyc report failed:', err); process.exit(1); });
