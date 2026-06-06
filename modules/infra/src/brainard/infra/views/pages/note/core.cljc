@@ -20,7 +20,7 @@
                                 :value  attachments}]))
 
 (defmethod note-comp/todo-item true
-  [{:keys [*:store disabled? note-id]} todo]
+  [{:keys [*:store disabled note-id]} todo]
   (r/with-let [init-form {:notes/id    note-id
                           :notes/todos [(select-keys todo #{:todos/id :todos/completed?})]}
                form-key (note.act/->todo-key note-id (:todos/id todo))
@@ -32,7 +32,7 @@
         {:checked   (boolean (:todos/completed? todo))
          :type      :checkbox
          :value     (get-in (forms/data form+) check-path)
-         :disabled  (or disabled? (res/requesting? form+))
+         :disabled  (or disabled (res/requesting? form+))
          :on-change (fn [e]
                       (-> *:store
                           (store/emit! [::forms/changed
@@ -57,18 +57,26 @@
       :note-id   (:notes/id note)
       :label?    true
       :value     todos
-      :disabled? disabled?}]))
+      :disabled disabled?}]))
 
-(defn ^:private pin-toggle [*:store note disabled?]
+(defn ^:private pin-toggle-disabled [note]
+  [:div
+   [:form.form {:disabled true}
+    [ctrls/icon-toggle {:class    ["is-small" "note__toggle-pinned"]
+                        :disabled true
+                        :icon     :paperclip
+                        :type     :submit
+                        :value    (:notes/pinned? note)}]]])
+
+(defn ^:private pin-toggle [*:store note]
   (r/with-let [pin-note-key (note.act/->pin-key (:notes/id note))
                sub:form+ (store/form+-sub *:store pin-note-key note)]
     (let [form+ @sub:form+]
       [:div
-       [ctrls/form (cond-> (note.act/->pin-form-attrs *:store form+ note)
-                     disabled? (assoc :disabled true))
+       [ctrls/form (note.act/->pin-form-attrs *:store form+ note)
         [ctrls/icon-toggle (-> {:*:store  *:store
                                 :class    ["is-small" "note__toggle-pinned"]
-                                :disabled (or disabled? (res/requesting? form+))
+                                :disabled (res/requesting? form+)
                                 :icon     :paperclip
                                 :type     :submit}
                                (ctrls/with-attrs form+ [:notes/pinned?]))]]])
@@ -154,11 +162,13 @@
     (finally
       (store/emit! *:store [::forms/destroyed schedule-create-key]))))
 
-(defn ^:private note-root [_ *:store disabled? note]
+(defn ^:private note-editor [*:store disabled? note]
   [:<>
    [:div.layout--row
     [:h1.layout--space-after.flex-grow [:strong (:notes/context note)]]
-    [pin-toggle *:store note disabled?]]
+    (if disabled?
+      [pin-toggle-disabled note]
+      [pin-toggle *:store note])]
    [comp/markdown (:notes/body note)]
    [:div.layout--room-between {:style {:width "100%"}}
     [:div.flex-grow {:style {:flex-basis "50%"}}
@@ -185,15 +195,19 @@
                           :disabled disabled?}
        "View history"]]])
 
+(defn ^:private note-root [_ *:store disabled? note]
+  [note-editor *:store disabled? note])
+
+(defn ^:private schedule-root [*:store disabled? [note scheds]]
+  ^{:key (str (:notes/id note) "-sched-" disabled?)}
+  [schedule-editor *:store note scheds disabled?])
+
 (defn ^:private note-err [_]
   [comp/alert :warn
    [:div
     "Note not found. Try "
     [comp/link {:token :routes.ui/home} "creating one"]
     "."]])
-
-(defn ^:private schedule-root [*:store disabled? [note scheds]]
-  [schedule-editor *:store note scheds disabled?])
 
 (defn ^:private page [*:store note-id]
   (r/with-let [note-key (note.act/->sync-key note-id)

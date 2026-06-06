@@ -37,7 +37,7 @@
                            :todos/completed? true}
                           {:todos/id         #uuid "b2b0d144-6be1-4e7f-bb53-d849424cd828"
                            :todos/text       "Do some third thing"
-                           :todos/completed? false}}}]
+                           :todos/completed? true}}}]
  6 [[:db/retractEntity [:attachments/id #uuid "2006bd32-941e-49e4-bf3a-adcd9e37d1da"]]
     [:db/retractEntity [:todos/id #uuid "7ebfc421-7ec4-439b-b035-09fc614b6975"]]
     [:db/retract [:notes/id #uuid "c5bb659a-0bdf-431c-a145-810455441220"] :notes/tags :baz/quux]

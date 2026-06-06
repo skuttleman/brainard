@@ -151,8 +151,8 @@
   (let [[_ opts :as comp] (colls/wrap-vector comp)]
     [with-resources* [sub:resource]
      [single-resource opts comp]
-     (when err-comp [single-resource opts err-comp])
-     (when reload-comp [single-resource opts reload-comp])]))
+     (when err-comp [single-resource opts (colls/wrap-vector err-comp)])
+     (when reload-comp [single-resource opts (colls/wrap-vector reload-comp)])]))
 
 (defn with-resource [sub:resource comp]
   (let [[_ opts :as comp] (colls/wrap-vector comp)]
