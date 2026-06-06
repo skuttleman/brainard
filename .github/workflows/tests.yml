@@ -57,11 +57,6 @@ jobs:
           node-version: lts/*
       - name: Build uberjar
         run: make uberjar
-#      - name: Upload uberjar artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: uberjar
-#          path: target/brainard.jar
 
   lint:
     name: Lint
