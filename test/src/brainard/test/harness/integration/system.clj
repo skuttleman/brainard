@@ -9,8 +9,7 @@
     [datomic.client.api :as d]
     [integrant.core :as ig]
     brainard.dev.s3
-    brainard.infra.system.core
-    brainard.test))
+    brainard.infra.system.core))
 
 (defmethod ig/init-key :brainard.test/db-name
   [_ _]

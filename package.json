@@ -11,7 +11,7 @@
       "resources/public/js/cljs-runtime/brainard.test.*"
     ],
     "reporter": ["lcov"],
-    "report-dir": "target/coverage/js",
+    "report-dir": "target/coverage-js",
     "temp-dir": "target/nyc_output"
   },
   "dependencies": {

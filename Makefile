@@ -108,7 +108,7 @@ coverage: clean check-deps build-sass build-test ## Run unit/integration/UI test
 		--cov-ns-regex 'brainard\.*\.api\..*' \
 		--cov-ns-regex 'brainard\.*\.system\..*' \
 		--cov-ns-regex 'brainard\.infra\.store\..*' \
-		--cov-ns-regex 'brainard\..*\.(multipart-params|routes\.ui)' :ui
+		--cov-ns-regex 'brainard\..*\.(multipart-params|routes\.ui)' :ui-core :ui-notes
 	@echo "Generating JS coverage report..."
 	@node tools/nyc-report.js
 	@$(CLJ) -M:tools -m brainard.tools.coverage.normalize-js
