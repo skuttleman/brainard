@@ -1,4 +1,16 @@
-(ns brainard.infra.test-utils)
+(ns brainard.infra.test-utils
+  #?(:cljs (:require-macros brainard.infra.test-utils))
+  (:require
+    clojure.test))
+
+(defmacro async [cb & body]
+  (if (:ns &env)
+    `(clojure.test/async ~cb ~@body)
+    `(let [prom# (promise)
+           ~cb #(deliver prom# nil)]
+       ~@body
+       (when (= ::timeout (deref prom# 5000 ::timeout))
+         (throw (ex-info "failed to complete async test within timeout" {}))))))
 
 (defn spy [f]
   (let [state (atom {::calls []})]
