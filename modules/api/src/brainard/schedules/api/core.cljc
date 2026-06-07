@@ -56,6 +56,13 @@
                     :schedules/weekday          weekday
                     :schedules/week-index       week-index})))
 
+(defn get-by-id
+  "Retrieves schedule by id"
+  [schedules-api schedule-id]
+  (storage/query (:store schedules-api)
+                 {::storage/type ::get-by-id
+                  :schedules/id  schedule-id}))
+
 (defn get-by-note-id
   "Retrieves schedules associated with a note"
   [schedules-api note-id]

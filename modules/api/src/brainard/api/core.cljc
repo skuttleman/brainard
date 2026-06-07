@@ -33,9 +33,7 @@
 
 (defmethod invoke-api* :api.notes/fetch
   [_ apis {note-id :notes/id}]
-  (when-let [note (api.notes/get-note (:notes apis) note-id)]
-    (let [schedules (api.sched/get-by-note-id (:schedules apis) note-id)]
-      (assoc note :notes/schedules schedules))))
+  (api.notes/get-note (:notes apis) note-id))
 
 (defmethod invoke-api* :api.notes/fetch?history
   [_ apis {note-id :notes/id}]
@@ -49,14 +47,21 @@
   [_ apis _]
   (api.notes/get-contexts (:notes apis)))
 
+(defmethod invoke-api* :api.schedules/select
+  [_ apis {note-id :notes/id}]
+  (api.sched/get-by-note-id (:schedules apis) note-id))
+
 (defmethod invoke-api* :api.schedules/create!
-  [_ apis schedule]
-  (api.sched/create! (:schedules apis) schedule))
+  [_ apis {:schedules/keys [note-id] :as schedule}]
+  (api.sched/create! (:schedules apis) schedule)
+  (api.sched/get-by-note-id (:schedules apis) note-id))
 
 (defmethod invoke-api* :api.schedules/delete!
   [_ apis {schedule-id :schedules/id}]
-  (api.sched/delete! (:schedules apis) schedule-id)
-  nil)
+  (if-let [{:schedules/keys [note-id]} (api.sched/get-by-id (:schedules apis) schedule-id)]
+    (do (api.sched/delete! (:schedules apis) schedule-id)
+        (api.sched/get-by-note-id (:schedules apis) note-id))
+    ()))
 
 (defmethod invoke-api* :api.notes/relevant
   [_ apis {:keys [timestamp]}]

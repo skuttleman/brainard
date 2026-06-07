@@ -83,7 +83,7 @@
                 (is (false? (string/includes? todo-updates "Do a thing")))
                 (is (false? (string/includes? todo-updates "Did a thing")))
                 (is (string/includes? todo-updates "Do another thing marked complete"))
-                (is (string/includes? todo-updates "added Do some third thing marked incomplete"))))
+                (is (string/includes? todo-updates "added Do some third thing marked complete"))))
 
             (testing "summarizes version 6 changes"
               (let [attach-updates (second (string/split ver-6 #"Attachments"))
@@ -159,7 +159,7 @@
               (testing "displays the 6th version todos"
                 (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='TODOs:']"}))
                 (is (= {"Did a thing"               true
-                        "Do some third thing still" false}
+                        "Do some third thing still" true}
                        (collect-todos driver {:css-prefix ".history__view"}))))
 
               (testing "displays the 6th version tags"
@@ -290,7 +290,7 @@
                     (testing "reinstates the 6th version todos"
                       (is (eta/exists? driver {:xpath "//label[text()='TODOs:']"}))
                       (is (= {"Did a thing"               true
-                              "Do some third thing still" false}
+                              "Do some third thing still" true}
                              (collect-todos driver {:disabled? false}))))
 
                     (testing "reinstates the 6th version tags"

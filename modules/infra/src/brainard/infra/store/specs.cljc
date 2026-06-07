@@ -115,16 +115,11 @@
          spec))
 
 (defmethod res/->request-spec ::notes#reinstate
-  [[_ resource-id] {:keys [resource-key] :as spec}]
-  (->req {:route        :routes.api/note!reinstate
-          :params       {:notes/id resource-id}
-          :method       :post
-          :body         (modify-note-body spec)
-          :ok-events    [[::res/destroyed resource-key]]
-          :ok-commands  [[:toasts/succeed! {:message "previous version of note was reinstated"}]
-                         [::res/submit! [::notes#find resource-id]]
-                         [::res/submit! [::note#history resource-id]]]
-          :err-commands [[:toasts/fail!]]}
+  [[_ resource-id] spec]
+  (->req {:route  :routes.api/note!reinstate
+          :params {:notes/id resource-id}
+          :method :post
+          :body   (modify-note-body spec)}
          spec))
 
 (defmethod res/->request-spec ::notes#destroy
@@ -147,6 +142,13 @@
           :params {:notes/id note-id}}
          spec))
 
+(defmethod res/->request-spec ::schedules#select
+  [[_ note-id] spec]
+  (->req {:route  :routes.api/note#schedules
+          :method :get
+          :params {:notes/id note-id}}
+         spec))
+
 (defmethod res/->request-spec ::schedules#create
   [_ {:keys [payload] :as spec}]
   (->req {:route  :routes.api/schedules
@@ -161,28 +163,33 @@
           :params {:schedules/id resource-id}}
          spec))
 
-(defmethod res/->request-spec ::workspace#sync
-  [_ {::keys [action] ::forms/keys [data] :keys [payload] :as spec}]
-  (let [workspace-id (or (::ws/id data) (::ws/id spec))
-        payload (or data payload)
-        params (case action
-                 :create {:route  :routes.api/workspace-nodes
-                          :method :post
-                          :body   (valid/select-spec-keys payload sws/create)}
+(defmethod res/->request-spec ::workspace#select
+  [_ spec]
+  (->req {:route  :routes.api/workspace-nodes
+          :method :get}
+         spec))
 
-                 :modify {:route  :routes.api/workspace-node
-                          :method :patch
-                          :params {:workspace-nodes/id workspace-id}
-                          :body   (valid/select-spec-keys payload sws/modify)}
+(defmethod res/->request-spec ::workspace#create
+  [_ {:keys [payload] :as spec}]
+  (->req {:route  :routes.api/workspace-nodes
+          :method :post
+          :body   (valid/select-spec-keys payload sws/create)}
+         spec))
 
-                 :destroy {:route  :routes.api/workspace-node
-                           :method :delete
-                           :params {:workspace-nodes/id workspace-id}}
+(defmethod res/->request-spec ::workspace#modify
+  [_ {:keys [payload] :as spec}]
+  (->req {:route  :routes.api/workspace-node
+          :method :patch
+          :params {:workspace-nodes/id (::ws/id spec)}
+          :body   (valid/select-spec-keys payload sws/modify)}
+         spec))
 
-                 {:route  :routes.api/workspace-nodes
-                  :method :get})
-        params (assoc params :err-commands [[:toasts/fail!]])]
-    (->req params spec)))
+(defmethod res/->request-spec ::workspace#destroy
+  [_ spec]
+  (->req {:route  :routes.api/workspace-node
+          :method :delete
+          :params {:workspace-nodes/id (::ws/id spec)}}
+         spec))
 
 (defmethod res/->request-spec ::attachment#upload
   [_ spec]

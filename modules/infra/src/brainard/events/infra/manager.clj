@@ -1,6 +1,7 @@
 (ns brainard.events.infra.manager
   (:require
     [brainard.api.events.interfaces :as ievents]
+    [brainard.api.utils.logger :as log]
     [immutant.web.async :as web.async]))
 
 (defn ^:private fmt-event [msg]
@@ -14,7 +15,10 @@
       (alter subs assoc ch-id ch)))
   (close! [_]
     (doseq [ch (vals @subs)]
-      (web.async/close ch))
+      (try
+        (web.async/close ch)
+        (catch Throwable ex
+          (log/warn ex "could not gracefully shutdown channel"))))
     (dosync
       (ref-set subs {})))
   (disconnect! [_ ch-id]

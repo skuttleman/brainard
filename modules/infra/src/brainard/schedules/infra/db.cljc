@@ -40,8 +40,18 @@
                   [(<= ?ats ?after)]
                   [(get-else $ ?e :schedules/before-timestamp ?before) ?bts]
                   [(>= ?bts ?before)]])
-   :args [weekday month day week-index after-timestamp before-timestamp]
+   :args  [weekday month day week-index after-timestamp before-timestamp]
    :xform (map first)})
+
+(defmethod istorage/->input ::api.sched/get-by-id
+  [{:schedules/keys [id]}]
+  {:query (into select
+                '[?id
+                  :where
+                  [?e :schedules/id ?id]])
+   :args  [id]
+   :xform (map first)
+   :only? true})
 
 (defmethod istorage/->input ::api.sched/get-by-note-id
   [{:schedules/keys [note-id]}]
@@ -49,5 +59,5 @@
                 '[?note-id
                   :where
                   [?e :schedules/note-id ?note-id]])
-   :args [note-id]
+   :args  [note-id]
    :xform (map first)})

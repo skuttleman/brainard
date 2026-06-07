@@ -12,7 +12,7 @@
     [workspace-nodes :as-alias ws]))
 
 (def ^:const create-note-key [::forms+/valid [::notes#create]])
-(def ^:const ws-form-key [::forms+/valid [::specs/workspace#sync]])
+(def ^:const ws-form-key [::forms+/valid [::workspace#sync]])
 
 (defmulti drag-item (fn [_ attrs _] (:type attrs)))
 
@@ -28,12 +28,27 @@
   [_ spec]
   (res/->request-spec [::specs/notes#select] (assoc spec :params {:pinned true})))
 
-(defmethod forms+/validate ::specs/workspace#sync
-  [_ data]
-  (let [validator (if (::ws/id data)
-                    (valid/->validator sws/modify)
-                    (valid/->validator sws/create))]
-    (validator data)))
+(def ^:no-doc workspace-validator
+  (let [create (valid/->validator sws/create)
+        modify (valid/->validator sws/modify)]
+    (fn [data]
+      (if (::ws/id data)
+        (modify data)
+        (create data)))))
+
+(forms+/validated ::workspace#sync workspace-validator
+  [_ {::forms/keys [data] :keys [payload] :as spec}]
+  (let [spec-key (case (::action spec)
+                   ::create ::specs/workspace#create
+                   ::modify ::specs/workspace#modify
+                   ::destroy ::specs/workspace#destroy
+                   ::specs/workspace#select)]
+    (res/->request-spec [spec-key]
+                        (assoc spec
+                               ::ws/id (or (::ws/id data) (::ws/id spec))
+                               :payload (or data payload)
+                               :ok-commands [[:modals/remove-all!]]
+                               :err-commands [[:toasts/fail!]]))))
 
 (defn expanded-change
   "Return a listener that updates the route query-params when the expanded node changes."
@@ -51,31 +66,31 @@
 (defn ^:private ->on-drop [*:store]
   (fn [node-id [_ parent-id sibling-id]]
     (store/dispatch! *:store [::res/resubmit!
-                              [::specs/workspace#sync]
-                              {::ws/id        node-id
-                               ::specs/action :modify
-                               :payload       (cond-> {::ws/parent-id parent-id}
-                                                sibling-id (assoc ::ws/prev-sibling-id sibling-id))}])))
+                              [::workspace#sync]
+                              {::ws/id  node-id
+                               ::action ::modify
+                               :payload (cond-> {::ws/parent-id parent-id}
+                                          sibling-id (assoc ::ws/prev-sibling-id sibling-id))}])))
 
 (def create-modal
   [::edit! {:header       "Create new item in your workspace"
             :resource-key ws-form-key
-            :params       {::specs/action :create}}])
+            :params       {::action ::create}}])
 
 (def modify-modal
   [::edit! {:header "Edit the workspace node"
-            :params {::specs/action :modify}}])
+            :params {::action ::modify}}])
 
 (defn ->delete-modal
   "Return modal data for confirming deletion of a workspace node and its ancestors."
   [node]
   [:modals/sure?
-   {:description  "This node and all ancestors will be deleted"
-    :ok-btn-class ["delete-node"]
-    :yes-commands [[::res/resubmit!
-                    [::specs/workspace#sync]
-                    {::ws/id        (::ws/id node)
-                     ::specs/action :destroy}]]}])
+   {:description   "This node and all ancestors will be deleted"
+    :yes-btn-class ["delete-node"]
+    :yes-commands  [[::res/resubmit!
+                     [::workspace#sync]
+                     {::ws/id  (::ws/id node)
+                      ::action ::destroy}]]}])
 
 (defn ->note-edit-modal
   "Return modal descriptor for creating a new note prefilled with context and tags."

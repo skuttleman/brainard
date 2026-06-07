@@ -32,7 +32,7 @@
   (doto store add-dev-logger!))
 
 (defn ^:private handler-mw [handler ctx [action :as cmd] emit-cb]
-  #_(when-not (#{:defacto.core/emit!} action)
+  #_(when-not (= :defacto.core/emit! action)
     (log/info "command:" action))
   (handler ctx cmd emit-cb))
 

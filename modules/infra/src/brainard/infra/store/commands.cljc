@@ -1,6 +1,5 @@
 (ns brainard.infra.store.commands
   (:require
-    [brainard.api.utils.logger :as log]
     [brainard.infra.store.core :as store]
     [brainard.infra.views.components.core :as comp]
     [clojure.string :as string]
@@ -57,7 +56,6 @@
 
 (defmethod defacto/command-handler :toasts/fail!
   [{::defacto/keys [store]} [_ err] _]
-  (log/debug err)
   (store/dispatch! store [:toasts/create! :error (or (:message err)
                                                      (when (and (seqable? err) (seq err))
                                                        (some->> (map :message err)

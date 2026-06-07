@@ -281,18 +281,20 @@
                                 :uri    "/api/schedules"
                                 :body   {:schedules/note-id note-id
                                          :schedules/weekday :monday}})
-                schedule (-> response :body :data)]
+                schedules (-> response :body :data)]
             (testing "returns the created schedule"
               (is (thttp/success? response))
-              (is (= {:schedules/note-id note-id
-                      :schedules/weekday :monday}
-                     (select-keys schedule #{:schedules/note-id :schedules/weekday}))))
+              (is (= [{:schedules/note-id note-id
+                       :schedules/weekday :monday}]
+                     (->> schedules
+                          (map #(select-keys % #{:schedules/note-id :schedules/weekday}))))))
 
             (testing "and when deleting the schedule"
               (let [delete-response (http {:method :delete
-                                           :uri    (str "/api/schedules/" (:schedules/id schedule))})]
+                                           :uri    (str "/api/schedules/" (:schedules/id (first schedules)))})]
                 (testing "succeeds"
-                  (is (thttp/success? delete-response)))
+                  (is (thttp/success? delete-response))
+                  (is (= {:data []} (:body delete-response))))
                 (testing "and the note no longer has the schedule"
                   (is (empty? (-> (http {:method :get
                                          :uri    (str "/api/notes/" note-id)})

@@ -2,12 +2,11 @@
   (:require
     [brainard.api.utils.dates :as dates]
     [brainard.infra.store.core :as store]
-    [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.components.interfaces :as icomp]
     [brainard.infra.views.fragments.note-components :as note-comp]
-    [brainard.infra.views.pages.note.actions :as note.act]
-    [defacto.resources.core :as res]
+    [brainard.infra.views.pages.note.actions :as-alias note.act]
+    [defacto.resources.core :as-alias res]
     [whet.utils.reagent :as r]))
 
 (defn ^:private attachment-list [note]
@@ -124,30 +123,6 @@
             [:span.space--left.truncate.yellow {:style {:max-width "50%"}}
              "incomplete"])])])]])
 
-(defmethod icomp/modal-header ::view
-  [_ {:notes/keys [saved-at]}]
-  (dates/->str saved-at))
-
-(defmethod icomp/modal-body ::view
-  [*:store {modal-id :modals/id :keys [last? note] :as params}]
-  [:div.layout--stack-between
-   [:div.layout--row
-    (when (:notes/pinned? note)
-      [comp/icon {:class ["layout--space-after"]
-                  :style {:align-self :center}} :paperclip])
-    [:h1 [:strong (:notes/context note)]]]
-   [comp/markdown (:notes/body note)]
-   [attachment-list note]
-   [todo-list note]
-   [note-comp/tag-list note]
-   (when-not last?
-     [:div
-      [comp/plain-button {:*:store  *:store
-                          :class    ["is-small" "is-info" "note__history-reinstate"]
-                          :commands [[:modals/remove! modal-id]
-                                     [::res/submit! [::note.act/notes#reinstate modal-id] params]]}
-       "reinstate"]])])
-
 (defn ^:private note-history [*:store reconstruction entries]
   (let [last-idx (dec (count entries))
         last-history-id (:notes/history-id (last entries))
@@ -169,7 +144,8 @@
                  note (-> note
                           (update :notes/attachments (partial map (:attachments/state note)))
                           (update :notes/todos (partial map (:todos/state note))))
-                 history-modal [::view {:last?            (= idx last-idx)
+                 history-modal [::view {::note.act/action ::note.act/reinstate
+                                        :last?            (= idx last-idx)
                                         :note             note
                                         :prev-attachments prev-attachments
                                         :prev-tags        prev-tags
@@ -195,13 +171,37 @@
           "show"]]
         (into [:<>] change-list)])]))
 
+(defmethod icomp/modal-header ::view
+  [_ {:notes/keys [saved-at]}]
+  (dates/->str saved-at))
+
+(defmethod icomp/modal-body ::view
+  [*:store {modal-id :modals/id :keys [last? note] :as params}]
+  [:div.layout--stack-between
+   [:div.layout--row
+    (when (:notes/pinned? note)
+      [comp/icon {:class ["layout--space-after"]
+                  :style {:align-self :center}} :paperclip])
+    [:h1 [:strong (:notes/context note)]]]
+   [comp/markdown (:notes/body note)]
+   [attachment-list note]
+   [todo-list note]
+   [note-comp/tag-list note]
+   (when-not last?
+     [:div
+      [comp/plain-button {:*:store  *:store
+                          :class    ["is-small" "is-info" "note__history-reinstate"]
+                          :commands [[:modals/remove! modal-id]
+                                     [::res/resubmit! [::note.act/notes#sync (:notes/id note)] params]]}
+       "reinstate"]])])
+
 (defmethod icomp/modal-header ::modal
   [_ _]
   "Note's change history")
 
 (defmethod icomp/modal-body ::modal
   [*:store {{note-id :notes/id} :note}]
-  (r/with-let [spec-key [::specs/note#history note-id]
+  (r/with-let [spec-key [::note.act/note#history note-id]
                sub:history (store/res-sub *:store spec-key)
                sub:recon (store/subscribe *:store [:notes.history/?:reconstruction spec-key])]
     [comp/with-resource sub:history [note-history *:store @sub:recon]]

@@ -2,7 +2,6 @@
   (:require
     [brainard.api.specs :as scommon]
     [brainard.attachments.api.specs :as sattachments]
-    [brainard.schedules.api.specs :as ssched]
     [malli.util :as mu]))
 
 (def todo-create
@@ -35,7 +34,6 @@
             [:map
              [:notes/id uuid?]
              [:notes/timestamp inst?]
-             [:notes/schedules {:optional true} [:sequential ssched/full]]
              [:notes/todos {:optional true} [:seqable todo-full]]]))
 
 (def history

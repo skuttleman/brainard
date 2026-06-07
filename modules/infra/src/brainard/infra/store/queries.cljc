@@ -5,11 +5,12 @@
     [defacto.resources.core :as res]))
 
 (defmethod defacto/query-responder :modals/?:modals
-  [db _]
+  [db [_ modifier]]
   (->> (:modals/modals db)
        (sort-by key)
        (map (fn [[modal-id modal]]
-              (assoc modal :id modal-id)))))
+              (assoc modal :id modal-id)))
+       ((or modifier identity))))
 
 (defmethod defacto/query-responder :toasts/?:toasts
   [db _]
