@@ -211,11 +211,11 @@
                                                                           first
                                                                           :body))])]
     [:div.layout--stack-between
-     [comp/with-resource* sub:note
+     [comp/with-resource sub:note
       [note-root {:size :large} *:store sub:modals false]
       note-err
       [note-root {:size :large} *:store sub:modals true]]
-     [comp/with-resources* [sub:note sub:sched]
+     [comp/with-resources [sub:note sub:sched]
       [schedule-root *:store sub:modals false]
       [schedule-root *:store sub:modals false]
       [schedule-root *:store sub:modals true]]]
