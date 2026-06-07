@@ -51,23 +51,11 @@
                  "<span class=\"pass\">✓ All tests passed!</span>"
                  "<span class=\"fail\">✗ Some tests failed</span>")))))
 
-(defn ^:export test! []
+(defn run-tests! [test-fn]
   (let [running? (volatile! true)]
+    (-add-method t/report [::t/default :end-run-tests] (fn [_] (vreset! running? false)))
     (async/go
-      (-add-method t/report [::t/default :end-run-tests] (fn [_] (vreset! running? false)))
-      (let [
-            output (with-out-str (t/run-tests
-                                   'brainard.api.utils.fns-test
-                                   'brainard.api.utils.keywords-test
-                                   'brainard.api.utils.maps-test
-                                   'brainard.api.validations-test
-                                   'brainard.infra.routes.errors-test
-                                   'brainard.infra.store-test
-                                   'brainard.infra.store.commands-test
-                                   'brainard.infra.store.events-test
-                                   'brainard.infra.store.queries-test
-                                   'brainard.infra.store.specs-test
-                                   'brainard.schedules.api.relevancy-test)
+      (let [output (with-out-str (test-fn)
                                  (while @running?
                                    (async/<! (async/timeout 100))))
             results (parse-test-results output)]
@@ -76,3 +64,18 @@
                                            (zero? (+ (:failures results 0) (:errors results 0)))))
         (log-output! output)
         (update-page! results)))))
+
+(defn ^:export test! []
+  (run-tests! (fn []
+                (t/run-tests
+                  'brainard.api.utils.fns-test
+                  'brainard.api.utils.keywords-test
+                  'brainard.api.utils.maps-test
+                  'brainard.api.validations-test
+                  'brainard.infra.routes.errors-test
+                  'brainard.infra.store-test
+                  'brainard.infra.store.commands-test
+                  'brainard.infra.store.events-test
+                  'brainard.infra.store.queries-test
+                  'brainard.infra.store.specs-test
+                  'brainard.schedules.api.relevancy-test))))

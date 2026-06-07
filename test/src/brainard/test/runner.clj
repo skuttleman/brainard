@@ -3,22 +3,56 @@
     [brainard.api.utils.logger :as log]
     [clojure.java.io :as io]
     [etaoin.api :as eta]
+    [hiccup2.core :as hiccup]
     [immutant.web :as web]
     [integrant.core :as ig]
     brainard.test.harness.ui.system))
 
-(defn ^:private handler [request]
+(defn html [cljs]
+  [:html
+   [:head
+    [:meta {:charset "UTF-8"}]
+    [:title "Brainard ClojureScript Tests"]
+    [:style "body {
+              font-family: monospace;
+              padding: 20px;
+              background-color: #f5f5f5;
+          }
+          #test-output {
+              background-color: white;
+              border: 1px solid #ddd;
+              padding: 15px;
+              border-radius: 4px;
+              white-space: pre-wrap;
+              word-wrap: break-word;
+              min-height: 200px;
+          }
+          .pass {
+              color: green;
+          }
+          .fail {
+              color: red;
+          }"]]
+   [:body
+    [:h1 "Brainard ClojureScript Tests"]
+    [:div#test-output "Running tests..."]
+    [:script {:src cljs}]]])
+
+(defn ^:private handler [request resource cljs]
   (let [uri (:uri request)]
     (cond
-      (= uri "/cljs-test/test.js")
+      (= uri resource)
       {:status  200
        :headers {"Content-Type" "application/javascript"}
-       :body    (io/file "target/cljs-test/test.js")}
+       :body    (io/file cljs)}
 
       (= uri "/")
       {:status  200
        :headers {"Content-Type" "text/html"}
-       :body    (io/file "test/resources/html/test-runner.html")}
+       :body    (->> resource
+                     html
+                     hiccup/html
+                     (str "<!doctype html>"))}
 
       :else
       {:status 404
@@ -48,15 +82,15 @@
         (println (log/red "✗ Tests failed or no results!"))
         (System/exit 1)))))
 
-(defn ^:private run-on-rnd-port []
+(defn ^:private run-on-rnd-port [resource cljs]
   (let [port (ig/init-key :cfg.test/server-port {})]
-    [port (web/run handler {:port port :host "localhost"})]))
+    [port (web/run #(handler % resource cljs) {:port port :host "localhost"})]))
 
 (defn -main []
   (let [[port server] (try
-                        (run-on-rnd-port)
+                        (run-on-rnd-port "/cljs-test/test.js" "target/cljs-test/test.js")
                         (catch Throwable _
-                          (run-on-rnd-port)))
+                          (run-on-rnd-port "/cljs-test/test.js" "target/cljs-test/test.js")))
         driver (try
                  (eta/chrome {:headless true})
                  (catch Throwable _

@@ -61,5 +61,5 @@
 (defn init!
   "Called when the DOM finishes loading."
   []
-  (log/info "dev app initialized")
-  (app/start! (comp app/store->comp with-dev) store-mw))
+  (app/start! (comp app/store->comp with-dev) store-mw)
+  (log/info "dev app initialized"))
