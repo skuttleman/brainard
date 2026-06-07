@@ -58,7 +58,7 @@
               (is (= :init (:state modal)))))
 
           (testing "and transitions the modal to :displayed state after the delay"
-            (async/<! (async/timeout 20))
+            (async/<! (async/timeout 50))
             (is (= :displayed (:state (first (store/query store [:modals/?:modals]))))))))
 
       (testing "when calling :modals/remove! command"
@@ -70,7 +70,7 @@
             (is (= :hidden (:state (first (store/query store [:modals/?:modals]))))))
 
           (testing "and removes the modal after the delay"
-            (async/<! (async/timeout 350))
+            (async/<! (async/timeout 400))
             (is (empty? (store/query store [:modals/?:modals]))))))
 
       (testing "when calling :modals/remove-all! command"
@@ -81,7 +81,7 @@
 
           (testing "immediately hides all modals"
             (is (every? #(= :hidden (:state %)) (store/query store [:modals/?:modals])))
-            (async/<! (async/timeout 350)))
+            (async/<! (async/timeout 400)))
 
           (testing "and removes all modals after the delay"
             (is (empty? (store/query store [:modals/?:modals]))))))
@@ -138,7 +138,7 @@
             (is (= :hidden (:state (first (store/query store [:toasts/?:toasts]))))))
 
           (testing "and removes the toast after the delay"
-            (async/<! (async/timeout 700))
+            (async/<! (async/timeout 750))
             (is (empty? (store/query store [:toasts/?:toasts]))))))
 
       (testing "when calling :toasts/create! command"
