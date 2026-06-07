@@ -56,7 +56,7 @@
      [list-action #(on-edit todo)
       [comp/icon :pencil]])])
 
-(defn todo-list [{:keys [disabled label? on-create value] :as attrs}]
+(defn todo-list [{:keys [label? on-create value] :as attrs}]
   [:div.layout-col
    (when label?
      [:label.label "TODOs:"])
@@ -66,5 +66,5 @@
       "Create TODO..."])
    [:ul.todo-list
     (for [{todo-id :todos/id :as todo} (sort-by (juxt (complement :todos/completed?) :todos/id) value)]
-      ^{:key (str todo-id "-" disabled)}
+      ^{:key todo-id}
       [todo-item attrs todo])]])

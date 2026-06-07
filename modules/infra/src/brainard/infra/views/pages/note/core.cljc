@@ -31,8 +31,8 @@
        [:input.checkbox
         {:checked   (boolean (:todos/completed? todo))
          :type      :checkbox
-         :value     (get-in (forms/data form+) check-path)
          :disabled  (or disabled (res/requesting? form+))
+         :value     (get-in (forms/data form+) check-path)
          :on-change (fn [e]
                       (-> *:store
                           (store/emit! [::forms/changed
@@ -53,22 +53,13 @@
 (defn ^:private todo-list [*:store note disabled?]
   (when-let [todos (not-empty (:notes/todos note))]
     [note-comp/todo-list
-     {:*:store   *:store
-      :note-id   (:notes/id note)
-      :label?    true
-      :value     todos
-      :disabled disabled?}]))
+     {:*:store  *:store
+      :disabled disabled?
+      :note-id  (:notes/id note)
+      :label?   true
+      :value    todos}]))
 
-(defn ^:private pin-toggle-disabled [note]
-  [:div
-   [:form.form {:disabled true}
-    [ctrls/icon-toggle {:class    ["is-small" "note__toggle-pinned"]
-                        :disabled true
-                        :icon     :paperclip
-                        :type     :submit
-                        :value    (:notes/pinned? note)}]]])
-
-(defn ^:private pin-toggle [*:store note]
+(defn ^:private pin-toggle [*:store note disabled?]
   (r/with-let [pin-note-key (note.act/->pin-key (:notes/id note))
                sub:form+ (store/form+-sub *:store pin-note-key note)]
     (let [form+ @sub:form+]
@@ -76,7 +67,7 @@
        [ctrls/form (note.act/->pin-form-attrs *:store form+ note)
         [ctrls/icon-toggle (-> {:*:store  *:store
                                 :class    ["is-small" "note__toggle-pinned"]
-                                :disabled (res/requesting? form+)
+                                :disabled (or disabled? (res/requesting? form+))
                                 :icon     :paperclip
                                 :type     :submit}
                                (ctrls/with-attrs form+ [:notes/pinned?]))]]])
@@ -94,7 +85,7 @@
    (if (seq scheds)
      [:<>
       [:p.schedules__header [:em "Existing schedules"]]
-      [:ul.layout--stack-between.schedules__items
+      [:ul.layout--stack-between.schedules__items {:style {:margin-bottom "16px"}}
        (for [{sched-id :schedules/id :as sched} scheds
              :let [modal (note.sched/->delete-sched-modal (:notes/id note) sched-id)]]
          ^{:key sched-id}
@@ -111,10 +102,10 @@
   (let [form+ @sub:form+]
     [ctrls/form {:*:store      *:store
                  :class        ["schedule-form"]
+                 :disabled     disabled?
                  :form+        form+
                  :horizontal?  true
                  :changed?     (forms/changed? form+)
-                 :disabled     disabled?
                  :params       {::note.sched/action ::note.sched/create}
                  :resource-key (forms/id form+)
                  :submit/body  "Save"}
@@ -162,13 +153,11 @@
     (finally
       (store/emit! *:store [::forms/destroyed schedule-create-key]))))
 
-(defn ^:private note-editor [*:store disabled? note]
+(defn ^:private note-editor [*:store note disabled?]
   [:<>
    [:div.layout--row
     [:h1.layout--space-after.flex-grow [:strong (:notes/context note)]]
-    (if disabled?
-      [pin-toggle-disabled note]
-      [pin-toggle *:store note])]
+    [pin-toggle *:store note disabled?]]
    [comp/markdown (:notes/body note)]
    [:div.layout--room-between {:style {:width "100%"}}
     [:div.flex-grow {:style {:flex-basis "50%"}}
@@ -189,18 +178,21 @@
                          :disabled disabled?}
       "Delete note"]]
     [comp/plain-button {:*:store  *:store
-                          :class    ["is-light" "note__history-button"]
-                          :commands [[:modals/create! [::note.history/modal
-                                                       {:note note}]]]
-                          :disabled disabled?}
-       "View history"]]])
+                        :class    ["is-light" "note__history-button"]
+                        :commands [[:modals/create! [::note.history/modal
+                                                     {:note note}]]]
+                        :disabled disabled?}
+     "View history"]]])
 
-(defn ^:private note-root [_ *:store disabled? note]
-  [note-editor *:store disabled? note])
+(defn ^:private note-root [opts *:store sub:modals disabled? note]
+  (if (and disabled? (seq @sub:modals))
+    [comp/spinner opts]
+    [note-editor *:store note disabled?]))
 
-(defn ^:private schedule-root [*:store disabled? [note scheds]]
-  ^{:key (str (:notes/id note) "-sched-" disabled?)}
-  [schedule-editor *:store note scheds disabled?])
+(defn ^:private schedule-root [*:store sub:modals disabled? [note scheds]]
+  (if (and disabled? (seq @sub:modals))
+    [comp/spinner]
+    [schedule-editor *:store note scheds disabled?]))
 
 (defn ^:private note-err [_]
   [comp/alert :warn
@@ -214,16 +206,17 @@
                sched-key (note.sched/->sync-key note-id)
                sub:note (store/res-sub *:store note-key)
                sub:sched (store/res-sub *:store sched-key)
+               sub:modals (store/subscribe *:store [:modals/?:modals])
                sched-err (constantly nil)]
     [:div.layout--stack-between
      [comp/with-resource* sub:note
-      [note-root {:size :large} *:store false]
+      [note-root {:size :large} *:store sub:modals false]
       note-err
-      [note-root {} *:store true]]
+      [note-root {:size :large} *:store sub:modals true]]
      [comp/with-resources* [sub:note sub:sched]
-      [schedule-root *:store false]
+      [schedule-root *:store sub:modals false]
       sched-err
-      [schedule-root *:store true]]]
+      [schedule-root *:store sub:modals true]]]
     (finally
       (-> *:store
           (store/emit! [::res/destroyed sched-key])

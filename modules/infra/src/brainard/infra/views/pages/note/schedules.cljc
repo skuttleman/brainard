@@ -12,7 +12,6 @@
 (defn ->sync-key [note-id] [::schedules#sync note-id])
 (defn ->create-key [note-id] [::forms+/valid (->sync-key note-id) [::forms/edit-schedule]])
 
-
 (defn ^:private ->schedule-spec [spec-key spec success-msg]
   (specs/with-cbs (res/->request-spec spec-key spec)
                   :ok-commands [[:toasts/succeed! {:message success-msg}]]
