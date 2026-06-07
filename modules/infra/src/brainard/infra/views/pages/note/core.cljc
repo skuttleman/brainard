@@ -1,7 +1,6 @@
 (ns brainard.infra.views.pages.note.core
   (:require
     [brainard.infra.store.core :as store]
-    [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.controls.core :as ctrls]
     [brainard.infra.views.fragments.note-components :as note-comp]
@@ -26,23 +25,25 @@
                form-key (note.act/->todo-key note-id (:todos/id todo))
                check-path [:notes/todos 0 :todos/completed?]
                sub:form+ (store/form+-sub *:store form-key init-form)]
-    (let [form+ @sub:form+]
+    (let [form+ @sub:form+
+          value (get-in (forms/data form+) check-path)]
       [:li.todo.layout--room-between
+       [comp/pprint value]
        [:input.checkbox
-        {:checked   (boolean (:todos/completed? todo))
+        {:checked   value
          :type      :checkbox
          :disabled  (or disabled (res/requesting? form+))
-         :value     (get-in (forms/data form+) check-path)
-         :on-change (fn [e]
+         :value     value
+         :on-change (fn [_]
                       (-> *:store
-                          (store/emit! [::forms/changed
-                                        form-key
-                                        check-path
-                                        (= "false" (dom/target-value e))])
+                          (store/emit! [::forms/changed form-key check-path (not value)])
                           (store/dispatch! [::forms+/submit!
                                             form-key
                                             {::note.act/action ::note.act/todo
-                                             :err-events       [[::forms/created form-key init-form]]}])))}]
+                                             :err-events       [[::forms/changed
+                                                                 form-key
+                                                                 check-path
+                                                                 value]]}])))}]
 
        [:span {:class [(when (:todos/completed? todo)
                          "strikethrough")]}

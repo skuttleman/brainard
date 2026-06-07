@@ -25,10 +25,10 @@
                                                (select-keys #{:notes/todos})
                                                (valid/select-spec-keys snotes/full)))]
              (specs/with-cbs (res/->request-spec [::specs/notes#modify note-id] spec)
-                             :ok-events [[:api.notes/saved]]
                              :err-commands [[:toasts/fail!]]))
     ::edit (let [spec (assoc spec :payload (valid/select-spec-keys data snotes/modify))]
-             (res/->request-spec [::specs/notes#modify note-id] spec))
+             (specs/with-cbs (res/->request-spec [::specs/notes#modify note-id] spec)
+                             :ok-events [[:api.notes/saved]]))
     ::delete (res/->request-spec [::specs/notes#destroy note-id] spec)
     ::reinstate (let [payload (valid/select-spec-keys note snotes/reinstate)]
                   (res/->request-spec [::specs/notes#reinstate note-id]
