@@ -113,11 +113,11 @@
         success?
         (conj comp payloads)
 
-        (and reload-comp (some res/requesting? resources) (every? some? payloads))
-        (conj reload-comp payloads)
-
         (and err-comp (some res/error? resources))
         (conj err-comp payloads)
+
+        (and reload-comp (some res/requesting? resources) (every? some? payloads))
+        (conj reload-comp payloads)
 
         (some res/error? resources)
         (when-not (some ::forms/errors payloads)

@@ -118,7 +118,7 @@
   [:modals/sure?
    {:description   "This schedule will be deleted"
     :yes-btn-class ["delete-schedule"]
-    :yes-commands  [[::res/submit!
+    :yes-commands  [[::res/resubmit!
                      (->sync-key note-id)
                      {::action      ::delete
                       :schedules/id sched-id}]]}])

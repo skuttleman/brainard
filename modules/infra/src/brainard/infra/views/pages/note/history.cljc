@@ -192,7 +192,7 @@
       [comp/plain-button {:*:store  *:store
                           :class    ["is-small" "is-info" "note__history-reinstate"]
                           :commands [[:modals/remove! modal-id]
-                                     [::res/submit! [::note.act/notes#sync (:notes/id note)] params]]}
+                                     [::res/resubmit! [::note.act/notes#sync (:notes/id note)] params]]}
        "reinstate"]])])
 
 (defmethod icomp/modal-header ::modal

@@ -302,13 +302,12 @@
      (when-not (or no-buttons? inline-buttons?)
        [form-button-row button-attrs])]))
 
-(defn form [{:keys [*:store params resource-key resubmit?] :as attrs} & fields]
+(defn form [{:keys [*:store params resource-key] :as attrs} & fields]
   (into [plain-form
          (assoc attrs
                 :on-submit
                 (fn [_]
-                  (let [action (if resubmit? ::forms+/resubmit! ::forms+/submit!)]
-                    (store/dispatch! *:store [action resource-key params]))))]
+                  (store/dispatch! *:store [::forms+/submit! resource-key params])))]
         fields))
 
 (def ^{:arglists '([attrs form+ path])} with-attrs

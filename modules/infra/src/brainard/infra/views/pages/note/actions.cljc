@@ -62,7 +62,6 @@
      :no-buttons?  true
      :no-errors?   true
      :resource-key pin-note-key
-     :resubmit?    true
      :params       {::action    ::pin
                     :err-events [[::forms/created pin-note-key note]]}}))
 

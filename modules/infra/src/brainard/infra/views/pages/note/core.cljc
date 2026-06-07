@@ -39,7 +39,7 @@
                                         form-key
                                         check-path
                                         (= "false" (dom/target-value e))])
-                          (store/dispatch! [::forms+/resubmit!
+                          (store/dispatch! [::forms+/submit!
                                             form-key
                                             {::note.act/action ::note.act/todo
                                              :err-events       [[::forms/created form-key init-form]]}])))}]
@@ -206,8 +206,10 @@
                sched-key (note.sched/->sync-key note-id)
                sub:note (store/res-sub *:store note-key)
                sub:sched (store/res-sub *:store sched-key)
-               sub:modals (store/subscribe *:store [:modals/?:modals])
-               sched-err (constantly nil)]
+               sub:modals (store/subscribe *:store [:modals/?:modals
+                                                    (partial remove (comp #{:modals/sure?}
+                                                                          first
+                                                                          :body))])]
     [:div.layout--stack-between
      [comp/with-resource* sub:note
       [note-root {:size :large} *:store sub:modals false]
@@ -215,7 +217,7 @@
       [note-root {:size :large} *:store sub:modals true]]
      [comp/with-resources* [sub:note sub:sched]
       [schedule-root *:store sub:modals false]
-      sched-err
+      [schedule-root *:store sub:modals false]
       [schedule-root *:store sub:modals true]]]
     (finally
       (-> *:store
