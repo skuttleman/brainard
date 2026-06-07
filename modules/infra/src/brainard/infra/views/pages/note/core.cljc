@@ -28,7 +28,6 @@
     (let [form+ @sub:form+
           value (get-in (forms/data form+) check-path)]
       [:li.todo.layout--room-between
-       [comp/pprint value]
        [:input.checkbox
         {:checked   value
          :type      :checkbox
