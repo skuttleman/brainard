@@ -13,6 +13,8 @@
     brainard.infra.views.pages.note.core
     brainard.infra.views.pages.search.core))
 
+(def ^:const app-name "brainard")
+
 (defmethod ipages/page :default
   [_ _]
   [:div "Not found"])
@@ -22,7 +24,7 @@
    [:a {:href "https://disney.fandom.com/wiki/Professor_Brainard" :target "_blank"}
     [:img.logo.layout--space-after {:src "/img/brainard.png" :height "120px" :width "120px"}]]
    [:div.layout--col
-    [:h1.title "brainard"]
+    [:h1.title app-name]
     [:em "'cause absent-minded people need help 'membering stuff"]]])
 
 (defn ^:private navbar-item [route token & body]

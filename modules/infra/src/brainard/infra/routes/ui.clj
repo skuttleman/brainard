@@ -12,6 +12,7 @@
     [ring.middleware.resource :as ring.res]
     [ring.util.mime-type :as ring.mime]
     [whet.core :as w]
+    [whet.impl.template :as tmpl]
     brainard.infra.store.commands
     brainard.infra.store.events
     brainard.infra.store.queries))
@@ -48,16 +49,21 @@
       routes/handler))
 
 (defmethod iroutes/handler [:get :routes/ui]
-  [{::w/keys [route] ::b/keys [apis env]}]
-  (let [template (-> {::b/sys apis}
-                     (w/into-template "brainard"
-                                      route
-                                      (partial ui-handler apis)
-                                      (partial store->tree env route))
-                     (w/with-html-heads icon-lib css-lib)
-                     (update 3 conj unavailable))]
+  [{::w/keys [route] ::b/keys [apis env no-hydrate?]}]
+  (let [template (if no-hydrate?
+                   (tmpl/into-template pages/app-name
+                                       (atom nil)
+                                       nil)
+                   (w/into-template {::b/sys apis}
+                                    pages/app-name
+                                    route
+                                    (partial ui-handler apis)
+                                    (partial store->tree env route)))]
     (routes.res/->response 200
-                           (w/render-template template)
+                           (-> template
+                               (w/with-html-heads icon-lib css-lib)
+                               (update 3 conj unavailable)
+                               w/render-template)
                            {"content-type" "text/html"})))
 
 (defmethod iroutes/handler [:get :routes.resources/asset]

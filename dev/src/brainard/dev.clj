@@ -12,10 +12,16 @@
 
 (defonce system nil)
 
+(defn ^:private dev-middleware [req upload-limit]
+  (assoc req
+         ::b/env :dev
+         ::b/file-limit-bytes upload-limit
+         #_#_::b/no-hydrate? true))
+
 (defn ^:private with-dev-middleware [handler upload-limit]
   (fn [req]
     (-> req
-        (assoc ::b/env :dev ::b/file-limit-bytes upload-limit)
+        (dev-middleware upload-limit)
         handler)))
 
 (defmethod ig/init-key :brainard.web/dev-handler
