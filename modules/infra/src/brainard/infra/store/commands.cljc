@@ -19,11 +19,11 @@
     (nav/navigate! nav token route-params query-params)))
 
 (defmethod defacto/command-handler :nav/navigate!
-  [{::w/keys [nav]} [_ {:keys [token query-params route-params]}]]
+  [{::w/keys [nav]} [_ {:keys [token query-params route-params]}] _]
   (nav/navigate! nav token route-params query-params))
 
 (defmethod defacto/command-handler :nav/replace!
-  [{::w/keys [nav]} [_ {:keys [token query-params route-params]}]]
+  [{::w/keys [nav]} [_ {:keys [token query-params route-params]}] _]
   (nav/replace! nav token route-params query-params))
 
 (defmethod defacto/command-handler :modals/create!

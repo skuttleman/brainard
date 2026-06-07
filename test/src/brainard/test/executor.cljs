@@ -1,12 +1,15 @@
 (ns brainard.test.executor
   (:require
+    [clojure.core.async :as async]
     [clojure.string :as string]
-    [clojure.test :refer [run-tests]]
+    [clojure.test :as t]
     brainard.api.utils.fns-test
     brainard.api.utils.keywords-test
     brainard.api.utils.maps-test
     brainard.api.validations-test
+    brainard.infra.routes.errors-test
     brainard.infra.store-test
+    brainard.infra.store.commands-test
     brainard.infra.store.events-test
     brainard.infra.store.queries-test
     brainard.infra.store.specs-test
@@ -49,19 +52,27 @@
                  "<span class=\"fail\">✗ Some tests failed</span>")))))
 
 (defn ^:export test! []
-  (let [output (with-out-str (run-tests
-                               'brainard.api.utils.fns-test
-                               'brainard.api.utils.keywords-test
-                               'brainard.api.utils.maps-test
-                               'brainard.api.validations-test
-                               'brainard.infra.store-test
-                               'brainard.infra.store.events-test
-                               'brainard.infra.store.queries-test
-                               'brainard.infra.store.specs-test
-                               'brainard.schedules.api.relevancy-test))
-        results (parse-test-results output)]
-    (aset js/window "testResults" (clj->js results))
-    (aset js/window "testsPassed" (and (pos? (:tests results 0))
-                                       (zero? (+ (:failures results 0) (:errors results 0)))))
-    (log-output! output)
-    (update-page! results)))
+  (let [running? (volatile! true)]
+    (async/go
+      (-add-method t/report [::t/default :end-run-tests] (fn [_] (vreset! running? false)))
+      (let [
+            output (with-out-str (t/run-tests
+                                   'brainard.api.utils.fns-test
+                                   'brainard.api.utils.keywords-test
+                                   'brainard.api.utils.maps-test
+                                   'brainard.api.validations-test
+                                   'brainard.infra.routes.errors-test
+                                   'brainard.infra.store-test
+                                   'brainard.infra.store.commands-test
+                                   'brainard.infra.store.events-test
+                                   'brainard.infra.store.queries-test
+                                   'brainard.infra.store.specs-test
+                                   'brainard.schedules.api.relevancy-test)
+                                 (while @running?
+                                   (async/<! (async/timeout 100))))
+            results (parse-test-results output)]
+        (aset js/window "testResults" (clj->js results))
+        (aset js/window "testsPassed" (and (pos? (:tests results 0))
+                                           (zero? (+ (:failures results 0) (:errors results 0)))))
+        (log-output! output)
+        (update-page! results)))))

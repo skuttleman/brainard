@@ -58,7 +58,7 @@
 
 (defmethod ig/init-key :brainard/events
   [_ _]
-  (manager/->EventsManager (ref {})))
+  (manager/create))
 
 (defmethod ig/halt-key! :brainard/events
   [_ manager]

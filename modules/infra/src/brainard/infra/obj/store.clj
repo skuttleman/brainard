@@ -13,8 +13,9 @@
   (write! [_ params]
     (run! invoker params)))
 
-(defn ^:no-doc ->invoker [{:keys [bucket region access-key secret-key]} ->client invoke-fn]
-  (let [client (->client {:api                  :s3
+(defn ^:internal ^:no-doc ->invoker [cfg ->client invoke-fn]
+  (let [{:keys [bucket region access-key secret-key]} cfg
+        client (->client {:api                  :s3
                           :region               region
                           :credentials-provider (aws.creds/basic-credentials-provider
                                                   {:access-key-id     access-key

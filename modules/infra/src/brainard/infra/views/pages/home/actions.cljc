@@ -28,7 +28,7 @@
   [_ spec]
   (res/->request-spec [::specs/notes#select] (assoc spec :params {:pinned true})))
 
-(def ^:no-doc workspace-validator
+(def ^:internal ^:no-doc workspace-validator
   (let [create (valid/->validator sws/create)
         modify (valid/->validator sws/modify)]
     (fn [data]
