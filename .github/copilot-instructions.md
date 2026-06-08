@@ -73,10 +73,10 @@ resources/duct/— Duct/Integrant system configs (.edn)
 ```
 
 ### Backend
-- **Immutant** HTTP server (Ring-compatible)
+- **Aleph** HTTP server (Ring-compatible)
 - **Datomic Local** for persistence
 - **Duct/Integrant** for dependency injection; configs in `resources/duct/*.edn` and `dev/resources/duct/dev.edn`
-- **bidi** for URL routing
+- **reitit** for URL routing
 
 ### Frontend
 - **ClojureScript** compiled via **shadow-cljs** (`:dev`, `:ui`, `:ui-test`, `:ui-cov` builds)

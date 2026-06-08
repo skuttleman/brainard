@@ -1,7 +1,8 @@
 (ns brainard.infra.utils.routing
-  "Tokenized HTTP routing table for use with [[bidi.bidi]]"
+  "Tokenized HTTP routing table"
   (:require
     [brainard.api.utils.uuids :as uuids]
+    [reitit.core :as r]
     [whet.interfaces :as iwhet]))
 
 (def ^:private token->coercers
@@ -27,35 +28,48 @@
   (defmethod iwhet/coerce-route-params token [token params] (coerce-params token params)))
 
 (def ^:private api-routes
-  ["/api" [["/attachments" :routes.api/attachments]
-           ["/contexts" :routes.api/contexts]
-           ["/notes" [["" :routes.api/notes]
-                      [["/" [uuids/regex :notes/id]] [["" :routes.api/note]
-                                                      ["/history" :routes.api/note?history]
-                                                      ["/reinstate" :routes.api/note!reinstate]
-                                                      ["/schedules" :routes.api/note#schedules]]]
-                      ["/scheduled" :routes.api/notes?scheduled]]]
-           ["/schedules" [["" :routes.api/schedules]
-                          [["/" [uuids/regex :schedules/id]] :routes.api/schedule]]]
-           ["/tags" :routes.api/tags]
-           ["/workspace-nodes" [["" :routes.api/workspace-nodes]
-                                [["/" [uuids/regex :workspace-nodes/id]] :routes.api/workspace-node]]]
-           ["/events" :routes.api/events]
-           [true :routes.api/not-found]]])
+  [["/api" [["/attachments" {:name :routes.api/attachments}]
+            ["/contexts" {:name :routes.api/contexts}]
+            ["/notes" [["" {:name :routes.api/notes}]
+                       ["/scheduled" {:name :routes.api/notes?scheduled}]
+                       ["/:id" [["" {:name       :routes.api/note
+                                     :param-keys {:id :notes/id}}]
+                                ["/history" {:name       :routes.api/note?history
+                                             :param-keys {:id :notes/id}}]
+                                ["/reinstate" {:name       :routes.api/note!reinstate
+                                               :param-keys {:id :notes/id}}]
+                                ["/schedules" {:name       :routes.api/note#schedules
+                                               :param-keys {:id :notes/id}}]]]]]
+            ["/schedules" [["" {:name :routes.api/schedules}]
+                           ["/:id" {:name       :routes.api/schedule
+                                    :param-keys {:id :schedules/id}}]]]
+            ["/tags" {:name :routes.api/tags}]
+            ["/workspace-nodes" [["" {:name :routes.api/workspace-nodes}]
+                                 ["/:id" {:name       :routes.api/workspace-node
+                                          :param-keys {:id :workspace-nodes/id}}]]]
+            ["/events" {:name :routes.api/events}]
+            ["/*path" {:name :routes.api/not-found}]]]])
 
 (def ^:private resource-routes
-  ["" [[["/attachments/" [uuids/regex :attachments/id]] :routes.resources/attachment]
-       ["/css/" [[true :routes.resources/css]]]
-       ["/img/" [[true :routes.resources/img]]]
-       ["/js/" [[true :routes.resources/js]]]
-       ["/favicon.ico" :routes.resources/not-found]]])
+  [["/attachments/:id"
+    {:name       :routes.resources/attachment
+     :param-keys {:id :attachments/id}}]
+   ["/css/*path" {:name :routes.resources/css}]
+   ["/img/*path" {:name :routes.resources/img}]
+   ["/js/*path" {:name :routes.resources/js}]
+   ["/favicon.ico" {:name :routes.resources/not-found}]])
 
 (def ^:private ui-routes
-  ["" [["/" :routes.ui/home]
-       ["/buzz" :routes.ui/buzz]
-       [["/notes/" [uuids/regex :notes/id]] :routes.ui/note]
-       ["/search" :routes.ui/search]
-       [true :routes.ui/not-found]]])
+  [["/" {:name :routes.ui/home}]
+   ["/buzz" {:name :routes.ui/buzz}]
+   ["/notes/:id" {:name       :routes.ui/note
+                  :param-keys {:id :notes/id}}]
+   ["/search" {:name :routes.ui/search}]
+   ["/*path" {:name :routes.ui/not-found}]])
 
 (def all-routes
-  ["" [api-routes resource-routes ui-routes]])
+  (r/router (vec (concat api-routes resource-routes ui-routes))
+            {:conflicts nil}))
+
+(comment
+  (whet.utils.navigation/match all-routes (str "/api/notes/" (uuids/random) "?foo=bar&foo=rabbit")))
