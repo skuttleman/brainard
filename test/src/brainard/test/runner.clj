@@ -1,10 +1,10 @@
 (ns brainard.test.runner
   (:require
+    [aleph.http :as http]
     [brainard.api.utils.logger :as log]
     [clojure.java.io :as io]
     [etaoin.api :as eta]
     [hiccup2.core :as hiccup]
-    [immutant.web :as web]
     [integrant.core :as ig]
     brainard.test.harness.ui.system))
 
@@ -71,7 +71,7 @@
 (defn ^:private print-results! [server driver]
   (let [results (eta/js-execute driver "return window.testResults")]
     (eta/quit driver)
-    (web/stop server)
+    (.close server)
     (if (and results
              (zero? (:failures results 0))
              (zero? (:errors results 0)))
@@ -84,7 +84,7 @@
 
 (defn ^:private run-on-rnd-port [resource cljs]
   (let [port (ig/init-key :cfg.test/server-port {})]
-    [port (web/run #(handler % resource cljs) {:port port :host "localhost"})]))
+    [port (http/start-server #(handler % resource cljs) {:port port})]))
 
 (defn -main []
   (let [[port server] (try
@@ -108,5 +108,5 @@
         (println (str "\nError retrieving test results: " (.getMessage ex)))
         (.printStackTrace ex)
         (eta/quit driver)
-        (web/stop server)
+        (.close server)
         (System/exit 1)))))

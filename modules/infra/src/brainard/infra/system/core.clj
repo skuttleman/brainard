@@ -1,5 +1,6 @@
 (ns brainard.infra.system.core
   (:require
+    [aleph.http :as http]
     [brainard :as-alias b]
     [brainard.api.events.core :as events]
     [brainard.api.utils.logger :as log]
@@ -8,7 +9,6 @@
     [brainard.infra.routes.core :as routes]
     [brainard.infra.system.daemons :as daemons]
     [brainard.events.infra.manager :as manager]
-    [immutant.web :as web]
     [integrant.core :as ig]
     brainard.attachments.infra.db
     brainard.attachments.infra.routes
@@ -31,14 +31,14 @@
 (defmethod ig/init-key ::b/webserver
   [_ {:keys [apis events handler server-port]}]
   (log/info "starting webserver on port" server-port)
-  (web/run (fn [req]
-             (handler (assoc req ::b/apis apis ::b/events events)))
-           {:port server-port :host "0.0.0.0"}))
+  (http/start-server (fn [req]
+                       (handler (assoc req ::b/apis apis ::b/events events)))
+                     {:port server-port}))
 
 (defmethod ig/halt-key! ::b/webserver
   [_ server]
   (log/info "shutting down webserver")
-  (web/stop server))
+  (.close server))
 
 (defmethod ig/init-key ::b/storage
   [_ {:keys [conn]}]
@@ -58,7 +58,7 @@
 
 (defmethod ig/init-key :brainard/events
   [_ _]
-  (manager/create))
+  (manager/->EventsManager (ref {})))
 
 (defmethod ig/halt-key! :brainard/events
   [_ manager]

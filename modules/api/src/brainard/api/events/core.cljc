@@ -4,8 +4,8 @@
 
 (defn broadcast!
   "Broadcasts a message to all connections."
-  [manager msg]
-  (ievents/broadcast! manager msg)
+  [manager type data]
+  (ievents/broadcast! manager type data)
   nil)
 
 (defn close!

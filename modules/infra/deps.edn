@@ -1,18 +1,17 @@
 {:paths   ["resources" "src"]
- :deps    {bidi/bidi                             {:mvn/version "2.1.6"
+ :deps    {aleph/aleph                           {:mvn/version "0.9.9"}
+           bidi/bidi                             {:mvn/version "2.1.6"
                                                   :exclusions  [ring/ring-core]}
            brainard/api                          {:local/root "../api"}
            com.cognitect.aws/api                 {:mvn/version "0.8.824"}
            com.cognitect.aws/endpoints           {:mvn/version "871.2.44.8"}
            com.cognitect.aws/s3                  {:mvn/version "871.2.43.0"}
            com.datomic/local                     {:mvn/version "1.0.291"}
+           commons-fileupload/commons-fileupload {:mvn/version "1.6.0"}
            duct/core                             {:mvn/version "0.8.1"}
            io.github.nextjournal/markdown        {:mvn/version "0.7.225"}
-           commons-fileupload/commons-fileupload {:mvn/version "1.6.0"}
-           org.immutant/immutant                 {:mvn/version "2.1.10"
-                                                  :exclusions  [ch.qos.logback/logback-classic
-                                                                org.jboss.naming/jnpserver
-                                                                ring/ring-core]}
+           javax.servlet/javax.servlet-api       {:mvn/version "4.0.1"}
+           org.clj-commons/claypoole             {:mvn/version "1.2.2"}
            skuttleman/whet                       {:git/url "https://github.com/skuttleman/whet"
                                                   :git/sha "9fe13f67fc2074dd9d2ad8db1542e935788a66f0"}}
  :aliases {:test     {:extra-paths ["test/resources" "test/src"]}

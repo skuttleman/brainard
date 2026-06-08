@@ -40,4 +40,4 @@
   "Broadcasts relevant notes to all connections."
   [apis events timestamp]
   (let [notes (api/invoke-api :api.notes/relevant apis {:timestamp timestamp})]
-    (events/broadcast! events [:notes/relevant {:data notes}])))
+    (events/broadcast! events :message [:notes/relevant {:data notes}])))

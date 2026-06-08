@@ -49,8 +49,8 @@
   (tsys/with-app [{::b/keys [apis storage]} nil]
     (let [msgs (atom [])
           mock-events (reify ievents/ISend
-                        (broadcast! [_ msg]
-                          (swap! msgs conj msg)))
+                        (broadcast! [_ type data]
+                          (swap! msgs conj [type data])))
           [n1 n2 s1] (repeatedly uuids/random)
           timestamp (Date.)
           weekday (-> timestamp
@@ -84,8 +84,11 @@
 
             (testing "broadcasts the relevant note"
               (let [notes (->> @msgs
-                               (mapcat (comp :data second))
+                               (mapcat (comp :data second second))
                                (map #(dissoc % :notes/timestamp)))]
+                (is (= 1 (count @msgs)))
+                (is (= :message (ffirst @msgs)))
+                (is (= :notes/relevant (-> @msgs first second first)))
                 (is (= [{:notes/id          n1
                          :notes/context     "Context"
                          :notes/body        "body of note"

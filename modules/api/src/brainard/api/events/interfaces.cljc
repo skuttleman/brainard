@@ -13,5 +13,5 @@
 (defprotocol ISend
   "Sends connected channels a given message"
   :extend-via-metadata true
-  (broadcast! [this msg]
+  (broadcast! [this type data]
     "Broadcasts a message to all connected channels"))

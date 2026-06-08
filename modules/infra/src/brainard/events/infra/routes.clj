@@ -5,21 +5,44 @@
     [brainard.api.utils.uuids :as uuids]
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.api.events.interfaces :as ievents]
-    [immutant.web.async :as web.async]))
+    [clojure.core.async :as async]
+    [clojure.core.async.impl.protocols :as pasync]
+    [manifold.stream :as s]
+    [whet.core :as-alias w]))
 
-(defn ^:internal ^:no-doc handle-events [{::b/keys [events] :as req} ->chan-resp send-fn]
+(defn ^:private fmt-event [[event data]]
+  (str "event: " (name event)
+       (when data
+         (str \newline "data: " (pr-str data)))
+       \newline \newline))
+
+(defn ^:private ->event-stream [ch]
   (let [ch-id (uuids/random)
-        handler {:on-open  (fn [ch]
-                             (ievents/connect! events ch-id ch)
-                             (send-fn ch "event: connected\n\n")
-                             (log/infof "ws connected: %s" ch-id))
-                 :on-close (fn [_ _]
-                             (ievents/disconnect! events ch-id)
-                             (log/infof "ws disconnected: %s" ch-id))}]
-    (-> req
-        (->chan-resp handler)
-        (assoc-in [:headers "content-type"] "text/event-stream"))))
+        stream (s/stream 100)]
+    (s/connect ch stream)
+    [ch-id stream]))
+
+(defn ^:internal ^:no-doc handle-events [{::b/keys [events]} ->stream close-fn]
+  (let [ch (async/chan 100 (map fmt-event))
+        [id stream] (->stream ch)]
+    (ievents/connect! events id ch)
+    (async/go
+      (async/>! ch [:connected])
+      (log/infof "ws connected: %s" id)
+      (loop []
+        (if (pasync/closed? ch)
+          (do (ievents/disconnect! events id)
+              (close-fn stream)
+              (log/infof "ws disconnected: %s" id))
+          (do (async/<! (async/timeout 500))
+              (recur)))))
+    {:status  200
+     ::w/raw? true
+     :body    stream
+     :headers {"Content-Type"  "text/event-stream"
+               "Cache-Control" "no-cache"
+               "Connection"    "keep-alive"}}))
 
 (defmethod iroutes/handler [:get :routes.api/events]
   [req]
-  (handle-events req web.async/as-channel web.async/send!))
+  (handle-events req ->event-stream s/close!))
