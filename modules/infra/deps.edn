@@ -11,6 +11,6 @@
            javax.servlet/javax.servlet-api       {:mvn/version "4.0.1"}
            org.clj-commons/claypoole             {:mvn/version "1.2.2"}
            skuttleman/whet                       {:git/url "https://github.com/skuttleman/whet"
-                                                  :git/sha "25025b50c13bf9248647a8852c572bd97783307a"}}
+                                                  :git/sha "c7767338541e580e1ba2d2c3cda0fb3b6243321f"}}
  :aliases {:test     {:extra-paths ["test/resources" "test/src"]}
            :intellij {:extra-deps {org.clojure/clojurescript {:mvn/version "1.12.145"}}}}}
