@@ -52,17 +52,19 @@
       routes/handler))
 
 (defmethod iroutes/handler [:get :routes/ui]
-  [{::w/keys [route] ::b/keys [apis env no-hydrate?]}]
+  [{::w/keys [route] ::b/keys [apis env no-hydrate? ui-env]}]
   @(cp/future threadpool
      (let [template (if no-hydrate?
                       (tmpl/into-template pages/app-name
                                           (atom nil)
-                                          nil)
+                                          nil
+                                          ui-env)
                       (w/into-template {::b/sys apis}
                                        pages/app-name
                                        route
                                        (partial ui-handler apis)
-                                       (partial store->tree env route)))]
+                                       (partial store->tree env route)
+                                       ui-env))]
        (routes.res/->response 200
                               (-> template
                                   (w/with-html-heads icon-lib css-lib)

@@ -12,22 +12,23 @@
 
 (defonce system nil)
 
-(defn ^:private dev-middleware [req upload-limit]
+(defn ^:private dev-middleware [req env ui-env upload-limit]
   (assoc req
-         ::b/env :dev
+         ::b/env (or env :dev)
+         ::b/ui-env ui-env
          ::b/file-limit-bytes upload-limit
          #_#_::b/no-hydrate? true))
 
-(defn ^:private with-dev-middleware [handler upload-limit]
+(defn ^:private with-dev-middleware [handler env ui-env upload-limit]
   (fn [req]
     (-> req
-        (dev-middleware upload-limit)
+        (dev-middleware env ui-env upload-limit)
         handler)))
 
 (defmethod ig/init-key :brainard.web/dev-handler
-  [_ {:keys [upload-limit]}]
+  [_ {:keys [env ui-env upload-limit]}]
   (-> #'routes/be-handler
-      (with-dev-middleware upload-limit)
+      (with-dev-middleware env ui-env upload-limit)
       (ring.rel/wrap-reload {:dirs ["../defacto/core/src"
                                     "../defacto/forms/src"
                                     "../defacto/forms+/src"

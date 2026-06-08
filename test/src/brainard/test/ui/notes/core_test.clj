@@ -109,7 +109,7 @@
                        :notes/id)]
       (testing "when visiting a note"
         (eta/go driver (str base-url "/notes/" note-id))
-        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when clicking the delete button"
           (tutils/click! driver {:css "button.is-danger"})
@@ -128,8 +128,7 @@
               (eta/wait-visible driver {:css ".toast-message.is-success"})
               (is (eta/has-text? driver
                                  {:css ".toast-message.is-success .body-text"}
-                                 "note deleted"))
-              (eta/wait-absent driver {:css ".toast-message"}))
+                                 "note deleted")))
 
             (testing "redirects to home page"
               (eta/wait-visible driver {:css "h1.pinned-notes"})

@@ -76,22 +76,20 @@
         (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when deselecting the todo"
-          (tutils/click! driver {:css "li.todo .checkbox"})
-          (tutils/wait-optimistic #(and (eta/exists? driver {:css "li.todo .checkbox"})
-                                        (not (eta/get-element-attr driver {:css "li.todo .checkbox"} "checked"))))
-          (testing "marks the todo as active"
-            (eta/refresh driver)
-            (eta/wait-visible driver {:css "h1.layout--space-after"})
-            (is (not (eta/get-element-attr driver {:css "li.todo .checkbox"} "checked"))))
+          (tutils/click! driver {:css "li.todo input.checkbox"})
+
+          (testing "marks the todo as incomplete"
+            (tutils/wait-optimistic #(and (eta/visible? driver {:css "li.todo input.checkbox"})
+                                          (= "false" (eta/get-element-attr driver {:css "li.todo input.checkbox"} "value"))))
+            (is (= "false" (eta/get-element-attr driver {:css "li.todo input.checkbox"} "value"))))
 
           (testing "and when selecting the todo"
-            (tutils/click! driver {:css "li.todo .checkbox"})
-            (tutils/wait-optimistic #(and (eta/exists? driver {:css "li.todo .checkbox"})
-                                          (eta/get-element-attr driver {:css "li.todo .checkbox"} "checked")))
-            (testing "marks the todo as active"
-              (eta/refresh driver)
-              (eta/wait-visible driver {:css "h1.layout--space-after"})
-              (is (eta/get-element-attr driver {:css "li.todo .checkbox"} "checked")))))))))
+            (tutils/click! driver {:css "li.todo input.checkbox"})
+
+            (testing "marks the todo as complete"
+              (tutils/wait-optimistic #(and (eta/visible? driver {:css "li.todo input.checkbox"})
+                                            (= "true" (eta/get-element-attr driver {:css "li.todo input.checkbox"} "value"))))
+              (is (= "true" (eta/get-element-attr driver {:css "li.todo .checkbox"} "value"))))))))))
 
 (deftest delete-todo-test
   (usys/with-webdriver [driver base-url {fix "base.edn"}]

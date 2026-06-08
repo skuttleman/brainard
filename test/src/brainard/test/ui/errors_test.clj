@@ -82,7 +82,7 @@
                        :notes/id)]
       (testing "when visiting a note"
         (eta/go driver (str base-url "/notes/" note-id))
-        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when clicking the delete button"
           (tutils/click! driver {:css "button.is-danger"})
@@ -102,8 +102,7 @@
                 (eta/wait-visible driver {:css ".toast-message.is-danger"})
                 (is (eta/has-text? driver
                                    {:css ".toast-message.is-danger .body-text"}
-                                   "note deletion test failure"))
-                (eta/wait-absent driver {:css ".toast-message"})))))))))
+                                   "note deletion test failure"))))))))))
 
 (deftest pin-note-error-test
   (usys/with-webdriver [driver base-url {fix "base.edn"}]

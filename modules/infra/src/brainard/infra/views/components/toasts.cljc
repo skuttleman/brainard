@@ -1,9 +1,14 @@
 (ns brainard.infra.views.components.toasts
   "Page-level component for displaying toast messages."
   (:require
+    #?(:cljs [brainard.infra.utils.edn :as edn])
     [brainard.infra.store.core :as store]
     [clojure.core.async :as async]
     [whet.utils.reagent :as r]))
+
+(def ^:const ^:private TOAST_TIMEOUT
+  #?(:cljs    (edn/read-string (.-TOAST_TIMEOUT js/window))
+     :default nil))
 
 (defn ^:private level->class [level]
   (case level
@@ -16,7 +21,7 @@
   (when (= :init (:state toast))
     (store/emit! *:store [:toasts/shown toast-id]))
   (async/go
-    (async/<! (async/timeout (or timeout 4500)))
+    (async/<! (async/timeout (or timeout TOAST_TIMEOUT 4500)))
     (store/dispatch! *:store [:toasts/hide! toast-id]))
   toast)
 
