@@ -11,6 +11,7 @@
     [brainard.notes.infra.views :as notes.views]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
+    [defacto.resources.core :as-alias res]
     [whet.core :as-alias w]
     [whet.utils.reagent :as r]))
 
@@ -76,7 +77,9 @@
                                                            :anchor?    true
                                                            :hide-init? true}]]]
     (finally
-      (store/emit! *:store [::forms+/destroyed form-key]))))
+      (-> *:store
+          (store/emit! [::forms+/destroyed form-key])
+          (store/emit! [::res/destroyed (second form-key)])))))
 
 (defmethod ipages/page :routes.ui/search
   [*:store {:keys [query-params] :as route-info}]
