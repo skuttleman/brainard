@@ -1,4 +1,4 @@
-(ns brainard.test.executor
+(ns brainard.test.cljs.executor
   (:require
     [clojure.test :as t]
     [slag.test.utils.executor :as exec]

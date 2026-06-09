@@ -1,4 +1,4 @@
-(ns brainard.test.runner
+(ns brainard.test.cljs.runner
   (:require
     [slag.test.utils.runner :as runner]))
 

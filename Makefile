@@ -84,7 +84,7 @@ uberjar: clean build ## Build standalone uberjar
 test: check-deps lint clean build-sass build-test ## Run CLJS, server, and UI tests (requires clojure)
 	@if [ "$(INCLUDE_CLJS_TESTS)" = "true" ]; then \
 		echo "running CLJS tests..."; \
-		$(CLJ) -M:test -m brainard.test.runner; \
+		$(CLJ) -M:test -m brainard.test.cljs.runner; \
 	fi
 	@echo "running kaocha tests..."
 	@HEADLESS=true SCREENSHOT=true $(CLJ) -M:test -m kaocha.runner

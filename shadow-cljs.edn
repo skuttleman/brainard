@@ -27,5 +27,5 @@
                     :output-dir       "target/cljs-test"
                     :asset-path       "/cljs-test"
                     :compiler-options {:warnings {:redef false}}
-                    :modules          {:test {:init-fn brainard.test.executor/test!}}
+                    :modules          {:test {:init-fn brainard.test.cljs.executor/test!}}
                     :test-dir         "target/cljs-test"}}}

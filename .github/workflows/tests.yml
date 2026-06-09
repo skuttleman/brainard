@@ -142,7 +142,7 @@ jobs:
       - name: Run clojurescript unit tests
         run: |
           make build-test
-          clojure -M:test -m brainard.test.runner
+          clojure -M:test -m brainard.test.cljs.runner
 
   integration-tests:
     name: Integration Tests

@@ -36,7 +36,7 @@ clojure -M:test -m kaocha.runner :api --focus brainard.api.validations-test/some
 
 # ClojureScript unit tests (requires build-test first):
 make build-test
-clojure -M:test -m brainard.test.runner
+clojure -M:test -m brainard.test.cljs.runner
 ```
 
 ### Lint
