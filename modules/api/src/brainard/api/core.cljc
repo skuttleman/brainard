@@ -106,8 +106,11 @@
     (valid/validate! input-spec input ::valid/input-validation)
     (missing-spec api))
   (let [result (invoke-api* api apis input)]
-    (when-let [output-spec (valid/output-specs api)]
-      (let [validator (valid/->validator output-spec)]
-        (when-let [errors (validator result)]
-          (log/error "failed to produce valid output" {:errors errors :api api}))))
+    (if-not result
+      (log/warn "no result produced" {:input input :api api})
+      (when-let [output-spec (valid/output-specs api)]
+        (let [validator (valid/->validator output-spec)]
+          (when-let [errors (some-> result validator)]
+            (log/error "produced valid output" {:errors errors :api api})
+            (throw (ex-info "boom" {:errors errors :api api}))))))
     result))
