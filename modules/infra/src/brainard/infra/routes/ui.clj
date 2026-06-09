@@ -7,7 +7,6 @@
     [brainard.infra.routes.response :as routes.res]
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.views.pages.core :as pages]
-    [com.climate.claypoole :as cp]
     [defacto.core :as defacto]
     [defacto.resources.core :as res]
     [ring.middleware.resource :as ring.res]
@@ -17,8 +16,6 @@
     brainard.infra.store.commands
     brainard.infra.store.events
     brainard.infra.store.queries))
-
-(def ^:private threadpool (cp/threadpool 5))
 
 (defn ^:private store->tree [env route store]
   (-> store
@@ -53,24 +50,23 @@
 
 (defmethod iroutes/handler [:get :routes/ui]
   [{::w/keys [route] ::b/keys [apis env no-hydrate? ui-env]}]
-  @(cp/future threadpool
-     (let [template (if no-hydrate?
-                      (tmpl/into-template pages/app-name
-                                          (atom nil)
-                                          nil
-                                          ui-env)
-                      (w/into-template {::b/sys apis}
-                                       pages/app-name
-                                       route
-                                       (partial ui-handler apis)
-                                       (partial store->tree env route)
-                                       ui-env))]
-       (routes.res/->response 200
-                              (-> template
-                                  (w/with-html-heads icon-lib css-lib)
-                                  (update 3 conj unavailable)
-                                  w/render-template)
-                              {"content-type" "text/html"}))))
+  (let [template (if no-hydrate?
+                   (tmpl/into-template pages/app-name
+                                       (atom nil)
+                                       nil
+                                       ui-env)
+                   (w/into-template {::b/sys apis}
+                                    pages/app-name
+                                    route
+                                    (partial ui-handler apis)
+                                    (partial store->tree env route)
+                                    ui-env))]
+    (routes.res/->response 200
+                           (-> template
+                               (w/with-html-heads icon-lib css-lib)
+                               (update 3 conj unavailable)
+                               w/render-template)
+                           {"content-type" "text/html"})))
 
 (defmethod iroutes/handler [:get :routes.resources/asset]
   [{:keys [uri] :as req}]
