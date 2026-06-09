@@ -3,12 +3,12 @@
   (:gen-class)
   (:require
     [brainard :as-alias b]
-    [brainard.infra.utils.edn :as edn]
     [brainard.ws :as-alias bws]
     [clojure.java.io :as io]
     [duct.core :as duct]
     [duct.core.env :as duct.env]
     [integrant.core :as ig]
+    [slag.utils.edn :as edn]
     brainard.infra.system.core))
 
 (defn ^:private with-env-file [env]

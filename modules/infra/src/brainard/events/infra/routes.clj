@@ -2,12 +2,12 @@
   (:require
     [brainard :as-alias b]
     [brainard.api.utils.logger :as log]
-    [brainard.api.utils.uuids :as uuids]
     [brainard.infra.routes.interfaces :as iroutes]
     [brainard.api.events.interfaces :as ievents]
     [clojure.core.async :as async]
     [clojure.core.async.impl.protocols :as pasync]
     [manifold.stream :as s]
+    [slag.utils.uuids :as uuids]
     [whet.core :as-alias w]))
 
 (defn ^:private fmt-event [[event data]]

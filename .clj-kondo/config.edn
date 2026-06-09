@@ -2,8 +2,8 @@
            :unused-private-function {:level :off}
            :unused-private-var      {:level :off}}
  :lint-as {brainard.api.utils.logger/with-duration           clojure.core/let
-           brainard.infra.test-utils/async                   cljs.test/async
            brainard.test.harness.integration.system/with-app clojure.core/let
            brainard.test.harness.ui.system/with-webdriver    clojure.core/fn
            defacto.forms.plus/validated                      clojure.core/defmethod
+           slag.test.utils.async/async                       cljs.test/async
            whet.utils.reagent/with-let                       clojure.core/let}}

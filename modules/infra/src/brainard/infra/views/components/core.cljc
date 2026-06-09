@@ -1,8 +1,6 @@
 (ns brainard.infra.views.components.core
   "Reusable reagent components."
   (:require
-    [brainard.api.utils.colls :as colls]
-    [brainard.api.utils.maps :as maps]
     [brainard.infra.store.core :as store]
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.interfaces :as icomp]
@@ -14,6 +12,8 @@
     [defacto.resources.core :as res]
     [nextjournal.markdown :as md]
     [nextjournal.markdown.transform :as md.trans]
+    [slag.utils.colls :as colls]
+    [slag.utils.maps :as maps]
     [whet.utils.reagent :as r]))
 
 (defn pprint [data]

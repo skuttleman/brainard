@@ -3,7 +3,6 @@
     [brainard :as-alias b]
     [brainard.api.events.interfaces :as ievents]
     [brainard.api.storage.core :as storage]
-    [brainard.api.utils.uuids :as uuids]
     [brainard.attachments.api.core :as api.attachments]
     [brainard.infra.system.daemons :as daemons]
     [brainard.test.harness.integration.system :as tsys]
@@ -12,7 +11,8 @@
     [cljc.java-time.zoned-date-time :as zdt]
     [clojure.java.io :as io]
     [clojure.string :as string]
-    [clojure.test :refer [deftest is testing]])
+    [clojure.test :refer [deftest is testing]]
+    [slag.utils.uuids :as uuids])
   (:import
     (java.util Date)))
 

@@ -1,10 +1,10 @@
 (ns brainard.infra.views.components.shared
   "Reusable components."
   (:require
-    [brainard.api.utils.maps :as maps]
     [brainard.infra.store.core :as store]
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.utils.routing :as rte]
+    [slag.utils.maps :as maps]
     [whet.utils.navigation :as nav]
     [whet.utils.reagent :as r]))
 

@@ -1,9 +1,9 @@
 (ns brainard.events.infra.handler
   (:require
     [brainard.infra.store.specs :as-alias specs]
-    [brainard.infra.utils.edn :as edn]
     [defacto.core :as defacto]
-    [defacto.resources.core :as-alias res]))
+    [defacto.resources.core :as-alias res]
+    [slag.utils.edn :as edn]))
 
 (defn ^:private e->clj [e]
   (edn/read-string (.-data e)))

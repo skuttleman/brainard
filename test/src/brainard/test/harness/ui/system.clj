@@ -2,7 +2,7 @@
   (:require
     [brainard.infra.db.store :as ds]
     [brainard.test.harness.integration.system :as tsys]
-    [brainard.test.harness.ui.utils :as tutils]
+    [brainard.test.harness.ui.web :as web]
     [clojure.java.io :as io]
     [clojure.string :as string]
     [clojure.test :as t]
@@ -72,7 +72,7 @@
              ~@(for [[sym seed] seeds
                      token [sym `(->> ~seed
                                       (str "seed/")
-                                      tutils/edn-fixture
+                                      web/edn-fixture
                                       (transact-multi! ~db-sym))]]
                  token)]
          (binding [t/report (fn [event#]

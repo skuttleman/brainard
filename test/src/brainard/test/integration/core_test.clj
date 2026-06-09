@@ -1,12 +1,12 @@
 (ns brainard.test.integration.core-test
   (:require
     [brainard :as-alias b]
-    [brainard.api.utils.uuids :as uuids]
     [brainard.schedules.api.core :as api.sched]
     [brainard.test.harness.integration.http :as thttp]
     [brainard.test.harness.integration.system :as tsys]
     [clojure.java.io :as io]
     [clojure.test :refer [deftest is testing]]
+    [slag.utils.uuids :as uuids]
     [workspace-nodes :as-alias ws]))
 
 (deftest notes-integration-test

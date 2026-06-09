@@ -1,7 +1,7 @@
 (ns brainard.test.ui.errors-test
   (:require
     [brainard.test.harness.ui.system :as usys]
-    [brainard.test.harness.ui.utils :as tutils]
+    [brainard.test.harness.ui.web :as web]
     [clojure.java.io :as io]
     [clojure.test :refer [deftest is testing]]
     [etaoin.api :as eta]))
@@ -11,14 +11,14 @@
     (let [fixture-path (-> "fixtures/sample.txt" io/resource .getPath)]
       (testing "when visiting the home page"
         (eta/go driver base-url)
-        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+        (web/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "and when clicking the create note button"
-          (tutils/click! driver {:css "button.note__create-button"})
+          (web/click! driver {:css "button.note__create-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
           (testing "and when uploading an attachment fails"
-            (tutils/with-http-failure driver "Attachment test failures"
+            (web/with-http-failure driver "Attachment test failures"
               (eta/fill driver {:css ".modal-container.is-active input[type='file']"} fixture-path)
 
               (testing "displays a toast message"
@@ -32,11 +32,11 @@
     (let [note-id (-> fix first :notes/id)]
       (testing "when visiting a note with existing todos"
         (eta/go driver (str base-url "/notes/" note-id))
-        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
+        (web/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when activating todo fails"
-          (tutils/with-http-failure driver "TODO test failure"
-            (tutils/click! driver {:css "li.todo .checkbox"})
+          (web/with-http-failure driver "TODO test failure"
+            (web/click! driver {:css "li.todo .checkbox"})
 
             (testing "displays a toast message"
               (eta/wait-visible driver {:css ".toast-message.is-danger"})
@@ -48,10 +48,10 @@
   (usys/with-webdriver [driver base-url]
     (testing "when visiting the home page"
       (eta/go driver base-url)
-      (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+      (web/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
       (testing "and when clicking the create note button"
-        (tutils/click! driver {:css "button.note__create-button"})
+        (web/click! driver {:css "button.note__create-button"})
         (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
         (testing "opens the create note modal"
@@ -59,11 +59,11 @@
           (is (= "Create note" (eta/get-element-text driver {:css ".modal-container.is-active h1.note__modal-header"}))))
 
         (testing "and when creating the note fails"
-          (tutils/with-http-failure driver "note creation test failure"
-            (tutils/submit-form! driver
-                                 ".modal-container.is-active form.form"
-                                 {"Topic" "Test Context"
-                                  "Body"  "This is a test note created during UI testing"}))
+          (web/with-http-failure driver "note creation test failure"
+            (web/submit-form! driver
+                              ".modal-container.is-active form.form"
+                              {"Topic" "Test Context"
+                               "Body"  "This is a test note created during UI testing"}))
 
           (testing "displays a toast message"
             (eta/wait-visible driver {:css ".toast-message.is-danger"})
@@ -82,10 +82,10 @@
                        :notes/id)]
       (testing "when visiting a note"
         (eta/go driver (str base-url "/notes/" note-id))
-        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
+        (web/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when clicking the delete button"
-          (tutils/click! driver {:css "button.is-danger"})
+          (web/click! driver {:css "button.is-danger"})
           (eta/wait-visible driver {:css ".modal-container.is-active .modal-item"})
 
           (testing "opens the delete confirmation modal"
@@ -94,8 +94,8 @@
                                "This note and all related schedules will be deleted")))
 
           (testing "and when confirming the delete fails"
-            (tutils/with-http-failure driver "note deletion test failure"
-              (tutils/click! driver {:css ".modal-container.is-active button.note__confirm-delete"})
+            (web/with-http-failure driver "note deletion test failure"
+              (web/click! driver {:css ".modal-container.is-active button.note__confirm-delete"})
               (eta/wait-invisible driver {:css ".modal-container.is-active"})
 
               (testing "displays a toast message"
@@ -109,11 +109,11 @@
     (let [note-id (-> fix first :notes/id)]
       (testing "when visiting a note"
         (eta/go driver (str base-url "/notes/" note-id))
-        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
+        (web/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when unpinning the note fails"
-          (tutils/with-http-failure driver "unpin test failure"
-            (tutils/click! driver {:css ".note__toggle-pinned"})
+          (web/with-http-failure driver "unpin test failure"
+            (web/click! driver {:css ".note__toggle-pinned"})
 
             (testing "displays a toast message"
               (eta/wait-visible driver {:css ".toast-message.is-danger"})
@@ -126,19 +126,19 @@
     (let [note-id (-> fix first :notes/id)]
       (testing "when visiting the note page"
         (eta/go driver (str base-url "/notes/" note-id))
-        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
+        (web/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when viewing the note history"
-          (tutils/click! driver {:css "button.note__history-button"})
+          (web/click! driver {:css "button.note__history-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__modal"})
 
           (testing "and when showing version 3"
-            (tutils/click! driver {:xpath "(//button[contains(@class,'note__history-show')])[3]"})
+            (web/click! driver {:xpath "(//button[contains(@class,'note__history-show')])[3]"})
             (eta/wait-visible driver {:css ".modal-container.is-active .modal-item.history__view"})
 
             (testing "and when reinstating the note version fails"
-              (tutils/with-http-failure driver "reinstatement test failure"
-                (tutils/click! driver {:css ".history__view button.note__history-reinstate"})
+              (web/with-http-failure driver "reinstatement test failure"
+                (web/click! driver {:css ".history__view button.note__history-reinstate"})
 
                 (testing "displays a toast message"
                   (eta/wait-visible driver {:css ".toast-message.is-danger"})
@@ -151,11 +151,11 @@
     (let [note-id (->> fix first :notes/id)]
       (testing "when visiting a note"
         (eta/go driver (str base-url "/notes/" note-id))
-        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
+        (web/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when adding a schedule fails"
-          (tutils/with-http-failure driver "schedule test failure"
-            (tutils/submit-form! driver "form.schedule-form" {"Day of the week" :monday})
+          (web/with-http-failure driver "schedule test failure"
+            (web/submit-form! driver "form.schedule-form" {"Day of the week" :monday})
 
             (testing "displays a toast message"
               (eta/wait-visible driver {:css ".toast-message.is-danger"})
@@ -171,13 +171,13 @@
                        :notes/id)]
       (testing "when visiting the note"
         (eta/go driver (str base-url "/notes/" note-id))
-        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
+        (web/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when deleting the schedule fails"
-          (tutils/click! driver {:css "button.schedules__delete"})
+          (web/click! driver {:css "button.schedules__delete"})
           (eta/wait-visible driver {:css ".modal-container.is-active .modal-item"})
-          (tutils/with-http-failure driver "delete schedule test failure"
-            (tutils/click! driver {:css ".modal-container.is-active button.delete-schedule"})
+          (web/with-http-failure driver "delete schedule test failure"
+            (web/click! driver {:css ".modal-container.is-active button.delete-schedule"})
 
             (testing "displays a toast message"
               (eta/wait-visible driver {:css ".toast-message.is-danger"})
@@ -189,14 +189,14 @@
   (usys/with-webdriver [driver base-url]
     (testing "when visiting the home page"
       (eta/go driver base-url)
-      (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+      (web/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
       (testing "and when creating a workspace node fails"
-        (tutils/click! driver {:css ".drag-n-drop + .add-root-node"})
-        (tutils/with-http-failure driver "workspace test failure"
-          (tutils/submit-form! driver
-                               ".modal-container.is-active form.form"
-                               {"Content" "root node"})
+        (web/click! driver {:css ".drag-n-drop + .add-root-node"})
+        (web/with-http-failure driver "workspace test failure"
+          (web/submit-form! driver
+                            ".modal-container.is-active form.form"
+                            {"Content" "root node"})
 
           (testing "displays a toast message"
             (eta/wait-visible driver {:css ".toast-message.is-danger"})
@@ -208,14 +208,14 @@
   (usys/with-webdriver [driver base-url {_ "workspace.edn"}]
     (testing "when visiting the home page"
       (eta/go driver base-url)
-      (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+      (web/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
       (testing "and when deleting a workspace node"
-        (tutils/click! driver {:css ".drag-n-drop .lni-trash-can"})
+        (web/click! driver {:css ".drag-n-drop .lni-trash-can"})
 
         (testing "and when confirming the delete fails"
-          (tutils/with-http-failure driver "workspace test failure"
-            (tutils/click! driver {:css ".modal-container button.delete-node"})
+          (web/with-http-failure driver "workspace test failure"
+            (web/click! driver {:css ".modal-container button.delete-node"})
 
             (testing "displays a toast message"
               (eta/wait-visible driver {:css ".toast-message.is-danger"})
@@ -227,15 +227,15 @@
   (usys/with-webdriver [driver base-url {_ "workspace.edn"}]
     (testing "when visiting the home page"
       (eta/go driver base-url)
-      (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+      (web/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
       (testing "and when editing a workspace node fails"
-        (tutils/click! driver {:css ".drag-n-drop .lni-pencil"})
+        (web/click! driver {:css ".drag-n-drop .lni-pencil"})
         (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
-        (tutils/with-http-failure driver "workspace test failure"
-          (tutils/submit-form! driver
-                               ".modal-container.is-active form.form"
-                               {"Content" "some new body"})
+        (web/with-http-failure driver "workspace test failure"
+          (web/submit-form! driver
+                            ".modal-container.is-active form.form"
+                            {"Content" "some new body"})
 
           (testing "displays a toast message"
             (eta/wait-visible driver {:css ".toast-message.is-danger"})

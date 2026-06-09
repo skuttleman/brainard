@@ -1,8 +1,8 @@
 (ns brainard.workspace.api.core
   (:require
     [brainard.api.storage.core :as storage]
-    [brainard.api.utils.maps :as maps]
-    [brainard.api.utils.uuids :as uuids]
+    [slag.utils.maps :as maps]
+    [slag.utils.uuids :as uuids]
     [workspace-nodes :as-alias ws]))
 
 (declare ->nodes)

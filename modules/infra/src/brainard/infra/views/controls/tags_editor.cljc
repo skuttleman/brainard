@@ -1,7 +1,6 @@
 (ns brainard.infra.views.controls.tags-editor
   "A tags-editor reagent component."
   (:require
-    [brainard.api.utils.keywords :as kw]
     [brainard.infra.store.core :as store]
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.core :as comp]
@@ -10,6 +9,7 @@
     [clojure.string :as string]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
+    [slag.utils.keywords :as kw]
     [whet.utils.reagent :as r]))
 
 (def ^:private ^:const tag-re #"([a-z][a-z0-9-\.]*/)?[a-z][a-z0-9-]*")
