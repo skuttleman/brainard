@@ -14,6 +14,6 @@
                                                   :git/sha "14226722e7b8980b8eb1e666b9cf31ed824c6a2d"}}
  :aliases {:test     {:extra-paths ["test/resources" "test/src"]
                       :extra-deps  {skuttleman/slag-test {:git/url   "https://github.com/skuttleman/slag"
-                                                          :git/sha   "d4f0719260556668d465393e18c92ffd5bae87da"
+                                                          :git/sha   "c3e4cf6afe8bdcf64c8b79904b8ca903b6dc7fab"
                                                           :deps/root "test-utils"}}}
            :intellij {:extra-deps {org.clojure/clojurescript {:mvn/version "1.12.145"}}}}}
