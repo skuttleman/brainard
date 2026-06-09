@@ -2,9 +2,9 @@
   (:require
     [brainard.api.events.interfaces :as ievents]
     [brainard.events.infra.manager :as manager]
-    [brainard.infra.test-utils :as tu]
     [clojure.core.async :as async]
-    [clojure.test :refer [deftest is testing]]))
+    [clojure.test :refer [deftest is testing]]
+    [slag.test.utils.async :as tua]))
 
 (deftest EventManager-test
   (testing "when creating an EventManager"
@@ -17,8 +17,8 @@
         (testing "and when broadcasting a message"
           (ievents/broadcast! manager :type {:msg 1})
           (testing "sends the message to all channels"
-            (is (= [:type {:msg 1}] (tu/<!! ch-1)))
-            (is (= [:type {:msg 1}] (tu/<!! ch-2)))))
+            (is (= [:type {:msg 1}] (tua/<!! ch-1)))
+            (is (= [:type {:msg 1}] (tua/<!! ch-2)))))
 
         (testing "and when disconnecting the channels"
           (ievents/disconnect! manager :ch-1)
@@ -27,8 +27,8 @@
           (testing "and when broadcasting a message"
             (ievents/broadcast! manager :type {:msg 2})
             (testing "sends no messages"
-              (is (nil? (tu/<!! ch-1)))
-              (is (nil? (tu/<!! ch-1)))))))
+              (is (nil? (tua/<!! ch-1)))
+              (is (nil? (tua/<!! ch-1)))))))
 
       (testing "and when connecting channels"
         (ievents/connect! manager :ch-3 ch-3)
@@ -41,5 +41,5 @@
             (ievents/broadcast! manager :type {:msg 3})
 
             (testing "sends messages to open channels"
-              (is (nil? (tu/<!! ch-3)))
-              (is (= [:type {:msg 3}] (tu/<!! ch-4))))))))))
+              (is (nil? (tua/<!! ch-3)))
+              (is (= [:type {:msg 3}] (tua/<!! ch-4))))))))))

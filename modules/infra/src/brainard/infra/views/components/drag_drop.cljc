@@ -3,8 +3,8 @@
   (:require
     [brainard.infra.store.core :as store]
     [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.utils.edn :as edn]
     [defacto.forms.core :as forms]
+    [slag.utils.edn :as edn]
     [whet.utils.reagent :as r]))
 
 (declare node-list drag-node-list)

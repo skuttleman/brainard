@@ -1,7 +1,7 @@
 (ns brainard.test.ui.core-test
   (:require
     [brainard.test.harness.ui.system :as usys]
-    [brainard.test.harness.ui.utils :as tutils]
+    [brainard.test.harness.ui.web :as web]
     [cljc.java-time.day-of-week :as dow]
     [cljc.java-time.zoned-date-time :as zdt]
     [cljc.java-time.zone-offset :as zo]
@@ -18,12 +18,12 @@
                                "/following::i[contains(@class,'%s')][1]")
         xpath (format edit-selector-fmt node-text icon-class)]
     (eta/wait-visible driver {:xpath (format node-item-selector-fmt node-text)})
-    (tutils/click! driver {:xpath xpath})))
+    (web/click! driver {:xpath xpath})))
 
 (defn ^:private ws-submit! [driver text]
-  (tutils/submit-form! driver
-                       ".modal-container.is-active form.form"
-                       {"Content" text}))
+  (web/submit-form! driver
+                    ".modal-container.is-active form.form"
+                    {"Content" text}))
 
 (defn ^:private note-visible? [driver body]
   (let [fmt "//ul[contains(@class,'search-results')]//span[contains(@class,'truncate') and text()='%s']"]
@@ -33,7 +33,7 @@
   (usys/with-webdriver [driver base-url]
     (testing "when visiting the home page"
       (eta/go driver base-url)
-      (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+      (web/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
       (testing "renders app title"
         (eta/wait-visible driver {:css "h1.title"})
@@ -73,14 +73,14 @@
               (not (eta/exists? driver {:xpath (format node-item-selector-fmt node-text)})))]
       (testing "when visiting the home page"
         (eta/go driver base-url)
-        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+        (web/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "renders the empty workspace"
           (eta/wait-visible driver {:css "h1.workspace"})
           (is (empty? (eta/query-all driver {:css "li.node-item"}))))
 
         (testing "and when creating a workspace root node"
-          (tutils/click! driver {:css ".drag-n-drop + .add-root-node"})
+          (web/click! driver {:css ".drag-n-drop + .add-root-node"})
           (ws-submit! driver "root node")
           (eta/wait-absent driver {:css ".modal-container.is-active .modal-item"})
 
@@ -123,7 +123,7 @@
                 (testing "and when deleting the updated child"
                   (ws-edit! driver "updated child" "lni-trash-can")
                   (eta/wait-visible driver {:css ".modal-container.is-active .modal-item"})
-                  (tutils/click! driver {:css ".modal-container.is-active button.delete-node"})
+                  (web/click! driver {:css ".modal-container.is-active button.delete-node"})
                   (eta/wait-absent driver {:css ".modal-container.is-active .modal-item"})
 
                   (testing "renders the updated workspace"
@@ -175,15 +175,15 @@
               (eta/query-all driver {:css ".root-node-list > li.node-item"}))]
       (testing "when visiting the home page"
         (eta/go driver base-url)
-        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+        (web/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "and when creating a root node"
-          (tutils/click! driver {:css ".drag-n-drop + .add-root-node"})
+          (web/click! driver {:css ".drag-n-drop + .add-root-node"})
           (ws-submit! driver "alpha")
           (eta/wait-absent driver {:css ".modal-container.is-active .modal-item"})
 
           (testing "and when creating another root node with a child"
-            (tutils/click! driver {:css ".drag-n-drop + .add-root-node"})
+            (web/click! driver {:css ".drag-n-drop + .add-root-node"})
             (ws-submit! driver "beta")
             (eta/wait-absent driver {:css ".modal-container.is-active .modal-item"})
             (ws-edit! driver "beta" "lni-plus")
@@ -195,7 +195,7 @@
               (is (= 3 (count (eta/query-all driver {:css "li.node-item"})))))
 
             (testing "and when moving beta under alpha fails"
-              (tutils/with-http-failure driver "drag-n-drop test failure"
+              (web/with-http-failure driver "drag-n-drop test failure"
                 (drag-node! "beta" "alpha")
 
                 (testing "closes the modal"
@@ -211,7 +211,7 @@
 
             (testing "and when moving beta under alpha"
               (drag-node! "beta" "alpha")
-              (tutils/wait-optimistic #(= 1 (count (root-nodes))))
+              (web/wait-optimistic #(= 1 (count (root-nodes))))
 
               (testing "renders alpha as the only root with beta and gamma as descendants"
                 (is (= 1 (count (root-nodes))))
@@ -227,7 +227,7 @@
 
                 (testing "and when reordering beta after delta"
                   (reorder-node! "beta" "delta")
-                  (tutils/wait-optimistic #(= ["alpha" "delta" "beta" "gamma"] (node-order)))
+                  (web/wait-optimistic #(= ["alpha" "delta" "beta" "gamma"] (node-order)))
 
                   (testing "renders nodes in the new order"
                     (is (= ["alpha" "delta" "beta" "gamma"] (node-order)))))))))))))
@@ -236,7 +236,7 @@
   (usys/with-webdriver [driver base-url {fix "pinned.edn"}]
     (letfn [(expand! [context]
               (let [css (format ".context-group[data-context='%s'] .expand-context" context)]
-                (tutils/click! driver {:css css})))
+                (web/click! driver {:css css})))
             (edit-link [note-id]
               {:xpath (format "//li[@id='%s']//a[text()='edit']" note-id)})
             (note-visible? [body]
@@ -255,7 +255,7 @@
                            :notes/id)]
         (testing "when visiting the home page"
           (eta/go driver base-url)
-          (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+          (web/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
           (testing "and when expanding Context 1"
             (expand! "Context 1")
@@ -274,8 +274,8 @@
               (is (note-absent? "Note 3A")))
 
             (testing "can navigate to the note's edit page"
-              (tutils/click! driver (edit-link note-id-1))
-              (tutils/wait-optimistic #(re-find #"/notes/" (eta/get-url driver)))
+              (web/click! driver (edit-link note-id-1))
+              (web/wait-optimistic #(re-find #"/notes/" (eta/get-url driver)))
               (is (= (str base-url "/notes/" note-id-1)
                      (eta/get-url driver)))
               (eta/go driver base-url)
@@ -298,8 +298,8 @@
               (is (note-absent? "Note 3A")))
 
             (testing "can navigate to the note's edit page"
-              (tutils/click! driver (edit-link note-id-2))
-              (tutils/wait-optimistic #(re-find #"/notes/" (eta/get-url driver)))
+              (web/click! driver (edit-link note-id-2))
+              (web/wait-optimistic #(re-find #"/notes/" (eta/get-url driver)))
               (is (= (str base-url "/notes/" note-id-2)
                      (eta/get-url driver)))
               (eta/go driver base-url)
@@ -312,18 +312,18 @@
   (usys/with-webdriver [driver base-url {fix "search.edn"}]
     (letfn [(go-to-search! []
               (eta/go driver (str base-url "/search"))
-              (tutils/wait-optimistic #(eta/visible? driver {:css ".page__search"})))
+              (web/wait-optimistic #(eta/visible? driver {:css ".page__search"})))
             (open-dropdown! [label]
-              (tutils/click! driver {:css (format ".form-field[data-field-label='%s'] button" label)})
+              (web/click! driver {:css (format ".form-field[data-field-label='%s'] button" label)})
               (eta/wait-visible driver {:css "ul.dropdown-items"}))
             (pick-option! [item-text]
               (let [item-fmt "//ul[contains(@class,'dropdown-items')]//span[text()='%s']"
                     active-fmt "//ul[contains(@class,'dropdown-items')]//li[contains(@class,'is-active')]//span[text()='%s']"]
-                (tutils/click! driver {:xpath (format item-fmt item-text)})
-                (tutils/wait-optimistic #(or (not (eta/exists? driver {:css "ul.dropdown-items"}))
-                                             (eta/exists? driver {:xpath (format active-fmt item-text)})))))
+                (web/click! driver {:xpath (format item-fmt item-text)})
+                (web/wait-optimistic #(or (not (eta/exists? driver {:css "ul.dropdown-items"}))
+                                          (eta/exists? driver {:xpath (format active-fmt item-text)})))))
             (search! []
-              (tutils/click! driver {:css "form.search-form button.submit"})
+              (web/click! driver {:css "form.search-form button.submit"})
               (eta/wait-visible driver {:css "ul.search-results"}))
             (url-query? [qp]
               (let [url (eta/get-url driver)
@@ -350,7 +350,7 @@
             (is (url-query? {:tags "tag/alpha"})))
 
           (testing "and when clicking the edit link"
-            (tutils/click! driver {:css "ul.search-results > li .note__edit-link"})
+            (web/click! driver {:css "ul.search-results > li .note__edit-link"})
             (eta/wait-visible driver {:css ".container.page__note"})
             (testing "renders the note page"
               (let [note-id (-> fix first :notes/id)]
@@ -410,7 +410,7 @@
             (open-dropdown! "Tag Filter")
             (pick-option! ":tag/alpha")
             (pick-option! ":tag/beta")
-            (tutils/click! driver {:css "form.search-form button.submit"})
+            (web/click! driver {:css "form.search-form button.submit"})
             (eta/wait-absent driver {:css "ul.search-results"})
             (eta/wait-visible driver {:css "span.search-results"})
 
@@ -450,7 +450,7 @@
                               keyword)]
       (testing "when visiting the buzz page"
         (eta/go driver (str base-url "/buzz"))
-        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__buzz"}))
+        (web/wait-optimistic #(eta/visible? driver {:css ".page__buzz"}))
 
         (testing "renders the correct notes"
           (is (note-visible? driver "Note 1"))
@@ -461,7 +461,7 @@
           (eta/wait-visible driver {:css "form.schedule-form"})
 
           (testing "and when adding a schedule to the note"
-            (tutils/submit-form! driver "form.schedule-form" {"Day of the week" day-of-the-week})
+            (web/submit-form! driver "form.schedule-form" {"Day of the week" day-of-the-week})
             (eta/wait-absent driver {:css "p.schedules__empty"})
 
             (testing "and when visiting the buzz page"

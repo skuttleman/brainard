@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 .ONESHELL:
-.PHONY: help check-deps run install clean build build-sass build-cljs build-test uberjar test coverage
+.PHONY: help check-deps run install clean build-sass build-cljs build build-test uberjar test lint coverage
 .DEFAULT_GOAL := help
 
 # Tools (can be overridden in the environment)

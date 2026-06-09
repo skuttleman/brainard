@@ -1,7 +1,5 @@
 (ns brainard.infra.views.fragments.note-edit
   (:require
-    [brainard.api.utils.fns :as fns]
-    [brainard.api.utils.uuids :as uuids]
     [brainard.api.validations :as valid]
     [brainard.attachments.api.specs :as sattachments]
     [brainard.infra.store.core :as store]
@@ -16,6 +14,8 @@
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
     [defacto.resources.core :as res]
+    [slag.utils.fns :as fns]
+    [slag.utils.uuids :as uuids]
     [whet.utils.reagent :as r]))
 
 (defn ^:private with-trim-on-blur [{:keys [on-change] :as attrs} *:store]

@@ -1,6 +1,6 @@
-(ns brainard.test.harness.ui.utils
+(ns brainard.test.harness.ui.web
   (:require
-    [brainard.infra.utils.edn :as edn]
+    [slag.utils.edn :as edn]
     [clojure.java.io :as io]
     [etaoin.api :as eta]))
 

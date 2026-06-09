@@ -5,8 +5,7 @@
    [input {:on-change [:my-event]}]"
   (:require
     #?@(:cljs [[brainard.api.utils.dates :as dates]
-               [brainard.api.utils.maps :as maps]])
-    [brainard.api.utils.fns :as fns]
+               [slag.utils.maps :as maps]])
     [brainard.infra.store.core :as store]
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.core :as comp]
@@ -19,6 +18,7 @@
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
     [defacto.resources.core :as res]
+    [slag.utils.fns :as fns]
     [whet.utils.reagent :as r]))
 
 (defn ^:private disabled-compat [disabled]

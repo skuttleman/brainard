@@ -1,8 +1,8 @@
 (ns brainard.infra.store.queries
   (:require
-    [brainard.api.utils.maps :as maps]
     [defacto.core :as defacto]
-    [defacto.resources.core :as res]))
+    [defacto.resources.core :as res]
+    [slag.utils.maps :as maps]))
 
 (defmethod defacto/query-responder :modals/?:modals
   [db [_ modifier]]

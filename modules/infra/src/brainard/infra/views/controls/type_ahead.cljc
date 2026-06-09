@@ -1,10 +1,10 @@
 (ns brainard.infra.views.controls.type-ahead
   "A type-ahead select component which allows new values."
   (:require
-    [brainard.api.utils.fns :as fns]
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.core :as comp]
     [clojure.string :as string]
+    [slag.utils.fns :as fns]
     [whet.utils.reagent :as r]))
 
 (defn ^:private ->pattern [s]

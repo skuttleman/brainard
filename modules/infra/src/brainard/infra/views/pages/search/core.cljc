@@ -1,7 +1,6 @@
 (ns brainard.infra.views.pages.search.core
   "The search page."
   (:require
-    [brainard.api.utils.colls :as colls]
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.views.components.core :as comp]
@@ -12,6 +11,7 @@
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as-alias forms+]
     [defacto.resources.core :as-alias res]
+    [slag.utils.colls :as colls]
     [whet.core :as-alias w]
     [whet.utils.reagent :as r]))
 

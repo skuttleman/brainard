@@ -48,7 +48,7 @@
                          "strikethrough")]}
         (:todos/text todo)]])
     (finally
-      (store/emit! *:store [::forms/destroyed form-key]))))
+      (store/emit! *:store [::forms+/destroyed form-key]))))
 
 (defn ^:private todo-list [*:store note disabled?]
   (when-let [todos (not-empty (:notes/todos note))]
@@ -72,7 +72,7 @@
                                 :type     :submit}
                                (ctrls/with-attrs form+ [:notes/pinned?]))]]])
     (finally
-      (store/emit! *:store [::forms/destroyed pin-note-key]))))
+      (store/emit! *:store [::forms+/destroyed pin-note-key]))))
 
 (defn ^:private schedule-item [sched]
   (when-let [parts (note.sched/schedule-parts sched)]
@@ -151,7 +151,7 @@
      [schedule-form {:*:store *:store :disabled? disabled? :sub:form+ sub:form+}]
      [schedule-list *:store note scheds disabled?]]
     (finally
-      (store/emit! *:store [::forms/destroyed schedule-create-key]))))
+      (store/emit! *:store [::forms+/destroyed schedule-create-key]))))
 
 (defn ^:private note-editor [*:store note disabled?]
   [:<>

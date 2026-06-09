@@ -1,10 +1,10 @@
 (ns brainard.infra.store.commands-test
   (:require
     [brainard.infra.store.core :as store]
-    [brainard.infra.test-utils :as tu]
     [clojure.core.async :as async]
     [clojure.test :refer [deftest is testing]]
     [defacto.core :as defacto]
+    [slag.test.utils.async :as tua]
     [whet.core :as w]
     [whet.interfaces :as iwhet]
     brainard.infra.store.commands
@@ -47,7 +47,7 @@
           (is (= [[:routes.ui/home {:note/id 1} {}]] @replace-calls)))))))
 
 (deftest modals-test
-  (tu/async done
+  (tua/async done
     (async/go
       (testing "when calling :modals/create! command"
         (let [store (defacto/create {} {})]
@@ -89,7 +89,7 @@
       (done))))
 
 (deftest toasts-test
-  (tu/async done
+  (tua/async done
     (async/go
       (testing "when calling :toasts/succeed! command"
         (let [store (defacto/create {} {})]

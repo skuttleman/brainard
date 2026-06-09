@@ -2,11 +2,11 @@
   (:require
     [brainard :as-alias b]
     [brainard.api.storage.interfaces :as istorage]
-    [brainard.api.utils.uuids :as uuids]
     [brainard.notes.api.core :as api.notes]
     [brainard.api.storage.core :as storage]
     [brainard.test.harness.integration.system :as tsys]
-    [clojure.test :refer [deftest is testing]]))
+    [clojure.test :refer [deftest is testing]]
+    [slag.utils.uuids :as uuids]))
 
 (deftest save!-test
   (tsys/with-app [{::b/keys [storage]} nil]

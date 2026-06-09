@@ -2,10 +2,10 @@
   (:require
     [brainard.api.storage.core :as-alias storage]
     [brainard.api.storage.interfaces :as istorage]
-    [brainard.api.utils.fns :as fns]
-    [brainard.api.utils.maps :as maps]
     [brainard.infra.db.store :as ds]
-    [brainard.notes.api.core :as api.notes]))
+    [brainard.notes.api.core :as api.notes]
+    [slag.utils.fns :as fns]
+    [slag.utils.maps :as maps]))
 
 (def ^:private select
   '[:find (pull ?e [*]) (min ?at)

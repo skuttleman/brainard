@@ -1,7 +1,7 @@
 (ns brainard.attachments.api.core
   (:require
     [brainard.api.storage.core :as storage]
-    [brainard.api.utils.uuids :as uuids]))
+    [slag.utils.uuids :as uuids]))
 
 (defn upload!
   "Upload attachments and persist metadata. Returns created attachment metadata for each upload."

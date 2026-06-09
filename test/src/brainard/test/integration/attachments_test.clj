@@ -2,11 +2,11 @@
   (:require
     [brainard :as-alias b]
     [brainard.api.storage.interfaces :as istorage]
-    [brainard.api.utils.uuids :as uuids]
     [brainard.attachments.api.core :as api.attachments]
     [brainard.api.storage.core :as storage]
     [brainard.test.harness.integration.system :as tsys]
-    [clojure.test :refer [deftest is testing]])
+    [clojure.test :refer [deftest is testing]]
+    [slag.utils.uuids :as uuids])
   (:import
     (java.io ByteArrayInputStream)))
 

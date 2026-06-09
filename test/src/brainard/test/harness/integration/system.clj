@@ -1,13 +1,13 @@
 (ns brainard.test.harness.integration.system
   (:require
     [brainard.api.storage.interfaces :as istorage]
-    [brainard.api.utils.uuids :as uuids]
     [brainard.infra.db.store :as ds]
     [brainard.main :as main]
     [clojure.java.io :as io]
     [clojure.test :refer [testing]]
     [datomic.client.api :as d]
     [integrant.core :as ig]
+    [slag.utils.uuids :as uuids]
     brainard.dev.s3
     brainard.infra.system.core))
 

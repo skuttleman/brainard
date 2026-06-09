@@ -4,8 +4,8 @@
     [brainard.api.events.interfaces :as ievents]
     [brainard.events.infra.routes :as routes]
     [brainard.events.infra.manager :as manager]
-    [brainard.infra.test-utils :as tu]
-    [clojure.test :refer [deftest is testing]]))
+    [clojure.test :refer [deftest is testing]]
+    [slag.test.utils.async :as tua]))
 
 (deftest handle-events-test
   (testing "when responding to an events request"
@@ -22,7 +22,7 @@
                (:headers result))))
 
       (testing "opens the connection"
-        (let [msg (tu/<!! ch)]
+        (let [msg (tua/<!! ch)]
           (is (= "event: connected\n\n" msg)))
         (is (contains? @subs :ch-id)))
 
@@ -31,4 +31,4 @@
 
         (testing "closes the channel"
           (is (empty? @subs))
-          (is (nil? (tu/<!! ch))))))))
+          (is (nil? (tua/<!! ch))))))))

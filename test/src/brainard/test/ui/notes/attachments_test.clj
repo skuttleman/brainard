@@ -1,7 +1,7 @@
 (ns brainard.test.ui.notes.attachments-test
   (:require
     [brainard.test.harness.ui.system :as usys]
-    [brainard.test.harness.ui.utils :as tutils]
+    [brainard.test.harness.ui.web :as web]
     [clojure.java.io :as io]
     [clojure.test :refer [deftest is testing]]
     [etaoin.api :as eta]))
@@ -11,16 +11,16 @@
     (let [fixture-path (-> "fixtures/sample.txt" io/resource .getPath)]
       (testing "when visiting the home page"
         (eta/go driver base-url)
-        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+        (web/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "and when clicking the create note button"
-          (tutils/click! driver {:css "button.note__create-button"})
+          (web/click! driver {:css "button.note__create-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
           (testing "and when creating a note"
-            (tutils/fill-form! driver ".modal-container.is-active form.form"
-                               {"Topic" "Test Attachments"
-                                "Body"  "Note with attachments"})
+            (web/fill-form! driver ".modal-container.is-active form.form"
+                            {"Topic" "Test Attachments"
+                             "Body"  "Note with attachments"})
 
             (testing "and when uploading a file"
               (let [file-input (eta/query driver {:css ".modal-container.is-active input[type='file']"})]
@@ -31,7 +31,7 @@
                 (is (eta/has-text? driver {:css ".attachment-list"} "sample.txt")))
 
               (testing "and when submitting the form"
-                (tutils/click! driver {:css ".modal-container.is-active button.submit"})
+                (web/click! driver {:css ".modal-container.is-active button.submit"})
                 (eta/wait-invisible driver {:css ".modal-container.is-active"})
                 (eta/wait-absent driver {:css ".toast-message"})
 
@@ -40,9 +40,9 @@
 
                 (testing "and when navigating to the created note"
                   (eta/wait-visible driver {:css ".context-group[data-context='Test Attachments']"})
-                  (tutils/click! driver {:css ".context-group[data-context='Test Attachments'] .expand-context"})
+                  (web/click! driver {:css ".context-group[data-context='Test Attachments'] .expand-context"})
                   (eta/wait-visible driver {:css "a[href*='/notes/']"})
-                  (tutils/click! driver {:css ".context-group[data-context='Test Attachments'] a[href*='/notes/']"})
+                  (web/click! driver {:css ".context-group[data-context='Test Attachments'] a[href*='/notes/']"})
                   (eta/wait-visible driver {:css ".attachment-list"})
                   (eta/wait-absent driver {:css ".toast-message"})
 
@@ -58,7 +58,7 @@
                           (is (re-find #"/attachments/" href))))))
 
                   (testing "and when clicking the edit button"
-                    (tutils/click! driver {:css "button.note__edit-button"})
+                    (web/click! driver {:css "button.note__edit-button"})
                     (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
                     (testing "opens the edit note modal"
@@ -78,7 +78,7 @@
                                                        {:css ".modal-container.is-active .attachment-list li"})))))
 
                       (testing "and when saving the changes"
-                        (tutils/click! driver {:css ".modal-container.is-active button.submit"})
+                        (web/click! driver {:css ".modal-container.is-active button.submit"})
                         (eta/wait-invisible driver {:css ".modal-container.is-active"})
 
                         (testing "updates the note"
@@ -86,8 +86,8 @@
                           (is (= 2 (count (eta/query-all driver {:css ".attachment-list li"})))))
 
                         (testing "and when downloading the attachment"
-                          (tutils/click! driver {:css ".attachment-list li a"})
-                          (tutils/wait-optimistic #(= (count (eta/get-window-handles driver)) 2))
+                          (web/click! driver {:css ".attachment-list li a"})
+                          (web/wait-optimistic #(= (count (eta/get-window-handles driver)) 2))
                           (eta/switch-window-next driver)
                           (is (= "some text\ngoes here." (eta/get-element-text driver {:css "body"}))))))))))))))))
 
@@ -96,16 +96,16 @@
     (let [fixture-path (-> "fixtures/large.txt" io/resource .getPath)]
       (testing "when visiting the home page"
         (eta/go driver base-url)
-        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+        (web/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "and when clicking the create note button"
-          (tutils/click! driver {:css "button.note__create-button"})
+          (web/click! driver {:css "button.note__create-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
           (testing "and when creating a note"
-            (tutils/fill-form! driver ".modal-container.is-active form.form"
-                               {"Topic" "Test Attachments"
-                                "Body"  "Note with attachments"})
+            (web/fill-form! driver ".modal-container.is-active form.form"
+                            {"Topic" "Test Attachments"
+                             "Body"  "Note with attachments"})
 
             (testing "and when uploading a file"
               (let [file-input (eta/query driver {:css ".modal-container.is-active input[type='file']"})]
@@ -123,27 +123,27 @@
   (usys/with-webdriver [driver base-url]
     (testing "when visiting the home page"
       (eta/go driver base-url)
-      (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+      (web/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
       (testing "and when creating a note with an attachment"
-        (tutils/click! driver {:css "button.note__create-button"})
+        (web/click! driver {:css "button.note__create-button"})
         (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
-        (tutils/fill-form! driver ".modal-container.is-active form.form"
-                           {"Topic" "Edit Attachment Test"
-                            "Body"  "Note for editing attachment"})
+        (web/fill-form! driver ".modal-container.is-active form.form"
+                        {"Topic" "Edit Attachment Test"
+                         "Body"  "Note for editing attachment"})
         (eta/fill driver
                   {:css ".modal-container.is-active input[type='file']"}
                   (-> "fixtures/sample.txt" io/resource .getPath))
         (eta/wait-visible driver {:css ".attachment-list li"})
-        (tutils/click! driver {:css ".modal-container.is-active button.submit"})
+        (web/click! driver {:css ".modal-container.is-active button.submit"})
         (eta/wait-invisible driver {:css ".modal-container.is-active"})
         (eta/wait-absent driver {:css ".toast-message"})
 
         (testing "and when navigating to the created note"
           (eta/wait-visible driver {:css ".context-group[data-context='Edit Attachment Test']"})
-          (tutils/click! driver {:css ".context-group[data-context='Edit Attachment Test'] .expand-context"})
+          (web/click! driver {:css ".context-group[data-context='Edit Attachment Test'] .expand-context"})
           (eta/wait-visible driver {:css "a[href*='/notes/']"})
-          (tutils/click! driver {:css ".context-group[data-context='Edit Attachment Test'] a[href*='/notes/']"})
+          (web/click! driver {:css ".context-group[data-context='Edit Attachment Test'] a[href*='/notes/']"})
           (eta/wait-visible driver {:css ".attachment-list"})
           (eta/wait-absent driver {:css ".toast-message"})
 
@@ -151,17 +151,17 @@
             (is (eta/has-text? driver {:css ".attachment-list"} "sample.txt")))
 
           (testing "and when clicking the edit button"
-            (tutils/click! driver {:css "button.note__edit-button"})
+            (web/click! driver {:css "button.note__edit-button"})
             (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
             (testing "displays the attachment in edit form"
               (is (eta/has-text? driver {:css ".modal-container.is-active .attachment-list"} "sample.txt")))
 
             (testing "and when editing the attachment name"
-              (tutils/click! driver {:css "li.attachment i.lni-pencil"})
+              (web/click! driver {:css "li.attachment i.lni-pencil"})
               (eta/wait-visible driver {:css ".modal-container.is-active .note-edit__attachment-name"})
-              (tutils/fill-field! driver "Attachment name" "renamed-attachment.txt")
-              (tutils/click! driver {:css ".note-edit__attachment-name button.submit"})
+              (web/fill-field! driver "Attachment name" "renamed-attachment.txt")
+              (web/click! driver {:css ".note-edit__attachment-name button.submit"})
               (eta/wait-invisible driver {:css ".modal-container.is-active .note-edit__attachment-name"})
               (eta/wait-absent driver {:css ".toast-message"})
 
@@ -171,7 +171,7 @@
                                    "renamed-attachment.txt")))
 
               (testing "and when saving the note"
-                (tutils/click! driver {:css ".modal-container.is-active button.submit"})
+                (web/click! driver {:css ".modal-container.is-active button.submit"})
                 (eta/wait-invisible driver {:css ".modal-container.is-active"})
 
                 (testing "persists the attachment name change"
@@ -183,14 +183,14 @@
     (let [fixture-path (-> "fixtures/sample.txt" io/resource .getPath)]
       (testing "when visiting the home page"
         (eta/go driver base-url)
-        (tutils/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
+        (web/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
         (testing "and when creating a note with two attachments"
-          (tutils/click! driver {:css "button.note__create-button"})
+          (web/click! driver {:css "button.note__create-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
-          (tutils/fill-form! driver ".modal-container.is-active form.form"
-                             {"Topic" "Remove Attachment Test"
-                              "Body"  "Note with multiple attachments"})
+          (web/fill-form! driver ".modal-container.is-active form.form"
+                          {"Topic" "Remove Attachment Test"
+                           "Body"  "Note with multiple attachments"})
           (let [file-input (eta/query driver {:css ".modal-container.is-active input[type='file']"})]
             (eta/fill-el driver file-input fixture-path))
           (eta/wait-visible driver {:css "ul.attachment-list li"})
@@ -199,31 +199,31 @@
           (eta/wait-visible driver {:css "ul.attachment-list li + li"})
 
           (testing "and when saving the note"
-            (tutils/click! driver {:css ".modal-container.is-active button.submit"})
+            (web/click! driver {:css ".modal-container.is-active button.submit"})
             (eta/wait-invisible driver {:css ".modal-container.is-active"})
             (eta/wait-absent driver {:css ".toast-message"})
 
             (testing "and when navigating to the created note"
               (eta/wait-visible driver {:css ".context-group[data-context='Remove Attachment Test']"})
-              (tutils/click! driver {:css ".context-group[data-context='Remove Attachment Test'] .expand-context"})
+              (web/click! driver {:css ".context-group[data-context='Remove Attachment Test'] .expand-context"})
               (eta/wait-visible driver {:css "a[href*='/notes/']"})
-              (tutils/click! driver {:css ".context-group[data-context='Remove Attachment Test'] a[href*='/notes/']"})
+              (web/click! driver {:css ".context-group[data-context='Remove Attachment Test'] a[href*='/notes/']"})
               (eta/wait-visible driver {:css ".attachment-list"})
 
               (testing "displays both attachments"
                 (is (= 2 (count (eta/query-all driver {:css ".attachment-list li"})))))
 
               (testing "and when clicking the edit button"
-                (tutils/click! driver {:css "button.note__edit-button"})
+                (web/click! driver {:css "button.note__edit-button"})
                 (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
                 (testing "and when removing an attachment"
-                  (tutils/click! driver {:css "li.attachment i.lni-trash-can"})
+                  (web/click! driver {:css "li.attachment i.lni-trash-can"})
                   (testing "removes the attachment from the form"
                     (is (= 1 (count (eta/query-all driver {:css ".modal-container.is-active .attachment-list li"})))))
 
                   (testing "and when saving the note"
-                    (tutils/click! driver {:css ".modal-container.is-active button.submit"})
+                    (web/click! driver {:css ".modal-container.is-active button.submit"})
                     (eta/wait-invisible driver {:css ".modal-container.is-active"}))
 
                   (testing "persists the removal"

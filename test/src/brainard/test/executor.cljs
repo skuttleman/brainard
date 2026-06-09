@@ -3,9 +3,6 @@
     [clojure.core.async :as async]
     [clojure.string :as string]
     [clojure.test :as t]
-    brainard.api.utils.fns-test
-    brainard.api.utils.keywords-test
-    brainard.api.utils.maps-test
     brainard.api.validations-test
     brainard.infra.routes.errors-test
     brainard.infra.store-test
@@ -68,9 +65,6 @@
 (defn ^:export test! []
   (run-tests! (fn []
                 (t/run-tests
-                  'brainard.api.utils.fns-test
-                  'brainard.api.utils.keywords-test
-                  'brainard.api.utils.maps-test
                   'brainard.api.validations-test
                   'brainard.infra.routes.errors-test
                   'brainard.infra.store-test
