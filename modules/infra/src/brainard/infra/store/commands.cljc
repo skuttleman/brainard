@@ -1,7 +1,6 @@
 (ns brainard.infra.store.commands
   (:require
     [brainard.infra.store.core :as store]
-    [brainard.infra.views.components.core :as comp]
     [clojure.string :as string]
     [whet.utils.navigation :as nav]
     [clojure.core.async :as async]
@@ -80,15 +79,7 @@
 
 (defmethod defacto/command-handler :toasts.notes/succeed!
   [_ [_ note] emit-cb]
-  (let [toast-id (->sortable-id)
-        body [:span.layout--align-center
-              [:span.layout--space-after
-               "a"]
-              [comp/link {:class        ["layout--space-after"]
-                          :token        :routes.ui/note
-                          :route-params (select-keys note #{:notes/id})}
-               "new note"]
-              "was created"]]
+  (let [toast-id (->sortable-id)]
     (emit-cb [:toasts/created toast-id {:state :init
                                         :level :success
-                                        :body  body}])))
+                                        :body  [::new-note (:notes/id note)]}])))

@@ -2,7 +2,10 @@
   (:require
     [brainard.api.validations :as valid]
     [brainard.infra.store.core :as store]
+    [brainard.infra.store.commands :as-alias commands]
     [brainard.infra.store.specs :as specs]
+    [brainard.infra.views.components.core :as comp]
+    [brainard.infra.views.components.toasts :as toasts]
     [brainard.infra.views.fragments.note-edit :as note-edit]
     [brainard.notes.api.specs :as snotes]
     [brainard.workspace.api.specs :as sws]
@@ -23,6 +26,17 @@
                     :ok-events [[:api.notes/saved]]
                     :ok-commands [[:toasts.notes/succeed!]]
                     :err-commands [[:toasts/fail!]])))
+
+(defmethod toasts/toast-body ::commands/new-note
+  [[_ note-id]]
+  [:span.layout--align-center
+   [:span.layout--space-after
+    "a"]
+   [comp/link {:class        ["layout--space-after"]
+               :token        :routes.ui/note
+               :route-params {:notes/id note-id}}
+    "new note"]
+   "was created"])
 
 (defmethod res/->request-spec ::notes#pinned
   [_ spec]

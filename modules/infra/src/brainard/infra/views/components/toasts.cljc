@@ -6,6 +6,11 @@
     [clojure.core.async :as async]
     [whet.utils.reagent :as r]))
 
+(defmulti ^{:arglists '([body])} toast-body
+          "Used to display component trees"
+          (fn [body] (when (vector? body) (first body))))
+(defmethod toast-body :default [body] body)
+
 (def ^:const ^:private TOAST_TIMEOUT
   #?(:cljs    (edn/read-string (.-TOAST_TIMEOUT js/window))
      :default nil))
@@ -44,7 +49,7 @@
        [:div.message-body.pointer
         {:on-click (fn [_]
                      (store/dispatch! *:store [:toasts/hide! toast-id]))}
-        [:div.body-text body]]])))
+        [:div.body-text [toast-body body]]]])))
 
 (defn root [*:store]
   (r/with-let [sub:toasts (store/subscribe *:store [:toasts/?:toasts])]
