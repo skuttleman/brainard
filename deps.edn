@@ -18,7 +18,7 @@
                                     lambdaisland/kaocha           {:mvn/version "1.91.1392"}
                                     lambdaisland/kaocha-cloverage {:mvn/version "1.1.89"}
                                     skuttleman/slag-test          {:git/url   "https://github.com/skuttleman/slag"
-                                                                   :git/sha   "c3e4cf6afe8bdcf64c8b79904b8ca903b6dc7fab"
+                                                                   :git/sha   "eea13e61c75f2de0be9bce66c2fd3614732eef4e"
                                                                    :deps/root "test-utils"}}}
            :build    {:extra-paths ["tools/src"]
                       :deps        {org.clojure/clojure           {:mvn/version "1.12.5"}
