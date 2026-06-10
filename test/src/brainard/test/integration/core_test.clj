@@ -106,10 +106,10 @@
             (testing "and when updating a note"
               (let [response (http {:method :patch
                                     :uri    (str "/api/notes/" note1-id)
-                                    :body   {:notes/id          "ignored"
-                                             :notes/tags        #{:two}
-                                             :notes/tags!remove #{:one}
-                                             :notes/pinned?     true}})
+                                    :body   {:notes/id       "ignored"
+                                             :notes/tags     #{:two}
+                                             :notes/old-tags #{:one}
+                                             :notes/pinned?  true}})
                     note (-> response :body :data)]
                 (testing "returns the updated note"
                   (is (thttp/success? response))
@@ -253,7 +253,7 @@
               (testing "and when removing the attachment"
                 (-> {:method :patch
                      :uri    (str "/api/notes/" note-id)
-                     :body   {:notes/attachments!remove #{(:attachments/id attachment)}}}
+                     :body   {:notes/old-attachments #{(:attachments/id attachment)}}}
                     http
                     :body
                     :data)
