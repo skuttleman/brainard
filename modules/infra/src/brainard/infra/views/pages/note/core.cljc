@@ -28,22 +28,14 @@
     (let [form+ @sub:form+
           value (get-in (forms/data form+) check-path)]
       [:li.todo.layout--room-between
-       [:input.checkbox
-        {:checked   value
-         :type      :checkbox
-         :disabled  (or disabled (res/requesting? form+))
-         :value     value
-         :on-change (fn [_]
-                      (-> *:store
-                          (store/emit! [::forms/changed form-key check-path (not value)])
-                          (store/dispatch! [::forms+/submit!
-                                            form-key
-                                            {::note.act/action ::note.act/todo
-                                             :err-events       [[::forms/changed
-                                                                 form-key
-                                                                 check-path
-                                                                 value]]}])))}]
-
+       [ctrls/toggle
+        (-> {:*:store  *:store
+             :commands [[::forms+/submit!
+                         form-key
+                         {::note.act/action ::note.act/todo
+                          :err-events       [[::forms/changed form-key check-path value]]}]]
+             :disabled (or disabled (res/requesting? form+))}
+            (ctrls/with-attrs form+ check-path))]
        [:span {:class [(when (:todos/completed? todo)
                          "strikethrough")]}
         (:todos/text todo)]])

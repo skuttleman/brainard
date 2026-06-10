@@ -170,11 +170,7 @@
         (fn [{:keys [on-change value] :as attrs}]
           [form-field
            attrs
-           [:input.checkbox
-            (-> {:checked   (boolean value)
-                 :type      :checkbox
-                 :on-change #(on-change (not value))}
-                (merge (select-keys attrs #{:class :disabled :id :on-blur :ref})))]])))))
+           [comp/checkbox (assoc attrs :on-change #(on-change (not value)))]])))))
 
 (def ^{:arglists '([attrs])} icon-toggle
   (with-id
