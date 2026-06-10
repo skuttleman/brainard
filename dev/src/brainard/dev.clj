@@ -14,7 +14,7 @@
 
 (defn ^:private dev-middleware [req env ui-env upload-limit]
   (assoc req
-         ::b/env (or env :dev)
+         ::b/env env
          ::b/ui-env ui-env
          ::b/file-limit-bytes upload-limit
          #_#_::b/no-hydrate? true))
@@ -27,6 +27,8 @@
 
 (defmethod ig/init-key :brainard.web/dev-handler
   [_ {:keys [env ui-env upload-limit]}]
+  (when-not (and env (int? upload-limit))
+    (throw (ex-info "handler requires env and upload-limits" cfg)))
   (-> #'routes/be-handler
       (with-dev-middleware env ui-env upload-limit)
       (ring.rel/wrap-reload {:dirs ["../defacto/core/src"

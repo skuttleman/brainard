@@ -23,7 +23,7 @@
 
 (defmethod ig/init-key :brainard.web/handler
   [_ {:keys [env ui-env upload-limit] :as cfg}]
-  (when-not (or env (int? upload-limit))
+  (when-not (and env (int? upload-limit))
     (throw (ex-info "handler requires env and upload-limits" cfg)))
   (fn [req]
     (routes/be-handler (assoc req
