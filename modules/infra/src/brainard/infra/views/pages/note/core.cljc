@@ -169,12 +169,19 @@
                          :commands [[:modals/create! (note.act/->delete-modal note)]]
                          :disabled disabled?}
       "Delete note"]]
-    [comp/plain-button {:*:store  *:store
-                        :class    ["is-light" "note__history-button"]
-                        :commands [[:modals/create! [::note.history/modal
-                                                     {:note note}]]]
-                        :disabled disabled?}
-     "View history"]]])
+    [:div.button-row
+     [comp/link {:token        :routes.resources/export
+                 :class        ["button" "is-light" "note__download-button"]
+                 :download     (str "note-" (:notes/id note) ".md")
+                 :route-params (select-keys note #{:notes/id})
+                 :target       "_blank"}
+      [comp/icon :download]]
+     [comp/plain-button {:*:store  *:store
+                         :class    ["is-light" "note__history-button"]
+                         :commands [[:modals/create! [::note.history/modal
+                                                      {:note note}]]]
+                         :disabled disabled?}
+      "View history"]]]])
 
 (defn ^:private note-root [opts *:store sub:modals disabled? note]
   (if (and disabled? (seq @sub:modals))
