@@ -45,8 +45,9 @@
         (recur rest-lines current-lines (conj acc line))))))
 
 (defn ^:private find-lcov-files [coverage-dir merged-dir]
-  (let [merged-canonical (.getCanonicalPath (io/file merged-dir))]
-    (->> (file-seq (io/file coverage-dir))
+  (let [merged-canonical (.getCanonicalPath (io/file merged-dir))
+        search-root (or (.getParentFile (io/file coverage-dir)) (io/file coverage-dir))]
+    (->> (file-seq search-root)
          (filter #(and (.isFile %)
                        (= "lcov.info" (.getName %))
                        (not (string/starts-with? (.getCanonicalPath %) merged-canonical))))
