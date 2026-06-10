@@ -8,7 +8,7 @@
     [whet.utils.navigation :as nav]
     [whet.utils.reagent :as r]))
 
-(defn ^:private with-store [cb {:keys [*:store commands events]}]
+(defn handler-with-store [cb {:keys [*:store commands events]}]
   (fn [e]
     (when cb
       (cb e))
@@ -22,7 +22,7 @@
         attrs (-> attrs
                   (select-keys #{:auto-focus :id :on-blur :on-click :style :class :ref :tab-index :type})
                   (assoc :disabled disabled)
-                  (update :on-click with-store attrs)
+                  (update :on-click handler-with-store attrs)
                   (maps/assoc-defaults :type :button)
                   (cond-> disabled (update :class (fnil conj []) "is-disabled")))]
     (into [:button.button attrs] content)))
@@ -32,7 +32,7 @@
         attrs (-> attrs
                   (select-keys #{:auto-focus :id :on-blur :on-change :style :class :ref :tab-index :value})
                   (assoc :disabled disabled :type :checkbox :checked (boolean value))
-                  (update :on-change with-store attrs)
+                  (update :on-change handler-with-store attrs)
                   (cond-> disabled (update :class (fnil conj []) "is-disabled")))]
     [:input.checkbox attrs]))
 

@@ -1,21 +1,20 @@
 (ns brainard.infra.views.fragments.note-edit
   (:require
-    [brainard.api.validations :as valid]
-    [brainard.attachments.api.specs :as sattachments]
     [brainard.infra.store.core :as store]
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.core :as comp]
     [brainard.infra.views.components.interfaces :as icomp]
     [brainard.infra.views.controls.core :as ctrls]
+    [brainard.infra.views.fragments.actions :as frag.act]
     [brainard.infra.views.fragments.note-components :as note-comp]
-    [brainard.notes.api.specs :as snotes]
     [clojure.string :as string]
     [defacto.forms.core :as forms]
     [defacto.forms.plus :as forms+]
     [defacto.resources.core :as res]
     [slag.utils.fns :as fns]
     [slag.utils.uuids :as uuids]
+    [whet.core :as-alias w]
     [whet.utils.reagent :as r]))
 
 (defn ^:private with-trim-on-blur [{:keys [on-change] :as attrs} *:store]
@@ -98,17 +97,17 @@
                          :err-events   [[::forms/changed form-id [:upload-status] {:status :error}]]}]))))
 
 (defn ^:private ->on-edit-att [*:store form-id]
-  (fn [attachment]
-    (letfn [(mapper [attachment' new-name]
+  (fn [{attachment-id :attachments/id :as init}]
+    (letfn [(mapper [attachment' {:attachments/keys [name]}]
               (cond-> attachment'
                 (= (:attachments/id attachment')
-                   (:attachments/id attachment))
-                (assoc :attachments/name new-name)))]
+                   attachment-id)
+                (assoc :attachments/name name)))]
       (store/dispatch! *:store
                        [:modals/create!
                         [::attachment-name
-                         {:init      (select-keys attachment #{:attachments/id
-                                                               :attachments/name})
+                         {:init      (select-keys init #{:attachments/id
+                                                         :attachments/name})
                           :ok-events [[::forms/modified form-id [:notes/attachments] fns/smap mapper]]}]]))))
 
 (defn ^:private ->on-remove-att [*:store form-id]
@@ -245,48 +244,41 @@
   [_ _]
   "Edit attachment name")
 
-(defmethod icomp/modal-body ::attachment-name
-  [*:store {:modals/keys [close!] :keys [init ok-events]}]
-  (r/with-let [sub:form (store/form-sub *:store [::attachment-edit!] init)
-               validate (valid/->validator sattachments/modify)]
-    (let [form @sub:form]
-      [ctrls/plain-form
-       {:disabled    (validate (forms/data form))
-        :on-submit   (fn [_]
-                       (close!)
-                       (run! (fn [event]
-                               (store/emit! *:store (conj event (:attachments/name (forms/data form)))))
-                             ok-events))
-        :submit/body "Update"}
-       [ctrls/input (-> {:*:store     *:store
-                         :auto-focus? true
-                         :label       "Attachment name"}
-                        (ctrls/with-attrs form [:attachments/name]))]])
-    (finally
-      (store/emit! *:store [::forms/destroyed [::attachment-edit!]]))))
-
 (defmethod icomp/modal-header ::todo
   [_ {:keys [new?]}]
-  (if new?
-    "Create new TODO"
-    "Edit your TODO"))
+  (if new? "Create new TODO" "Edit your TODO"))
 
-(defmethod icomp/modal-body ::todo
-  [*:store {:modals/keys [close!] :keys [new? init ok-events]}]
-  (r/with-let [sub:form (store/form-sub *:store [::todo-edit] init)
-               validate (valid/->validator snotes/todo-create)]
-    (let [form @sub:form]
-      [ctrls/plain-form
-       {:disabled    (validate (forms/data form))
-        :on-submit   (fn [_]
-                       (close!)
-                       (run! (fn [event]
-                               (store/emit! *:store (conj event (forms/data form))))
-                             ok-events))
-        :submit/body (if new? "Create" "Update")}
+(defn ^:private form-modal [*:store {modal-id :modals/id :keys [init resource-key] :as attrs}]
+  (r/with-let [sub:form+ (store/form+-sub *:store resource-key init)]
+    (let [{:keys [form-path label ok-events resource-key submit-body]} attrs
+          form+ @sub:form+]
+      [ctrls/form
+       {:*:store      *:store
+        :disabled     (and (res/error? form+) (not (forms/changed? form+ form-path)))
+        :form+        form+
+        :params       {:ok-commands [[:modals/remove! modal-id]]
+                       :ok-events   ok-events}
+        :resource-key resource-key
+        :submit/body  submit-body}
        [ctrls/input (-> {:*:store     *:store
                          :auto-focus? true
-                         :label       "TODO"}
-                        (ctrls/with-attrs form [:todos/text]))]])
+                         :label       label}
+                        (ctrls/with-attrs form+ form-path))]])
     (finally
-      (store/emit! *:store [::forms/destroyed [::todo-edit]]))))
+      (store/emit! *:store [::forms+/destroyed resource-key]))))
+
+(defmethod icomp/modal-body ::attachment-name
+  [*:store attrs]
+  [form-modal *:store (assoc attrs
+                             :form-path [:attachments/name]
+                             :label "Attachment name"
+                             :resource-key frag.act/attachment-form-key
+                             :submit-body "Update")])
+
+(defmethod icomp/modal-body ::todo
+  [*:store {:keys [new?] :as attrs}]
+  [form-modal *:store (assoc attrs
+                             :form-path [:todos/text]
+                             :label "TODO"
+                             :resource-key frag.act/todo-form-key
+                             :submit-body (if new? "Create" "Update"))])
