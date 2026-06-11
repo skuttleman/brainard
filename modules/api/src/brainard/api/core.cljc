@@ -11,23 +11,26 @@
 
 (defmethod invoke-api* :api.notes/create!
   [_ apis note]
-  (api.notes/create! (:notes apis) note))
+  (doto (api.notes/create! (:notes apis) note)
+    (->> (api.notes/search-create! (:notes apis)))))
 
 (defmethod invoke-api* :api.notes/update!
   [_ apis note]
-  (api.notes/update! (:notes apis) (:notes/id note) note))
+  (doto (api.notes/update! (:notes apis) (:notes/id note) note)
+    (->> (api.notes/search-update! (:notes apis)))))
 
 (defmethod invoke-api* :api.notes/reinstate!
   [_ apis note]
   (when-let [pre (api.notes/get-as-of (:notes apis)
                                       (:notes/id note)
                                       (:notes/history-id note))]
-    (api.notes/update! (:notes apis) (:notes/id note) (merge note pre))))
+    (invoke-api* :api.notes/update! apis (merge note pre))))
 
 (defmethod invoke-api* :api.notes/delete!
   [_ apis {note-id :notes/id}]
   (api.notes/delete! (:notes apis) note-id)
   (api.sched/delete-for-note! (:schedules apis) note-id)
+  (api.notes/search-delete! (:notes apis) note-id)
   nil)
 
 (defmethod invoke-api* :api.notes/select

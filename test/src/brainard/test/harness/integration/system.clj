@@ -2,6 +2,7 @@
   (:require
     [brainard.api.storage.interfaces :as istorage]
     [brainard.infra.db.store :as ds]
+    [brainard.infra.search.store :as search]
     [brainard.main :as main]
     [clojure.java.io :as io]
     [clojure.test :refer [testing]]
@@ -37,6 +38,10 @@
     (invoker {:op      :DeleteObjects
               :request {:Delete {:Objects objects}}})
     (-> invoker meta ::db-name (->> (str ".storage/s3/")) io/file io/delete-file)))
+
+(defmethod ig/init-key :brainard.test/search-index
+  [_ _]
+  (search/->mem-index))
 
 (defmethod istorage/->input :default
   [params]

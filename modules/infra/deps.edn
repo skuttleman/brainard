@@ -9,6 +9,7 @@
            duct/core                             {:mvn/version "0.8.1"}
            io.github.nextjournal/markdown        {:mvn/version "0.7.225"}
            javax.servlet/javax.servlet-api       {:mvn/version "4.0.1"}
+           org.msync/lucene-clj                  {:mvn/version "0.2.0-alpha"}
            skuttleman/whet                       {:git/url "https://github.com/skuttleman/whet"
                                                   :git/sha "14226722e7b8980b8eb1e666b9cf31ed824c6a2d"}}
  :aliases {:test     {:extra-paths ["test/resources" "test/src"]

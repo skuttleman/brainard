@@ -8,6 +8,7 @@
     [brainard.infra.db.store :as ds]
     [brainard.infra.obj.store :as os]
     [brainard.infra.routes.core :as routes]
+    [brainard.infra.search.store :as search]
     [brainard.infra.system.daemons :as daemons]
     [integrant.core :as ig]
     brainard.attachments.infra.db
@@ -15,6 +16,7 @@
     brainard.infra.routes.ui
     brainard.notes.infra.db
     brainard.notes.infra.routes
+    brainard.notes.infra.search
     brainard.events.infra.routes
     brainard.schedules.infra.db
     brainard.workspace.infra.db)
@@ -58,6 +60,14 @@
 (defmethod ig/init-key ::b/s3-invoker
   [_ params]
   (os/->invoke-fn params))
+
+(defmethod ig/init-key ::b/search
+  [_ {:keys [index]}]
+  (search/->NoteSearchStore index))
+
+(defmethod ig/init-key :brainard.search/index
+  [_ {:keys [db-name]}]
+  (search/->disk-index db-name))
 
 (defmethod ig/init-key :brainard/events
   [_ _]

@@ -12,4 +12,7 @@
                      {}
 
                      [:brainard.test/fs-invoker :brainard/IObjInvoker]
+                     {}
+
+                     [:brainard.test/search-index :brainard/IIndex]
                      {}}}

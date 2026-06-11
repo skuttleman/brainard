@@ -30,7 +30,8 @@
   :store     #ig/ref :brainard/storage}
 
  [:duct/const :brainard/notes-api]
- {:store #ig/ref :brainard/storage}
+ {:search #ig/ref :brainard/search
+  :store  #ig/ref :brainard/storage}
 
  [:duct/const :brainard/schedules-api]
  {:store #ig/ref :brainard/storage}
@@ -45,6 +46,9 @@
 
  :brainard/obj-storage
  {:invoker #ig/ref :brainard/IObjInvoker}
+
+ :brainard/search
+ {:index #ig/ref :brainard/IIndex}
 
  :brainard/events
  {}
