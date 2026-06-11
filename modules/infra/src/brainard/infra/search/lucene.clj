@@ -2,20 +2,20 @@
   (:import
     (java.nio.file Paths)
     (org.apache.lucene.analysis.standard StandardAnalyzer)
-    (org.apache.lucene.codecs.lucene86 Lucene86Codec)
+    (org.apache.lucene.codecs.lucene104 Lucene104Codec)
     (org.apache.lucene.document Document Field$Store StringField TextField)
     (org.apache.lucene.index DirectoryReader IndexWriter IndexWriterConfig Term)
     (org.apache.lucene.search BooleanClause$Occur BooleanQuery$Builder IndexSearcher TopDocs)
     (org.apache.lucene.search.suggest.document
-      Completion84PostingsFormat PrefixCompletionQuery SuggestField SuggestIndexSearcher)
+      Completion104PostingsFormat PrefixCompletionQuery SuggestField SuggestIndexSearcher)
     (org.apache.lucene.store ByteBuffersDirectory Directory FSDirectory)
     (org.apache.lucene.util QueryBuilder)))
 
 (def ^:private ^:const ^String suggest-field "suggest_context")
 
 (defn ^:private ->codec []
-  (let [fmt (Completion84PostingsFormat.)]
-    (proxy [Lucene86Codec] []
+  (let [fmt (Completion104PostingsFormat.)]
+    (proxy [Lucene104Codec] []
       (getPostingsFormatForField [field]
         (if (= field suggest-field)
           fmt
@@ -36,13 +36,15 @@
     (cond-> (seq context) (.add (SuggestField. suggest-field context (int 1))))))
 
 (defn ^:private hits->results [^IndexSearcher searcher ^TopDocs hits]
-  (mapv (fn [score-doc]
-          (let [doc (.doc searcher (.doc score-doc))]
-            {:doc-id (.doc score-doc)
-             :score  (.score score-doc)
-             :hit    (when-let [id (.get doc "id")]
-                       {:notes/id (parse-uuid id)})}))
-        (.scoreDocs hits)))
+  (let [stored-fields (.storedFields searcher)]
+    (mapv (fn [score-doc]
+            (let [doc-id (.doc score-doc)
+                  doc (.document stored-fields doc-id)]
+              {:doc-id doc-id
+               :score  (.score score-doc)
+               :hit    (when-let [note-id (.get doc "id")]
+                         {:notes/id (parse-uuid note-id)})}))
+          (.scoreDocs hits))))
 
 (defmacro ^:private with-writer [[sym index] & body]
   `(let [{directory# :directory analyzer# :analyzer} ~index]
