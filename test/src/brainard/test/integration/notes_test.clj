@@ -35,11 +35,11 @@
                     :notes/tags    #{:one :two :three}}
                    note))))
         (testing "and when updating and retracting tags"
-          (storage/execute! storage {::storage/type     ::api.notes/update!
-                                     :notes/id          note-id
-                                     :notes/context     "different context"
-                                     :notes/tags!remove #{:one :two}
-                                     :notes/tags        #{:four :five :six}})
+          (storage/execute! storage {::storage/type  ::api.notes/update!
+                                     :notes/id       note-id
+                                     :notes/context  "different context"
+                                     :notes/old-tags #{:one :two}
+                                     :notes/tags     #{:four :five :six}})
           (testing "updates the note in db"
             (let [note (-> storage
                            (istorage/read {:query '[:find (pull ?e [:notes/id
@@ -255,14 +255,14 @@
                                          :notes/id          note-id
                                          :notes/attachments #{{:attachments/id   attachment-id
                                                                :attachments/name "some-new-name"}}})
-              (storage/execute! storage {::storage/type     ::api.notes/update!
-                                         :notes/id          note-id
-                                         :notes/tags        #{:b :d :e}
-                                         :notes/pinned?     true
-                                         :notes/tags!remove #{:a :c}})
-              (storage/execute! storage {::storage/type            ::api.notes/update!
-                                         :notes/id                 note-id
-                                         :notes/attachments!remove #{attachment-id}})
+              (storage/execute! storage {::storage/type  ::api.notes/update!
+                                         :notes/id       note-id
+                                         :notes/tags     #{:b :d :e}
+                                         :notes/pinned?  true
+                                         :notes/old-tags #{:a :c}})
+              (storage/execute! storage {::storage/type         ::api.notes/update!
+                                         :notes/id              note-id
+                                         :notes/old-attachments #{attachment-id}})
               (storage/execute! storage {::storage/type ::api.notes/update!
                                          :notes/id      note-id
                                          :notes/context "diff context"
@@ -378,7 +378,7 @@
         (testing "and when removing a todo"
           (let [updated (api.notes/update! notes-api
                                            (:notes/id note)
-                                           {:notes/todos!remove #{(:todos/id todo-two)}})
+                                           {:notes/old-todos #{(:todos/id todo-two)}})
                 remaining (into #{} (map :todos/id) (:notes/todos updated))]
             (testing "removes the specified todo"
               (is (not (contains? remaining (:todos/id todo-two))))

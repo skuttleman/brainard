@@ -38,6 +38,9 @@
   [["/attachments/:id" {:name       :routes.resources/attachment
                         :param-keys {:id :attachments/id}
                         :parameters {:path [:map [:id :uuid]]}}]
+   ["/exports/:id" {:name       :routes.resources/export
+                    :param-keys {:id :notes/id}
+                    :parameters {:path [:map [:id :uuid]]}}]
    ["/css/*path" {:name :routes.resources/css}]
    ["/img/*path" {:name :routes.resources/img}]
    ["/js/*path" {:name :routes.resources/js}]

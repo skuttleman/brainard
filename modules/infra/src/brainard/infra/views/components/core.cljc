@@ -1,7 +1,6 @@
 (ns brainard.infra.views.components.core
   "Reusable reagent components."
   (:require
-    [brainard.infra.store.core :as store]
     [brainard.infra.stubs.dom :as dom]
     [brainard.infra.views.components.interfaces :as icomp]
     [brainard.infra.views.components.modals :as comp.modals]
@@ -21,6 +20,9 @@
 
 (def ^{:arglists '([attrs & content])} plain-button
   (scomp/with-auto-focus scomp/plain-button))
+
+(def ^{:arglists '([attrs])} checkbox
+  (scomp/with-auto-focus scomp/checkbox))
 
 (def ^{:arglists '([attrs & content])} link
   scomp/link)
@@ -171,13 +173,13 @@
   [:div.layout--stack-between
    [:p description]
    [:div.layout--room-between
-    [plain-button {:class       (into ["is-info"] yes-btn-class)
+    [plain-button {:*:store     *:store
                    :auto-focus? true
-                   :on-click    (fn [e]
-                                  (run! (partial store/dispatch! *:store) yes-commands)
-                                  (close! e))}
+                   :class       (into ["is-info"] yes-btn-class)
+                   :commands    yes-commands
+                   :on-click    close!}
      "OK"]
-    [plain-button {:on-click (fn [e]
-                               (run! (partial store/dispatch! *:store) no-commands)
-                               (close! e))}
+    [plain-button {:*:store  *:store
+                   :commands no-commands
+                   :on-click close!}
      "Cancel"]]])

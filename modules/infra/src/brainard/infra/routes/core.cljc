@@ -51,5 +51,8 @@
          ring.kw-params/wrap-keyword-params
          ring.params/wrap-params
          mw/with-error-handling
-         (mw/with-logging {:xform (filter (comp (some-fn #{"/"} #(string/starts-with? % "/api/"))
+         (mw/with-logging {:xform (filter (comp (some-fn #{"/"}
+                                                         #(string/starts-with? % "/api/")
+                                                         #(string/starts-with? % "/attachments/")
+                                                         #(string/starts-with? % "/exports/"))
                                                 :uri))}))))

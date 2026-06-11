@@ -7,6 +7,8 @@
     [brainard.infra.routes.response :as routes.res]
     [brainard.infra.store.specs :as-alias specs]
     [brainard.infra.views.pages.core :as pages]
+    [brainard.notes.api.core :as api.notes]
+    [brainard.notes.infra.export :as export]
     [defacto.core :as defacto]
     [defacto.resources.core :as res]
     [ring.middleware.resource :as ring.res]
@@ -84,6 +86,20 @@
                            stream
                            {"content-length" content-length
                             "content-type"   content-type})
+    (iroutes/handler (assoc req
+                            :request-method :get
+                            ::w/route (assoc route :token :routes/ui)))))
+
+(defmethod iroutes/handler [:get :routes.resources/export]
+  [{::b/keys [apis input] ::w/keys [route] :as req}]
+  (if-let [note (api.notes/get-note (:notes apis) (:notes/id input))]
+    (let [{:keys [scheme server-name server-port]} req
+          host (format "%s://%s:%s" (name scheme) server-name server-port)
+          md (export/->markdown host note)]
+      (routes.res/->response 200
+                             md
+                             {"content-type"   "text/markdown"
+                              "content-length" (str (count md))}))
     (iroutes/handler (assoc req
                             :request-method :get
                             ::w/route (assoc route :token :routes/ui)))))

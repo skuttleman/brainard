@@ -13,7 +13,11 @@
            :changed? (forms/changed? form+ path)
            :warnings (when (and (res/error? form+)
                                 (not (::forms/errors payload)))
-                       (get-in payload path))
+                       (if (sequential? payload)
+                         (->> payload
+                              (mapcat (comp #(get-in % path) :details))
+                              seq)
+                         (get-in payload path)))
            :errors (when (and (not (res/init? form+))
                               (::forms/errors payload))
                      (get-in (::forms/errors payload) path))

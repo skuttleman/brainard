@@ -3,7 +3,6 @@
     [brainard :as-alias b]
     [brainard.api.utils.logger :as log]
     [brainard.main :as main]
-    [brainard.infra.routes.core :as routes]
     [duct.core :as duct]
     [integrant.core :as ig]
     [nrepl.server :as nrepl]
@@ -12,23 +11,18 @@
 
 (defonce system nil)
 
-(defn ^:private dev-middleware [req env ui-env upload-limit]
-  (assoc req
-         ::b/env (or env :dev)
-         ::b/ui-env ui-env
-         ::b/file-limit-bytes upload-limit
-         #_#_::b/no-hydrate? true))
+(defn ^:private dev-middleware [req]
+  (-> req
+      #_(assoc ::b/no-hydrate? true)))
 
-(defn ^:private with-dev-middleware [handler env ui-env upload-limit]
+(defn ^:private with-dev-middleware [handler]
   (fn [req]
-    (-> req
-        (dev-middleware env ui-env upload-limit)
-        handler)))
+    (-> req dev-middleware handler)))
 
 (defmethod ig/init-key :brainard.web/dev-handler
-  [_ {:keys [env ui-env upload-limit]}]
-  (-> #'routes/be-handler
-      (with-dev-middleware env ui-env upload-limit)
+  [_ cfg]
+  (-> (ig/init-key :brainard.web/handler cfg)
+      with-dev-middleware
       (ring.rel/wrap-reload {:dirs ["../defacto/core/src"
                                     "../defacto/forms/src"
                                     "../defacto/forms+/src"

@@ -4,11 +4,11 @@
     [brainard :as-alias b]
     [brainard.api.events.core :as events]
     [brainard.api.utils.logger :as log]
+    [brainard.events.infra.manager :as manager]
     [brainard.infra.db.store :as ds]
     [brainard.infra.obj.store :as os]
     [brainard.infra.routes.core :as routes]
     [brainard.infra.system.daemons :as daemons]
-    [brainard.events.infra.manager :as manager]
     [integrant.core :as ig]
     brainard.attachments.infra.db
     brainard.attachments.infra.routes
@@ -23,7 +23,7 @@
 
 (defmethod ig/init-key :brainard.web/handler
   [_ {:keys [env ui-env upload-limit] :as cfg}]
-  (when-not (or env (int? upload-limit))
+  (when-not (and env (int? upload-limit))
     (throw (ex-info "handler requires env and upload-limits" cfg)))
   (fn [req]
     (routes/be-handler (assoc req

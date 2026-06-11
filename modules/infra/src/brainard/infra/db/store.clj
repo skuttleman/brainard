@@ -13,9 +13,11 @@
 
 (defn query
   "Make a query against a datomic db"
-  [db {:keys [args only? query history? post ref? xform]}]
+  [db {:keys [args as-of only? query history? post ref? xform]}]
   (cond-> (->> args
-               (apply d/q query (cond-> db history? d/history))
+               (apply d/q query (cond-> db
+                                  as-of (d/as-of as-of)
+                                  history? d/history))
                (walk/postwalk (fn [x]
                                 (cond-> x
                                   (map? x) (cond->

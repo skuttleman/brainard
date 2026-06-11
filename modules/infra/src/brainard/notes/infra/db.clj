@@ -178,14 +178,14 @@
   [(clean-note note)])
 
 (defmethod istorage/->input ::api.notes/update!
-  [{note-id :notes/id :notes/keys [attachments!remove tags!remove todos!remove] :as note}]
+  [{note-id :notes/id :notes/keys [old-attachments old-tags old-todos] :as note}]
   (concat [(clean-note note)]
           (map #(vector :db/retractEntity [:attachments/id %])
-               attachments!remove)
+               old-attachments)
           (map #(vector :db/retract [:notes/id note-id] :notes/tags %)
-               tags!remove)
+               old-tags)
           (map #(vector :db/retractEntity [:todos/id %])
-               todos!remove)))
+               old-todos)))
 
 (defmethod istorage/->input ::api.notes/delete!
   [{note-id :notes/id}]
@@ -236,3 +236,14 @@
    :args     [id]
    :history? true
    :post     prep-history})
+
+(defmethod istorage/->input ::api.notes/get-note-as-of
+  [{:notes/keys [id history-id]}]
+  {:query '[:find (pull ?e [*])
+            :in $ ?note-id
+            :where
+            [?e :notes/id ?note-id]]
+   :args  [id]
+   :as-of history-id
+   :only? true
+   :xform (map first)})

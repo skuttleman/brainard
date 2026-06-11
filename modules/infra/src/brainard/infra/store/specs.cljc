@@ -1,6 +1,7 @@
 (ns brainard.infra.store.specs
   (:require
     [brainard.api.validations :as valid]
+    [brainard.notes.api.specs :as snotes]
     [brainard.workspace.api.specs :as sws]
     [clojure.set :as set]
     [defacto.forms.core :as-alias forms]
@@ -77,8 +78,8 @@
 (defn ^:private diff-tags [old curr]
   (when (or old curr)
     (let [removals (set/difference old curr)]
-      {:notes/tags!remove (or removals #{})
-       :notes/tags        (or curr #{})})))
+      {:notes/old-tags (or removals #{})
+       :notes/tags     (or curr #{})})))
 
 (defn ^:private diff-id'ed [old curr map-fn]
   (when (or old curr)
@@ -89,13 +90,13 @@
 
 (defn ^:private diff-attachments [old curr]
   (when-let [[removals attachments] (diff-id'ed old curr :attachments/id)]
-    {:notes/attachments!remove removals
-     :notes/attachments        attachments}))
+    {:notes/old-attachments removals
+     :notes/attachments     attachments}))
 
 (defn ^:private diff-todos [old curr]
   (when-let [[removals todos] (diff-id'ed old curr :todos/id)]
-    {:notes/todos!remove removals
-     :notes/todos        todos}))
+    {:notes/old-todos removals
+     :notes/todos     todos}))
 
 (defn ^:private modify-note-body [{:keys [payload prev-attachments prev-tags prev-todos]}]
   (-> payload
@@ -119,7 +120,10 @@
   (->req {:route  :routes.api/note!reinstate
           :params {:notes/id resource-id}
           :method :post
-          :body   (modify-note-body spec)}
+          :body   (-> spec
+                      modify-note-body
+                      (assoc :notes/history-id (-> spec :payload :notes/history-id))
+                      (valid/select-spec-keys snotes/reinstate))}
          spec))
 
 (defmethod res/->request-spec ::notes#destroy

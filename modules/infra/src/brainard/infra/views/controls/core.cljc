@@ -170,11 +170,7 @@
         (fn [{:keys [on-change value] :as attrs}]
           [form-field
            attrs
-           [:input.checkbox
-            (-> {:checked   (boolean value)
-                 :type      :checkbox
-                 :on-change #(on-change (not value))}
-                (merge (select-keys attrs #{:class :disabled :id :on-blur :ref})))]])))))
+           [comp/checkbox (assoc attrs :on-change #(on-change (not value)))]])))))
 
 (def ^{:arglists '([attrs])} icon-toggle
   (with-id
@@ -273,7 +269,8 @@
 (defn plain-form [{:keys [disabled form+ no-buttons? no-errors? inline-buttons? horizontal?] :as attrs} & fields]
   (let [changed? (forms/changed? form+)
         errors (when (res/error? form+)
-                 (res/payload form+))
+                 (when-let [msgs (->> form+ res/payload (keep :message) seq)]
+                   (mapv (partial str "Server error: ") msgs)))
         local-errors (or (::forms/errors errors) errors)
         form-errors (when (vector? local-errors)
                       local-errors)
@@ -285,6 +282,7 @@
                             :disabled (or disabled requesting?)
                             :requesting? requesting?)
         form-attrs (-> (select-keys attrs #{:class :disabled :on-submit :style})
+                       (update :on-submit scomp/handler-with-store attrs)
                        (update :on-submit comp dom/prevent-default!)
                        (cond->
                          any-errors? (update :class conj "errors")
@@ -302,12 +300,9 @@
      (when-not (or no-buttons? inline-buttons?)
        [form-button-row button-attrs])]))
 
-(defn form [{:keys [*:store params resource-key] :as attrs} & fields]
+(defn form [{:keys [params resource-key] :as attrs} & fields]
   (into [plain-form
-         (assoc attrs
-                :on-submit
-                (fn [_]
-                  (store/dispatch! *:store [::forms+/submit! resource-key params])))]
+         (update attrs :commands conj [::forms+/submit! resource-key params])]
         fields))
 
 (def ^{:arglists '([attrs form+ path])} with-attrs
