@@ -1,9 +1,8 @@
 **/.clj-kondo/*/
 .cpcache/
-.datomic-storage/
 .idea/
 .shadow-cljs/
-.obj-storage/
+.storage/
 classes/
 node_modules/
 resources/public/js/

@@ -8,7 +8,10 @@
                       :schema  #ig/ref :cfg.ds/schema}
 
                      [:brainard/fs-invoker :brainard/IObjInvoker]
-                     {:path ".obj-storage"}
+                     {:db-name #ig/ref :cfg.ds/db-name}
+
+                     [:brainard.search/index :brainard/IIndex]
+                     {:db-name #ig/ref :cfg.ds/db-name}
 
                      #_#_[:brainard/s3-invoker :brainard/IObjInvoker]
                      {:access-key #ig/ref :cfg.obj/access-key

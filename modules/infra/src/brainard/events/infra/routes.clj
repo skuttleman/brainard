@@ -28,12 +28,12 @@
     (ievents/connect! events id ch)
     (async/go
       (async/>! ch [:connected])
-      (log/infof "ws connected: %s" id)
+      (log/infof "event stream connected: %s" id)
       (loop []
         (if (pasync/closed? ch)
           (do (ievents/disconnect! events id)
               (close-fn stream)
-              (log/infof "ws disconnected: %s" id))
+              (log/infof "event stream disconnected: %s" id))
           (do (async/<! (async/timeout 500))
               (recur)))))
     {:status  200
