@@ -79,3 +79,10 @@
   [notes-api note-id]
   (storage/query (:store notes-api) {::storage/type ::get-note-history
                                      :notes/id      note-id}))
+
+(defn get-as-of
+  "Retrieves the note as of a point in history"
+  [notes-api note-id history-id]
+  (storage/query (:store notes-api) {::storage/type ::get-note-as-of
+                                     :notes/id note-id
+                                     :notes/history-id history-id}))

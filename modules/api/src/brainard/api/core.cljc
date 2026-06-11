@@ -19,7 +19,10 @@
 
 (defmethod invoke-api* :api.notes/reinstate!
   [_ apis note]
-  (api.notes/update! (:notes apis) (:notes/id note) note))
+  (when-let [pre (api.notes/get-as-of (:notes apis)
+                                      (:notes/id note)
+                                      (:notes/history-id note))]
+    (api.notes/update! (:notes apis) (:notes/id note) (merge note pre))))
 
 (defmethod invoke-api* :api.notes/delete!
   [_ apis {note-id :notes/id}]

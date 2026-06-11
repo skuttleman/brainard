@@ -30,13 +30,12 @@
              (specs/with-cbs (res/->request-spec [::specs/notes#modify note-id] spec)
                              :ok-events [[:api.notes/saved]]))
     ::delete (res/->request-spec [::specs/notes#destroy note-id] spec)
-    ::reinstate (let [payload (valid/select-spec-keys note snotes/reinstate)]
-                  (res/->request-spec [::specs/notes#reinstate note-id]
-                                      (assoc spec
-                                             :payload payload
-                                             :ok-commands [[:toasts/succeed! {:message "previous version of note was reinstated"}]
-                                                           [::res/submit! [::note#history note-id]]]
-                                             :err-commands [[:toasts/fail!]])))
+    ::reinstate (res/->request-spec [::specs/notes#reinstate note-id]
+                                    (assoc spec
+                                           :payload note
+                                           :ok-commands [[:toasts/succeed! {:message "previous version of note was reinstated"}]
+                                                         [::res/submit! [::note#history note-id]]]
+                                           :err-commands [[:toasts/fail!]]))
     (res/->request-spec [::specs/notes#find note-id] spec)))
 
 (defmethod forms+/re-init ::notes#sync [[_ [_ note-id] [res-type child-id]] form result]

@@ -1,6 +1,7 @@
 (ns brainard.infra.store.specs
   (:require
     [brainard.api.validations :as valid]
+    [brainard.notes.api.specs :as snotes]
     [brainard.workspace.api.specs :as sws]
     [clojure.set :as set]
     [defacto.forms.core :as-alias forms]
@@ -119,7 +120,10 @@
   (->req {:route  :routes.api/note!reinstate
           :params {:notes/id resource-id}
           :method :post
-          :body   (modify-note-body spec)}
+          :body   (-> spec
+                      modify-note-body
+                      (assoc :notes/history-id (-> spec :payload :notes/history-id))
+                      (valid/select-spec-keys snotes/reinstate))}
          spec))
 
 (defmethod res/->request-spec ::notes#destroy

@@ -236,3 +236,14 @@
    :args     [id]
    :history? true
    :post     prep-history})
+
+(defmethod istorage/->input ::api.notes/get-note-as-of
+  [{:notes/keys [id history-id]}]
+  {:query '[:find (pull ?e [*])
+            :in $ ?note-id
+            :where
+            [?e :notes/id ?note-id]]
+   :args  [id]
+   :as-of history-id
+   :only? true
+   :xform (map first)})

@@ -92,14 +92,9 @@
 
 (def reinstate
   [:map
-   [:notes/context scommon/non-empty-trimmed-string]
-   [:notes/body scommon/non-empty-string]
-   [:notes/tags {:optional true} [:set keyword?]]
+   [:notes/history-id int?]
    [:notes/old-tags {:optional true} [:set keyword?]]
-   [:notes/pinned? boolean?]
-   [:notes/attachments {:optional true} [:seqable sattachments/full]]
    [:notes/old-attachments {:optional true} [:set uuid?]]
-   [:notes/todos {:optional true} [:seqable todo-full]]
    [:notes/old-todos {:optional true} [:set uuid?]]])
 
 (def query
