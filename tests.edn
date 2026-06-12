@@ -35,6 +35,7 @@
                                                                   "modules/api/src"
                                                                   "modules/infra/src"]
                                        :kaocha/test-paths        ["test/src"]}]
+ :kaocha/bindings                    {kaocha.stacktrace/*stacktrace-filters* []}
  :kaocha/fail-fast?                  false
  :kaocha/color?                      true
  :kaocha/reporter                    [kaocha.report/documentation]
