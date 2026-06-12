@@ -308,7 +308,7 @@
           (testing "there is no section for Context 3"
             (is (not (eta/exists? driver {:css ".context-group[data-context='Context 3']"})))))))))
 
-(deftest search-test
+(deftest ^:focus search-test
   (usys/with-webdriver [driver base-url {fix "search.edn"}]
     (letfn [(querying? [qp]
               (let [params (-> (eta/get-url driver) (string/split #"\?") second nav/->query-params)]
@@ -344,7 +344,7 @@
           (testing "and when clicking the edit link"
             (web/click! driver {:css "ul.search-results > li .note__edit-link"})
             (eta/wait-visible driver {:css ".container.page__note"})
-            #_(testing "renders the note page"
+            (testing "renders the note page"
               (let [note-id (-> fix first :notes/id)]
                 (is (= (str base-url "/notes/" note-id) (eta/get-url driver)))
                 (is (eta/visible? driver {:xpath "//*[contains(@class,'content')]//*[text()='Note one A']"}))
