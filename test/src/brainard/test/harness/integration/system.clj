@@ -69,7 +69,10 @@
            ~@component-bindings]
        (try
          (testing ~test
-           ~@body)
+           (let [f# (future ~@body)]
+             (when (= ::timeout (deref f# (:timeout opts# 2000) ::timeout))
+               (future-cancel f#)
+               (throw (ex-info "test timed out" {})))))
          (finally
            (ig/halt! ~sys))))))
 
