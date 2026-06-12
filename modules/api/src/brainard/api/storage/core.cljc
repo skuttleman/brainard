@@ -11,4 +11,5 @@
 (defn execute!
   "Execute write operations on the given storage implementation."
   [this & params]
-  (istorage/write! this (mapcat istorage/->input params)))
+  (istorage/write! this (mapcat istorage/->input params))
+  this)

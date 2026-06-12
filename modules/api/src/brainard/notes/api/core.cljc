@@ -1,6 +1,7 @@
 (ns brainard.notes.api.core
   (:require
     [brainard.api.storage.core :as storage]
+    [clojure.string :as string]
     [slag.utils.fns :as fns]
     [slag.utils.uuids :as uuids]))
 
@@ -83,6 +84,31 @@
 (defn get-as-of
   "Retrieves the note as of a point in history"
   [notes-api note-id history-id]
-  (storage/query (:store notes-api) {::storage/type ::get-note-as-of
-                                     :notes/id note-id
+  (storage/query (:store notes-api) {::storage/type    ::get-note-as-of
+                                     :notes/id         note-id
                                      :notes/history-id history-id}))
+
+(defn search-notes [notes-api query]
+  (storage/query (:search notes-api)
+                 {::storage/type ::search
+                  :notes/query   (into #{} (-> query
+                                               string/lower-case
+                                               (string/split #"[^\w]+")))}))
+
+(defn search-suggest [notes-api query]
+  (storage/query (:search notes-api)
+                 {::storage/type ::search-suggest
+                  :notes/query   query}))
+
+(defn search-create! [notes-api note]
+  (storage/execute! (:search notes-api)
+                    (assoc note ::storage/type ::search-create!)))
+
+(defn search-update! [notes-api note]
+  (storage/execute! (:search notes-api)
+                    (assoc note ::storage/type ::search-update!)))
+
+(defn search-delete! [notes-api note-id]
+  (storage/execute! (:search notes-api)
+                    {::storage/type ::search-delete!
+                     :notes/id      note-id}))

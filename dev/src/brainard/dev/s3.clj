@@ -53,5 +53,6 @@
     (io/delete-file (io/file (format "%s/%s.content-type" path key)))))
 
 (defmethod ig/init-key :brainard/fs-invoker
-  [_ {:keys [path]}]
-  #(fs-invoker (assoc % ::path path)))
+  [_ {:keys [db-name]}]
+  (let [path (str ".storage/s3/" db-name)]
+    #(fs-invoker (assoc % ::path path))))

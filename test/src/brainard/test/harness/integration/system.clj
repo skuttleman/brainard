@@ -2,6 +2,7 @@
   (:require
     [brainard.api.storage.interfaces :as istorage]
     [brainard.infra.db.store :as ds]
+    [brainard.infra.search.store :as search]
     [brainard.main :as main]
     [clojure.java.io :as io]
     [clojure.test :refer [testing]]
@@ -27,16 +28,20 @@
 
 (defmethod ig/init-key :brainard.test/fs-invoker
   [_ _]
-  (let [path (str ".obj-storage/test/" (uuids/random))
-        invoker (ig/init-key :brainard/fs-invoker {:path path})]
-    (vary-meta invoker assoc ::path path)))
+  (let [db-name (str (uuids/random))
+        invoker (ig/init-key :brainard/fs-invoker {:db-name db-name})]
+    (vary-meta invoker assoc ::db-name db-name)))
 
 (defmethod ig/halt-key! :brainard.test/fs-invoker
   [_ invoker]
   (let [objects (:Contents (invoker {:op :ListObjectsV2}))]
     (invoker {:op      :DeleteObjects
               :request {:Delete {:Objects objects}}})
-    (-> invoker meta ::path io/file io/delete-file)))
+    (-> invoker meta ::db-name (->> (str ".storage/s3/")) io/file io/delete-file)))
+
+(defmethod ig/init-key :brainard.test/search-index
+  [_ _]
+  (search/->mem-index))
 
 (defmethod istorage/->input :default
   [params]
