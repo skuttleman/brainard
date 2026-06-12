@@ -46,5 +46,5 @@
                "Connection"    "keep-alive"}}))
 
 (defmethod iroutes/handler [:get :routes.api/events]
-  [req]
-  (handle-events req ->event-stream s/close!))
+  [req respond _raise]
+  (respond (handle-events req ->event-stream s/close!)))

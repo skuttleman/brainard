@@ -13,8 +13,10 @@
 (defn with-input
   "Includes route input as :brainard/input via [[iroutes/req->input]]"
   [handler]
-  (fn [req]
-    (handler (assoc req :brainard/input (iroutes/req->input req)))))
+  (fn [req respond raise]
+    (-> req
+        (assoc :brainard/input (iroutes/req->input req))
+        (handler respond raise))))
 
 #?(:clj
    (defn ^:private log-req [{:keys [ex result duration]} {:keys [uri] :as req}]
@@ -38,18 +40,33 @@
       (with-logging handler nil))
      ([handler {:keys [xform] :or {xform identity}}]
       (let [logger (xform log-req)]
-        (fn [req]
-          (log/with-duration [ctx (handler req)]
-            (logger ctx req)))))))
+        (fn [req respond raise]
+          (let [before (long (/ (System/nanoTime) 1000000))]
+            (handler req
+                     (fn [response]
+                       (logger {:result   response
+                                :duration (- (long (/ (System/nanoTime) 1000000)) before)}
+                               req)
+                       (respond response))
+                     (fn [ex]
+                       (logger {:ex       ex
+                                :duration (- (long (/ (System/nanoTime) 1000000)) before)}
+                               req)
+                       (raise ex)))))))))
+
+#?(:clj
+   (defn ^:private ex->resp [ex]
+     (let [msg (ex-message ex)
+           data (ex-data ex)]
+       (log/error ex msg data)
+       (routes.err/ex->response (maps/assoc-defaults data :message msg)))))
 
 #?(:clj
    (defn with-error-handling
      "Catches exceptions and generates an response via [[routes.err/ex->response]]."
      [handler]
-     (fn [req]
-       (try (handler req)
-            (catch Throwable ex
-              (let [msg (ex-message ex)
-                    data (ex-data ex)]
-                (log/error ex msg data)
-                (routes.err/ex->response (maps/assoc-defaults data :message msg))))))))
+     (fn [req respond _raise]
+       (try
+         (handler req respond (comp respond ex->resp))
+         (catch Throwable ex
+           (respond (ex->resp ex)))))))

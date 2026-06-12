@@ -64,4 +64,7 @@
    Like [[ring.middleware.multipart-params/wrap-multipart-params]], except wraps every stream as
    [[org.apache.commons.fileupload.util.LimitedInputStream]] instead of creating tempfile."
   [handler]
-  (comp handler multipart-params-request))
+  (fn [req respond raise]
+    (-> req
+        multipart-params-request
+        (handler respond raise))))

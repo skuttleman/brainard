@@ -9,6 +9,7 @@
    [brainard.infra.views.pages.core :as pages]
    [brainard.notes.api.core :as api.notes]
    [brainard.notes.infra.export :as export]
+   [clojure.core.async :as async]
    [defacto.core :as defacto]
    [defacto.resources.core :as res]
    [ring.middleware.resource :as ring.res]
@@ -48,58 +49,60 @@
 (defn ^:private ui-handler [apis req]
   (-> req
       (assoc ::b/apis apis)
-      routes/handler))
+      (routes/handler identity (fn [ex] (throw ex)))))
 
 (defmethod iroutes/handler [:get :routes/ui]
-  [{::w/keys [route] ::b/keys [apis env no-hydrate? ui-env]}]
-  (let [template (if no-hydrate?
-                   (tmpl/into-template pages/app-name
-                                       (atom nil)
-                                       nil
-                                       ui-env)
-                   (w/into-template {::b/sys apis}
-                                    pages/app-name
-                                    route
-                                    (partial ui-handler apis)
-                                    (partial store->tree env route)
-                                    ui-env))]
-    (routes.res/->response 200
-                           (-> template
-                               (w/with-html-heads icon-lib css-lib)
-                               (update 3 conj unavailable)
-                               w/render-template)
-                           {"content-type" "text/html"})))
+  [{::w/keys [route] ::b/keys [apis env no-hydrate? ui-env]} respond _raise]
+  (async/go
+    (let [template (if no-hydrate?
+                     (tmpl/into-template pages/app-name
+                                         (atom nil)
+                                         nil
+                                         ui-env)
+                     (async/<! (w/into-template {::b/sys apis}
+                                                pages/app-name
+                                                route
+                                                (partial ui-handler apis)
+                                                (partial store->tree env route)
+                                                ui-env)))]
+      (respond (routes.res/->response 200
+                                      (-> template
+                                          (w/with-html-heads icon-lib css-lib)
+                                          (update 3 conj unavailable)
+                                          w/render-template)
+                                      {"content-type" "text/html"})))))
 
 (defmethod iroutes/handler [:get :routes.resources/asset]
-  [{:keys [uri] :as req}]
+  [{:keys [uri] :as req} respond _raise]
   (let [content-type (or (ring.mime/ext-mime-type uri)
                          "text/plain")]
     (some-> req
             (ring.res/resource-request "public")
-            (assoc-in [:headers "content-type"] content-type))))
+            (assoc-in [:headers "content-type"] content-type)
+            respond)))
 
 (defmethod iroutes/handler [:get :routes.resources/attachment]
-  [{::b/keys [apis input] ::w/keys [route] :as req}]
+  [{::b/keys [apis input] ::w/keys [route] :as req} respond raise]
   (if-let [{:attachments/keys [content-length content-type stream]}
            (api.attachments/fetch (:attachments apis) (:attachments/id input))]
-    (routes.res/->response 200
-                           stream
-                           {"content-length" content-length
-                            "content-type"   content-type})
-    (iroutes/handler (assoc req
-                            :request-method :get
-                            ::w/route (assoc route :token :routes/ui)))))
+    (respond (routes.res/->response 200
+                                    stream
+                                    {"content-length" content-length
+                                     "content-type"   content-type}))
+    (-> req
+        (assoc :request-method :get ::w/route (assoc route :token :routes/ui))
+        (iroutes/handler respond raise))))
 
 (defmethod iroutes/handler [:get :routes.resources/export]
-  [{::b/keys [apis input] ::w/keys [route] :as req}]
+  [{::b/keys [apis input] ::w/keys [route] :as req} respond raise]
   (if-let [note (api.notes/get-note (:notes apis) (:notes/id input))]
     (let [{:keys [scheme server-name server-port]} req
           host (format "%s://%s:%s" (name scheme) server-name server-port)
           md (export/->markdown host note)]
-      (routes.res/->response 200
-                             md
-                             {"content-type"   "text/markdown"
-                              "content-length" (str (count md))}))
-    (iroutes/handler (assoc req
-                            :request-method :get
-                            ::w/route (assoc route :token :routes/ui)))))
+      (respond (routes.res/->response 200
+                                      md
+                                      {"content-type"   "text/markdown"
+                                       "content-length" (str (count md))})))
+    (-> req
+        (assoc :request-method :get ::w/route (assoc route :token :routes/ui))
+        (iroutes/handler respond raise))))

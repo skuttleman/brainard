@@ -31,7 +31,7 @@
 
                        (:multipart-params req)
                        (update-in [:multipart-params :files] fns/smap fixture->upload))
-                     routes/be-handler)]
+                     (routes/be-handler identity (fn [ex] (throw ex))))]
     (cond-> response
       (= "application/edn" (get-in response [:headers "content-type"]))
       (update :body edn/read-string)

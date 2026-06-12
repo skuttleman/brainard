@@ -27,18 +27,19 @@
   [_ {:keys [env ui-env upload-limit] :as cfg}]
   (when-not (and env (int? upload-limit))
     (throw (ex-info "handler requires env and upload-limits" cfg)))
-  (fn [req]
-    (routes/be-handler (assoc req
-                              ::b/env env
-                              ::b/ui-env ui-env
-                              ::b/file-limit-bytes upload-limit))))
+  (fn [req respond raise]
+    (-> req
+        (assoc ::b/env env ::b/ui-env ui-env ::b/file-limit-bytes upload-limit)
+        (routes/be-handler respond raise))))
 
 (defmethod ig/init-key ::b/webserver
   [_ {:keys [apis events handler server-port]}]
   (log/info "starting webserver on port" server-port)
-  {:server (http/start-server (fn [req]
-                                (handler (assoc req ::b/apis apis ::b/events events)))
-                              {:port server-port})
+  {:server (http/start-server
+            (http/wrap-ring-async-handler
+             (fn [req respond raise]
+               (handler (assoc req ::b/apis apis ::b/events events) respond raise)))
+            {:port server-port})
    :events events})
 
 (defmethod ig/halt-key! ::b/webserver

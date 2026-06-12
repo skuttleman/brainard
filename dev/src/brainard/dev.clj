@@ -17,8 +17,8 @@
       #_(assoc ::b/no-hydrate? true)))
 
 (defn ^:private with-dev-middleware [handler]
-  (fn [req]
-    (-> req dev-middleware handler)))
+  (fn [req respond raise]
+    (-> req dev-middleware (handler respond raise))))
 
 (defmethod ig/init-key :brainard.web/dev-handler
   [_ cfg]

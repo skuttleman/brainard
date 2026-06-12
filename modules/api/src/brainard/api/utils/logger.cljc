@@ -68,27 +68,6 @@
      (when-not ok?# (throw result#))
      result#))
 
-(defmacro with-duration
-  "Handles a call and binds the `result` (if successful), `ex` (if exceptional),
-   and `duration` of the run time in milliseconds to `ctx-binding` and executives
-   a `body` of expressions. Throws if either the `call`, or `body` throw.
-
-   (with-duration [{:keys [result ex duration]} (some-call! id)]
-     (some-> ex handle-ex!)
-     (some->> result (cache-result! id))
-     (info (format \"Can you believe it took %d ms!?\" duration)))"
-  [[ctx-binding call] & body]
-  `(let [before# ~(if (:ns &env) `(.getTime (js/Date.)) `(long (/ (System/nanoTime) 1000000)))
-         ctx# (try
-                {:result ~call}
-                (catch ~(if (:ns &env) :default `Throwable) ex#
-                  {:ex ex#}))
-         after# ~(if (:ns &env) `(.getTime (js/Date.)) `(long (/ (System/nanoTime) 1000000)))]
-     (let [~ctx-binding (assoc ctx# :duration (- after# before#))]
-       ~@body
-       (some-> (:ex ctx#) throw)
-       (:result ctx#))))
-
 (defn ^:private filter-external-packages [{:keys [level ?ns-str] :as data}]
   (when (or (#{:warn :error :fatal :report} level)
             (some->> ?ns-str (re-matches #"^brainard.*")))
@@ -110,13 +89,13 @@
   (colorize s "\u001b[36m"))
 
 (def ^:private ->level
-  {:trace  (blue " TRACE")
-   :debug  (blue " DEBUG")
-   :info   (green "  INFO")
-   :warn   (yellow "  WARN")
-   :error  (red " ERROR")
-   :fatal  (red " FATAL")
-   :report (green "REPORT")})
+  {:trace  (blue "TRACE")
+   :debug  (blue "DEBUG")
+   :info   (green " INFO")
+   :warn   (yellow " WARN")
+   :error  (red "ERROR")
+   :fatal  (red "FATAL")
+   :report (green "REPRT")})
 
 (defn ^:private output-fn [{:keys [level msg_ timestamp_ ?err ?file ?line ?ns-str]}]
   (let [loc (str (or ?ns-str ?file "?") ":" (or ?line "?"))]

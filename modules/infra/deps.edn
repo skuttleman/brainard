@@ -12,7 +12,7 @@
            org.apache.lucene/lucene-core                  {:mvn/version "10.4.0"}
            org.apache.lucene/lucene-suggest               {:mvn/version "10.4.0"}
            skuttleman/whet                            {:git/url "https://github.com/skuttleman/whet"
-                                                       :git/sha "14226722e7b8980b8eb1e666b9cf31ed824c6a2d"}}
+                                                       :git/sha "5b37891cb267fd080afb05da423e0ebd0290548b"}}
  :aliases {:test     {:extra-paths ["test/resources" "test/src"]
                       :extra-deps  {skuttleman/slag-test {:git/url   "https://github.com/skuttleman/slag"
                                                           :git/sha   "eea13e61c75f2de0be9bce66c2fd3614732eef4e"

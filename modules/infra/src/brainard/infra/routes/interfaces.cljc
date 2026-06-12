@@ -59,10 +59,12 @@
 
 (defn router
   "Return a tuple [request-method token] used for routing multimethod dispatch."
-  [{:keys [request-method] ::w/keys [route]}]
-  [request-method (:token route)])
+  ([req _respond _raise]
+   (router req))
+  ([{:keys [request-method] ::w/keys [route]}]
+   [request-method (:token route)]))
 
-(defmulti ^{:arglists '([req])} handler
+(defmulti ^{:arglists '([req respond raise])} handler
           "Defines an HTTP route handler. Dispatch value is a tuple of `[request-method handler-token]`."
           router
           :hierarchy
