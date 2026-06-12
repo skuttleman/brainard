@@ -16,6 +16,10 @@
 (def ^:private attachment-validator (valid/->validator sattachments/modify))
 (def ^:private todo-validator (valid/->validator snotes/todo-create))
 
+(defmethod forms+/re-init ::modal
+  [_ _ resource-payload]
+  (dissoc resource-payload :todos/text :attachments/name))
+
 (defmethod forms+/validate ::modal
   [[_ form-type] form-data]
   (case form-type
