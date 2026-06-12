@@ -342,13 +342,20 @@
             (is (querying? {:tags "tag/alpha"})))
 
           (testing "and when clicking the edit link"
+            (eta/screenshot driver "foo1.png")
             (web/click! driver {:css "ul.search-results > li .note__edit-link"})
+            (eta/screenshot driver "foo2.png")
             (eta/wait-visible driver {:css ".container.page__note"})
+            (eta/screenshot driver "foo3.png")
             (testing "renders the note page"
               (let [note-id (-> fix first :notes/id)]
+                (eta/screenshot driver "foo5.png")
                 (is (= (str base-url "/notes/" note-id) (eta/get-url driver)))
+                (eta/screenshot driver "foo6.png")
                 (is (eta/visible? driver {:xpath "//*[contains(@class,'content')]//*[text()='Note one A']"}))
-                (eta/back driver))))
+                (eta/screenshot driver "foo7.png")
+                (eta/back driver)
+                (eta/screenshot driver "foo8.png"))))
 
           #_(testing "and when navigating back"
             (eta/back driver)
