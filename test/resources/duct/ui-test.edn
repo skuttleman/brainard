@@ -4,7 +4,8 @@
 
                      [:brainard.web/handler :brainard/IWebHandler]
                      {:env          :test
-                      :ui-env       {"TOAST_TIMEOUT" 750}
+                      :ui-env       {"TOAST_TIMEOUT"        750
+                                     "DISABLE_EVENT_STREAM" true}
                       :upload-limit 1000}
 
                      [:brainard.test/db-conn :brainard/IDBConn]
