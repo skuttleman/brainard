@@ -1,14 +1,14 @@
 (ns brainard.test.integration.workspace-test
   (:require
-    [brainard :as-alias b]
-    [brainard.api.storage.core :as storage]
-    [brainard.infra.db.store :as ds]
-    [brainard.test.harness.integration.system :as tsys]
-    [brainard.workspace.api.core :as api.ws]
-    [clojure.test :refer [deftest is testing]]
-    [clojure.walk :as walk]
-    [slag.utils.uuids :as uuids]
-    [workspace-nodes :as-alias ws]))
+   [brainard :as-alias b]
+   [brainard.api.storage.core :as storage]
+   [brainard.infra.db.store :as ds]
+   [brainard.test.harness.integration.system :as tsys]
+   [brainard.workspace.api.core :as api.ws]
+   [clojure.test :refer [deftest is testing]]
+   [clojure.walk :as walk]
+   [slag.utils.uuids :as uuids]
+   [workspace-nodes :as-alias ws]))
 
 (defn ^:private seed-tree! [conn]
   (let [[id1 id2 id3 id4 id5] (repeatedly uuids/random)]

@@ -1,12 +1,12 @@
 (ns brainard.test.integration.history-test
   (:require
-    [brainard :as-alias b]
-    [brainard.api.storage.core :as storage]
-    [brainard.notes.api.core :as-alias api.notes]
-    [brainard.test.harness.integration.system :as tsys]
-    [clojure.java.io :as io]
-    [clojure.test :refer [deftest is testing]]
-    [slag.utils.edn :as edn]))
+   [brainard :as-alias b]
+   [brainard.api.storage.core :as storage]
+   [brainard.notes.api.core :as-alias api.notes]
+   [brainard.test.harness.integration.system :as tsys]
+   [clojure.java.io :as io]
+   [clojure.test :refer [deftest is testing]]
+   [slag.utils.edn :as edn]))
 
 
 (deftest history-query-test

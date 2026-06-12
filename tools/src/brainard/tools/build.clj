@@ -1,6 +1,6 @@
 (ns brainard.tools.build
   (:require
-    [clojure.tools.build.api :as b]))
+   [clojure.tools.build.api :as b]))
 
 (defn clean [build-folder]
   (b/delete {:path build-folder})

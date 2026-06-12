@@ -1,28 +1,44 @@
 (ns brainard.test.harness.ui.system
   (:require
-    [brainard.infra.db.store :as ds]
-    [brainard.test.harness.integration.system :as tsys]
-    [brainard.test.harness.ui.web :as web]
-    [clojure.java.io :as io]
-    [clojure.string :as string]
-    [clojure.test :as t]
-    [etaoin.api :as eta]
-    [etaoin.impl.util :as ueta]
-    [integrant.core :as ig]))
+   [brainard.infra.db.store :as ds]
+   [brainard.infra.search.lucene :as lucene]
+   [brainard.test.harness.integration.system :as tsys]
+   [brainard.test.harness.ui.web :as web]
+   [clojure.java.io :as io]
+   [clojure.string :as string]
+   [clojure.test :as t]
+   [duct.core.env :as duct.env]
+   [etaoin.api :as eta]
+   [etaoin.impl.util :as ueta]
+   [integrant.core :as ig]))
 
 (defmethod ig/init-key :cfg.test/server-port
   [_ _]
   (ueta/get-free-port))
 
-(defn transact-multi! [db data]
+(defn ^:private save! [data db index]
+  (ds/transact! db data)
+  (let [seen? (volatile! {})]
+    (doseq [{:notes/keys [id body context]} data
+            :let [note-id (str id)
+                  doc (cond-> {:id note-id}
+                        body (assoc :body body)
+                        context (assoc :context context))]
+            :when id]
+      (if-let [doc' (@seen? id)]
+        (lucene/replace! index note-id (merge doc' doc))
+        (lucene/add! index doc))
+      (vswap! seen? update id merge doc))))
+
+(defn transact-multi! [db index data]
   (if (map? data)
     (->> data
          (sort-by key)
          (into [] (mapcat (fn [[_ tx-data]]
-                            (ds/transact! db tx-data)
-                            tx-data))))
+                            (doto tx-data
+                              (save! db index))))))
     (doto data
-      (->> (ds/transact! db)))))
+      (save! db index))))
 
 (defn safe-screenshot! [driver]
   (try
@@ -38,7 +54,7 @@
       (.printStackTrace e))))
 
 (defn collect-js-coverage! [driver]
-  (when (= "true" (System/getenv "JS_COVERAGE"))
+  (when (= "true" (duct.env/*env* "JS_COVERAGE"))
     (try
       (let [coverage-json (eta/js-execute driver "return JSON.stringify(window.__coverage__ || null)")
             nyc-output-dir (io/file "target/nyc_output")]
@@ -49,9 +65,9 @@
       (catch Throwable _))))
 
 (defn ->driver []
-  (let [headless? (= "true" (System/getenv "HEADLESS"))]
+  (let [headless? (= "true" (duct.env/*env* "HEADLESS"))]
     (eta/chrome {:headless    headless?
-                 :path-driver (or (System/getenv "CHROMEDRIVER_PATH")
+                 :path-driver (or (duct.env/*env* "CHROMEDRIVER_PATH")
                                   "chromedriver")
                  :args        (into ["--window-size=1200,900"]
                                     (when headless?
@@ -59,11 +75,14 @@
                                        "--disable-dev-shm-usage"]))})))
 
 (defmacro with-webdriver [[driver-binding base-url-binding seeds] & body]
-  (let [db-sym (gensym "db")]
-    `(tsys/with-app [{port# :cfg.test/server-port ~db-sym :brainard/IDBConn}
+  (let [db-sym (gensym "db")
+        idx-sym (gensym "idx")]
+    `(tsys/with-app [{port#    :cfg.test/server-port
+                      ~db-sym  :brainard/IDBConn
+                      ~idx-sym :brainard/IIndex}
                      {:config    "duct/ui-test.edn"
                       :init-keys [:brainard/webserver]}]
-       (let [screenshot?# (= "true" (System/getenv "SCREENSHOT"))
+       (let [screenshot?# (= "true" (duct.env/*env* "SCREENSHOT"))
              orig-report# t/report
              ~driver-binding (try (->driver)
                                   (catch Throwable _#
@@ -73,7 +92,7 @@
                      token [sym `(->> ~seed
                                       (str "seed/")
                                       web/edn-fixture
-                                      (transact-multi! ~db-sym))]]
+                                      (transact-multi! ~db-sym ~idx-sym))]]
                  token)]
          (binding [t/report (fn [event#]
                               (when (and (#{:fail :error} (:type event#))

@@ -1,8 +1,8 @@
 (ns brainard.infra.views.fragments.note-components
   (:require
-    [brainard.infra.views.components.core :as comp]
-    [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.views.controls.core :as ctrls]))
+   [brainard.infra.views.components.core :as comp]
+   [brainard.infra.stubs.dom :as dom]
+   [brainard.infra.views.controls.core :as ctrls]))
 
 (defn tag-list [note]
   (if-let [tags (not-empty (:notes/tags note))]
@@ -62,7 +62,7 @@
      [:label.label "TODOs:"])
    (when on-create
      [comp/plain-button {:on-click #(on-create)
-                         :class ["note__create-todo-button"]}
+                         :class    ["note__create-todo-button"]}
       "Create TODO..."])
    [:ul.todo-list
     (for [{todo-id :todos/id :as todo} (sort-by (juxt (complement :todos/completed?) :todos/id) value)]

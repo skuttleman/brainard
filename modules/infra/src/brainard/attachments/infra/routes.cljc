@@ -1,6 +1,6 @@
 (ns brainard.attachments.infra.routes
   (:require
-    [brainard.infra.routes.interfaces :as iroutes]))
+   [brainard.infra.routes.interfaces :as iroutes]))
 
 (defmethod iroutes/req->input [:post :routes.api/attachments]
   [req]

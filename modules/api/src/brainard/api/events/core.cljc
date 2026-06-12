@@ -1,6 +1,6 @@
 (ns brainard.api.events.core
   (:require
-    [brainard.api.events.interfaces :as ievents]))
+   [brainard.api.events.interfaces :as ievents]))
 
 (defn broadcast!
   "Broadcasts a message to all connections."

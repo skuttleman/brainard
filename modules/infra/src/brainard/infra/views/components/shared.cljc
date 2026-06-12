@@ -1,12 +1,12 @@
 (ns brainard.infra.views.components.shared
   "Reusable components."
   (:require
-    [brainard.infra.store.core :as store]
-    [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.utils.routing :as rte]
-    [slag.utils.maps :as maps]
-    [whet.utils.navigation :as nav]
-    [whet.utils.reagent :as r]))
+   [brainard.infra.store.core :as store]
+   [brainard.infra.stubs.dom :as dom]
+   [brainard.infra.utils.routing :as rte]
+   [slag.utils.maps :as maps]
+   [whet.utils.navigation :as nav]
+   [whet.utils.reagent :as r]))
 
 (defn handler-with-store [cb {:keys [*:store commands events]}]
   (fn [e]
@@ -68,15 +68,15 @@
     (let [vnode (volatile! nil)
           ref (fn [node] (some->> node (vreset! vnode)))]
       (r/create-class
-        {:component-did-mount
-         (fn [this]
-           (when-let [node @vnode]
-             (let [attrs (second (r/argv this))]
-               (when (and auto-focus? (not (:disabled attrs)))
-                 (vreset! vnode nil)
-                 (dom/focus! node)))))
-         :reagent-render
-         (fn [attrs & args]
-           (into [component (cond-> attrs
-                              auto-focus? (assoc :ref ref :auto-focus true))]
-                 args))}))))
+       {:component-did-mount
+        (fn [this]
+          (when-let [node @vnode]
+            (let [attrs (second (r/argv this))]
+              (when (and auto-focus? (not (:disabled attrs)))
+                (vreset! vnode nil)
+                (dom/focus! node)))))
+        :reagent-render
+        (fn [attrs & args]
+          (into [component (cond-> attrs
+                             auto-focus? (assoc :ref ref :auto-focus true))]
+                args))}))))

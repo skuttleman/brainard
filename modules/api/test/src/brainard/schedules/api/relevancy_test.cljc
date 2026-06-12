@@ -1,7 +1,7 @@
 (ns brainard.schedules.api.relevancy-test
   (:require
-    [clojure.test :refer [are deftest testing]]
-    [brainard.schedules.api.relevancy :as relevancy]))
+   [clojure.test :refer [are deftest testing]]
+   [brainard.schedules.api.relevancy :as relevancy]))
 
 (deftest from-test
   (testing "parses dates"

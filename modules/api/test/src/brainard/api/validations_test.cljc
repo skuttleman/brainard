@@ -1,10 +1,10 @@
 (ns brainard.api.validations-test
   (:require
-    [brainard.api.validations :as val]
-    [clojure.test :refer [deftest is testing]])
+   [brainard.api.validations :as val]
+   [clojure.test :refer [deftest is testing]])
   #?(:clj
      (:import
-       (clojure.lang ExceptionInfo))))
+      (clojure.lang ExceptionInfo))))
 
 (def ^:private name-spec
   [:map

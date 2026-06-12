@@ -1,18 +1,18 @@
 (ns brainard.app
   (:require
-    [brainard.api.utils.logger :as log]
-    [brainard.infra.store.core :as store]
-    [brainard.infra.store.specs :as-alias specs]
-    [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.utils.routing :as rte]
-    [brainard.infra.views.pages.core :as pages]
-    [brainard.events.infra.handler :as handler]
-    [defacto.resources.core :as-alias res]
-    [whet.core :as w]
-    [whet.utils.navigation :as nav]
-    brainard.infra.store.commands
-    brainard.infra.store.events
-    brainard.infra.store.queries))
+   [brainard.api.utils.logger :as log]
+   [brainard.infra.store.core :as store]
+   [brainard.infra.store.specs :as-alias specs]
+   [brainard.infra.stubs.dom :as dom]
+   [brainard.infra.utils.routing :as rte]
+   [brainard.infra.views.pages.core :as pages]
+   [brainard.events.infra.handler :as handler]
+   [defacto.resources.core :as-alias res]
+   [whet.core :as w]
+   [whet.utils.navigation :as nav]
+   brainard.infra.store.commands
+   brainard.infra.store.events
+   brainard.infra.store.queries))
 
 (enable-console-print!)
 

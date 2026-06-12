@@ -1,11 +1,11 @@
 (ns brainard.events.infra.routes-test
   (:require
-    [brainard :as-alias b]
-    [brainard.api.events.interfaces :as ievents]
-    [brainard.events.infra.routes :as routes]
-    [brainard.events.infra.manager :as manager]
-    [clojure.test :refer [deftest is testing]]
-    [slag.test.utils.async :as tua]))
+   [brainard :as-alias b]
+   [brainard.api.events.interfaces :as ievents]
+   [brainard.events.infra.routes :as routes]
+   [brainard.events.infra.manager :as manager]
+   [clojure.test :refer [deftest is testing]]
+   [slag.test.utils.async :as tua]))
 
 (deftest handle-events-test
   (testing "when responding to an events request"

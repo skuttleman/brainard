@@ -1,14 +1,14 @@
 (ns brainard.test.ui.core-test
   (:require
-    [brainard.test.harness.ui.system :as usys]
-    [brainard.test.harness.ui.web :as web]
-    [cljc.java-time.day-of-week :as dow]
-    [cljc.java-time.zoned-date-time :as zdt]
-    [cljc.java-time.zone-offset :as zo]
-    [clojure.string :as string]
-    [clojure.test :refer [deftest is testing]]
-    [etaoin.api :as eta]
-    [whet.utils.navigation :as nav]))
+   [brainard.test.harness.ui.system :as usys]
+   [brainard.test.harness.ui.web :as web]
+   [cljc.java-time.day-of-week :as dow]
+   [cljc.java-time.zoned-date-time :as zdt]
+   [cljc.java-time.zone-offset :as zo]
+   [clojure.string :as string]
+   [clojure.test :refer [deftest is testing]]
+   [etaoin.api :as eta]
+   [whet.utils.navigation :as nav]))
 
 (def ^:private ^:const node-item-selector-fmt
   "//li[contains(@class,'node-item')]//span[text()='%s']")
@@ -310,44 +310,36 @@
 
 (deftest search-test
   (usys/with-webdriver [driver base-url {fix "search.edn"}]
-    (letfn [(go-to-search! []
-              (eta/go driver (str base-url "/search"))
-              (web/wait-optimistic #(eta/visible? driver {:css ".page__search"})))
-            (open-dropdown! [label]
-              (web/click! driver {:css (format ".form-field[data-field-label='%s'] button" label)})
-              (eta/wait-visible driver {:css "ul.dropdown-items"}))
-            (pick-option! [item-text]
+    (letfn [(querying? [qp]
+              (let [params (-> (eta/get-url driver) (string/split #"\?") second nav/->query-params)]
+                (= qp params)))
+            (select-options! [label & items]
               (let [item-fmt "//ul[contains(@class,'dropdown-items')]//span[text()='%s']"
                     active-fmt "//ul[contains(@class,'dropdown-items')]//li[contains(@class,'is-active')]//span[text()='%s']"]
-                (web/click! driver {:xpath (format item-fmt item-text)})
-                (web/wait-optimistic #(or (not (eta/exists? driver {:css "ul.dropdown-items"}))
-                                          (eta/exists? driver {:xpath (format active-fmt item-text)})))))
-            (search! []
-              (web/click! driver {:css "form.search-form button.submit"})
-              (eta/wait-visible driver {:css "ul.search-results"}))
-            (url-query? [qp]
-              (let [url (eta/get-url driver)
-                    params (-> url
-                               (string/split #"\?")
-                               second
-                               nav/->query-params)]
-                (= qp params)))]
+                (web/click! driver {:css (format ".form-field[data-field-label='%s'] button" label)})
+                (eta/wait-visible driver {:css "ul.dropdown-items"})
+                (doseq [item-text items]
+                  (web/click! driver {:xpath (format item-fmt item-text)})
+                  (web/wait-optimistic #(or (not (eta/exists? driver {:css "ul.dropdown-items"}))
+                                            (eta/exists? driver {:xpath (format active-fmt item-text)}))))))]
       (testing "when visiting the search page"
+        (eta/go driver (str base-url "/search"))
+        (web/wait-optimistic #(eta/visible? driver {:css ".page__search"}))
+
         (testing "and when filtering on a tag"
-          (go-to-search!)
-          (open-dropdown! "Tag Filter")
-          (pick-option! ":tag/alpha")
-          (search!)
+          (select-options! "Tag Filter" :tag/alpha)
+          (web/click! driver {:css "form.search-form button.submit"})
+          (eta/wait-visible driver {:css "ul.search-results"})
 
           (testing "renders the correct notes"
-            (is (note-visible? driver "Note A1"))
-            (is (note-visible? driver "Note A2"))
-            (is (note-visible? driver "Note B1"))
-            (is (not (note-visible? driver "Note B2")))
-            (is (not (note-visible? driver "Note C1"))))
+            (is (note-visible? driver "Note one A"))
+            (is (note-visible? driver "Note two A"))
+            (is (note-visible? driver "Note one B"))
+            (is (not (note-visible? driver "Note two B")))
+            (is (not (note-visible? driver "Note one C"))))
 
           (testing "updates the browser url"
-            (is (url-query? {:tags "tag/alpha"})))
+            (is (querying? {:tags "tag/alpha"})))
 
           (testing "and when clicking the edit link"
             (web/click! driver {:css "ul.search-results > li .note__edit-link"})
@@ -355,7 +347,7 @@
             (testing "renders the note page"
               (let [note-id (-> fix first :notes/id)]
                 (is (= (str base-url "/notes/" note-id) (eta/get-url driver)))
-                (is (eta/visible? driver {:xpath "//*[contains(@class,'content')]//*[text()='Note A1']"}))
+                (is (eta/visible? driver {:xpath "//*[contains(@class,'content')]//*[text()='Note one A']"}))
                 (eta/back driver))))
 
           (testing "and when navigating back"
@@ -366,76 +358,153 @@
               (is (eta/absent? driver {:css "ul.search-results"}))))
 
           (testing "and when filtering on context"
-            (open-dropdown! "Topic Filter")
-            (pick-option! "Context A")
-            (search!)
+            (select-options! "Topic Filter" "Context A")
+            (web/click! driver {:css "form.search-form button.submit"})
+            (eta/wait-visible driver {:css "ul.search-results"})
 
             (testing "renders the correct notes"
-              (is (note-visible? driver "Note A1"))
-              (is (note-visible? driver "Note A2"))
-              (is (not (note-visible? driver "Note B1"))))))
+              (is (note-visible? driver "Note one A"))
+              (is (note-visible? driver "Note two A"))
+              (is (not (note-visible? driver "Note one B"))))))
 
         (testing "and when filtering on multiple tags"
-          (go-to-search!)
-          (open-dropdown! "Tag Filter")
-          (pick-option! ":tag/alpha")
-          (pick-option! ":tag/beta")
-          (search!)
+          (eta/back driver)
+          (web/wait-optimistic #(eta/visible? driver {:css ".page__search"}))
+          (select-options! "Tag Filter" :tag/alpha :tag/beta)
+          (web/click! driver {:css "form.search-form button.submit"})
+          (eta/wait-visible driver {:css "ul.search-results"})
 
           (testing "renders the correct notes"
-            (is (note-visible? driver "Note A2"))
-            (is (not (note-visible? driver "Note A1")))
-            (is (not (note-visible? driver "Note B1")))
-            (is (not (note-visible? driver "Note B2"))))
+            (is (note-visible? driver "Note two A"))
+            (is (not (note-visible? driver "Note one A")))
+            (is (not (note-visible? driver "Note one B")))
+            (is (not (note-visible? driver "Note two B"))))
 
           (testing "updates the browser url"
-            (is (url-query? {:tags #{"tag/alpha" "tag/beta"}})))
+            (is (querying? {:tags #{"tag/alpha" "tag/beta"}})))
 
           (testing "and when filtering on context"
-            (open-dropdown! "Topic Filter")
-            (pick-option! "Context A")
-            (search!)
+            (select-options! "Topic Filter" "Context A")
+            (web/click! driver {:css "form.search-form button.submit"})
+            (eta/wait-visible driver {:css "ul.search-results"})
 
             (testing "renders the correct notes"
-              (is (note-visible? driver "Note A2"))
-              (is (not (note-visible? driver "Note B2"))))
+              (is (note-visible? driver "Note two A"))
+              (is (not (note-visible? driver "Note two B"))))
 
             (testing "updates the browser url"
-              (is (url-query? {:tags #{"tag/alpha" "tag/beta"} :context "Context A"}))))
+              (is (querying? {:tags #{"tag/alpha" "tag/beta"} :context "Context A"}))))
 
           (testing "and when the filters yield no results"
-            (go-to-search!)
-            (open-dropdown! "Topic Filter")
-            (pick-option! "Context B")
-            (open-dropdown! "Tag Filter")
-            (pick-option! ":tag/alpha")
-            (pick-option! ":tag/beta")
+            (doto driver eta/back eta/back)
+            (web/wait-optimistic #(eta/visible? driver {:css ".page__search"}))
+            (select-options! "Topic Filter" "Context B")
+            (select-options! "Tag Filter" :tag/alpha :tag/beta)
             (web/click! driver {:css "form.search-form button.submit"})
             (eta/wait-absent driver {:css "ul.search-results"})
             (eta/wait-visible driver {:css "span.search-results"})
 
             (testing "does not render any notes"
               (is (eta/has-text? driver {:css ".search-results .message-body"} "No search results"))
-              (is (not (note-visible? driver "Note A1")))
-              (is (not (note-visible? driver "Note A2")))
-              (is (not (note-visible? driver "Note B1")))
-              (is (not (note-visible? driver "Note B2")))
-              (is (not (note-visible? driver "Note C1"))))))
+              (is (not (note-visible? driver "Note one A")))
+              (is (not (note-visible? driver "Note two A")))
+              (is (not (note-visible? driver "Note one B")))
+              (is (not (note-visible? driver "Note two B")))
+              (is (not (note-visible? driver "Note one C"))))))
 
         (testing "and when filtering on context"
-          (go-to-search!)
-          (open-dropdown! "Topic Filter")
-          (pick-option! "Context B")
-          (search!)
+          (eta/back driver)
+          (web/wait-optimistic #(eta/visible? driver {:css ".page__search"}))
+          (select-options! "Topic Filter" "Context B")
+          (web/click! driver {:css "form.search-form button.submit"})
+          (eta/wait-visible driver {:css "ul.search-results"})
 
           (testing "renders the correct notes"
-            (is (note-visible? driver "Note B1"))
-            (is (note-visible? driver "Note B2"))
-            (is (not (note-visible? driver "Note A1")))
-            (is (not (note-visible? driver "Note C1"))))
+            (is (note-visible? driver "Note one B"))
+            (is (note-visible? driver "Note two B"))
+            (is (not (note-visible? driver "Note one A")))
+            (is (not (note-visible? driver "Note one C"))))
 
           (testing "updates the browser url"
-            (is (url-query? {:context "Context B"}))))))))
+            (is (querying? {:context "Context B"}))))
+
+        (testing "and when filtering on TODOs"
+          (eta/back driver)
+          (web/wait-optimistic #(eta/visible? driver {:css ".page__search"}))
+
+          (testing "and when the filter is :complete"
+            (web/fill-field! driver "TODO Filter" :complete)
+            (web/click! driver {:css "form.search-form button.submit"})
+            (eta/wait-visible driver {:css "ul.search-results"})
+
+            (testing "renders the correct notes"
+              (is (not (note-visible? driver "Note one A")))
+              (is (not (note-visible? driver "Note two A")))
+              (is (not (note-visible? driver "Note one A")))
+              (is (not (note-visible? driver "Note one B")))
+              (is (not (note-visible? driver "Note two B")))
+              (is (note-visible? driver "Note one C"))))
+
+          (testing "and when the filter is :incomplete"
+            (web/fill-field! driver "TODO Filter" :incomplete)
+            (web/click! driver {:css "form.search-form button.submit"})
+            (eta/wait-visible driver {:css "ul.search-results"})
+
+            (testing "renders the correct notes"
+              (is (note-visible? driver "Note one A"))
+              (is (not (note-visible? driver "Note two A")))
+              (is (not (note-visible? driver "Note one B")))
+              (is (note-visible? driver "Note two B"))
+              (is (not (note-visible? driver "Note one C"))))
+
+            (testing "and when filtering on tags"
+              (select-options! "Tag Filter" :tag/alpha)
+              (web/click! driver {:css "form.search-form button.submit"})
+              (eta/wait-visible driver {:css "ul.search-results"})
+
+              (testing "renders the correct notes"
+                (is (note-visible? driver "Note one A"))
+                (is (not (note-visible? driver "Note two A")))
+                (is (not (note-visible? driver "Note one B")))
+                (is (not (note-visible? driver "Note two B")))
+                (is (not (note-visible? driver "Note one C")))))))
+
+        (testing "and when filtering on body text"
+          (doto driver eta/back eta/back eta/back)
+          (web/wait-optimistic #(eta/visible? driver {:css ".page__search"}))
+          (web/submit-form! driver "form.search-form" {"Body contents" "one"})
+          (eta/wait-visible driver {:css "ul.search-results"})
+
+          (testing "renders the correct notes"
+            (is (note-visible? driver "Note one A"))
+            (is (not (note-visible? driver "Note two A")))
+            (is (note-visible? driver "Note one B"))
+            (is (not (note-visible? driver "Note two B")))
+            (is (note-visible? driver "Note one C")))
+
+          (testing "and when filtering on tags"
+            (select-options! "Tag Filter" :tag/alpha)
+            (web/click! driver {:css "form.search-form button.submit"})
+            (eta/wait-visible driver {:css "ul.search-results"})
+
+            (testing "renders the correct notes"
+              (is (note-visible? driver "Note one A"))
+              (is (not (note-visible? driver "Note two A")))
+              (is (note-visible? driver "Note one B"))
+              (is (not (note-visible? driver "Note two B")))
+              (is (not (note-visible? driver "Note one C"))))
+
+            (testing "and when filtering on context"
+              (select-options! "Topic Filter" "Context B")
+              (web/click! driver {:css "form.search-form button.submit"})
+              (eta/wait-visible driver {:css "ul.search-results"})
+
+              (testing "renders the correct notes"
+                (is (not (note-visible? driver "Note one A")))
+                (is (not (note-visible? driver "Note two A")))
+                (is (note-visible? driver "Note one B"))
+                (is (not (note-visible? driver "Note two B")))
+                (is (not (note-visible? driver "Note one C")))))))))))
 
 (deftest buzz-test
   (usys/with-webdriver [driver base-url {buzz "buzz.edn"}]

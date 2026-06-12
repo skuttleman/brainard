@@ -1,8 +1,8 @@
 (ns brainard.infra.search.store
   (:require
-    [brainard.api.storage.interfaces :as istorage]
-    [brainard.api.utils.logger :as log]
-    [brainard.infra.search.lucene :as lucene]))
+   [brainard.api.storage.interfaces :as istorage]
+   [brainard.api.utils.logger :as log]
+   [brainard.infra.search.lucene :as lucene]))
 
 (deftype NoteSearchStore [index]
   istorage/IWrite
@@ -17,7 +17,7 @@
   (read [_ query]
     (case (:action query)
       :suggest (lucene/suggest index (:prefix query))
-      :search (lucene/search index (:terms query)))))
+      :search (lucene/search index query))))
 
 (defn ->mem-index []
   (log/info "building search store with in-memory index")

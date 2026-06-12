@@ -1,9 +1,9 @@
 (ns brainard.infra.utils.routing
   "Tokenized HTTP routing table"
   (:require
-    [reitit.coercion :as coercion]
-    [reitit.coercion.malli :as rcm]
-    [reitit.core :as r]))
+   [reitit.coercion :as coercion]
+   [reitit.coercion.malli :as rcm]
+   [reitit.core :as r]))
 
 (def ^:private api-routes
   [["/api" [["/attachments" {:name :routes.api/attachments}]

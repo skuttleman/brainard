@@ -1,6 +1,6 @@
 (ns brainard.infra.routes.interfaces
   (:require
-    [whet.core :as-alias w]))
+   [whet.core :as-alias w]))
 
 (def ^:private routing-hierarchy
   (-> (make-hierarchy)
@@ -11,10 +11,10 @@
       (derive :delete :any)
 
       (derive :routes.api/notes :routes/api)
+      (derive :routes.api/notes?scheduled :routes/api)
       (derive :routes.api/note :routes/api)
       (derive :routes.api/note?history :routes/api)
       (derive :routes.api/note!reinstate :routes/api)
-      (derive :routes.api/notes?scheduled :routes/api)
       (derive :routes.api/note#schedules :routes/api)
       (derive :routes.api/schedules :routes/api)
       (derive :routes.api/schedule :routes/api)
@@ -34,9 +34,9 @@
       (derive :routes.ui/not-found :routes/ui)))
 
 (def route->handler
-  {[:get :routes.api/notes?scheduled]   :api.notes/relevant
-   [:get :routes.api/notes]             :api.notes/select
+  {[:get :routes.api/notes]             :api.notes/select
    [:post :routes.api/notes]            :api.notes/create!
+   [:get :routes.api/notes?scheduled]   :api.notes/relevant
    [:get :routes.api/note]              :api.notes/fetch
    [:get :routes.api/note?history]      :api.notes/fetch?history
    [:post :routes.api/note!reinstate]   :api.notes/reinstate!

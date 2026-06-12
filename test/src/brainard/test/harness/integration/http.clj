@@ -1,14 +1,14 @@
 (ns brainard.test.harness.integration.http
   (:require
-    [brainard.infra.routes.core :as routes]
-    [clojure.java.io :as io]
-    [clojure.set :as set]
-    [clojure.string :as string]
-    [ring.util.mime-type :as mime]
-    [slag.utils.fns :as fns]
-    [slag.utils.edn :as edn])
+   [brainard.infra.routes.core :as routes]
+   [clojure.java.io :as io]
+   [clojure.set :as set]
+   [clojure.string :as string]
+   [ring.util.mime-type :as mime]
+   [slag.utils.fns :as fns]
+   [slag.utils.edn :as edn])
   (:import
-    (java.io InputStream StringReader)))
+   (java.io InputStream StringReader)))
 
 (defn ^:private fixture->upload [filename]
   {:content-type (mime/ext-mime-type filename)

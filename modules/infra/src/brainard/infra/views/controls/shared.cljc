@@ -1,7 +1,7 @@
 (ns brainard.infra.views.controls.shared
   (:require
-    [defacto.forms.core :as forms]
-    [defacto.resources.core :as res]))
+   [defacto.forms.core :as forms]
+   [defacto.resources.core :as res]))
 
 (defn with-attrs
   "Prepares common form attributes used by controls in [[brainard.infra.views.controls.core]]. "

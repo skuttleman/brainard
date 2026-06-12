@@ -1,11 +1,11 @@
 (ns brainard.infra.views.controls.type-ahead
   "A type-ahead select component which allows new values."
   (:require
-    [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.views.components.core :as comp]
-    [clojure.string :as string]
-    [slag.utils.fns :as fns]
-    [whet.utils.reagent :as r]))
+   [brainard.infra.stubs.dom :as dom]
+   [brainard.infra.views.components.core :as comp]
+   [clojure.string :as string]
+   [slag.utils.fns :as fns]
+   [whet.utils.reagent :as r]))
 
 (defn ^:private ->pattern [s]
   (->> s
@@ -60,9 +60,9 @@
          :on-key-down   (->type-ahead-key-handler attrs)}
         (merge (select-keys attrs #{:class :disabled :id :ref :value :on-focus :on-blur :auto-focus}))
         (update :on-focus fns/apply-all (fn [_]
-                                           (swap! *:state assoc :focussed? true)))
+                                          (swap! *:state assoc :focussed? true)))
         (update :on-blur fns/apply-all (fn [_]
-                                          (swap! *:state assoc :focussed? false))))]])
+                                         (swap! *:state assoc :focussed? false))))]])
 
 (defn ^:private type-ahead-dd [{:keys [*:state dd-active? matches on-change selected-idx]}]
   [:div.dropdown {:class [(when dd-active? "is-active")]}

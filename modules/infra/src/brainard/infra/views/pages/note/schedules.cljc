@@ -1,13 +1,13 @@
 (ns brainard.infra.views.pages.note.schedules
   (:require
-    [brainard.api.utils.dates :as dates]
-    [brainard.api.validations :as valid]
-    [brainard.infra.store.specs :as specs]
-    [brainard.schedules.api.specs :as ssched]
-    [clojure.pprint :as pp]
-    [defacto.forms.core :as-alias forms]
-    [defacto.forms.plus :as forms+]
-    [defacto.resources.core :as res]))
+   [brainard.api.utils.dates :as dates]
+   [brainard.api.validations :as valid]
+   [brainard.infra.store.specs :as specs]
+   [brainard.schedules.api.specs :as ssched]
+   [clojure.pprint :as pp]
+   [defacto.forms.core :as-alias forms]
+   [defacto.forms.plus :as forms+]
+   [defacto.resources.core :as res]))
 
 (defn ->sync-key [note-id] [::schedules#sync note-id])
 (defn ->create-key [note-id] [::forms+/valid (->sync-key note-id) [::forms/edit-schedule]])

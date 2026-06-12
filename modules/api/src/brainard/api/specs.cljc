@@ -1,6 +1,6 @@
 (ns brainard.api.specs
   (:require
-    [clojure.string :as string]))
+   [clojure.string :as string]))
 
 (def non-empty-string
   [:and

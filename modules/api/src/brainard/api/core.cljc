@@ -1,11 +1,11 @@
 (ns brainard.api.core
   (:require
-    [brainard.api.validations :as valid]
-    [brainard.api.utils.logger :as log]
-    [brainard.attachments.api.core :as api.attachments]
-    [brainard.notes.api.core :as api.notes]
-    [brainard.schedules.api.core :as api.sched]
-    [brainard.workspace.api.core :as api.ws]))
+   [brainard.api.validations :as valid]
+   [brainard.api.utils.logger :as log]
+   [brainard.attachments.api.core :as api.attachments]
+   [brainard.notes.api.core :as api.notes]
+   [brainard.schedules.api.core :as api.sched]
+   [brainard.workspace.api.core :as api.ws]))
 
 (defmulti ^:private invoke-api* (fn [api _ _] api))
 
@@ -34,8 +34,17 @@
   nil)
 
 (defmethod invoke-api* :api.notes/select
-  [_ apis params]
-  (api.notes/get-notes (:notes apis) params))
+  [_ apis {:notes/keys [body] :as params}]
+  (if-let [note-ids (some->> body
+                             (hash-map :notes/body)
+                             (api.notes/search-notes (:notes apis))
+                             (map :notes/id)
+                             seq)]
+    (api.notes/get-notes (:notes apis) (assoc params :notes/ids note-ids))
+    (if (or (seq (:notes/tags params))
+            (seq (dissoc params :notes/tags :notes/body)))
+      (api.notes/get-notes (:notes apis) params)
+      ())))
 
 (defmethod invoke-api* :api.notes/fetch
   [_ apis {note-id :notes/id}]

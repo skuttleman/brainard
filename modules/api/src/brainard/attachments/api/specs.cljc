@@ -1,7 +1,7 @@
 (ns brainard.attachments.api.specs
   (:require
-    [brainard.api.specs :as scommon]
-    [malli.util :as mu]))
+   [brainard.api.specs :as scommon]
+   [malli.util :as mu]))
 
 (def modify
   [:map

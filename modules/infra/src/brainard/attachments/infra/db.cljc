@@ -1,7 +1,7 @@
 (ns brainard.attachments.infra.db
   (:require
-    [brainard.api.storage.interfaces :as istorage]
-    [brainard.attachments.api.core :as api.attachments]))
+   [brainard.api.storage.interfaces :as istorage]
+   [brainard.attachments.api.core :as api.attachments]))
 
 (defmethod istorage/->input ::api.attachments/create!
   [attachment]
@@ -19,7 +19,7 @@
             :in $ ?id
             :where [?e :attachments/id ?id]]
    :xform (map first)
-   :args [attachment-id]
+   :args  [attachment-id]
    :only? true})
 
 (defmethod istorage/->input ::api.attachments/upload!

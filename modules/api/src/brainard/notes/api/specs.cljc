@@ -1,8 +1,8 @@
 (ns brainard.notes.api.specs
   (:require
-    [brainard.api.specs :as scommon]
-    [brainard.attachments.api.specs :as sattachments]
-    [malli.util :as mu]))
+   [brainard.api.specs :as scommon]
+   [brainard.attachments.api.specs :as sattachments]
+   [malli.util :as mu]))
 
 (def todo-create
   [:map
@@ -101,13 +101,15 @@
   [:and
    [:map
     [:notes/ids {:optional true} [:set uuid?]]
+    [:notes/body {:optional true} scommon/non-empty-trimmed-string]
     [:notes/context {:optional true} scommon/non-empty-trimmed-string]
-    [:notes/tags {:optional true} [:set keyword?]]
     [:notes/pinned? {:optional true} true?]
+    [:notes/tags {:optional true} [:set keyword?]]
     [:notes/todos {:optional true} [:enum {} nil :complete :incomplete]]]
-   [:fn {:error/message "must select at least one: ids, tag, topic, or pinned"}
+   [:fn {:error/message "must select at least one: ids, tag, topic, body contents, or pinned"}
     (some-fn (comp seq :notes/ids)
-             (comp true? :notes/pinned?)
+             (comp some? :notes/body)
              (comp some? :notes/context)
+             (comp true? :notes/pinned?)
              (comp seq :notes/tags)
              (comp some? :notes/todos))]])

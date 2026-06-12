@@ -1,12 +1,12 @@
 (ns brainard.infra.views.pages.note.actions
   (:require
-    [brainard.api.validations :as valid]
-    [brainard.infra.store.specs :as specs]
-    [brainard.infra.views.fragments.note-edit :as-alias note-edit]
-    [brainard.notes.api.specs :as snotes]
-    [defacto.forms.core :as forms]
-    [defacto.forms.plus :as forms+]
-    [defacto.resources.core :as res]))
+   [brainard.api.validations :as valid]
+   [brainard.infra.store.specs :as specs]
+   [brainard.infra.views.fragments.note-edit :as-alias note-edit]
+   [brainard.notes.api.specs :as snotes]
+   [defacto.forms.core :as forms]
+   [defacto.forms.plus :as forms+]
+   [defacto.resources.core :as res]))
 
 (defn ->sync-key [note-id] [::notes#sync note-id])
 (defn ->pin-key [note-id] [::forms+/std (->sync-key note-id) [::forms/pin-note]])

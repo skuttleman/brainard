@@ -1,9 +1,9 @@
 (ns brainard.infra.routes.errors-test
   (:require
-    [brainard.api.validations :as-alias valid]
-    [brainard.infra.routes.errors :as routes.err]
-    [clojure.test :refer [are deftest testing]]
-    [slag.utils.edn :as edn]))
+   [brainard.api.validations :as-alias valid]
+   [brainard.infra.routes.errors :as routes.err]
+   [clojure.test :refer [are deftest testing]]
+   [slag.utils.edn :as edn]))
 
 (deftest ex->response-test
   (testing "when generating an error response"

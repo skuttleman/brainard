@@ -1,27 +1,27 @@
 (ns brainard.infra.system.core
   (:require
-    [aleph.http :as http]
-    [brainard :as-alias b]
-    [brainard.api.events.core :as events]
-    [brainard.api.utils.logger :as log]
-    [brainard.events.infra.manager :as manager]
-    [brainard.infra.db.store :as ds]
-    [brainard.infra.obj.store :as os]
-    [brainard.infra.routes.core :as routes]
-    [brainard.infra.search.store :as search]
-    [brainard.infra.system.daemons :as daemons]
-    [integrant.core :as ig]
-    brainard.attachments.infra.db
-    brainard.attachments.infra.routes
-    brainard.infra.routes.ui
-    brainard.notes.infra.db
-    brainard.notes.infra.routes
-    brainard.notes.infra.search
-    brainard.events.infra.routes
-    brainard.schedules.infra.db
-    brainard.workspace.infra.db)
+   [aleph.http :as http]
+   [brainard :as-alias b]
+   [brainard.api.events.core :as events]
+   [brainard.api.utils.logger :as log]
+   [brainard.events.infra.manager :as manager]
+   [brainard.infra.db.store :as ds]
+   [brainard.infra.obj.store :as os]
+   [brainard.infra.routes.core :as routes]
+   [brainard.infra.search.store :as search]
+   [brainard.infra.system.daemons :as daemons]
+   [integrant.core :as ig]
+   brainard.attachments.infra.db
+   brainard.attachments.infra.routes
+   brainard.infra.routes.ui
+   brainard.notes.infra.db
+   brainard.notes.infra.routes
+   brainard.notes.infra.search
+   brainard.events.infra.routes
+   brainard.schedules.infra.db
+   brainard.workspace.infra.db)
   (:import
-    (java.util Date)))
+   (java.util Date)))
 
 (defmethod ig/init-key :brainard.web/handler
   [_ {:keys [env ui-env upload-limit] :as cfg}]
@@ -36,12 +36,14 @@
 (defmethod ig/init-key ::b/webserver
   [_ {:keys [apis events handler server-port]}]
   (log/info "starting webserver on port" server-port)
-  (http/start-server (fn [req]
-                       (handler (assoc req ::b/apis apis ::b/events events)))
-                     {:port server-port}))
+  {:server (http/start-server (fn [req]
+                                (handler (assoc req ::b/apis apis ::b/events events)))
+                              {:port server-port})
+   :events events})
 
 (defmethod ig/halt-key! ::b/webserver
-  [_ server]
+  [_ {:keys [events server]}]
+  (events/close! events)
   (log/info "shutting down webserver")
   (.close server))
 

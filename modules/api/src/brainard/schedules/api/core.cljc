@@ -1,8 +1,8 @@
 (ns brainard.schedules.api.core
   (:require
-    [brainard.schedules.api.relevancy :as relevancy]
-    [brainard.api.storage.core :as storage]
-    [slag.utils.uuids :as uuids]))
+   [brainard.schedules.api.relevancy :as relevancy]
+   [brainard.api.storage.core :as storage]
+   [slag.utils.uuids :as uuids]))
 
 (defn ^:private clean-schedule [schedule schedule-id]
   (-> schedule

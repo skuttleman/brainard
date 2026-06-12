@@ -1,12 +1,12 @@
 (ns brainard.attachments.infra.multipart-params
   (:require
-    [brainard :as-alias b]
-    [brainard.api.validations :as-alias valid]
-    [ring.util.request :as req])
+   [brainard :as-alias b]
+   [brainard.api.validations :as-alias valid]
+   [ring.util.request :as req])
   (:import
-    (java.io InputStream)
-    (org.apache.commons.fileupload FileItemIterator FileItemStream FileUpload UploadContext)
-    (org.apache.commons.fileupload.util LimitedInputStream)))
+   (java.io InputStream)
+   (org.apache.commons.fileupload FileItemIterator FileItemStream FileUpload UploadContext)
+   (org.apache.commons.fileupload.util LimitedInputStream)))
 
 (defn ^:private multipart-form? [request]
   (= (req/content-type request) "multipart/form-data"))
@@ -34,13 +34,13 @@
 
 (defn ^:private file-item-iterator-seq [^FileItemIterator it]
   (lazy-seq
-    (when (.hasNext it)
-      (cons (.next it) (file-item-iterator-seq it)))))
+   (when (.hasNext it)
+     (cons (.next it) (file-item-iterator-seq it)))))
 
 (defn ^:private file-item-seq [context]
   (let [upload (FileUpload.)]
     (file-item-iterator-seq
-      (.getItemIterator ^FileUpload upload context))))
+     (.getItemIterator ^FileUpload upload context))))
 
 (defn ^:private parse-file-item [file-limit-bytes ^FileItemStream item]
   {:filename     (.getName item)

@@ -1,6 +1,6 @@
 (ns brainard.schedules.api.specs
   (:require
-    [malli.util :as mu]))
+   [malli.util :as mu]))
 
 (def create
   [:and

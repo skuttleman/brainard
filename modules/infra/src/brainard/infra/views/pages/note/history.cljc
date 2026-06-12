@@ -1,13 +1,13 @@
 (ns brainard.infra.views.pages.note.history
   (:require
-    [brainard.api.utils.dates :as dates]
-    [brainard.infra.store.core :as store]
-    [brainard.infra.views.components.core :as comp]
-    [brainard.infra.views.components.interfaces :as icomp]
-    [brainard.infra.views.fragments.note-components :as note-comp]
-    [brainard.infra.views.pages.note.actions :as-alias note.act]
-    [defacto.resources.core :as-alias res]
-    [whet.utils.reagent :as r]))
+   [brainard.api.utils.dates :as dates]
+   [brainard.infra.store.core :as store]
+   [brainard.infra.views.components.core :as comp]
+   [brainard.infra.views.components.interfaces :as icomp]
+   [brainard.infra.views.fragments.note-components :as note-comp]
+   [brainard.infra.views.pages.note.actions :as-alias note.act]
+   [defacto.resources.core :as-alias res]
+   [whet.utils.reagent :as r]))
 
 (defn ^:private attachment-list [note]
   (when-let [attachments (not-empty (:notes/attachments note))]
@@ -16,9 +16,9 @@
 
 (defn ^:private todo-list [note]
   (when-let [todos (not-empty (:notes/todos note))]
-    [note-comp/todo-list {:label? true
+    [note-comp/todo-list {:label?   true
                           :disabled true
-                          :value  todos}]))
+                          :value    todos}]))
 
 (defmulti ^:private ^{:arglists '([label changes])} history-change
           (fn [label _]
