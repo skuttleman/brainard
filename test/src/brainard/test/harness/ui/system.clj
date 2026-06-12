@@ -1,6 +1,7 @@
 (ns brainard.test.harness.ui.system
   (:require
    [brainard.infra.db.store :as ds]
+   [brainard.infra.search.lucene :as lucene]
    [brainard.test.harness.integration.system :as tsys]
    [brainard.test.harness.ui.web :as web]
    [clojure.java.io :as io]
@@ -15,15 +16,29 @@
   [_ _]
   (ueta/get-free-port))
 
-(defn transact-multi! [db data]
+(defn ^:private save! [data db index]
+  (ds/transact! db data)
+  (let [seen? (volatile! {})]
+    (doseq [{:notes/keys [id body context]} data
+            :let [note-id (str id)
+                  doc (cond-> {:id note-id}
+                        body (assoc :body body)
+                        context (assoc :context context))]
+            :when id]
+      (if-let [doc' (@seen? id)]
+        (lucene/replace! index note-id (merge doc' doc))
+        (lucene/add! index doc))
+      (vswap! seen? update id merge doc))))
+
+(defn transact-multi! [db index data]
   (if (map? data)
     (->> data
          (sort-by key)
          (into [] (mapcat (fn [[_ tx-data]]
-                            (ds/transact! db tx-data)
-                            tx-data))))
+                            (doto tx-data
+                              (save! db index))))))
     (doto data
-      (->> (ds/transact! db)))))
+      (save! db index))))
 
 (defn safe-screenshot! [driver]
   (try
@@ -60,8 +75,11 @@
                                        "--disable-dev-shm-usage"]))})))
 
 (defmacro with-webdriver [[driver-binding base-url-binding seeds] & body]
-  (let [db-sym (gensym "db")]
-    `(tsys/with-app [{port# :cfg.test/server-port ~db-sym :brainard/IDBConn}
+  (let [db-sym (gensym "db")
+        idx-sym (gensym "idx")]
+    `(tsys/with-app [{port#    :cfg.test/server-port
+                      ~db-sym  :brainard/IDBConn
+                      ~idx-sym :brainard/IIndex}
                      {:config    "duct/ui-test.edn"
                       :init-keys [:brainard/webserver]}]
        (let [screenshot?# (= "true" (duct.env/*env* "SCREENSHOT"))
@@ -74,7 +92,7 @@
                      token [sym `(->> ~seed
                                       (str "seed/")
                                       web/edn-fixture
-                                      (transact-multi! ~db-sym))]]
+                                      (transact-multi! ~db-sym ~idx-sym))]]
                  token)]
          (binding [t/report (fn [event#]
                               (when (and (#{:fail :error} (:type event#))

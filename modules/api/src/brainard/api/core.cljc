@@ -38,9 +38,11 @@
   (if-let [note-ids (some->> body
                              (hash-map :notes/body)
                              (api.notes/search-notes (:notes apis))
-                             (map :notes/id))]
+                             (map :notes/id)
+                             seq)]
     (api.notes/get-notes (:notes apis) (assoc params :notes/ids note-ids))
-    (if (seq (dissoc params :notes/body))
+    (if (or (seq (:notes/tags params))
+            (seq (dissoc params :notes/tags :notes/body)))
       (api.notes/get-notes (:notes apis) params)
       ())))
 

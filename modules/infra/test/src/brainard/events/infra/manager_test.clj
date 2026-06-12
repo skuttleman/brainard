@@ -11,8 +11,8 @@
     (let [[ch-1 ch-2 ch-3 ch-4] (repeatedly async/chan)
           manager (manager/->EventsManager (ref {}))]
       (testing "and when connecting channels"
-        (ievents/connect! manager :ch-1 ch-1)
-        (ievents/connect! manager :ch-2 ch-2)
+        (ievents/connect! manager :ch-1 {:ch ch-1})
+        (ievents/connect! manager :ch-2 {:ch ch-2})
 
         (testing "and when broadcasting a message"
           (ievents/broadcast! manager :type {:msg 1})
@@ -31,8 +31,8 @@
               (is (nil? (tua/<!! ch-1)))))))
 
       (testing "and when connecting channels"
-        (ievents/connect! manager :ch-3 ch-3)
-        (ievents/connect! manager :ch-4 ch-4)
+        (ievents/connect! manager :ch-3 {:ch ch-3})
+        (ievents/connect! manager :ch-4 {:ch ch-4})
 
         (testing "and when closing a channel"
           (ievents/disconnect! manager :ch-3)

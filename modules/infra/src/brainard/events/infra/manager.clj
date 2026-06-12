@@ -9,16 +9,12 @@
     (dosync
      (alter subs assoc ch-id conn)))
   (close! [this]
-    (run! (partial ievents/disconnect! this) (keys @subs))
-   #_#_(doseq [{:keys [ch close-wait]} (vals @subs)]
-         (async/close! ch))
-           (dosync
-            (ref-set subs {})))
+    (run! (partial ievents/disconnect! this) (keys @subs)))
   (disconnect! [_ ch-id]
     (dosync
-     (when-let [{:keys [ch close-wait]} (get @subs ch-id)]
+     (when-let [{:keys [ch closed?]} (get @subs ch-id)]
        (some-> ch async/close!)
-       (some-> close-wait deref))
+       (some-> closed? (deref 500 nil)))
      (alter subs dissoc ch-id)))
 
   ievents/ISend
