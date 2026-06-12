@@ -12,8 +12,9 @@
     (run! (partial ievents/disconnect! this) (keys @subs)))
   (disconnect! [_ ch-id]
     (dosync
-     (when-let [{:keys [ch closed?]} (get @subs ch-id)]
+     (when-let [{:keys [ch closed? close!]} (get @subs ch-id)]
        (some-> ch async/close!)
+       (when close! (close!))
        (some-> closed? (deref 500 nil)))
      (alter subs dissoc ch-id)))
 

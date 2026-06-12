@@ -27,7 +27,7 @@
 (defn ^:internal ^:no-doc handle-events [{::b/keys [events]} ->stream close-fn]
   (let [ch (async/chan 100 (map fmt-event))
         [id stream prom] (->stream ch)]
-    (ievents/connect! events id {:ch ch :closed? prom})
+    (ievents/connect! events id {:ch ch :closed? prom :close! #(close-fn stream)})
     (async/go
       (async/>! ch [:connected])
       (log/infof "event stream connected: %s" id)

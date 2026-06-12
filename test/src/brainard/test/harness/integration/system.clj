@@ -62,6 +62,7 @@
                                  token [sym `(val (ig/find-derived-1 ~sys ~kw))]]
                              token)]
     `(let [opts# ~opts
+           timeout# (:timeout opts# 2000)
            ~sys (main/start! (:config opts# "duct/test.edn")
                              [:duct.profile/base :duct.profile/test]
                              (:init-keys opts# [:brainard/apis]))
@@ -69,7 +70,9 @@
            ~@component-bindings]
        (try
          (testing ~test
-           ~@body)
+           (let [f# (future ~@body)]
+             (when (= ::timeout (deref f# timeout# ::timeout))
+               (future-cancel f#)
+               (throw (ex-info "test timed out" {:timeout timeout#})))))
          (finally
            (ig/halt! ~sys))))))
-

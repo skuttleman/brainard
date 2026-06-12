@@ -347,11 +347,10 @@
             (testing "renders the note page"
               (let [note-id (-> fix first :notes/id)]
                 (is (= (str base-url "/notes/" note-id) (eta/get-url driver)))
-                (is (eta/visible? driver {:xpath "//*[contains(@class,'content')]//*[text()='Note one A']"}))
-                (eta/back driver))))
+                (is (eta/visible? driver {:xpath "//*[contains(@class,'content')]//*[text()='Note one A']"})))))
 
           (testing "and when navigating back"
-            (eta/back driver)
+            (eta/go driver (str base-url "/search"))
             (eta/wait-absent driver {:css "ul.search-results"})
             (testing "clears the search results"
               (is (= (str base-url "/search") (eta/get-url driver)))
@@ -368,7 +367,7 @@
               (is (not (note-visible? driver "Note one B"))))))
 
         (testing "and when filtering on multiple tags"
-          (eta/back driver)
+          (eta/go driver (str base-url "/search"))
           (web/wait-optimistic #(eta/visible? driver {:css ".page__search"}))
           (select-options! "Tag Filter" :tag/alpha :tag/beta)
           (web/click! driver {:css "form.search-form button.submit"})
@@ -396,7 +395,7 @@
               (is (querying? {:tags #{"tag/alpha" "tag/beta"} :context "Context A"}))))
 
           (testing "and when the filters yield no results"
-            (doto driver eta/back eta/back)
+            (eta/go driver (str base-url "/search"))
             (web/wait-optimistic #(eta/visible? driver {:css ".page__search"}))
             (select-options! "Topic Filter" "Context B")
             (select-options! "Tag Filter" :tag/alpha :tag/beta)
@@ -413,7 +412,7 @@
               (is (not (note-visible? driver "Note one C"))))))
 
         (testing "and when filtering on context"
-          (eta/back driver)
+          (eta/go driver (str base-url "/search"))
           (web/wait-optimistic #(eta/visible? driver {:css ".page__search"}))
           (select-options! "Topic Filter" "Context B")
           (web/click! driver {:css "form.search-form button.submit"})
@@ -429,7 +428,7 @@
             (is (querying? {:context "Context B"}))))
 
         (testing "and when filtering on TODOs"
-          (eta/back driver)
+          (eta/go driver (str base-url "/search"))
           (web/wait-optimistic #(eta/visible? driver {:css ".page__search"}))
 
           (testing "and when the filter is :complete"
@@ -470,7 +469,7 @@
                 (is (not (note-visible? driver "Note one C")))))))
 
         (testing "and when filtering on body text"
-          (doto driver eta/back eta/back eta/back)
+          (eta/go driver (str base-url "/search"))
           (web/wait-optimistic #(eta/visible? driver {:css ".page__search"}))
           (web/submit-form! driver "form.search-form" {"Body contents" "one"})
           (eta/wait-visible driver {:css "ul.search-results"})
