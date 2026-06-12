@@ -72,7 +72,6 @@
            (let [f# (future ~@body)]
              (when (= ::timeout (deref f# (:timeout opts# 2000) ::timeout))
                (future-cancel f#)
-               (throw (ex-info "test timed out" {})))))
+               (throw (ex-info "test timed out" {:timeout (:timeout opts# 2000)})))))
          (finally
            (ig/halt! ~sys))))))
-

@@ -66,13 +66,14 @@
 
 (defn ->driver []
   (let [headless? (= "true" (duct.env/*env* "HEADLESS"))]
-    (eta/chrome {:headless    headless?
-                 :path-driver (or (duct.env/*env* "CHROMEDRIVER_PATH")
-                                  "chromedriver")
-                 :args        (into ["--window-size=1200,900"]
-                                    (when headless?
-                                      ["--no-sandbox"
-                                       "--disable-dev-shm-usage"]))})))
+    (eta/chrome {:headless     headless?
+                 :capabilities {:pageLoadStrategy "eager"}
+                 :path-driver  (or (duct.env/*env* "CHROMEDRIVER_PATH")
+                                   "chromedriver")
+                 :args         (into ["--window-size=1200,900"]
+                                     (when headless?
+                                       ["--no-sandbox"
+                                        "--disable-dev-shm-usage"]))})))
 
 (defmacro with-webdriver [[driver-binding base-url-binding seeds] & body]
   (let [db-sym (gensym "db")
