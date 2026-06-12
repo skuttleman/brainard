@@ -189,9 +189,10 @@
     [note-editor *:store note disabled?]))
 
 (defn ^:private schedule-root [*:store sub:modals disabled? [note scheds]]
-  (if (and disabled? (seq @sub:modals))
-    [comp/spinner]
-    [schedule-editor *:store note scheds disabled?]))
+  (when (or disabled? (:notes/id note))
+    (if (and disabled? (seq @sub:modals))
+      [comp/spinner]
+      [schedule-editor *:store note scheds disabled?])))
 
 (defn ^:private note-err [_]
   [comp/alert :warn
