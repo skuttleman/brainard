@@ -35,7 +35,7 @@
                                                                   "modules/api/src"
                                                                   "modules/infra/src"]
                                        :kaocha/test-paths        ["test/src"]}]
- :kaocha/bindings                    {kaocha.stacktrace/*stacktrace-filters*   ["^brainard\\..*$))"]
+ :kaocha/bindings                    {kaocha.stacktrace/*stacktrace-filters*   []
                                       kaocha.stacktrace/*stacktrace-stop-list* []}
  :kaocha/fail-fast?                  false
  :kaocha/color?                      true
