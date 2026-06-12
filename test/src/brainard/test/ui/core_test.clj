@@ -433,7 +433,7 @@
           (web/wait-optimistic #(eta/visible? driver {:css ".page__search"}))
 
           (testing "and when the filter is :complete"
-            (web/fill-field! driver "TODO Filter" :complete)
+            (select-options! "TODO Filter" "Complete (has 1+ TODOs - all finished)")
             (web/click! driver {:css "form.search-form button.submit"})
             (eta/wait-visible driver {:css "ul.search-results"})
 
@@ -446,7 +446,7 @@
               (is (note-visible? driver "Note one C"))))
 
           (testing "and when the filter is :incomplete"
-            (web/fill-field! driver "TODO Filter" :incomplete)
+            (select-options! "TODO Filter" "Incomplete (has 1+ unfinished TODOs)")
             (web/click! driver {:css "form.search-form button.submit"})
             (eta/wait-visible driver {:css "ul.search-results"})
 

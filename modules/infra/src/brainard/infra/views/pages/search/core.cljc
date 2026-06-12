@@ -41,6 +41,14 @@
                                :options-by-id options-by-id}
                               (ctrls/with-attrs form+ [:notes/tags]))]))
 
+(def ^:private todo-options
+  [[nil "(Unspecified)"]
+   [:incomplete "Incomplete (has 1+ unfinished TODOs)"]
+   [:complete "Complete (has 1+ TODOs - all finished)"]])
+
+(def ^:private todo-options-by-id
+  (into {} todo-options))
+
 (defn ^:private search-form [{:keys [*:store form+] :as attrs} contexts tags]
   (let [form-data (forms/data form+)]
     [ctrls/plain-form {:class       ["search-form"]
@@ -49,17 +57,17 @@
                        :submit/body "Search"}
      [:div.layout--stack-between
       [:div.layout--room-between
-       [:div {:style {:flex-basis "40%"}}
+       [:div {:style {:flex-basis "34%"}}
         [context-filter attrs contexts]]
-       [:div {:style {:flex-basis "40%"}}
+       [:div {:style {:flex-basis "32%"}}
         [tag-filter attrs tags]]
-       [:div {:style {:flex-basis "20%"}}
-        [ctrls/select (-> {:*:store *:store
-                           :label   "TODO Filter"}
-                          (ctrls/with-attrs form+ [:notes/todos]))
-         [[nil "(Unspecified)"]
-          [:incomplete "Incomplete (has 1+ unfinished TODOs)"]
-          [:complete "Complete (has 1+ TODOs - all finished)"]]]]]
+       [:div {:style {:flex-basis "34%"}}
+        [ctrls/single-dropdown (-> {:*:store        *:store
+                                    :attrs->content (comp todo-options-by-id first :value)
+                                    :label          "TODO Filter"
+                                    :options        (rest todo-options)
+                                    :options-by-id  todo-options-by-id}
+                                   (ctrls/with-attrs form+ [:notes/todos]))]]]
       [ctrls/input (-> {:*:store *:store
                         :label   "Body contents"}
                        (ctrls/with-attrs form+ [:notes/body]))]]]))
