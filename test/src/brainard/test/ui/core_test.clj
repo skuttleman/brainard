@@ -308,7 +308,7 @@
           (testing "there is no section for Context 3"
             (is (not (eta/exists? driver {:css ".context-group[data-context='Context 3']"})))))))))
 
-(deftest ^:focus search-test
+(deftest search-test
   (usys/with-webdriver [driver base-url {fix "search.edn"}]
     (letfn [(querying? [qp]
               (let [params (-> (eta/get-url driver) (string/split #"\?") second nav/->query-params)]
