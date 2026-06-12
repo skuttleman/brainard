@@ -1,7 +1,7 @@
 (ns brainard.schedules.infra.db
   (:require
-    [brainard.schedules.api.core :as api.sched]
-    [brainard.api.storage.interfaces :as istorage]))
+   [brainard.schedules.api.core :as api.sched]
+   [brainard.api.storage.interfaces :as istorage]))
 
 (def ^:private select
   '[:find (pull ?e [*])

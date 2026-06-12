@@ -1,9 +1,9 @@
 (ns brainard.notes.infra.views
   "Reagent components that render notes."
   (:require
-    [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.views.components.core :as comp]
-    [whet.utils.reagent :as r]))
+   [brainard.infra.stubs.dom :as dom]
+   [brainard.infra.views.components.core :as comp]
+   [whet.utils.reagent :as r]))
 
 (defn ^:private edit-link [note-id]
   [comp/link {:class        ["space--left" "note__edit-link"]

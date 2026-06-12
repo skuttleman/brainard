@@ -1,10 +1,10 @@
 (ns brainard.infra.store.core
   #?(:cljs (:require-macros brainard.infra.store.core))
   (:require
-    [defacto.core :as defacto]
-    [defacto.forms.core :as-alias forms]
-    [defacto.forms.plus :as-alias forms+]
-    [defacto.resources.core :as-alias res]))
+   [defacto.core :as defacto]
+   [defacto.forms.core :as-alias forms]
+   [defacto.forms.plus :as-alias forms+]
+   [defacto.resources.core :as-alias res]))
 
 (defn dispatch!
   "Dispatch a command to the defacto store."

@@ -1,11 +1,11 @@
 (ns brainard.notes.infra.routes
   (:require
-    [brainard :as-alias b]
-    [brainard.infra.routes.interfaces :as iroutes]
-    [whet.core :as w])
+   [brainard :as-alias b]
+   [brainard.infra.routes.interfaces :as iroutes]
+   [whet.core :as w])
   #?(:clj
      (:import
-       (java.util Date))))
+      (java.util Date))))
 
 (defmethod iroutes/req->input [:get :routes.api/notes?scheduled]
   [_]

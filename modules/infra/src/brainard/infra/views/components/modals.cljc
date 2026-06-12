@@ -1,12 +1,12 @@
 (ns brainard.infra.views.components.modals
   "Page-level component for displaying modals."
   (:require
-    [brainard.infra.store.core :as store]
-    [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.views.components.interfaces :as icomp]
-    [brainard.infra.views.components.shared :as scomp]
-    [clojure.string :as string]
-    [whet.utils.reagent :as r]))
+   [brainard.infra.store.core :as store]
+   [brainard.infra.stubs.dom :as dom]
+   [brainard.infra.views.components.interfaces :as icomp]
+   [brainard.infra.views.components.shared :as scomp]
+   [clojure.string :as string]
+   [whet.utils.reagent :as r]))
 
 (defn ^:private modal-type->class [k]
   (str (some-> (namespace k) (string/split #"\.") peek (str "__"))

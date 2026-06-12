@@ -1,16 +1,16 @@
 (ns brainard.infra.store.commands
   (:require
-    [brainard.infra.store.core :as store]
-    [clojure.string :as string]
-    [whet.utils.navigation :as nav]
-    [clojure.core.async :as async]
-    [defacto.core :as defacto]
-    [whet.core :as-alias w]))
+   [brainard.infra.store.core :as store]
+   [clojure.string :as string]
+   [whet.utils.navigation :as nav]
+   [clojure.core.async :as async]
+   [defacto.core :as defacto]
+   [whet.core :as-alias w]))
 
 (defonce ^:private ->sortable-id
-  (let [id (atom 0)]
-    (fn []
-      (swap! id inc))))
+         (let [id (atom 0)]
+           (fn []
+             (swap! id inc))))
 
 (defmethod defacto/command-handler ::w/with-qp!
   [{::defacto/keys [store] ::w/keys [nav]} [_ query-params] _]

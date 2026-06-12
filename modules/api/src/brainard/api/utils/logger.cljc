@@ -2,7 +2,7 @@
   "Logger wrapper."
   #?(:cljs (:require-macros brainard.api.utils.logger))
   (:require
-    [taoensso.timbre :as log*]))
+   [taoensso.timbre :as log*]))
 
 (defn ^:private log* [form level args]
   `(log*/log! ~level :p ~args {:?line ~(:line (meta form))}))

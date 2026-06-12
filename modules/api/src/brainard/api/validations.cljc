@@ -1,11 +1,11 @@
 (ns brainard.api.validations
   "Specs for data that flows through the system."
   (:require
-    [brainard.notes.api.specs :as snotes]
-    [brainard.schedules.api.specs :as ssched]
-    [brainard.workspace.api.specs :as sws]
-    [malli.core :as m]
-    [malli.error :as me]))
+   [brainard.notes.api.specs :as snotes]
+   [brainard.schedules.api.specs :as ssched]
+   [brainard.workspace.api.specs :as sws]
+   [malli.core :as m]
+   [malli.error :as me]))
 
 (def input-specs
   {:api.notes/select            snotes/query

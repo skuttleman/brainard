@@ -1,21 +1,21 @@
 (ns brainard.infra.views.pages.home.core
   (:require
-    [brainard.infra.store.core :as store]
-    [brainard.infra.store.specs :as-alias specs]
-    [brainard.infra.views.components.core :as comp]
-    [brainard.infra.views.components.drag-drop :as dnd]
-    [brainard.infra.views.components.interfaces :as icomp]
-    [brainard.infra.views.controls.core :as ctrls]
-    [brainard.infra.views.pages.interfaces :as ipages]
-    [brainard.infra.views.pages.home.actions :as home.act]
-    [brainard.notes.infra.views :as notes.views]
-    [clojure.set :as set]
-    [clojure.walk :as walk]
-    [defacto.forms.core :as forms]
-    [defacto.forms.plus :as forms+]
-    [defacto.resources.core :as res]
-    [whet.utils.reagent :as r]
-    [workspace-nodes :as-alias ws]))
+   [brainard.infra.store.core :as store]
+   [brainard.infra.store.specs :as-alias specs]
+   [brainard.infra.views.components.core :as comp]
+   [brainard.infra.views.components.drag-drop :as dnd]
+   [brainard.infra.views.components.interfaces :as icomp]
+   [brainard.infra.views.controls.core :as ctrls]
+   [brainard.infra.views.pages.interfaces :as ipages]
+   [brainard.infra.views.pages.home.actions :as home.act]
+   [brainard.notes.infra.views :as notes.views]
+   [clojure.set :as set]
+   [clojure.walk :as walk]
+   [defacto.forms.core :as forms]
+   [defacto.forms.plus :as forms+]
+   [defacto.resources.core :as res]
+   [whet.utils.reagent :as r]
+   [workspace-nodes :as-alias ws]))
 
 (defn ^:private collapsible [{:keys [*:store expanded? expand context]} label & content]
   (cond-> [:div (when context {:class ["context-group"] :data-context context})

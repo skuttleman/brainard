@@ -1,11 +1,11 @@
 (ns brainard.infra.views.components.drag-drop
   "Drag-n-drop UI component."
   (:require
-    [brainard.infra.store.core :as store]
-    [brainard.infra.stubs.dom :as dom]
-    [defacto.forms.core :as forms]
-    [slag.utils.edn :as edn]
-    [whet.utils.reagent :as r]))
+   [brainard.infra.store.core :as store]
+   [brainard.infra.stubs.dom :as dom]
+   [defacto.forms.core :as forms]
+   [slag.utils.edn :as edn]
+   [whet.utils.reagent :as r]))
 
 (declare node-list drag-node-list)
 
@@ -67,10 +67,10 @@
              (and drag-id target?) (assoc :class ["drop-target"])
              (empty? children) (assoc :data-target (pr-str [:at node-id])))
       (conj comp
-            {:type (cond
-                     (and drag-id target?) :target
-                     drag-id :dynamic
-                     :else :static)
+            {:type          (cond
+                              (and drag-id target?) :target
+                              drag-id :dynamic
+                              :else :static)
              :on-drag-begin (->mouse-down *:store form node-id)}
             node)]
      (when (seq children)

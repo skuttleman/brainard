@@ -1,12 +1,12 @@
 (ns brainard.infra.store.specs
   (:require
-    [brainard.api.validations :as valid]
-    [brainard.notes.api.specs :as snotes]
-    [brainard.workspace.api.specs :as sws]
-    [clojure.set :as set]
-    [defacto.forms.core :as-alias forms]
-    [defacto.resources.core :as res]
-    [workspace-nodes :as-alias ws]))
+   [brainard.api.validations :as valid]
+   [brainard.notes.api.specs :as snotes]
+   [brainard.workspace.api.specs :as sws]
+   [clojure.set :as set]
+   [defacto.forms.core :as-alias forms]
+   [defacto.resources.core :as res]
+   [workspace-nodes :as-alias ws]))
 
 (defn ^:private with-msgs [m k params spec]
   (if-let [v (seq (concat (get spec k) (get params k) (get-in spec [:params k])))]

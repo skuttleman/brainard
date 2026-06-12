@@ -1,8 +1,8 @@
 (ns brainard.notes.api.specs
   (:require
-    [brainard.api.specs :as scommon]
-    [brainard.attachments.api.specs :as sattachments]
-    [malli.util :as mu]))
+   [brainard.api.specs :as scommon]
+   [brainard.attachments.api.specs :as sattachments]
+   [malli.util :as mu]))
 
 (def todo-create
   [:map

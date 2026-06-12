@@ -1,7 +1,7 @@
 (ns brainard.notes.infra.export
   (:require
-    [clojure.string :as string]
-    [hiccup2.core :as hiccup]))
+   [clojure.string :as string]
+   [hiccup2.core :as hiccup]))
 
 (defn ^:private with-tags [md tags]
   (str md (hiccup/html [:ul {:style {:list-style   :none

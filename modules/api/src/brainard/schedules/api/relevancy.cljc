@@ -1,13 +1,13 @@
 (ns brainard.schedules.api.relevancy
   (:require
-    [cljc.java-time.zoned-date-time :as zdt]
-    [cljc.java-time.zone-id :as zi]
-    [cljc.java-time.day-of-week :as dow]
-    [cljc.java-time.month :as mon]
-    [cljc.java-time.instant :as inst])
+   [cljc.java-time.zoned-date-time :as zdt]
+   [cljc.java-time.zone-id :as zi]
+   [cljc.java-time.day-of-week :as dow]
+   [cljc.java-time.month :as mon]
+   [cljc.java-time.instant :as inst])
   #?(:clj
      (:import
-       (java.util Date))))
+      (java.util Date))))
 
 (defn ^:private ->weekday [dt]
   (condp = (zdt/get-day-of-week dt)

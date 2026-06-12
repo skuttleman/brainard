@@ -1,19 +1,19 @@
 (ns brainard.infra.views.pages.search.core
   "The search page."
   (:require
-    [brainard.infra.store.core :as store]
-    [brainard.infra.store.specs :as-alias specs]
-    [brainard.infra.views.components.core :as comp]
-    [brainard.infra.views.controls.core :as ctrls]
-    [brainard.infra.views.pages.interfaces :as ipages]
-    [brainard.infra.views.pages.search.actions :as search.act]
-    [brainard.notes.infra.views :as notes.views]
-    [defacto.forms.core :as forms]
-    [defacto.forms.plus :as-alias forms+]
-    [defacto.resources.core :as-alias res]
-    [slag.utils.colls :as colls]
-    [whet.core :as-alias w]
-    [whet.utils.reagent :as r]))
+   [brainard.infra.store.core :as store]
+   [brainard.infra.store.specs :as-alias specs]
+   [brainard.infra.views.components.core :as comp]
+   [brainard.infra.views.controls.core :as ctrls]
+   [brainard.infra.views.pages.interfaces :as ipages]
+   [brainard.infra.views.pages.search.actions :as search.act]
+   [brainard.notes.infra.views :as notes.views]
+   [defacto.forms.core :as forms]
+   [defacto.forms.plus :as-alias forms+]
+   [defacto.resources.core :as-alias res]
+   [slag.utils.colls :as colls]
+   [whet.core :as-alias w]
+   [whet.utils.reagent :as r]))
 
 (defn ^:private ->empty-form [{:keys [body context todos] :as query-params} contexts tags]
   (cond-> {:notes/tags (into #{}

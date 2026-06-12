@@ -4,6 +4,7 @@
    [brainard.api.utils.logger :as log]
    [brainard.main :as main]
    [duct.core :as duct]
+   [duct.core.env :as duct.env]
    [integrant.core :as ig]
    [nrepl.server :as nrepl]
    [ring.middleware.reload :as ring.rel]
@@ -36,7 +37,7 @@
   "Entry point for building/running the `brainard` web application from the command line.
    Runs an nREPL when `NREPL_PORT` env var is set."
   [& _]
-  (let [nrepl-port (some-> (System/getenv "NREPL_PORT") Long/parseLong)]
+  (let [nrepl-port (some-> (duct.env/*env* "NREPL_PORT") Long/parseLong)]
     (when-let [nrepl-server (when nrepl-port
                               (log/info "starting nREPL server on port" nrepl-port)
                               (nrepl/start-server :bind "0.0.0.0" :port nrepl-port))]

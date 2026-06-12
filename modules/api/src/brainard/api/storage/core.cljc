@@ -1,7 +1,7 @@
 (ns brainard.api.storage.core
   (:refer-clojure :exclude [read])
   (:require
-    [brainard.api.storage.interfaces :as istorage]))
+   [brainard.api.storage.interfaces :as istorage]))
 
 (defn query
   "Run a storage query using the underlying istorage implementation."

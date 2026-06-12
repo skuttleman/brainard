@@ -1,9 +1,9 @@
 (ns brainard.infra.store.events
   (:require
-    [brainard.infra.store.specs :as-alias specs]
-    [brainard.infra.views.pages.note.actions :as-alias note.act]
-    [defacto.core :as defacto]
-    [defacto.resources.core :as res]))
+   [brainard.infra.store.specs :as-alias specs]
+   [brainard.infra.views.pages.note.actions :as-alias note.act]
+   [defacto.core :as defacto]
+   [defacto.resources.core :as res]))
 
 (defmethod defacto/event-reducer :modals/created
   [db [_ modal-id modal]]

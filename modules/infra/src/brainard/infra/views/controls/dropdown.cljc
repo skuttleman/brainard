@@ -1,17 +1,17 @@
 (ns brainard.infra.views.controls.dropdown
   "A single/multi select dropdown component."
   (:require
-    [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.views.components.core :as comp]
-    [clojure.set :as set]
-    [whet.utils.reagent :as r]))
+   [brainard.infra.stubs.dom :as dom]
+   [brainard.infra.views.components.core :as comp]
+   [clojure.set :as set]
+   [whet.utils.reagent :as r]))
 
 (defn ^:private split-selection [{:keys [options value]}]
   (let [{selected true unselected false} (group-by (partial contains? value) options)]
     (concat selected unselected)))
 
 (defn ^:private option-list [{:keys [item-control on-change value] :as attrs
-                              :or {item-control (partial vector :span)}}]
+                              :or   {item-control (partial vector :span)}}]
   (r/with-let [options (split-selection attrs)]
     [:ul.dropdown-items
      (for [[id display] options
@@ -26,7 +26,7 @@
                                         ((fnil conj #{}) value id))]
                        (on-change next-value)
                        (when-let [on-toggle (when (::single? attrs)
-                                             (:on-toggle attrs))]
+                                              (:on-toggle attrs))]
                          (on-toggle e))))}
         [item-control display]])]))
 

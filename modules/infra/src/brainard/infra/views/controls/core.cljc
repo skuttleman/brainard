@@ -4,22 +4,22 @@
 
    [input {:on-change [:my-event]}]"
   (:require
-    #?@(:cljs [[brainard.api.utils.dates :as dates]
-               [slag.utils.maps :as maps]])
-    [brainard.infra.store.core :as store]
-    [brainard.infra.stubs.dom :as dom]
-    [brainard.infra.views.components.core :as comp]
-    [brainard.infra.views.components.shared :as scomp]
-    [brainard.infra.views.controls.dropdown :as dd]
-    [brainard.infra.views.controls.shared :as shared]
-    [brainard.infra.views.controls.tags-editor :as tags-editor]
-    [brainard.infra.views.controls.type-ahead :as type-ahead]
-    [clojure.string :as string]
-    [defacto.forms.core :as forms]
-    [defacto.forms.plus :as-alias forms+]
-    [defacto.resources.core :as res]
-    [slag.utils.fns :as fns]
-    [whet.utils.reagent :as r]))
+   #?@(:cljs [[brainard.api.utils.dates :as dates]
+              [slag.utils.maps :as maps]])
+   [brainard.infra.store.core :as store]
+   [brainard.infra.stubs.dom :as dom]
+   [brainard.infra.views.components.core :as comp]
+   [brainard.infra.views.components.shared :as scomp]
+   [brainard.infra.views.controls.dropdown :as dd]
+   [brainard.infra.views.controls.shared :as shared]
+   [brainard.infra.views.controls.tags-editor :as tags-editor]
+   [brainard.infra.views.controls.type-ahead :as type-ahead]
+   [clojure.string :as string]
+   [defacto.forms.core :as forms]
+   [defacto.forms.plus :as-alias forms+]
+   [defacto.resources.core :as res]
+   [slag.utils.fns :as fns]
+   [whet.utils.reagent :as r]))
 
 (defn ^:private disabled-compat [disabled]
   #?(:clj true :default disabled))
@@ -63,7 +63,7 @@
   (when label
     [:label.label
      (cond-> {:html-for id
-              :style label-style}
+              :style    label-style}
        label-small? (assoc :class ["small"])
        inline? (assoc-in [:style :margin-right] "8px"))
      label]))
@@ -99,161 +99,161 @@
 
 (def ^{:arglists '([attrs])} input
   (with-id
-    (scomp/with-auto-focus
-      (with-emit-on-change
-        (with-trim-blur
-          (with-disabled-compat
-            (fn [attrs]
-              [form-field
-               attrs
-               [comp/plain-input attrs]])))))))
+   (scomp/with-auto-focus
+    (with-emit-on-change
+     (with-trim-blur
+      (with-disabled-compat
+       (fn [attrs]
+         [form-field
+          attrs
+          [comp/plain-input attrs]])))))))
 
 (def ^{:arglists '([attrs])} datetime
   (with-id
-    (scomp/with-auto-focus
-      (with-emit-on-change
-        (with-disabled-compat
-          (fn [attrs]
-            (let [attrs' (-> attrs
-                             (assoc :type :datetime-local)
-                             #?@(:cljs [(maps/update-when :value dates/to-iso-datetime-min-precision)
-                                        (update :on-change comp #(some-> % not-empty js/Date.))]))]
-              [form-field
-               attrs
-               [comp/plain-input attrs']])))))))
+   (scomp/with-auto-focus
+    (with-emit-on-change
+     (with-disabled-compat
+      (fn [attrs]
+        (let [attrs' (-> attrs
+                         (assoc :type :datetime-local)
+                         #?@(:cljs [(maps/update-when :value dates/to-iso-datetime-min-precision)
+                                    (update :on-change comp #(some-> % not-empty js/Date.))]))]
+          [form-field
+           attrs
+           [comp/plain-input attrs']])))))))
 
 (def ^{:arglists '([attrs])} textarea
   (with-id
-    (scomp/with-auto-focus
-      (with-emit-on-change
-        (with-trim-blur
-          (with-disabled-compat
-            (fn [{:keys [on-change value] :as attrs}]
-              [form-field
-               attrs
-               [:textarea.textarea
-                (-> {:value     value
-                     :on-change (comp on-change dom/target-value)}
-                    (merge (select-keys attrs #{:class :disabled :id :on-blur :ref :style})))]])))))))
+   (scomp/with-auto-focus
+    (with-emit-on-change
+     (with-trim-blur
+      (with-disabled-compat
+       (fn [{:keys [on-change value] :as attrs}]
+         [form-field
+          attrs
+          [:textarea.textarea
+           (-> {:value     value
+                :on-change (comp on-change dom/target-value)}
+               (merge (select-keys attrs #{:class :disabled :id :on-blur :ref :style})))]])))))))
 
 (def ^{:arglists '([attrs options])} select
   (with-id
-    (with-emit-on-change
-      (with-disabled-compat
-        (fn [{:keys [on-change value] :as attrs} options]
-          (let [option-values (set (map first options))
-                value (if (contains? option-values value)
-                        value
-                        ::empty)]
-            [form-field
-             attrs
-             [:div.select
-              [:select
-               (-> {:value     (str value)
-                    :on-change (comp on-change
-                                     (into {} (map (juxt str identity) option-values))
-                                     dom/target-value)}
-                   (merge (select-keys attrs #{:class :disabled :id :on-blur :ref})))
-               (for [[option label attrs] (cond->> options
-                                            (= ::empty value)
-                                            (cons [::empty "Choose..." {:disabled true}]))
-                     :let [str-option (str option)]]
-                 ^{:key str-option}
-                 [:option
-                  (assoc attrs :value str-option)
-                  label])]]]))))))
+   (with-emit-on-change
+    (with-disabled-compat
+     (fn [{:keys [on-change value] :as attrs} options]
+       (let [option-values (set (map first options))
+             value (if (contains? option-values value)
+                     value
+                     ::empty)]
+         [form-field
+          attrs
+          [:div.select
+           [:select
+            (-> {:value     (str value)
+                 :on-change (comp on-change
+                                  (into {} (map (juxt str identity) option-values))
+                                  dom/target-value)}
+                (merge (select-keys attrs #{:class :disabled :id :on-blur :ref})))
+            (for [[option label attrs] (cond->> options
+                                         (= ::empty value)
+                                         (cons [::empty "Choose..." {:disabled true}]))
+                  :let [str-option (str option)]]
+              ^{:key str-option}
+              [:option
+               (assoc attrs :value str-option)
+               label])]]]))))))
 
 (def ^{:arglists '([attrs])} toggle
   (with-id
-    (with-emit-on-change
-      (with-disabled-compat
-        (fn [{:keys [on-change value] :as attrs}]
-          [form-field
-           attrs
-           [comp/checkbox (assoc attrs :on-change #(on-change (not value)))]])))))
+   (with-emit-on-change
+    (with-disabled-compat
+     (fn [{:keys [on-change value] :as attrs}]
+       [form-field
+        attrs
+        [comp/checkbox (assoc attrs :on-change #(on-change (not value)))]])))))
 
 (def ^{:arglists '([attrs])} icon-toggle
   (with-id
-    (with-emit-on-change
-      (with-disabled-compat
-        (fn [{:keys [icon on-change value] :as attrs}]
-          [form-field
-           attrs
-           [comp/plain-button
-            (-> attrs
-                (select-keys #{:class :disabled :id :on-blur :ref :type})
-                (assoc :on-click #(on-change (not value)))
-                (update :class conj (when value "is-info")))
-            [comp/icon icon]]])))))
+   (with-emit-on-change
+    (with-disabled-compat
+     (fn [{:keys [icon on-change value] :as attrs}]
+       [form-field
+        attrs
+        [comp/plain-button
+         (-> attrs
+             (select-keys #{:class :disabled :id :on-blur :ref :type})
+             (assoc :on-click #(on-change (not value)))
+             (update :class conj (when value "is-info")))
+         [comp/icon icon]]])))))
 
 (def ^{:arglists '([attrs])} tags-editor
   (with-id
-    (with-emit-on-change
-      (with-disabled-compat
-        (fn [attrs]
-          [form-field
-           attrs
-           [tags-editor/control attrs]])))))
+   (with-emit-on-change
+    (with-disabled-compat
+     (fn [attrs]
+       [form-field
+        attrs
+        [tags-editor/control attrs]])))))
 
 (def ^{:arglists '([attrs])} type-ahead
   (with-id
-    (scomp/with-auto-focus
-      (with-emit-on-change
-        (with-disabled-compat
-          (fn [attrs]
-            [form-field
-             attrs
-             [type-ahead/control attrs]]))))))
+   (scomp/with-auto-focus
+    (with-emit-on-change
+     (with-disabled-compat
+      (fn [attrs]
+        [form-field
+         attrs
+         [type-ahead/control attrs]]))))))
 
 (def ^{:arglists '([attrs])} multi-dropdown
   (with-id
-    (with-emit-on-change
-      (with-disabled-compat
-        (fn [attrs]
-          [form-field
-           attrs
-           [dd/control attrs]])))))
+   (with-emit-on-change
+    (with-disabled-compat
+     (fn [attrs]
+       [form-field
+        attrs
+        [dd/control attrs]])))))
 
 (def ^{:arglists '([attrs])} single-dropdown
   (with-id
-    (with-emit-on-change
-      (with-disabled-compat
-        (fn [attrs]
-          [form-field
-           attrs
-           [dd/control (dd/->single attrs)]])))))
+   (with-emit-on-change
+    (with-disabled-compat
+     (fn [attrs]
+       [form-field
+        attrs
+        [dd/control (dd/->single attrs)]])))))
 
 (def ^{:arglists '([attrs])} file
   (with-id
-    (scomp/with-auto-focus
-      (fn [{:keys [multi? on-upload] :as attrs}]
-        (r/with-let [file-input (volatile! nil)]
-          [form-field attrs
-           [:div
-            [:input {:ref       #(some->> % (vreset! file-input))
-                     :type      :file
-                     :multiple  multi?
-                     :style     {:display :none}
-                     :on-change (comp on-upload
-                                      (fn [e]
-                                        (let [files (into #{} (some-> e .-target .-files))]
-                                          (doto (.-target e)
-                                            (aset "files" nil)
-                                            (aset "value" nil))
-                                          files)))}]
-            [comp/plain-button
-             (-> attrs
-                 (select-keys #{:class :id :disabled :style :on-blur :ref :auto-focus})
-                 (assoc :on-click (comp (fn [_]
-                                          (dom/click! @file-input))
-                                        dom/prevent-default!)))
-             (:display attrs "Select file(s)…")
-             (when (:disabled attrs)
-               [:div {:style {:margin-left "8px"}} [comp/spinner]])]]])))))
+   (scomp/with-auto-focus
+    (fn [{:keys [multi? on-upload] :as attrs}]
+      (r/with-let [file-input (volatile! nil)]
+        [form-field attrs
+         [:div
+          [:input {:ref       #(some->> % (vreset! file-input))
+                   :type      :file
+                   :multiple  multi?
+                   :style     {:display :none}
+                   :on-change (comp on-upload
+                                    (fn [e]
+                                      (let [files (into #{} (some-> e .-target .-files))]
+                                        (doto (.-target e)
+                                          (aset "files" nil)
+                                          (aset "value" nil))
+                                        files)))}]
+          [comp/plain-button
+           (-> attrs
+               (select-keys #{:class :id :disabled :style :on-blur :ref :auto-focus})
+               (assoc :on-click (comp (fn [_]
+                                        (dom/click! @file-input))
+                                      dom/prevent-default!)))
+           (:display attrs "Select file(s)…")
+           (when (:disabled attrs)
+             [:div {:style {:margin-left "8px"}} [comp/spinner]])]]])))))
 
 (defn ^:private form-button-row [{:keys [attempted? inline-buttons? buttons disabled requesting?] :as attrs}]
   (cond-> [:div.layout--room-between
-           {:class [(when-not inline-buttons? "button-row")] }
+           {:class [(when-not inline-buttons? "button-row")]}
            [comp/plain-button
             {:class    ["is-primary" "submit" (when attempted? "disabled")]
              :type     :submit

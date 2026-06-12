@@ -1,17 +1,17 @@
 (ns brainard.infra.views.pages.note.core
   (:require
-    [brainard.infra.store.core :as store]
-    [brainard.infra.views.components.core :as comp]
-    [brainard.infra.views.controls.core :as ctrls]
-    [brainard.infra.views.fragments.note-components :as note-comp]
-    [brainard.infra.views.pages.interfaces :as ipages]
-    [brainard.infra.views.pages.note.history :as note.history]
-    [brainard.infra.views.pages.note.actions :as note.act]
-    [brainard.infra.views.pages.note.schedules :as note.sched]
-    [defacto.forms.core :as forms]
-    [defacto.forms.plus :as forms+]
-    [defacto.resources.core :as res]
-    [whet.utils.reagent :as r]))
+   [brainard.infra.store.core :as store]
+   [brainard.infra.views.components.core :as comp]
+   [brainard.infra.views.controls.core :as ctrls]
+   [brainard.infra.views.fragments.note-components :as note-comp]
+   [brainard.infra.views.pages.interfaces :as ipages]
+   [brainard.infra.views.pages.note.history :as note.history]
+   [brainard.infra.views.pages.note.actions :as note.act]
+   [brainard.infra.views.pages.note.schedules :as note.sched]
+   [defacto.forms.core :as forms]
+   [defacto.forms.plus :as forms+]
+   [defacto.resources.core :as res]
+   [whet.utils.reagent :as r]))
 
 (defn ^:private attachment-list [note]
   (when-let [attachments (not-empty (:notes/attachments note))]

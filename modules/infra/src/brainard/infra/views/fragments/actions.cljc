@@ -1,14 +1,14 @@
 (ns brainard.infra.views.fragments.actions
   (:require
-    [brainard.api.validations :as valid]
-    [brainard.attachments.api.specs :as sattachments]
-    [brainard.notes.api.specs :as snotes]
-    [clojure.core.async :as async]
-    [defacto.forms.core :as forms]
-    [defacto.forms.plus :as forms+]
-    [defacto.resources.core :as res]
-    [whet.core :as-alias w]
-    [whet.interfaces :as iwhet]))
+   [brainard.api.validations :as valid]
+   [brainard.attachments.api.specs :as sattachments]
+   [brainard.notes.api.specs :as snotes]
+   [clojure.core.async :as async]
+   [defacto.forms.core :as forms]
+   [defacto.forms.plus :as forms+]
+   [defacto.resources.core :as res]
+   [whet.core :as-alias w]
+   [whet.interfaces :as iwhet]))
 
 (def attachment-form-key [::forms+/valid [::modal ::attachment-edit]])
 (def todo-form-key [::forms+/valid [::modal ::todo-edit]])

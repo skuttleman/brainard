@@ -1,17 +1,17 @@
 (ns brainard.infra.views.pages.core
   "The core of the UI reagent layout components."
   (:require
-    [brainard.infra.store.core :as store]
-    [brainard.infra.store.specs :as-alias specs]
-    [brainard.infra.views.components.core :as comp]
-    [brainard.infra.views.pages.interfaces :as ipages]
-    [defacto.resources.core :as res]
-    [whet.core :as w]
-    [whet.utils.reagent :as r]
-    brainard.infra.views.pages.buzz.core
-    brainard.infra.views.pages.home.core
-    brainard.infra.views.pages.note.core
-    brainard.infra.views.pages.search.core))
+   [brainard.infra.store.core :as store]
+   [brainard.infra.store.specs :as-alias specs]
+   [brainard.infra.views.components.core :as comp]
+   [brainard.infra.views.pages.interfaces :as ipages]
+   [defacto.resources.core :as res]
+   [whet.core :as w]
+   [whet.utils.reagent :as r]
+   brainard.infra.views.pages.buzz.core
+   brainard.infra.views.pages.home.core
+   brainard.infra.views.pages.note.core
+   brainard.infra.views.pages.search.core))
 
 (def ^:const app-name "brainard")
 

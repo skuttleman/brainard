@@ -1,23 +1,23 @@
 (ns brainard.infra.routes.ui
   (:require
-    [brainard :as-alias b]
-    [brainard.attachments.api.core :as api.attachments]
-    [brainard.infra.routes.core :as routes]
-    [brainard.infra.routes.interfaces :as iroutes]
-    [brainard.infra.routes.response :as routes.res]
-    [brainard.infra.store.specs :as-alias specs]
-    [brainard.infra.views.pages.core :as pages]
-    [brainard.notes.api.core :as api.notes]
-    [brainard.notes.infra.export :as export]
-    [defacto.core :as defacto]
-    [defacto.resources.core :as res]
-    [ring.middleware.resource :as ring.res]
-    [ring.util.mime-type :as ring.mime]
-    [whet.core :as w]
-    [whet.impl.template :as tmpl]
-    brainard.infra.store.commands
-    brainard.infra.store.events
-    brainard.infra.store.queries))
+   [brainard :as-alias b]
+   [brainard.attachments.api.core :as api.attachments]
+   [brainard.infra.routes.core :as routes]
+   [brainard.infra.routes.interfaces :as iroutes]
+   [brainard.infra.routes.response :as routes.res]
+   [brainard.infra.store.specs :as-alias specs]
+   [brainard.infra.views.pages.core :as pages]
+   [brainard.notes.api.core :as api.notes]
+   [brainard.notes.infra.export :as export]
+   [defacto.core :as defacto]
+   [defacto.resources.core :as res]
+   [ring.middleware.resource :as ring.res]
+   [ring.util.mime-type :as ring.mime]
+   [whet.core :as w]
+   [whet.impl.template :as tmpl]
+   brainard.infra.store.commands
+   brainard.infra.store.events
+   brainard.infra.store.queries))
 
 (defn ^:private store->tree [env route store]
   (-> store

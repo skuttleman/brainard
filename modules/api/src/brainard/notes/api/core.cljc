@@ -1,9 +1,9 @@
 (ns brainard.notes.api.core
   (:require
-    [brainard.api.storage.core :as storage]
-    [clojure.string :as string]
-    [slag.utils.fns :as fns]
-    [slag.utils.uuids :as uuids]))
+   [brainard.api.storage.core :as storage]
+   [clojure.string :as string]
+   [slag.utils.fns :as fns]
+   [slag.utils.uuids :as uuids]))
 
 (defn ^:private coll-set [note]
   (some-> note

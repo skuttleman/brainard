@@ -1,6 +1,6 @@
 (ns brainard.infra.routes.interfaces
   (:require
-    [whet.core :as-alias w]))
+   [whet.core :as-alias w]))
 
 (def ^:private routing-hierarchy
   (-> (make-hierarchy)

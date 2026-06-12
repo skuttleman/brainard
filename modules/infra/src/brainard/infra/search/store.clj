@@ -1,8 +1,8 @@
 (ns brainard.infra.search.store
   (:require
-    [brainard.api.storage.interfaces :as istorage]
-    [brainard.api.utils.logger :as log]
-    [brainard.infra.search.lucene :as lucene]))
+   [brainard.api.storage.interfaces :as istorage]
+   [brainard.api.utils.logger :as log]
+   [brainard.infra.search.lucene :as lucene]))
 
 (deftype NoteSearchStore [index]
   istorage/IWrite

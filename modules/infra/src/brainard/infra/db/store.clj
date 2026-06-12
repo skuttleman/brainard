@@ -1,10 +1,10 @@
 (ns brainard.infra.db.store
   "This uses a datomic local client"
   (:require
-    [datomic.client.api :as d]
-    [brainard.api.storage.interfaces :as istorage]
-    [clojure.set :as set]
-    [clojure.walk :as walk]))
+   [datomic.client.api :as d]
+   [brainard.api.storage.interfaces :as istorage]
+   [clojure.set :as set]
+   [clojure.walk :as walk]))
 
 (defn transact!
   "Issue a transaction to datomic"

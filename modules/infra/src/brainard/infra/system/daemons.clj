@@ -1,10 +1,10 @@
 (ns brainard.infra.system.daemons
   (:require
-    [brainard.api.core :as api]
-    [brainard.api.storage.interfaces :as istorage]
-    [brainard.api.utils.logger :as log]
-    [brainard.api.events.core :as events]
-    [slag.utils.uuids :as uuids]))
+   [brainard.api.core :as api]
+   [brainard.api.storage.interfaces :as istorage]
+   [brainard.api.utils.logger :as log]
+   [brainard.api.events.core :as events]
+   [slag.utils.uuids :as uuids]))
 
 (defn cleanup-orphaned-artifacts!
   "Cleanup all objects in the object store that have no corresponding

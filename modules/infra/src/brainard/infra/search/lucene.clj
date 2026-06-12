@@ -1,15 +1,15 @@
 (ns brainard.infra.search.lucene
   (:import
-    (java.nio.file Paths)
-    (org.apache.lucene.analysis.standard StandardAnalyzer)
-    (org.apache.lucene.codecs.lucene104 Lucene104Codec)
-    (org.apache.lucene.document Document Field$Store StringField TextField)
-    (org.apache.lucene.index DirectoryReader IndexWriter IndexWriterConfig Term)
-    (org.apache.lucene.search BooleanClause$Occur BooleanQuery$Builder IndexSearcher TopDocs)
-    (org.apache.lucene.search.suggest.document
-      Completion104PostingsFormat PrefixCompletionQuery SuggestField SuggestIndexSearcher)
-    (org.apache.lucene.store ByteBuffersDirectory Directory FSDirectory)
-    (org.apache.lucene.util QueryBuilder)))
+   (java.nio.file Paths)
+   (org.apache.lucene.analysis.standard StandardAnalyzer)
+   (org.apache.lucene.codecs.lucene104 Lucene104Codec)
+   (org.apache.lucene.document Document Field$Store StringField TextField)
+   (org.apache.lucene.index DirectoryReader IndexWriter IndexWriterConfig Term)
+   (org.apache.lucene.search BooleanClause$Occur BooleanQuery$Builder IndexSearcher TopDocs)
+   (org.apache.lucene.search.suggest.document
+    Completion104PostingsFormat PrefixCompletionQuery SuggestField SuggestIndexSearcher)
+   (org.apache.lucene.store ByteBuffersDirectory Directory FSDirectory)
+   (org.apache.lucene.util QueryBuilder)))
 
 (def ^:private ^:const ^String suggest-field "suggest_context")
 

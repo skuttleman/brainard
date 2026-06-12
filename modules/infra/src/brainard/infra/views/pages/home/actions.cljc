@@ -1,18 +1,18 @@
 (ns brainard.infra.views.pages.home.actions
   (:require
-    [brainard.api.validations :as valid]
-    [brainard.infra.store.core :as store]
-    [brainard.infra.store.commands :as-alias commands]
-    [brainard.infra.store.specs :as specs]
-    [brainard.infra.views.components.core :as comp]
-    [brainard.infra.views.components.toasts :as toasts]
-    [brainard.infra.views.fragments.note-edit :as note-edit]
-    [brainard.notes.api.specs :as snotes]
-    [brainard.workspace.api.specs :as sws]
-    [defacto.forms.core :as forms]
-    [defacto.forms.plus :as forms+]
-    [defacto.resources.core :as res]
-    [workspace-nodes :as-alias ws]))
+   [brainard.api.validations :as valid]
+   [brainard.infra.store.core :as store]
+   [brainard.infra.store.commands :as-alias commands]
+   [brainard.infra.store.specs :as specs]
+   [brainard.infra.views.components.core :as comp]
+   [brainard.infra.views.components.toasts :as toasts]
+   [brainard.infra.views.fragments.note-edit :as note-edit]
+   [brainard.notes.api.specs :as snotes]
+   [brainard.workspace.api.specs :as sws]
+   [defacto.forms.core :as forms]
+   [defacto.forms.plus :as forms+]
+   [defacto.resources.core :as res]
+   [workspace-nodes :as-alias ws]))
 
 (def ^:const create-note-key [::forms+/valid [::notes#create]])
 (def ^:const ws-form-key [::forms+/valid [::workspace#sync]])

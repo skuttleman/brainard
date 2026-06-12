@@ -6,6 +6,7 @@
    [clojure.java.io :as io]
    [clojure.string :as string]
    [clojure.test :as t]
+   [duct.core.env :as duct.env]
    [etaoin.api :as eta]
    [etaoin.impl.util :as ueta]
    [integrant.core :as ig]))
@@ -38,7 +39,7 @@
       (.printStackTrace e))))
 
 (defn collect-js-coverage! [driver]
-  (when (= "true" (System/getenv "JS_COVERAGE"))
+  (when (= "true" (duct.env/*env* "JS_COVERAGE"))
     (try
       (let [coverage-json (eta/js-execute driver "return JSON.stringify(window.__coverage__ || null)")
             nyc-output-dir (io/file "target/nyc_output")]
@@ -49,9 +50,9 @@
       (catch Throwable _))))
 
 (defn ->driver []
-  (let [headless? (= "true" (System/getenv "HEADLESS"))]
+  (let [headless? (= "true" (duct.env/*env* "HEADLESS"))]
     (eta/chrome {:headless    headless?
-                 :path-driver (or (System/getenv "CHROMEDRIVER_PATH")
+                 :path-driver (or (duct.env/*env* "CHROMEDRIVER_PATH")
                                   "chromedriver")
                  :args        (into ["--window-size=1200,900"]
                                     (when headless?
@@ -63,7 +64,7 @@
     `(tsys/with-app [{port# :cfg.test/server-port ~db-sym :brainard/IDBConn}
                      {:config    "duct/ui-test.edn"
                       :init-keys [:brainard/webserver]}]
-       (let [screenshot?# (= "true" (System/getenv "SCREENSHOT"))
+       (let [screenshot?# (= "true" (duct.env/*env* "SCREENSHOT"))
              orig-report# t/report
              ~driver-binding (try (->driver)
                                   (catch Throwable _#
