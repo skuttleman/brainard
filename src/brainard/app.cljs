@@ -38,7 +38,7 @@
   "Takes initialized defacto store and returns the component tree"
   [store]
   (with-nav! store)
-  #_(with-stream! store)
+  (with-stream! store)
   [pages/root store])
 
 (defn start!

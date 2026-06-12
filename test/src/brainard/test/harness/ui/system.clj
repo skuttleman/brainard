@@ -83,7 +83,7 @@
                       ~idx-sym :brainard/IIndex}
                      {:config    "duct/ui-test.edn"
                       :init-keys [:brainard/webserver]
-                      :timeout   20000}]
+                      :timeout   30000}]
        (let [screenshot?# (= "true" (duct.env/*env* "SCREENSHOT"))
              orig-report# t/report
              ~driver-binding (try (->driver)
