@@ -1,8 +1,8 @@
 (ns brainard.notes.infra.export-test
   (:require
-    [brainard.notes.infra.export :as export]
-    [clojure.test :refer [deftest is testing]]
-    [slag.utils.uuids :as uuids]))
+   [brainard.notes.infra.export :as export]
+   [clojure.test :refer [deftest is testing]]
+   [slag.utils.uuids :as uuids]))
 
 (deftest ->markdown-test
   (testing "when rendering a note"

@@ -1,15 +1,15 @@
 (ns brainard.infra.store.commands-test
   (:require
-    [brainard.infra.store.core :as store]
-    [clojure.core.async :as async]
-    [clojure.test :refer [deftest is testing]]
-    [defacto.core :as defacto]
-    [slag.test.utils.async :as tua]
-    [whet.core :as w]
-    [whet.interfaces :as iwhet]
-    brainard.infra.store.commands
-    brainard.infra.store.events
-    brainard.infra.store.queries))
+   [brainard.infra.store.core :as store]
+   [clojure.core.async :as async]
+   [clojure.test :refer [deftest is testing]]
+   [defacto.core :as defacto]
+   [slag.test.utils.async :as tua]
+   [whet.core :as w]
+   [whet.interfaces :as iwhet]
+   brainard.infra.store.commands
+   brainard.infra.store.events
+   brainard.infra.store.queries))
 
 (deftest nav-test
   (letfn [(mock-nav [navigate-calls replace-calls]

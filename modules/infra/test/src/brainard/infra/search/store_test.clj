@@ -1,9 +1,9 @@
 (ns brainard.infra.search.store-test
   (:require
-    [brainard.api.storage.interfaces :as istorage]
-    [brainard.infra.search.store :as search]
-    [clojure.test :refer [deftest is testing]]
-    [slag.utils.uuids :as uuids]))
+   [brainard.api.storage.interfaces :as istorage]
+   [brainard.infra.search.store :as search]
+   [clojure.test :refer [deftest is testing]]
+   [slag.utils.uuids :as uuids]))
 
 (deftest ->NoteSearchStore-test
   (testing "when creating a store"
@@ -74,7 +74,7 @@
             (testing "and when there are matches"
               (let [results (istorage/read store
                                            {:action :search
-                                            :body  #{"new"}})]
+                                            :body   #{"new"}})]
                 (testing "returns the results"
                   (is (= #{n1}
                          (into #{} (map :notes/id) results)))))))
@@ -111,7 +111,7 @@
               (testing "returns no results"
                 (is (empty? (istorage/read store
                                            {:action :search
-                                            :body  #{"new"}}))))))
+                                            :body   #{"new"}}))))))
 
           (testing "and when getting suggestions from the index"
             (testing "and when there are matches"

@@ -1,12 +1,12 @@
 (ns brainard.test.integration.notes-test
   (:require
-    [brainard :as-alias b]
-    [brainard.api.storage.interfaces :as istorage]
-    [brainard.notes.api.core :as api.notes]
-    [brainard.api.storage.core :as storage]
-    [brainard.test.harness.integration.system :as tsys]
-    [clojure.test :refer [deftest is testing]]
-    [slag.utils.uuids :as uuids]))
+   [brainard :as-alias b]
+   [brainard.api.storage.interfaces :as istorage]
+   [brainard.notes.api.core :as api.notes]
+   [brainard.api.storage.core :as storage]
+   [brainard.test.harness.integration.system :as tsys]
+   [clojure.test :refer [deftest is testing]]
+   [slag.utils.uuids :as uuids]))
 
 (deftest save!-test
   (tsys/with-app [{::b/keys [storage]} nil]

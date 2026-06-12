@@ -1,10 +1,10 @@
 (ns brainard.test.ui.errors-test
   (:require
-    [brainard.test.harness.ui.system :as usys]
-    [brainard.test.harness.ui.web :as web]
-    [clojure.java.io :as io]
-    [clojure.test :refer [deftest is testing]]
-    [etaoin.api :as eta]))
+   [brainard.test.harness.ui.system :as usys]
+   [brainard.test.harness.ui.web :as web]
+   [clojure.java.io :as io]
+   [clojure.test :refer [deftest is testing]]
+   [etaoin.api :as eta]))
 
 (deftest attachment-upload-error-test
   (usys/with-webdriver [driver base-url]

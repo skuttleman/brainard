@@ -1,12 +1,12 @@
 (ns brainard.infra.store.events-test
   (:require
-    [brainard.infra.store.core :as store]
-    [brainard.infra.store.specs :as specs]
-    [clojure.test :refer [deftest is testing]]
-    [defacto.core :as defacto]
-    [defacto.resources.core :as res]
-    brainard.infra.store.events
-    brainard.infra.store.queries))
+   [brainard.infra.store.core :as store]
+   [brainard.infra.store.specs :as specs]
+   [clojure.test :refer [deftest is testing]]
+   [defacto.core :as defacto]
+   [defacto.resources.core :as res]
+   brainard.infra.store.events
+   brainard.infra.store.queries))
 
 (defn ^:private loaded-store [spec payload]
   (-> (defacto/create {} {})

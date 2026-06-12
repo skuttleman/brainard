@@ -1,11 +1,11 @@
 (ns brainard.test.ui.notes.history-test
   (:require
-    [brainard.test.harness.ui.system :as usys]
-    [brainard.test.harness.ui.web :as web]
-    [clojure.string :as string]
-    [clojure.test :refer [deftest is testing]]
-    [etaoin.api :as eta]
-    [slag.utils.edn :as edn]))
+   [brainard.test.harness.ui.system :as usys]
+   [brainard.test.harness.ui.web :as web]
+   [clojure.string :as string]
+   [clojure.test :refer [deftest is testing]]
+   [etaoin.api :as eta]
+   [slag.utils.edn :as edn]))
 
 (defn ^:private collect-attachments [driver css-prefix]
   (into #{}

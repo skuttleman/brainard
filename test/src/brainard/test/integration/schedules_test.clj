@@ -1,15 +1,15 @@
 (ns brainard.test.integration.schedules-test
   (:require
-    [brainard :as-alias b]
-    [brainard.schedules.api.core :as api.sched]
-    [brainard.api.storage.core :as storage]
-    [brainard.schedules.api.relevancy :as relevancy]
-    [brainard.test.harness.integration.system :as tsys]
-    [cljc.java-time.instant :as inst]
-    [clojure.test :refer [deftest is testing]]
-    [slag.utils.uuids :as uuids])
+   [brainard :as-alias b]
+   [brainard.schedules.api.core :as api.sched]
+   [brainard.api.storage.core :as storage]
+   [brainard.schedules.api.relevancy :as relevancy]
+   [brainard.test.harness.integration.system :as tsys]
+   [cljc.java-time.instant :as inst]
+   [clojure.test :refer [deftest is testing]]
+   [slag.utils.uuids :as uuids])
   (:import
-    (java.util Date)))
+   (java.util Date)))
 
 (deftest get-schedules-test
   (tsys/with-app [{::b/keys [storage]} nil]

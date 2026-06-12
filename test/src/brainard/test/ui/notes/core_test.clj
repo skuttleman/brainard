@@ -1,11 +1,11 @@
 (ns brainard.test.ui.notes.core-test
   (:require
-    [brainard.test.harness.ui.system :as usys]
-    [brainard.test.harness.ui.web :as web]
-    [clojure.string :as string]
-    [clojure.test :refer [deftest is testing]]
-    [etaoin.api :as eta]
-    [etaoin.keys :as keys]))
+   [brainard.test.harness.ui.system :as usys]
+   [brainard.test.harness.ui.web :as web]
+   [clojure.string :as string]
+   [clojure.test :refer [deftest is testing]]
+   [etaoin.api :as eta]
+   [etaoin.keys :as keys]))
 
 (deftest create-note-test
   (usys/with-webdriver [driver base-url]

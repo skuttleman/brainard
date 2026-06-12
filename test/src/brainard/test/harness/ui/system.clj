@@ -1,14 +1,14 @@
 (ns brainard.test.harness.ui.system
   (:require
-    [brainard.infra.db.store :as ds]
-    [brainard.test.harness.integration.system :as tsys]
-    [brainard.test.harness.ui.web :as web]
-    [clojure.java.io :as io]
-    [clojure.string :as string]
-    [clojure.test :as t]
-    [etaoin.api :as eta]
-    [etaoin.impl.util :as ueta]
-    [integrant.core :as ig]))
+   [brainard.infra.db.store :as ds]
+   [brainard.test.harness.integration.system :as tsys]
+   [brainard.test.harness.ui.web :as web]
+   [clojure.java.io :as io]
+   [clojure.string :as string]
+   [clojure.test :as t]
+   [etaoin.api :as eta]
+   [etaoin.impl.util :as ueta]
+   [integrant.core :as ig]))
 
 (defmethod ig/init-key :cfg.test/server-port
   [_ _]

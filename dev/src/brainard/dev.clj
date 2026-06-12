@@ -1,13 +1,13 @@
 (ns brainard.dev
   (:require
-    [brainard :as-alias b]
-    [brainard.api.utils.logger :as log]
-    [brainard.main :as main]
-    [duct.core :as duct]
-    [integrant.core :as ig]
-    [nrepl.server :as nrepl]
-    [ring.middleware.reload :as ring.rel]
-    brainard.dev.s3))
+   [brainard :as-alias b]
+   [brainard.api.utils.logger :as log]
+   [brainard.main :as main]
+   [duct.core :as duct]
+   [integrant.core :as ig]
+   [nrepl.server :as nrepl]
+   [ring.middleware.reload :as ring.rel]
+   brainard.dev.s3))
 
 (defonce system nil)
 
@@ -50,7 +50,7 @@
       (duct/await-daemons system))))
 
 (comment
-  (alter-var-root #'system (fn [sys]
-                             (some-> sys ig/halt!)
-                             (main/start! "duct/dev.edn" [:duct.profile/base :duct.profile/dev])))
-  (ig/halt! system))
+ (alter-var-root #'system (fn [sys]
+                            (some-> sys ig/halt!)
+                            (main/start! "duct/dev.edn" [:duct.profile/base :duct.profile/dev])))
+ (ig/halt! system))

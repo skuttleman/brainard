@@ -1,10 +1,10 @@
 (ns brainard.dev.s3
   (:require
-    [clojure.java.io :as io]
-    [clojure.string :as string]
-    [integrant.core :as ig])
+   [clojure.java.io :as io]
+   [clojure.string :as string]
+   [integrant.core :as ig])
   (:import
-    (java.io File)))
+   (java.io File)))
 
 (defmulti ^:private fs-invoker :op)
 

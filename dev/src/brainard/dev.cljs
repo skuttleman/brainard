@@ -1,12 +1,12 @@
 (ns brainard.dev
   (:require
-    [brainard.api.utils.logger :as log]
-    [brainard.app :as app]
-    [brainard.infra.store.core :as store]
-    [brainard.infra.views.pages.core :as pages]
-    [clojure.pprint :as pp]
-    [defacto.core :as defacto]
-    [whet.core :as w]))
+   [brainard.api.utils.logger :as log]
+   [brainard.app :as app]
+   [brainard.infra.store.core :as store]
+   [brainard.infra.views.pages.core :as pages]
+   [clojure.pprint :as pp]
+   [defacto.core :as defacto]
+   [whet.core :as w]))
 
 (defonce ^:dynamic *store* nil)
 
@@ -33,13 +33,13 @@
 
 (defn ^:private handler-mw [handler ctx [action :as cmd] emit-cb]
   #_(when-not (= :defacto.core/emit! action)
-    (log/info "command:" action))
+      (log/info "command:" action))
   (handler ctx cmd emit-cb))
 
 (defn ^:private reducer-mw [reducer db [type :as event]]
   #_(if (contains? (methods defacto.core/event-reducer) type)
-    (log/info "event:  " type)
-    (log/warn "UNevent:" type))
+      (log/info "event:  " type)
+      (log/warn "UNevent:" type))
   (reducer db event))
 
 (def ^:private store-mw

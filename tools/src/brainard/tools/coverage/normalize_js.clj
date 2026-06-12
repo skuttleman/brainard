@@ -1,8 +1,8 @@
 (ns brainard.tools.coverage.normalize-js
   (:require
-    [brainard.tools.coverage.common :as cov.common]
-    [clojure.java.io :as io]
-    [clojure.string :as string]))
+   [brainard.tools.coverage.common :as cov.common]
+   [clojure.java.io :as io]
+   [clojure.string :as string]))
 
 (defn ^:private process-lines [lines]
   (loop [[line & rest-lines] lines

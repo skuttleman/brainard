@@ -1,9 +1,9 @@
 (ns brainard.tools.coverage.merge-lcov
   (:require
-    [brainard.tools.coverage.common :as cov.common]
-    [clojure.java.io :as io]
-    [clojure.java.shell :as sh]
-    [clojure.string :as string]))
+   [brainard.tools.coverage.common :as cov.common]
+   [clojure.java.io :as io]
+   [clojure.java.shell :as sh]
+   [clojure.string :as string]))
 
 (defn ^:private sh! [& args]
   (let [{:keys [exit out err]} (apply sh/sh args)]

@@ -1,9 +1,9 @@
 (ns brainard.infra.obj.store-test
   (:require
-    [brainard.infra.obj.store :as os]
-    [clojure.test :refer [deftest is testing]]
-    [cognitect.aws.credentials :as aws.creds]
-    [slag.test.utils.spies :as spies]))
+   [brainard.infra.obj.store :as os]
+   [clojure.test :refer [deftest is testing]]
+   [cognitect.aws.credentials :as aws.creds]
+   [slag.test.utils.spies :as spies]))
 
 (deftest ->invoker-test
   (testing "when creating an invoke-fn"

@@ -1,9 +1,9 @@
 (ns brainard.test
   (:require
-    [brainard.api.utils.logger :as log]
-    [brainard.app :as app]
-    [clojure.core.async :as async]
-    [whet.impl.http :as whttp]))
+   [brainard.api.utils.logger :as log]
+   [brainard.app :as app]
+   [clojure.core.async :as async]
+   [whet.impl.http :as whttp]))
 
 (defn ^:export init!
   "Called when the DOM finishes loading."

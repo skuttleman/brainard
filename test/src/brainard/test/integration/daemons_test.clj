@@ -1,20 +1,20 @@
 (ns brainard.test.integration.daemons-test
   (:require
-    [brainard :as-alias b]
-    [brainard.api.events.interfaces :as ievents]
-    [brainard.api.storage.core :as storage]
-    [brainard.attachments.api.core :as api.attachments]
-    [brainard.infra.system.daemons :as daemons]
-    [brainard.test.harness.integration.system :as tsys]
-    [cljc.java-time.instant :as inst]
-    [cljc.java-time.zone-id :as zi]
-    [cljc.java-time.zoned-date-time :as zdt]
-    [clojure.java.io :as io]
-    [clojure.string :as string]
-    [clojure.test :refer [deftest is testing]]
-    [slag.utils.uuids :as uuids])
+   [brainard :as-alias b]
+   [brainard.api.events.interfaces :as ievents]
+   [brainard.api.storage.core :as storage]
+   [brainard.attachments.api.core :as api.attachments]
+   [brainard.infra.system.daemons :as daemons]
+   [brainard.test.harness.integration.system :as tsys]
+   [cljc.java-time.instant :as inst]
+   [cljc.java-time.zone-id :as zi]
+   [cljc.java-time.zoned-date-time :as zdt]
+   [clojure.java.io :as io]
+   [clojure.string :as string]
+   [clojure.test :refer [deftest is testing]]
+   [slag.utils.uuids :as uuids])
   (:import
-    (java.util Date)))
+   (java.util Date)))
 
 (deftest cleanup-orphaned-artifacts!-test
   (tsys/with-app [{::b/keys [obj-storage storage]} nil]

@@ -1,14 +1,14 @@
 (ns brainard.test.ui.core-test
   (:require
-    [brainard.test.harness.ui.system :as usys]
-    [brainard.test.harness.ui.web :as web]
-    [cljc.java-time.day-of-week :as dow]
-    [cljc.java-time.zoned-date-time :as zdt]
-    [cljc.java-time.zone-offset :as zo]
-    [clojure.string :as string]
-    [clojure.test :refer [deftest is testing]]
-    [etaoin.api :as eta]
-    [whet.utils.navigation :as nav]))
+   [brainard.test.harness.ui.system :as usys]
+   [brainard.test.harness.ui.web :as web]
+   [cljc.java-time.day-of-week :as dow]
+   [cljc.java-time.zoned-date-time :as zdt]
+   [cljc.java-time.zone-offset :as zo]
+   [clojure.string :as string]
+   [clojure.test :refer [deftest is testing]]
+   [etaoin.api :as eta]
+   [whet.utils.navigation :as nav]))
 
 (def ^:private ^:const node-item-selector-fmt
   "//li[contains(@class,'node-item')]//span[text()='%s']")

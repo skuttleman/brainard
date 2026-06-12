@@ -1,10 +1,10 @@
 (ns brainard.events.infra.manager-test
   (:require
-    [brainard.api.events.interfaces :as ievents]
-    [brainard.events.infra.manager :as manager]
-    [clojure.core.async :as async]
-    [clojure.test :refer [deftest is testing]]
-    [slag.test.utils.async :as tua]))
+   [brainard.api.events.interfaces :as ievents]
+   [brainard.events.infra.manager :as manager]
+   [clojure.core.async :as async]
+   [clojure.test :refer [deftest is testing]]
+   [slag.test.utils.async :as tua]))
 
 (deftest EventManager-test
   (testing "when creating an EventManager"

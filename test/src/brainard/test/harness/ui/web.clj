@@ -1,8 +1,8 @@
 (ns brainard.test.harness.ui.web
   (:require
-    [slag.utils.edn :as edn]
-    [clojure.java.io :as io]
-    [etaoin.api :as eta]))
+   [slag.utils.edn :as edn]
+   [clojure.java.io :as io]
+   [etaoin.api :as eta]))
 
 (defn edn-fixture [fixture]
   (->> fixture

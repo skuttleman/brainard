@@ -1,9 +1,9 @@
 (ns brainard.test.ui.notes.todos-test
   (:require
-    [brainard.test.harness.ui.system :as usys]
-    [brainard.test.harness.ui.web :as web]
-    [clojure.test :refer [deftest is testing]]
-    [etaoin.api :as eta]))
+   [brainard.test.harness.ui.system :as usys]
+   [brainard.test.harness.ui.web :as web]
+   [clojure.test :refer [deftest is testing]]
+   [etaoin.api :as eta]))
 
 (deftest add-todo-test
   (usys/with-webdriver [driver base-url {fix "base.edn"}]

@@ -1,6 +1,6 @@
 (ns brainard.tools.coverage.common
   (:require
-    [clojure.java.io :as io]))
+   [clojure.java.io :as io]))
 
 (def ^:const src-dirs ["src" "modules/api/src" "modules/infra/src"])
 (def ^:const cljs-prefix "resources/public/js/cljs-runtime/")
