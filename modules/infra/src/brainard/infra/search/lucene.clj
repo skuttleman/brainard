@@ -39,11 +39,11 @@
   (let [stored-fields (.storedFields searcher)]
     (mapv (fn [score-doc]
             (let [doc-id (.doc score-doc)
-                  doc (.document stored-fields doc-id)]
-              {:doc-id doc-id
-               :score  (.score score-doc)
-               :hit    (when-let [note-id (.get doc "id")]
-                         {:notes/id (parse-uuid note-id)})}))
+                  doc (.document stored-fields doc-id)
+                  note-id (.get doc "id")]
+              {:doc-id   doc-id
+               :score    (.score score-doc)
+               :notes/id (some-> note-id parse-uuid)}))
           (.scoreDocs hits))))
 
 (defmacro ^:private with-writer [[sym index] & body]
@@ -63,16 +63,19 @@
   (with-writer [writer index]
     (.deleteDocuments writer (into-array Term [(Term. "id" note-id)]))))
 
-(defn search [{:keys [^Directory directory analyzer]} terms]
+(defn ^:private add-terms [qb bqb field terms]
+  (doseq [term terms
+          :let [q (.createBooleanQuery qb field term)]
+          :when q]
+    (.add bqb q BooleanClause$Occur/SHOULD)))
+
+(defn search [{:keys [^Directory directory analyzer]} {:keys [body context]}]
   (with-open [reader (DirectoryReader/open directory)]
     (let [searcher (IndexSearcher. reader)
           qb (QueryBuilder. analyzer)
           bqb (BooleanQuery$Builder.)]
-      (doseq [term terms]
-        (when-let [q (.createBooleanQuery qb "body" term)]
-          (.add bqb q BooleanClause$Occur/SHOULD))
-        (when-let [q (.createBooleanQuery qb "context" term)]
-          (.add bqb q BooleanClause$Occur/SHOULD)))
+      (add-terms qb bqb "body" body)
+      (add-terms qb bqb "context" context)
       (hits->results searcher (.search searcher (.build bqb) 10)))))
 
 (defn suggest [{:keys [^Directory directory analyzer]} ^String prefix]

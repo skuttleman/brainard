@@ -3,9 +3,10 @@
             [brainard.notes.api.core :as-alias api.notes]))
 
 (defmethod istorage/->input ::api.notes/search
-  [{:notes/keys [query]}]
-  {:action :search
-   :terms  query})
+  [{:notes/keys [body context]}]
+  {:action  :search
+   :body    body
+   :context context})
 
 (defmethod istorage/->input ::api.notes/search-suggest
   [{:notes/keys [query]}]

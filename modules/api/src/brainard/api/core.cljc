@@ -34,8 +34,15 @@
   nil)
 
 (defmethod invoke-api* :api.notes/select
-  [_ apis params]
-  (api.notes/get-notes (:notes apis) params))
+  [_ apis {:notes/keys [body] :as params}]
+  (if-let [note-ids (some->> body
+                             (hash-map :notes/body)
+                             (api.notes/search-notes (:notes apis))
+                             (map :notes/id))]
+    (api.notes/get-notes (:notes apis) (assoc params :notes/ids note-ids))
+    (if (seq (dissoc params :notes/body))
+      (api.notes/get-notes (:notes apis) params)
+      ())))
 
 (defmethod invoke-api* :api.notes/fetch
   [_ apis {note-id :notes/id}]

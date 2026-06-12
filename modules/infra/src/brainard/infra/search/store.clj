@@ -17,7 +17,7 @@
   (read [_ query]
     (case (:action query)
       :suggest (lucene/suggest index (:prefix query))
-      :search (lucene/search index (:terms query)))))
+      :search (lucene/search index query))))
 
 (defn ->mem-index []
   (log/info "building search store with in-memory index")

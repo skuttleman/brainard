@@ -36,12 +36,14 @@
 (defmethod ig/init-key ::b/webserver
   [_ {:keys [apis events handler server-port]}]
   (log/info "starting webserver on port" server-port)
-  (http/start-server (fn [req]
-                       (handler (assoc req ::b/apis apis ::b/events events)))
-                     {:port server-port}))
+  {:server (http/start-server (fn [req]
+                                (handler (assoc req ::b/apis apis ::b/events events)))
+                              {:port server-port})
+   :events events})
 
 (defmethod ig/halt-key! ::b/webserver
-  [_ server]
+  [_ {:keys [events server]}]
+  (events/close! events)
   (log/info "shutting down webserver")
   (.close server))
 

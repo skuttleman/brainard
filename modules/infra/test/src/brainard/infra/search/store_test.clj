@@ -23,21 +23,23 @@
           (testing "and when there are matches"
             (let [results1 (istorage/read store
                                           {:action :search
-                                           :terms  #{"body"}})
+                                           :body   #{"body"}})
                   results2 (istorage/read store
-                                          {:action :search
-                                           :terms  #{"also" "other"}})]
+                                          {:action  :search
+                                           :body    #{"other"}
+                                           :context #{"other"}})]
               (testing "returns the results"
                 (is (= #{n1 n2}
-                       (into #{} (map (comp :notes/id :hit)) results1)))
+                       (into #{} (map :notes/id) results1)))
                 (is (= #{n2}
-                       (into #{} (map (comp :notes/id :hit)) results2))))))
+                       (into #{} (map :notes/id) results2))))))
 
           (testing "and when there are no matches"
             (testing "returns no results"
               (is (empty? (istorage/read store
-                                         {:action :search
-                                          :terms  #{"fluffy"}}))))))
+                                         {:action  :search
+                                          :body#   #{"fluffy"}
+                                          :context #{"fluffy"}}))))))
 
         (testing "and when getting suggestions from the index"
           (testing "and when there are matches"
@@ -51,9 +53,9 @@
                                            :prefix "some context a"})]
               (testing "returns the results"
                 (is (= #{n1 n2}
-                       (into #{} (map (comp :notes/id :hit)) results1)))
+                       (into #{} (map :notes/id) results1)))
                 (is (= #{n2}
-                       (into #{} (map (comp :notes/id :hit)) results2)))))
+                       (into #{} (map :notes/id) results2)))))
 
             (testing "and when there are no matches"
               (testing "returns no results"
@@ -72,10 +74,10 @@
             (testing "and when there are matches"
               (let [results (istorage/read store
                                            {:action :search
-                                            :terms  #{"new"}})]
+                                            :body  #{"new"}})]
                 (testing "returns the results"
                   (is (= #{n1}
-                         (into #{} (map (comp :notes/id :hit)) results)))))))
+                         (into #{} (map :notes/id) results)))))))
 
           (testing "and when getting suggestions from the index"
             (testing "and when there are matches"
@@ -89,9 +91,9 @@
                                              :prefix "some new"})]
                 (testing "returns the results"
                   (is (= #{n1 n2}
-                         (into #{} (map (comp :notes/id :hit)) results1)))
+                         (into #{} (map :notes/id) results1)))
                   (is (= #{n1}
-                         (into #{} (map (comp :notes/id :hit)) results2))))))
+                         (into #{} (map :notes/id) results2))))))
 
             (testing "and when there are no matches"
               (testing "returns no results"
@@ -109,7 +111,7 @@
               (testing "returns no results"
                 (is (empty? (istorage/read store
                                            {:action :search
-                                            :terms  #{"new"}}))))))
+                                            :body  #{"new"}}))))))
 
           (testing "and when getting suggestions from the index"
             (testing "and when there are matches"
@@ -123,5 +125,5 @@
                                              :prefix "some new"})]
                 (testing "returns the results"
                   (is (= #{n2}
-                         (into #{} (map (comp :notes/id :hit)) results1)))
+                         (into #{} (map :notes/id) results1)))
                   (is (empty? results2)))))))))))

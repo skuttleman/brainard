@@ -88,12 +88,15 @@
                                      :notes/id         note-id
                                      :notes/history-id history-id}))
 
-(defn search-notes [notes-api query]
+(defn search-notes [notes-api {:notes/keys [body context]}]
   (storage/query (:search notes-api)
                  {::storage/type ::search
-                  :notes/query   (into #{} (-> query
-                                               string/lower-case
-                                               (string/split #"[^\w]+")))}))
+                  :notes/body    (into #{} (some-> body
+                                                   string/lower-case
+                                                   (string/split #"[^\w]+")))
+                  :notes/context (into #{} (some-> context
+                                                   string/lower-case
+                                                   (string/split #"[^\w]+")))}))
 
 (defn search-suggest [notes-api query]
   (storage/query (:search notes-api)

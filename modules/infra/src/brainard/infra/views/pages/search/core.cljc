@@ -15,12 +15,13 @@
     [whet.core :as-alias w]
     [whet.utils.reagent :as r]))
 
-(defn ^:private ->empty-form [{:keys [context todos] :as query-params} contexts tags]
+(defn ^:private ->empty-form [{:keys [body context todos] :as query-params} contexts tags]
   (cond-> {:notes/tags (into #{}
                              (comp (map keyword) (filter (set tags)))
                              (colls/wrap-set (:tags query-params)))}
     (contains? contexts context) (assoc :notes/context context)
-    todos (assoc :notes/todos (keyword todos))))
+    todos (assoc :notes/todos (keyword todos))
+    body (assoc :notes/body body)))
 
 (defn ^:private context-filter [{:keys [*:store form+]} contexts]
   (r/with-let [options (map #(vector % %) contexts)
@@ -46,18 +47,22 @@
                        :on-submit   (fn [_]
                                       (store/dispatch! *:store [::w/with-qp! form-data]))
                        :submit/body "Search"}
-     [:div.layout--room-between
-      [:div {:style {:flex-basis "40%"}}
-       [context-filter attrs contexts]]
-      [:div {:style {:flex-basis "40%"}}
-       [tag-filter attrs tags]]
-      [:div {:style {:flex-basis "20%"}}
-       [ctrls/select (-> {:*:store *:store
-                          :label   "TODO Filter"}
-                         (ctrls/with-attrs form+ [:notes/todos]))
-        [[nil "(Unspecified)"]
-         [:incomplete "Incomplete (has 1+ unfinished TODOs)"]
-         [:complete "Complete (has 1+ TODOs - all finished)"]]]]]]))
+     [:div.layout--stack-between
+      [:div.layout--room-between
+       [:div {:style {:flex-basis "40%"}}
+        [context-filter attrs contexts]]
+       [:div {:style {:flex-basis "40%"}}
+        [tag-filter attrs tags]]
+       [:div {:style {:flex-basis "20%"}}
+        [ctrls/select (-> {:*:store *:store
+                           :label   "TODO Filter"}
+                          (ctrls/with-attrs form+ [:notes/todos]))
+         [[nil "(Unspecified)"]
+          [:incomplete "Incomplete (has 1+ unfinished TODOs)"]
+          [:complete "Complete (has 1+ TODOs - all finished)"]]]]]
+      [ctrls/input (-> {:*:store *:store
+                        :label   "Body contents"}
+                       (ctrls/with-attrs form+ [:notes/body]))]]]))
 
 (defn ^:private root [*:store {:keys [anchor query-params]} [contexts tags]]
   (r/with-let [form-key [::forms+/valid [::search.act/search] query-params]
@@ -69,10 +74,7 @@
                              (store/dispatch! *:store [::forms+/submit! form-key]))
                            sub)]
     [:div.layout--stack-between
-     [search-form {:*:store *:store
-                   :form+   @sub:form+}
-      contexts
-      tags]
+     [search-form {:*:store *:store :form+ @sub:form+} contexts tags]
      [comp/with-resource sub:form+ [notes.views/note-list {:anchor     anchor
                                                            :anchor?    true
                                                            :hide-init? true}]]]
