@@ -1,6 +1,7 @@
 (ns brainard.test.harness.integration.system
   (:require
    [brainard.api.storage.interfaces :as istorage]
+   [brainard.dev.s3 :as s3]
    [brainard.infra.db.store :as ds]
    [brainard.infra.search.store :as search]
    [brainard.main :as main]
@@ -9,7 +10,6 @@
    [datomic.client.api :as d]
    [integrant.core :as ig]
    [slag.utils.uuids :as uuids]
-   brainard.dev.s3
    brainard.infra.system.core))
 
 (defmethod ig/init-key :brainard.test/db-name
@@ -28,16 +28,15 @@
 
 (defmethod ig/init-key :brainard.test/fs-invoker
   [_ _]
-  (let [db-name (str (uuids/random))
-        invoker (ig/init-key :brainard/fs-invoker {:db-name db-name})]
-    (vary-meta invoker assoc ::db-name db-name)))
+  (let [db-name (str (uuids/random))]
+    (ig/init-key :brainard/fs-invoker {:db-name db-name})))
 
 (defmethod ig/halt-key! :brainard.test/fs-invoker
   [_ invoker]
   (let [objects (:Contents (invoker {:op :ListObjectsV2}))]
     (invoker {:op      :DeleteObjects
               :request {:Delete {:Objects objects}}})
-    (-> invoker meta ::db-name (->> (str ".storage/s3/")) io/file io/delete-file)))
+    (-> invoker meta ::s3/path io/file io/delete-file)))
 
 (defmethod ig/init-key :brainard.test/search-index
   [_ _]

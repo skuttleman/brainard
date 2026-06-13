@@ -32,8 +32,9 @@
   [{:keys [storage-dir db-name schema]}]
   (let [client (d/client {:server-type :datomic-local
                           :storage-dir (or storage-dir
-                                           (format "%s/.storage/datomic"
-                                                   (System/getProperty "user.dir")))
+                                           (format "%s/.storage/%s/datomic"
+                                                   (System/getProperty "user.dir")
+                                                   db-name))
                           :system      "main"})]
     (d/create-database client {:db-name db-name})
     (with-meta [(doto (d/connect client {:db-name db-name})
