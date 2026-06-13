@@ -47,9 +47,10 @@
                        str
                        (string/replace #"/" "__")
                        (string/replace #"^#'" "")
-                       gensym
-                       (str ".png"))]
-      (eta/screenshot driver filename))
+                       gensym)]
+      (eta/screenshot driver (str filename ".png"))
+      (when-let [logs (seq (eta/get-logs driver))]
+        (spit (str filename ".log") (string/join "\n" logs))))
     (catch Throwable e
       (.printStackTrace e))))
 

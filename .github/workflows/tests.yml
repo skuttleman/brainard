@@ -250,12 +250,14 @@ jobs:
           CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
           HEADLESS: "true"
           JS_COVERAGE: "true"
-      - name: Upload failed test screenshots
+      - name: Upload failed debug test output
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: screenshots-${{ matrix.suite }}
-          path: ./*.png
+          name: debug-${{ matrix.suite }}
+          path: |
+            ./brainard*.png
+            ./brainard*.log
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
