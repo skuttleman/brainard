@@ -22,7 +22,7 @@
                                       {:kaocha.testable/id       :ui-core
                                        :kaocha.filter/focus-meta [:focus]
                                        :kaocha.testable/type     :kaocha.type/clojure.test
-                                       :kaocha/ns-patterns       ["^brainard\\.test\\.ui\\.[^\\.]*-test$"]
+                                       :kaocha/ns-patterns       ["^brainard\\.test\\.ui\\.core\\..*-test$"]
                                        :kaocha/source-paths      ["src"
                                                                   "modules/api/src"
                                                                   "modules/infra/src"]

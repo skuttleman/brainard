@@ -75,38 +75,45 @@
                                        ["--no-sandbox"
                                         "--disable-dev-shm-usage"]))})))
 
-(defmacro with-webdriver [[driver-binding base-url-binding seeds] & body]
-  (let [db-sym (gensym "db")
-        idx-sym (gensym "idx")]
-    `(tsys/with-app [{port#    :cfg.test/server-port
-                      ~db-sym  :brainard/IDBConn
-                      ~idx-sym :brainard/IIndex}
-                     {:config    "duct/ui-test.edn"
-                      :init-keys [:brainard/webserver]
-                      :timeout   30000}]
-       (let [screenshot?# (= "true" (duct.env/*env* "SCREENSHOT"))
-             orig-report# t/report
-             ~driver-binding (try (->driver)
-                                  (catch Throwable _#
-                                    (->driver)))
-             ~base-url-binding (str "http://localhost:" port#)
-             ~@(for [[sym seed] seeds
-                     token [sym `(->> ~seed
-                                      (str "seed/")
-                                      web/edn-fixture
-                                      (transact-multi! ~db-sym ~idx-sym))]]
-                 token)]
-         (binding [t/report (fn [event#]
-                              (when (and (#{:fail :error} (:type event#))
-                                         screenshot?#)
-                                (safe-screenshot! ~driver-binding))
-                              (orig-report# event#))]
-           (try
-             ~@body
-             (catch Throwable e#
-               (when screenshot?#
-                 (safe-screenshot! ~driver-binding))
-               (throw e#))
-             (finally
-               (collect-js-coverage! ~driver-binding)
-               (eta/quit ~driver-binding))))))))
+(defmacro with-webdriver [[driver-binding base-url-binding seeds&opts] & body]
+  (let [port-sym (gensym "port")
+        db-sym (gensym "db")
+        idx-sym (gensym "idx")
+        sys-bindings (into {port-sym :cfg.test/server-port
+                            db-sym   :brainard/IDBConn
+                            idx-sym  :brainard/IIndex}
+                           (filter (fn [[k]] (and (keyword? k) (= "keys" (name k)))))
+                           seeds&opts)]
+    `(let [opts# ~(select-keys seeds&opts #{:init-keys})]
+       (tsys/with-app [~sys-bindings
+                       {:config    "duct/ui-test.edn"
+                        :init-keys (:init-keys opts# [:brainard/webserver])
+                        :timeout   30000}]
+         (let [screenshot?# (= "true" (duct.env/*env* "SCREENSHOT"))
+               orig-report# t/report
+               ~driver-binding (try (->driver)
+                                    (catch Throwable _#
+                                      (->driver)))
+               ~base-url-binding (str "http://localhost:" ~port-sym)
+               ~@(for [[sym seed] seeds&opts
+                       :when (symbol? sym)
+                       token [sym (cond->> `(->> ~seed
+                                                 (str "seed/")
+                                                 web/edn-fixture
+                                                 (transact-multi! ~db-sym ~idx-sym))
+                                    (:defer (meta sym)) (list `fn [])) ]]
+                   token)]
+           (binding [t/report (fn [event#]
+                                (when (and (#{:fail :error} (:type event#))
+                                           screenshot?#)
+                                  (safe-screenshot! ~driver-binding))
+                                (orig-report# event#))]
+             (try
+               ~@body
+               (catch Throwable e#
+                 (when screenshot?#
+                   (safe-screenshot! ~driver-binding))
+                 (throw e#))
+               (finally
+                 (collect-js-coverage! ~driver-binding)
+                 (eta/quit ~driver-binding)))))))))
