@@ -1,9 +1,11 @@
-[{:notes/id      #uuid "6e9d3343-21a0-4d2a-8a5a-5740f5563642"
-  :notes/context "Some Context"
-  :notes/body    "Some body"
-  :notes/pinned? true}
- {:notes/id      #uuid "49491db9-50d4-409a-b964-4b0846b12f03"
-  :notes/context "Some Context"
-  :notes/body    "Some body"
-  :notes/pinned? true
-  :notes/tags    #{:foo :bar :baz :bats :some/tag :some/other-tag}}]
+[{:notes/id        #uuid "6e9d3343-21a0-4d2a-8a5a-5740f5563642"
+  :notes/context   "Some Context"
+  :notes/body      "Some body"
+  :notes/pinned?   true
+  :notes/archived? false}
+ {:notes/id        #uuid "49491db9-50d4-409a-b964-4b0846b12f03"
+  :notes/context   "Some Context"
+  :notes/body      "Some body"
+  :notes/pinned?   true
+  :notes/archived? false
+  :notes/tags      #{:foo :bar :baz :bats :some/tag :some/other-tag}}]

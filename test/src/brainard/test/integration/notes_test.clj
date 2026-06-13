@@ -77,31 +77,36 @@
     (tsys/with-app [{::b/keys [storage]} nil]
       (let [[id-1 id-2 id-3 id-4 id-5 td-1 td-2 td-3] (repeatedly uuids/random)]
         (istorage/write! storage
-                         [{:notes/id      id-1
-                           :notes/context "a"
-                           :notes/tags    #{:a :b :d}
-                           :notes/todos   #{{:todos/id         td-1
-                                             :todos/text       "do something"
-                                             :todos/completed? true}
-                                            {:todos/id         td-2
-                                             :todos/text       "do something else"
-                                             :todos/completed? false}}}
-                          {:notes/id      id-2
-                           :notes/context "a"
-                           :notes/tags    #{:a :c}}
-                          {:notes/id      id-3
-                           :notes/context "b"
-                           :notes/tags    #{:b :c :d}
-                           :notes/pinned? true
-                           :notes/todos   #{{:todos/id         td-3
-                                             :todos/text       "do a third thing"
-                                             :todos/completed? true}}}
-                          {:notes/id      id-4
-                           :notes/context "b"
-                           :notes/tags    #{:d}}
-                          {:notes/id      id-5
-                           :notes/context "XYZ"
-                           :notes/pinned? true}])
+                         [{:notes/id        id-1
+                           :notes/context   "a"
+                           :notes/archived? false
+                           :notes/tags      #{:a :b :d}
+                           :notes/todos     #{{:todos/id         td-1
+                                               :todos/text       "do something"
+                                               :todos/completed? true}
+                                              {:todos/id         td-2
+                                               :todos/text       "do something else"
+                                               :todos/completed? false}}}
+                          {:notes/id        id-2
+                           :notes/context   "a"
+                           :notes/archived? false
+                           :notes/tags      #{:a :c}}
+                          {:notes/id        id-3
+                           :notes/context   "b"
+                           :notes/pinned?   true
+                           :notes/archived? false
+                           :notes/tags      #{:b :c :d}
+                           :notes/todos     #{{:todos/id         td-3
+                                               :todos/text       "do a third thing"
+                                               :todos/completed? true}}}
+                          {:notes/id        id-4
+                           :notes/context   "b"
+                           :notes/archived? false
+                           :notes/tags      #{:d}}
+                          {:notes/id        id-5
+                           :notes/context   "XYZ"
+                           :notes/pinned?   true
+                           :notes/archived? false}])
         (testing "and when querying notes"
           (testing "finds notes by context"
             (let [results (into #{}
@@ -110,12 +115,14 @@
                                           (dissoc :notes/todos :notes/timestamp)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/context "a"}))]
-              (is (= #{{:notes/id      id-1
-                        :notes/context "a"
-                        :notes/tags    #{:a :b :d}}
-                       {:notes/id      id-2
-                        :notes/context "a"
-                        :notes/tags    #{:a :c}}}
+              (is (= #{{:notes/id        id-1
+                        :notes/context   "a"
+                        :notes/tags      #{:a :b :d}
+                        :notes/archived? false}
+                       {:notes/id        id-2
+                        :notes/context   "a"
+                        :notes/tags      #{:a :c}
+                        :notes/archived? false}}
                      results))))
           (testing "finds notes by tags"
             (let [results (into #{}
@@ -124,10 +131,11 @@
                                           (dissoc :notes/todos :notes/timestamp)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/tags    #{:c :d}}))]
-              (is (= #{{:notes/id      id-3
-                        :notes/context "b"
-                        :notes/pinned? true
-                        :notes/tags    #{:b :c :d}}}
+              (is (= #{{:notes/id        id-3
+                        :notes/context   "b"
+                        :notes/pinned?   true
+                        :notes/archived? false
+                        :notes/tags      #{:b :c :d}}}
                      results))))
           (testing "finds notes by context and tags"
             (let [results (into #{}
@@ -137,10 +145,11 @@
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/context "b"
                                                         :notes/tags    #{:b}}))]
-              (is (= #{{:notes/id      id-3
-                        :notes/context "b"
-                        :notes/pinned? true
-                        :notes/tags    #{:b :c :d}}}
+              (is (= #{{:notes/id        id-3
+                        :notes/context   "b"
+                        :notes/pinned?   true
+                        :notes/archived? false
+                        :notes/tags      #{:b :c :d}}}
                      results))))
           (testing "finds pinned notes"
             (let [results (into #{}
@@ -149,14 +158,16 @@
                                           (dissoc :notes/todos :notes/timestamp)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/pinned? true}))]
-              (is (= #{{:notes/id      id-3
-                        :notes/context "b"
-                        :notes/pinned? true
-                        :notes/tags    #{:b :c :d}}
-                       {:notes/id      id-5
-                        :notes/context "XYZ"
-                        :notes/pinned? true
-                        :notes/tags    #{}}}
+              (is (= #{{:notes/id        id-3
+                        :notes/context   "b"
+                        :notes/pinned?   true
+                        :notes/archived? false
+                        :notes/tags      #{:b :c :d}}
+                       {:notes/id        id-5
+                        :notes/context   "XYZ"
+                        :notes/pinned?   true
+                        :notes/archived? false
+                        :notes/tags      #{}}}
                      results))))
           (testing "finds notes with complete todos"
             (let [results (into #{}
@@ -166,13 +177,14 @@
                                           (dissoc :notes/timestamp)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/todos   :complete}))]
-              (is (= #{{:notes/id      id-3
-                        :notes/context "b"
-                        :notes/tags    #{:b :c :d}
-                        :notes/pinned? true
-                        :notes/todos   #{{:todos/id         td-3
-                                          :todos/text       "do a third thing"
-                                          :todos/completed? true}}}}
+              (is (= #{{:notes/id        id-3
+                        :notes/context   "b"
+                        :notes/pinned?   true
+                        :notes/archived? false
+                        :notes/tags      #{:b :c :d}
+                        :notes/todos     #{{:todos/id         td-3
+                                            :todos/text       "do a third thing"
+                                            :todos/completed? true}}}}
                      results))))
           (testing "finds notes with incomplete todos"
             (let [results (into #{}
@@ -182,15 +194,16 @@
                                           (dissoc :notes/timestamp)))
                                 (storage/query storage {::storage/type ::api.notes/get-notes
                                                         :notes/todos   :incomplete}))]
-              (is (= #{{:notes/id      id-1
-                        :notes/context "a"
-                        :notes/tags    #{:a :b :d}
-                        :notes/todos   #{{:todos/id         td-1
-                                          :todos/text       "do something"
-                                          :todos/completed? true}
-                                         {:todos/id         td-2
-                                          :todos/text       "do something else"
-                                          :todos/completed? false}}}}
+              (is (= #{{:notes/id        id-1
+                        :notes/context   "a"
+                        :notes/archived? false
+                        :notes/tags      #{:a :b :d}
+                        :notes/todos     #{{:todos/id         td-1
+                                            :todos/text       "do something"
+                                            :todos/completed? true}
+                                           {:todos/id         td-2
+                                            :todos/text       "do something else"
+                                            :todos/completed? false}}}}
                      results))))
 
           (testing "and when deleting a note"

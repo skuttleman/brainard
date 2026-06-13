@@ -1,12 +1,14 @@
-[{:notes/id      #uuid "c05d5473-05ac-47fe-82a5-aeed9a23cab6"
-  :notes/context "Some context"
-  :notes/body    "Note 1"
-  :notes/pinned? false}
+[{:notes/id        #uuid "c05d5473-05ac-47fe-82a5-aeed9a23cab6"
+  :notes/context   "Some context"
+  :notes/body      "Note 1"
+  :notes/pinned?   false
+  :notes/archived? false}
  {:schedules/id               #uuid "03cb59b5-5e99-4499-be9b-8f75e960118c"
   :schedules/note-id          #uuid "c05d5473-05ac-47fe-82a5-aeed9a23cab6"
   :schedules/after-timestamp  #inst "2000-01-01Z"
   :schedules/before-timestamp #inst "2500-01-01Z"}
- {:notes/id      #uuid "585c7b4d-d971-4c27-abb8-82a176235b83"
-  :notes/context "Some context"
-  :notes/body    "Note 2"
-  :notes/pinned? false}]
+ {:notes/id        #uuid "585c7b4d-d971-4c27-abb8-82a176235b83"
+  :notes/context   "Some context"
+  :notes/body      "Note 2"
+  :notes/pinned?   false
+  :notes/archived? false}]
