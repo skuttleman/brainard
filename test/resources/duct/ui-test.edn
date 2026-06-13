@@ -4,8 +4,8 @@
 
                      [:brainard.web/handler :brainard/IWebHandler]
                      {:env          :test
-                      :ui-env       {"TOAST_TIMEOUT"        750
-                                     "DISABLE_EVENT_STREAM" true}
+                      :ui-env       {"TOAST_TIMEOUT" 750
+                                     "DISABLE_SSE"   #ig/ref :cfg.test/disable-sse?}
                       :upload-limit 1000}
 
                      [:brainard.test/db-conn :brainard/IDBConn]
@@ -23,4 +23,7 @@
                      {}
 
                      :cfg.test/server-port
-                     {}}}
+                     {}
+
+                     [:duct/const :cfg.test/disable-sse?]
+                     #duct/env ["DISABLE_SSE" Bool :or true]}}

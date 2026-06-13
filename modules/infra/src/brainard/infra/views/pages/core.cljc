@@ -30,7 +30,7 @@
 (defn ^:private navbar-item [route token & body]
   [:li
    {:class [(when (= token route) "is-active")]}
-   (into [comp/link {:class ["navbar-item"]
+   (into [comp/link {:class ["navbar-item" (str "navbar__" (name route))]
                      :token route}]
          body)])
 

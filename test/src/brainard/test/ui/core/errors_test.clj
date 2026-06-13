@@ -1,4 +1,4 @@
-(ns brainard.test.ui.errors-test
+(ns brainard.test.ui.core.errors-test
   (:require
    [brainard.test.harness.ui.system :as usys]
    [brainard.test.harness.ui.web :as web]
