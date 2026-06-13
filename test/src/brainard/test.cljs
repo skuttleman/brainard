@@ -3,6 +3,7 @@
    [brainard.api.utils.logger :as log]
    [brainard.app :as app]
    [clojure.core.async :as async]
+   [defacto.resources.core :as-alias res]
    [slag.utils.edn :as edn]
    [whet.impl.http :as whttp]))
 
@@ -10,12 +11,14 @@
   (edn/read-string (.-DISABLE_SSE js/window)))
 
 (defn ^:private http-mw [handler]
-  (fn [resource-type ctx-map params]
+  (fn [resource-type params]
     (async/go
-     (log/info "sending HTTP request" resource-type params)
-     (let [result (async/<! (handler resource-type ctx-map params))]
-       (log/info "receiving HTTP response" resource-type params result)
-       result))))
+     (log/info "sending HTTP request" params)
+     (let [[status result] (async/<! (handler resource-type params))]
+       (if (= status ::res/ok)
+         (log/info "HTTP success" params result)
+         (log/error "HTTP error" params result))
+       [status result]))))
 
 (defn ^:export init!
   "Called when the DOM finishes loading."
