@@ -11,7 +11,7 @@
   '[:find (pull ?e [*]) (min ?at)
     :in $])
 
-(defn ^:private notes-query [{:notes/keys [context ids pinned? tags todos]}]
+(defn ^:private notes-query [{:notes/keys [archived context ids pinned? tags todos]}]
   (cond-> select
     (seq ids)
     (conj '[?id ...])
@@ -40,6 +40,9 @@
     (= todos :incomplete)
     (conj '[?e :notes/todos ?todo]
           '[?todo :todos/completed? false])
+
+    (not= archived :both)
+    (conj ['?e :notes/archived? (= archived :only)])
 
     :always
     (conj '[?e _ _ ?tx]

@@ -106,7 +106,8 @@
     [:notes/context {:optional true} scommon/non-empty-trimmed-string]
     [:notes/pinned? {:optional true} true?]
     [:notes/tags {:optional true} [:set keyword?]]
-    [:notes/todos {:optional true} [:enum {} nil :complete :incomplete]]]
+    [:notes/todos {:optional true} [:enum {} nil :complete :incomplete]]
+    [:notes/archived {:optional true} [:enum {} nil :only :both]]]
    [:fn {:error/message "must select at least one: ids, tag, topic, body contents, or pinned"}
     (some-fn (comp seq :notes/ids)
              (comp some? :notes/body)

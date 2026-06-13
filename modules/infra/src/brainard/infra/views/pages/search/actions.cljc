@@ -7,8 +7,13 @@
    [defacto.forms.plus :as forms+]
    [defacto.resources.core :as res]))
 
+(defn ^:private convert-archived [data]
+  (update data :notes/archived #(when % :both)))
+
 (defmethod forms+/re-init ::search [_ form _] (forms/data form))
-(forms+/validated ::search (valid/->validator snotes/query)
+(forms+/validated ::search (comp (valid/->validator snotes/query) convert-archived)
   [_ {::forms/keys [data] :as spec}]
-  (let [spec (assoc spec :params (valid/select-spec-keys data snotes/query))]
-    (res/->request-spec [::specs/notes#select] spec)))
+  (let [params (-> data
+                   convert-archived
+                   (valid/select-spec-keys snotes/query))]
+    (res/->request-spec [::specs/notes#select] (assoc spec :params params))))
