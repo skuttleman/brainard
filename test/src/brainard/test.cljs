@@ -9,11 +9,20 @@
 (def ^:const ^:private DISABLE_SSE
   (edn/read-string (.-DISABLE_SSE js/window)))
 
+(defn ^:private http-mw [handler]
+  (fn [resource-type ctx-map params]
+    (async/go
+     (log/info "sending HTTP request" resource-type params)
+     (let [result (async/<! (handler resource-type ctx-map params))]
+       (log/info "receiving HTTP response" resource-type params result)
+       result))))
+
 (defn ^:export init!
   "Called when the DOM finishes loading."
   []
   (log/info "test app initialized")
-  (app/start! app/store->comp {::app/disable-sse? DISABLE_SSE}))
+  (app/start! app/store->comp {::app/disable-sse? DISABLE_SSE
+                               :request-mw        http-mw}))
 
 (defn ^:export set-fail! [status msg]
   (let [resp {:status  status
