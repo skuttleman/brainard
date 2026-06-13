@@ -2,7 +2,6 @@
   (:require
    #?@(:clj [[brainard.attachments.infra.multipart-params :as multi]
              [brainard.infra.utils.routing :as rte]
-             [clojure.string :as string]
              [ring.middleware.keyword-params :as ring.kw-params]
              [ring.middleware.params :as ring.params]])
    [brainard :as-alias b]
@@ -51,8 +50,6 @@
          ring.kw-params/wrap-keyword-params
          ring.params/wrap-params
          mw/with-error-handling
-         (mw/with-logging {:xform (filter (comp (some-fn #{"/"}
-                                                         #(string/starts-with? % "/api/")
-                                                         #(string/starts-with? % "/attachments/")
-                                                         #(string/starts-with? % "/exports/"))
-                                                :uri))}))))
+         (mw/with-logging {:xform (filter #(re-matches
+                                            #"^/((api|attachments|exports)/.*)?$"
+                                            (:uri %)))}))))

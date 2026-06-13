@@ -343,7 +343,7 @@
 
           (testing "and when clicking the edit link"
             (web/click! driver {:css "ul.search-results > li .note__edit-link"})
-            (eta/wait-visible driver {:css ".app-container.page__note"})
+            (eta/wait-visible driver {:css ".container.page__note"})
             (testing "renders the note page"
               (let [note-id (-> fix first :notes/id)]
                 (is (= (str base-url "/notes/" note-id) (eta/get-url driver)))

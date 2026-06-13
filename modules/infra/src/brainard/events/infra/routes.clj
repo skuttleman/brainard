@@ -26,24 +26,31 @@
 
 (defn ^:internal ^:no-doc handle-events [{::b/keys [events]} ->stream close-fn]
   (let [ch (async/chan 100 (map fmt-event))
-        [id stream prom] (->stream ch)]
-    (ievents/connect! events id {:ch ch :closed? prom :close! #(close-fn stream)})
-    (async/go
-      (async/>! ch [:connected])
-      (log/infof "event stream connected: %s" id)
-      (loop []
-        (if (pasync/closed? ch)
-          (do (ievents/disconnect! events id)
+        [id stream prom] (->stream ch)
+        loop? (volatile! true)]
+    (letfn [(close-fn* []
               (close-fn stream)
-              (log/infof "event stream disconnected: %s" id))
-          (do (async/<! (async/timeout 500))
-              (recur)))))
-    {:status  200
-     ::w/raw? true
-     :body    stream
-     :headers {"Content-Type"  "text/event-stream"
-               "Cache-Control" "no-cache"
-               "Connection"    "keep-alive"}}))
+              (log/infof "event stream disconnected: %s" id))]
+      (ievents/connect! events id {:ch      ch
+                                   :close!  #(do (vreset! loop? false)
+                                                 (close-fn*))
+                                   :closed? prom})
+      (async/go
+        (async/>! ch [:connected])
+        (log/infof "event stream connected: %s" id)
+        (loop []
+          (when @loop?
+            (if (pasync/closed? ch)
+              (do (ievents/disconnect! events id)
+                  (close-fn*))
+              (do (async/<! (async/timeout 200))
+                  (recur))))))
+      {:status  200
+       ::w/raw? true
+       :body    stream
+       :headers {"Content-Type"  "text/event-stream"
+                 "Cache-Control" "no-cache"
+                 "Connection"    "keep-alive"}})))
 
 (defmethod iroutes/handler [:get :routes.api/events]
   [req respond _raise]

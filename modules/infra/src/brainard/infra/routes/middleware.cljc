@@ -6,10 +6,6 @@
              [slag.utils.maps :as maps]])
    [brainard.infra.routes.interfaces :as iroutes]))
 
-(defn ^:private success? [status]
-  (and (integer? status)
-       (<= 200 status 399)))
-
 (defn with-input
   "Includes route input as :brainard/input via [[iroutes/req->input]]"
   [handler]
@@ -19,19 +15,20 @@
         (handler respond raise))))
 
 #?(:clj
-   (defn ^:private log-req [{:keys [ex result duration]} {:keys [uri] :as req}]
+   (defn ^:private log-req [{:keys [before ex result]} {:keys [uri] :as req}]
      (let [status (:status result)
-           duration (str "["
-                         (cond
-                           (> duration 500) (log/red (str duration "ms"))
-                           (> duration 100) (log/yellow (str duration "ms"))
-                           (> duration 50) (log/blue (str duration "ms"))
-                           :else (str duration "ms"))
-                         "]:")
+           duration (- (long (/ (System/nanoTime) 1000000)) before)
+           duration-str (str "["
+                             (cond
+                               (> duration 500) (log/red (str duration "ms"))
+                               (> duration 100) (log/yellow (str duration "ms"))
+                               (> duration 50) (log/blue (str duration "ms"))
+                               :else (str duration "ms"))
+                             "]:")
            method (string/upper-case (name (:request-method req)))]
-       (if (and (nil? ex) (success? status))
-         (log/info method uri duration status)
-         (log/error method uri duration status)))))
+       (if (and (nil? ex) (integer? status) (<= 200 status 399))
+         (log/info method uri duration-str status)
+         (log/error method uri duration-str status)))))
 
 #?(:clj
    (defn with-logging
@@ -44,14 +41,10 @@
           (let [before (long (/ (System/nanoTime) 1000000))]
             (handler req
                      (fn [response]
-                       (logger {:result   response
-                                :duration (- (long (/ (System/nanoTime) 1000000)) before)}
-                               req)
+                       (logger {:before before :result response} req)
                        (respond response))
                      (fn [ex]
-                       (logger {:ex       ex
-                                :duration (- (long (/ (System/nanoTime) 1000000)) before)}
-                               req)
+                       (logger {:before before :ex ex} req)
                        (raise ex)))))))))
 
 #?(:clj
