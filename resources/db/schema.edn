@@ -21,6 +21,10 @@
   :db/valueType   :db.type/boolean
   :db/cardinality :db.cardinality/one
   :db/doc         "Is the note pinned to the workspace"}
+ {:db/ident       :notes/archived?
+  :db/valueType   :db.type/boolean
+  :db/cardinality :db.cardinality/one
+  :db/doc         "Is the note archived (soft deleted)"}
  {:db/ident       :notes/attachments
   :db/valueType   :db.type/ref
   :db/cardinality :db.cardinality/many

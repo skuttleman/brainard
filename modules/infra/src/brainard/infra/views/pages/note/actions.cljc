@@ -29,7 +29,8 @@
     ::edit (let [spec (assoc spec :payload (valid/select-spec-keys data snotes/modify))]
              (specs/with-cbs (res/->request-spec [::specs/notes#modify note-id] spec)
                              :ok-events [[:api.notes/saved]]))
-    ::delete (res/->request-spec [::specs/notes#destroy note-id] spec)
+    ::archive (let [spec (assoc spec :payload {:notes/archived? true})]
+                (res/->request-spec [::specs/notes#modify note-id] spec))
     ::reinstate (res/->request-spec [::specs/notes#reinstate note-id]
                                     (assoc spec
                                            :payload note
@@ -64,16 +65,16 @@
      :params       {::action    ::pin
                     :err-events [[::forms/created pin-note-key note]]}}))
 
-(defn ->delete-modal
-  "Return modal data for confirming deletion of a note and its schedules."
+(defn ->archive-modal
+  "Return modal data for confirming archiving a note"
   [{note-id :notes/id}]
   [:modals/sure?
-   {:description   "This note and all related schedules will be deleted"
-    :yes-btn-class ["note__confirm-delete"]
+   {:description   "This note will be archived. Archived notes are deleted after 30 days."
+    :yes-btn-class ["note__confirm-archive"]
     :yes-commands  [[::res/resubmit!
                      (->sync-key note-id)
-                     {::action      ::delete
-                      :ok-commands  [[:toasts/succeed! {:message "note deleted"}]
+                     {::action      ::archive
+                      :ok-commands  [[:toasts/succeed! {:message "note archived"}]
                                      [:nav/navigate! {:token :routes.ui/home}]]
                       :err-commands [[:toasts/fail!]]}]]}])
 

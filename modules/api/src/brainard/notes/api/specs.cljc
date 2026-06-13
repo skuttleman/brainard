@@ -88,7 +88,8 @@
    [:notes/attachments {:optional true} [:seqable sattachments/modify]]
    [:notes/old-attachments {:optional true} [:set uuid?]]
    [:notes/todos {:optional true} [:seqable todo-update]]
-   [:notes/old-todos {:optional true} [:set uuid?]]])
+   [:notes/old-todos {:optional true} [:set uuid?]]
+   [:notes/archived? {:optional true} boolean?]])
 
 (def reinstate
   [:map
