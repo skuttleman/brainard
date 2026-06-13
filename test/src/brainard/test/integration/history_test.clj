@@ -8,7 +8,6 @@
    [clojure.test :refer [deftest is testing]]
    [slag.utils.edn :as edn]))
 
-
 (deftest history-query-test
   (tsys/with-app [{::b/keys [storage]} nil]
     (testing "when generating history"
@@ -35,11 +34,12 @@
                                             (map :notes/changes))]
 
             (testing "returns the first change"
-              (is (= {:notes/id      {:to note-id}
-                      :notes/tags    {:added #{:bar :baz/quux :foo}}
-                      :notes/context {:to "Some context"}
-                      :notes/pinned? {:to true}
-                      :notes/body    {:to "Some body"}}
+              (is (= {:notes/id        {:to note-id}
+                      :notes/context   {:to "Some context"}
+                      :notes/body      {:to "Some body"}
+                      :notes/pinned?   {:to true}
+                      :notes/archived? {:to false}
+                      :notes/tags      {:added #{:bar :baz/quux :foo}}}
                      (-> c1 (dissoc :notes/todos :todos/changes))))
               (is (= (-> c1 :notes/todos :added)
                      (-> c1 :todos/changes keys set)))

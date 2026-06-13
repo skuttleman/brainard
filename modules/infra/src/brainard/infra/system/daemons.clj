@@ -39,5 +39,10 @@
 (defn update-buzz!
   "Broadcasts relevant notes to all connections."
   [apis events timestamp]
-  (let [notes (api/invoke-api :api.notes/relevant apis {:timestamp timestamp})]
-    (events/broadcast! events :message [:notes/relevant {:data notes}])))
+  (try
+    (let [notes (api/invoke-api :api.notes/relevant apis {:timestamp timestamp})]
+      (events/broadcast! events :message [:notes/relevant {:data notes}]))
+    (catch InterruptedException ex
+      (throw ex))
+    (catch Throwable ex
+      (log/error ex "Failed to broadcast buzz events"))))

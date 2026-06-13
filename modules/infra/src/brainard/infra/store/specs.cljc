@@ -102,7 +102,8 @@
   (-> payload
       (select-keys #{:notes/context
                      :notes/pinned?
-                     :notes/body})
+                     :notes/body
+                     :notes/archived?})
       (merge (diff-attachments prev-attachments (:notes/attachments payload))
              (diff-tags prev-tags (:notes/tags payload))
              (diff-todos prev-todos (:notes/todos payload)))))

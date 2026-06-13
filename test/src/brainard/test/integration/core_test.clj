@@ -16,10 +16,11 @@
       (testing "when creating a note"
         (let [response (http {:method :post
                               :uri    "/api/notes"
-                              :body   {:notes/context "Context1"
-                                       :notes/tags    #{:one :three}
-                                       :notes/pinned? false
-                                       :notes/body    "body of note1"}})
+                              :body   {:notes/context   "Context1"
+                                       :notes/tags      #{:one :three}
+                                       :notes/pinned?   false
+                                       :notes/archived? false
+                                       :notes/body      "body of note1"}})
               {note1-id :notes/id :as note1} (-> response :body :data)]
           (testing "returns the created note"
             (is (thttp/success? response))
@@ -43,22 +44,26 @@
             (run! #(http {:method :post
                           :uri    "/api/notes"
                           :body   %})
-                  [{:notes/context "Context1"
-                    :notes/tags    #{:one}
-                    :notes/pinned? false
-                    :notes/body    "body of note2"}
-                   {:notes/context "Context2"
-                    :notes/tags    #{:one :three}
-                    :notes/pinned? false
-                    :notes/body    "body of note3"}
-                   {:notes/context "Context2"
-                    :notes/tags    #{:three}
-                    :notes/pinned? false
-                    :notes/body    "body of note4"}
-                   {:notes/context "Context2"
-                    :notes/tags    #{}
-                    :notes/pinned? false
-                    :notes/body    "body of note5"}])
+                  [{:notes/context   "Context1"
+                    :notes/tags      #{:one}
+                    :notes/pinned?   false
+                    :notes/archived? false
+                    :notes/body      "body of note2"}
+                   {:notes/context   "Context2"
+                    :notes/tags      #{:one :three}
+                    :notes/pinned?   false
+                    :notes/archived? false
+                    :notes/body      "body of note3"}
+                   {:notes/context   "Context2"
+                    :notes/tags      #{:three}
+                    :notes/pinned?   false
+                    :notes/archived? false
+                    :notes/body      "body of note4"}
+                   {:notes/context   "Context2"
+                    :notes/tags      #{}
+                    :notes/pinned?   false
+                    :notes/archived? false
+                    :notes/body      "body of note5"}])
 
             (testing "and when searching for matching tags"
               (let [response (http {:method :get
@@ -106,10 +111,11 @@
             (testing "and when updating a note"
               (let [response (http {:method :patch
                                     :uri    (str "/api/notes/" note1-id)
-                                    :body   {:notes/id       "ignored"
-                                             :notes/tags     #{:two}
-                                             :notes/old-tags #{:one}
-                                             :notes/pinned?  true}})
+                                    :body   {:notes/id        "ignored"
+                                             :notes/tags      #{:two}
+                                             :notes/old-tags  #{:one}
+                                             :notes/pinned?   true
+                                             :notes/archived? false}})
                     note (-> response :body :data)]
                 (testing "returns the updated note"
                   (is (thttp/success? response))
@@ -118,6 +124,7 @@
                           :notes/body        "body of note1"
                           :notes/tags        #{:three :two}
                           :notes/pinned?     true
+                          :notes/archived?   false
                           :notes/timestamp   (:notes/timestamp note)
                           :notes/attachments #{}
                           :notes/todos       #{}}
@@ -125,7 +132,7 @@
 
                 (testing "and when searching for pinned notes"
                   (let [response (http {:method :get
-                                        :uri    "/api/notes?pinned=true"})
+                                        :uri    "/api/notes?pinned"})
                         notes (-> response :body :data)]
                     (testing "returns pinned notes"
                       (is (thttp/success? response))
@@ -134,6 +141,7 @@
                                :notes/body        "body of note1"
                                :notes/tags        #{:three :two}
                                :notes/pinned?     true
+                               :notes/archived?   false
                                :notes/timestamp   (:notes/timestamp note)
                                :notes/attachments #{}
                                :notes/todos       #{}}]
@@ -233,6 +241,7 @@
                                                     :body   {:notes/context     "Context1"
                                                              :notes/tags        #{:one :three}
                                                              :notes/pinned?     false
+                                                             :notes/archived?   false
                                                              :notes/body        "body of note"
                                                              :notes/attachments [attachment]}}
                                                    http
@@ -269,10 +278,11 @@
     (letfn [(http [request] (thttp/request request apis))]
       (let [note-id (-> (http {:method :post
                                :uri    "/api/notes"
-                               :body   {:notes/context "ctx"
-                                        :notes/body    "body"
-                                        :notes/pinned? false
-                                        :notes/tags    #{}}})
+                               :body   {:notes/context   "ctx"
+                                        :notes/body      "body"
+                                        :notes/pinned?   false
+                                        :notes/archived? false
+                                        :notes/tags      #{}}})
                         :body
                         :data
                         :notes/id)]
@@ -316,10 +326,11 @@
     (letfn [(http [request] (thttp/request request apis))]
       (let [note-id (-> (http {:method :post
                                :uri    "/api/notes"
-                               :body   {:notes/context "ctx"
-                                        :notes/body    "body"
-                                        :notes/pinned? false
-                                        :notes/tags    #{}}})
+                               :body   {:notes/context   "ctx"
+                                        :notes/body      "body"
+                                        :notes/pinned?   false
+                                        :notes/archived? false
+                                        :notes/tags      #{}}})
                         :body
                         :data
                         :notes/id)]

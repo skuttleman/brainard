@@ -63,15 +63,17 @@
                       keyword)]
       (testing "when creating notes"
         (storage/execute! storage
-                          [{:notes/id      n1
-                            :notes/context "Context"
-                            :notes/body    "body of note"
-                            :notes/tags    #{:tag}
-                            :notes/pinned? true}
-                           {:notes/id      n2
-                            :notes/context "Another Context"
-                            :notes/body    "body of another note"
-                            :notes/pinned? false}])
+                          [{:notes/id        n1
+                            :notes/context   "Context"
+                            :notes/body      "body of note"
+                            :notes/pinned?   true
+                            :notes/archived? false
+                            :notes/tags      #{:tag}}
+                           {:notes/id        n2
+                            :notes/context   "Another Context"
+                            :notes/body      "body of another note"
+                            :notes/pinned?   false
+                            :notes/archived? false}])
 
         (testing "and when adding a schedule"
           (storage/execute! storage
@@ -92,8 +94,9 @@
                 (is (= [{:notes/id          n1
                          :notes/context     "Context"
                          :notes/body        "body of note"
-                         :notes/tags        #{:tag}
                          :notes/pinned?     true
+                         :notes/archived?   false
+                         :notes/tags        #{:tag}
                          :notes/attachments #{}
                          :notes/todos       #{}}]
                        notes))))))))))

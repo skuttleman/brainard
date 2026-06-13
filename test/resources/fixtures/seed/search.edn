@@ -1,36 +1,41 @@
-[{:notes/id      #uuid "2c456eee-e131-458d-be50-b63c6dba79f3"
-  :notes/context "Context A"
-  :notes/body    "Note one A"
-  :notes/pinned? false
-  :notes/tags    #{:tag/alpha}
-  :notes/todos   #{{:todos/id         #uuid "c76b3c54-055d-4234-9f98-7c4213affa2d"
-                    :todos/completed? false
-                    :todos/text       "You can do it"}}}
- {:notes/id      #uuid "ec7648cd-70f8-4624-afd7-de47f118a956"
-  :notes/context "Context A"
-  :notes/body    "Note two A"
-  :notes/pinned? false
-  :notes/tags    #{:tag/alpha :tag/beta}}
- {:notes/id      #uuid "e566f5d0-92f0-410b-ab1f-a97b01b311e7"
-  :notes/context "Context B"
-  :notes/body    "Note one B"
-  :notes/pinned? false
-  :notes/tags    #{:tag/alpha}}
- {:notes/id      #uuid "4c885ffa-cbde-478f-9fd4-32d5f8370129"
-  :notes/context "Context B"
-  :notes/body    "Note two B"
-  :notes/pinned? false
-  :notes/tags    #{:tag/beta}
-  :notes/todos   #{{:todos/id         #uuid "da8cb83f-ce0a-431b-82cd-d614807128e6"
-                    :todos/completed? false
-                    :todos/text       "Why haven't you done it?"}
-                   {:todos/id         #uuid "24440f8a-f4e2-4bec-ae88-26bdfaba6113"
-                    :todos/completed? true
-                    :todos/text       "Did it"}}}
- {:notes/id      #uuid "06229cd8-6106-4193-934c-cfad4b22f192"
-  :notes/context "Context C"
-  :notes/body    "Note one C"
-  :notes/pinned? false
-  :notes/todos   #{{:todos/id         #uuid "6d7009cc-0faf-4232-b0d9-30221d38b968"
-                    :todos/completed? true
-                    :todos/text       "Finally did it"}}}]
+[{:notes/id        #uuid "2c456eee-e131-458d-be50-b63c6dba79f3"
+  :notes/context   "Context A"
+  :notes/body      "Note one A"
+  :notes/pinned?   false
+  :notes/archived? false
+  :notes/tags      #{:tag/alpha}
+  :notes/todos     #{{:todos/id         #uuid "c76b3c54-055d-4234-9f98-7c4213affa2d"
+                      :todos/completed? false
+                      :todos/text       "You can do it"}}}
+ {:notes/id        #uuid "ec7648cd-70f8-4624-afd7-de47f118a956"
+  :notes/context   "Context A"
+  :notes/body      "Note two A"
+  :notes/pinned?   false
+  :notes/archived? false
+  :notes/tags      #{:tag/alpha :tag/beta}}
+ {:notes/id        #uuid "e566f5d0-92f0-410b-ab1f-a97b01b311e7"
+  :notes/context   "Context B"
+  :notes/body      "Note one B"
+  :notes/pinned?   false
+  :notes/archived? false
+  :notes/tags      #{:tag/alpha}}
+ {:notes/id        #uuid "4c885ffa-cbde-478f-9fd4-32d5f8370129"
+  :notes/context   "Context B"
+  :notes/body      "Note two B"
+  :notes/pinned?   false
+  :notes/archived? false
+  :notes/tags      #{:tag/beta}
+  :notes/todos     #{{:todos/id         #uuid "da8cb83f-ce0a-431b-82cd-d614807128e6"
+                      :todos/completed? false
+                      :todos/text       "Why haven't you done it?"}
+                     {:todos/id         #uuid "24440f8a-f4e2-4bec-ae88-26bdfaba6113"
+                      :todos/completed? true
+                      :todos/text       "Did it"}}}
+ {:notes/id        #uuid "06229cd8-6106-4193-934c-cfad4b22f192"
+  :notes/context   "Context C"
+  :notes/body      "Note one C"
+  :notes/pinned?   false
+  :notes/archived? false
+  :notes/todos     #{{:todos/id         #uuid "6d7009cc-0faf-4232-b0d9-30221d38b968"
+                      :todos/completed? true
+                      :todos/text       "Finally did it"}}}]

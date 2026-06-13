@@ -25,6 +25,6 @@
 
 (defn ->disk-index [name]
   (log/info "building search store with disk-backed index")
-  (lucene/create-index (format "%s/.storage/lucene/%s"
+  (lucene/create-index (format "%s/.storage/%s/lucene"
                                (System/getProperty "user.dir")
                                name)))

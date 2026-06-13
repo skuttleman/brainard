@@ -11,7 +11,7 @@
   '[:find (pull ?e [*]) (min ?at)
     :in $])
 
-(defn ^:private notes-query [{:notes/keys [context ids pinned? tags todos]}]
+(defn ^:private notes-query [{:notes/keys [archived context ids pinned? tags todos]}]
   (cond-> select
     (seq ids)
     (conj '[?id ...])
@@ -40,6 +40,9 @@
     (= todos :incomplete)
     (conj '[?e :notes/todos ?todo]
           '[?todo :todos/completed? false])
+
+    (not= archived :both)
+    (conj ['?e :notes/archived? (= archived :only)])
 
     :always
     (conj '[?e _ _ ?tx]
@@ -164,7 +167,8 @@
                      :notes/tags
                      :notes/pinned?
                      :notes/attachments
-                     :notes/todos})
+                     :notes/todos
+                     :notes/archived?})
       (update :notes/attachments fns/smap select-keys #{:attachments/id
                                                         :attachments/content-type
                                                         :attachments/filename
@@ -175,7 +179,9 @@
 
 (defmethod istorage/->input ::api.notes/create!
   [note]
-  [(clean-note note)])
+  [(-> note
+       clean-note
+       (assoc :notes/archived? false))])
 
 (defmethod istorage/->input ::api.notes/update!
   [{note-id :notes/id :notes/keys [old-attachments old-tags old-todos] :as note}]
@@ -211,12 +217,16 @@
                  (assoc note :notes/timestamp timestamp)))})
 
 (defmethod istorage/->input ::api.notes/get-note
-  [{:notes/keys [id]}]
-  {:query (into select '[?note-id
-                         :where
-                         [?e :notes/id ?note-id]
-                         [?e _ _ ?tx]
-                         [?tx :db/txInstant ?at]])
+  [{:notes/keys [id archived]}]
+  {:query (into select
+                (keep identity)
+                ['?note-id
+                 :where
+                 '[?e :notes/id ?note-id]
+                 (when (not= archived :both)
+                   ['?e :notes/archived? (= archived :only)])
+                 '[?e _ _ ?tx]
+                 '[?tx :db/txInstant ?at]])
    :args  [id]
    :only? true
    :xform (map (fn [[note timestamp]]

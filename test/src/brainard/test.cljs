@@ -3,17 +3,29 @@
    [brainard.api.utils.logger :as log]
    [brainard.app :as app]
    [clojure.core.async :as async]
+   [defacto.resources.core :as-alias res]
    [slag.utils.edn :as edn]
    [whet.impl.http :as whttp]))
 
 (def ^:const ^:private DISABLE_SSE
   (edn/read-string (.-DISABLE_SSE js/window)))
 
+(defn ^:private http-mw [handler]
+  (fn [resource-type params]
+    (async/go
+     (log/info "sending HTTP request" params)
+     (let [[status result] (async/<! (handler resource-type params))]
+       (if (= status ::res/ok)
+         (log/info "HTTP success" params result)
+         (log/error "HTTP error" params result))
+       [status result]))))
+
 (defn ^:export init!
   "Called when the DOM finishes loading."
   []
   (log/info "test app initialized")
-  (app/start! app/store->comp {::app/disable-sse? DISABLE_SSE}))
+  (app/start! app/store->comp {::app/disable-sse? DISABLE_SSE
+                               :request-mw        http-mw}))
 
 (defn ^:export set-fail! [status msg]
   (let [resp {:status  status

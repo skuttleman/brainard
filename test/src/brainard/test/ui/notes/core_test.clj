@@ -102,7 +102,7 @@
                       (eta/wait-invisible driver {:css ".modal-container.is-active"})
                       (is (eta/has-text? driver {:css ".content"} "[edited]")))))))))))))
 
-(deftest delete-note-test
+(deftest archive-note-test
   (usys/with-webdriver [driver base-url {fix "base.edn"}]
     (let [note-id (->> fix
                        first
@@ -111,24 +111,24 @@
         (eta/go driver (str base-url "/notes/" note-id))
         (web/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
-        (testing "and when clicking the delete button"
-          (web/click! driver {:css "button.is-danger"})
+        (testing "and when clicking the archive button"
+          (web/click! driver {:css "button.note__archive-button"})
           (eta/wait-visible driver {:css ".modal-container.is-active .modal-item"})
 
-          (testing "opens the delete confirmation modal"
+          (testing "opens the archive confirmation modal"
             (is (eta/has-text? driver
                                {:css ".modal-container.is-active"}
-                               "This note and all related schedules will be deleted")))
+                               "This note will be archived. Archived notes are deleted after 30 days.")))
 
-          (testing "and when confirming the delete"
-            (web/click! driver {:css ".modal-container.is-active button.note__confirm-delete"})
+          (testing "and when confirming the archival"
+            (web/click! driver {:css ".modal-container.is-active button.note__confirm-archive"})
             (eta/wait-invisible driver {:css ".modal-container.is-active"})
 
             (testing "displays a toast message"
               (eta/wait-visible driver {:css ".toast-message.is-success"})
               (is (eta/has-text? driver
                                  {:css ".toast-message.is-success .body-text"}
-                                 "note deleted")))
+                                 "note archived")))
 
             (testing "redirects to home page"
               (eta/wait-visible driver {:css "h1.pinned-notes"})

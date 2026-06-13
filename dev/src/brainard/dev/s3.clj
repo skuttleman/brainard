@@ -54,5 +54,8 @@
 
 (defmethod ig/init-key :brainard/fs-invoker
   [_ {:keys [db-name]}]
-  (let [path (str ".storage/s3/" db-name)]
-    #(fs-invoker (assoc % ::path path))))
+  (let [path-prefix (format ".storage/%s" db-name)
+        path (str path-prefix "/s3")]
+    (vary-meta #(fs-invoker (assoc % ::path path)) assoc
+               ::path-prefix path-prefix
+               ::path path)))

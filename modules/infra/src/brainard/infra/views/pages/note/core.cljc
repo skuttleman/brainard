@@ -165,10 +165,10 @@
                          :disabled disabled?}
       "Edit"]
      [comp/plain-button {:*:store  *:store
-                         :class    ["is-danger" "note__delete-button"]
-                         :commands [[:modals/create! (note.act/->delete-modal note)]]
+                         :class    ["is-danger" "note__archive-button"]
+                         :commands [[:modals/create! (note.act/->archive-modal note)]]
                          :disabled disabled?}
-      "Delete note"]]
+      "Archive note"]]
     [:div.button-row
      [comp/link {:token        :routes.resources/export
                  :class        ["button" "is-light" "note__download-button"]

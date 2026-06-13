@@ -89,13 +89,14 @@
           (eta/wait-visible driver {:css ".modal-container.is-active .modal-item"})
 
           (testing "opens the delete confirmation modal"
+
             (is (eta/has-text? driver
                                {:css ".modal-container.is-active"}
-                               "This note and all related schedules will be deleted")))
+                               "This note will be archived. Archived notes are deleted after 30 days.")))
 
           (testing "and when confirming the delete fails"
             (web/with-http-failure driver "note deletion test failure"
-              (web/click! driver {:css ".modal-container.is-active button.note__confirm-delete"})
+              (web/click! driver {:css ".modal-container.is-active button.note__confirm-archive"})
               (eta/wait-invisible driver {:css ".modal-container.is-active"})
 
               (testing "displays a toast message"

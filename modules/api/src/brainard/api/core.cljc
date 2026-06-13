@@ -41,8 +41,7 @@
                              (map :notes/id)
                              seq)]
     (api.notes/get-notes (:notes apis) (assoc params :notes/ids note-ids))
-    (if (or (seq (:notes/tags params))
-            (seq (dissoc params :notes/tags :notes/body)))
+    (if (seq (dissoc params :notes/body))
       (api.notes/get-notes (:notes apis) params)
       ())))
 

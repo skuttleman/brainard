@@ -15,10 +15,11 @@
    [whet.core :as-alias w]
    [whet.utils.reagent :as r]))
 
-(defn ^:private ->empty-form [{:keys [body context todos] :as query-params} contexts tags]
-  (cond-> {:notes/tags (into #{}
-                             (comp (map keyword) (filter (set tags)))
-                             (colls/wrap-set (:tags query-params)))}
+(defn ^:private ->empty-form [{:keys [archived body context todos] :as query-params} contexts tags]
+  (cond-> {:notes/tags     (into #{}
+                                 (comp (map keyword) (filter (set tags)))
+                                 (colls/wrap-set (:tags query-params)))
+           :notes/archived (boolean archived)}
     (contains? contexts context) (assoc :notes/context context)
     todos (assoc :notes/todos (keyword todos))
     body (assoc :notes/body body)))
@@ -43,8 +44,8 @@
 
 (def ^:private todo-options
   [[nil "(Unspecified)"]
-   [:incomplete "Incomplete (has 1+ unfinished TODOs)"]
-   [:complete "Complete (has 1+ TODOs - all finished)"]])
+   [:incomplete "Incomplete (1+ unfinished)"]
+   [:complete "Complete (1+ all finished)"]])
 
 (def ^:private todo-options-by-id
   (into {} todo-options))
@@ -53,21 +54,29 @@
   (let [form-data (forms/data form+)]
     [ctrls/plain-form {:class       ["search-form"]
                        :on-submit   (fn [_]
-                                      (store/dispatch! *:store [::w/with-qp! form-data]))
+                                      (let [bare-params (cond-> (dissoc form-data :notes/archived)
+                                                          (empty? (:notes/tags form-data)) (dissoc :notes/tags))
+                                            qp (when (seq bare-params)
+                                                 form-data)]
+                                        (store/dispatch! *:store [::w/with-qp! qp])))
                        :submit/body "Search"}
      [:div.layout--stack-between
       [:div.layout--room-between
-       [:div {:style {:flex-basis "34%"}}
+       [:div {:style {:flex-basis "27%"}}
         [context-filter attrs contexts]]
-       [:div {:style {:flex-basis "32%"}}
+       [:div {:style {:flex-basis "27%"}}
         [tag-filter attrs tags]]
-       [:div {:style {:flex-basis "34%"}}
+       [:div {:style {:flex-basis "27%"}}
         [ctrls/single-dropdown (-> {:*:store        *:store
                                     :attrs->content (comp todo-options-by-id first :value)
                                     :label          "TODO Filter"
                                     :options        (rest todo-options)
                                     :options-by-id  todo-options-by-id}
-                                   (ctrls/with-attrs form+ [:notes/todos]))]]]
+                                   (ctrls/with-attrs form+ [:notes/todos]))]]
+       [:div {:style {:flex-basis "18%"}}
+        [ctrls/toggle (-> {:*:store *:store
+                           :label   "Include Archived?"}
+                          (ctrls/with-attrs form+ [:notes/archived]))]]]
       [ctrls/input (-> {:*:store *:store
                         :label   "Body contents"}
                        (ctrls/with-attrs form+ [:notes/body]))]]]))
@@ -78,12 +87,13 @@
                                sub (store/form+-sub *:store
                                                     form-key
                                                     (->empty-form query-params contexts tags))]
-                           (when (and (not loaded?) (seq query-params))
+                           (when (and (not loaded?) (seq (dissoc query-params :archived)))
                              (store/dispatch! *:store [::forms+/submit! form-key]))
                            sub)]
     [:div.layout--stack-between
      [search-form {:*:store *:store :form+ @sub:form+} contexts tags]
-     [comp/with-resource sub:form+ [notes.views/note-list {:anchor     anchor
+     [comp/with-resource sub:form+ [notes.views/note-list {:*:store    *:store
+                                                           :anchor     anchor
                                                            :anchor?    true
                                                            :hide-init? true}]]]
     (finally
