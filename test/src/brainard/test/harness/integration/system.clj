@@ -36,7 +36,8 @@
   (let [objects (:Contents (invoker {:op :ListObjectsV2}))]
     (invoker {:op      :DeleteObjects
               :request {:Delete {:Objects objects}}})
-    (-> invoker meta ::s3/path io/file io/delete-file)))
+    (-> invoker meta ::s3/path io/file io/delete-file)
+    (-> invoker meta ::s3/path-prefix io/file io/delete-file)))
 
 (defmethod ig/init-key :brainard.test/search-index
   [_ _]
