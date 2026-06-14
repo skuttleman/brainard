@@ -119,7 +119,7 @@
               (is (not (note-visible? driver "Note one C"))))))))))
 
 (deftest search-filters-test
-  (usys/with-webdriver [driver base-url {fix "search.edn"}]
+  (usys/with-webdriver [driver base-url {_ "search.edn"}]
     (letfn [(querying? [qp]
               (let [params (-> (eta/get-url driver) (string/split #"\?") second nav/->query-params)]
                 (= qp params)))]

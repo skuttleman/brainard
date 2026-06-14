@@ -11,7 +11,8 @@
    brainard.infra.views.pages.buzz.core
    brainard.infra.views.pages.home.core
    brainard.infra.views.pages.note.core
-   brainard.infra.views.pages.search.core))
+   brainard.infra.views.pages.search.core
+   brainard.infra.views.pages.trash.core))
 
 (def ^:const app-name "brainard")
 
@@ -51,7 +52,9 @@
           [navbar-item :routes.ui/buzz token
            "Buzz"
            (when (pos? buzzes)
-             [:span.tag.is-info.space--left.is-rounded buzzes])]]]]])))
+             [:span.tag.is-info.space--left.is-rounded buzzes])]
+          [navbar-item :routes.ui/trash token
+           "Recycling bin"]]]]])))
 
 (defn page [*:store route]
   [:div.container {:class [(str "page__" (name (:token route)))]}

@@ -53,6 +53,7 @@
                   :param-keys {:id :notes/id}
                   :parameters {:path [:map [:id :uuid]]}}]
    ["/search" {:name :routes.ui/search}]
+   ["/bin" {:name :routes.ui/trash}]
    ["/*path" {:name :routes.ui/not-found}]])
 
 (def all-routes
