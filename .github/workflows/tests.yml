@@ -28,6 +28,7 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
+            .cpcache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - uses: actions/cache@v4
         id: npm_cache
@@ -43,7 +44,6 @@ jobs:
             clojure -P -M$alias
           done
           npm ci
-          npm install -g sass
 
   build:
     name: Build uberjar
@@ -63,6 +63,7 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
+            .cpcache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - uses: actions/cache@v4
         id: npm_cache
@@ -95,6 +96,7 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
+            .cpcache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - name: Run linter
         run: clojure -M:lint
@@ -117,6 +119,7 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
+            .cpcache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - name: Run unit tests
         run: |
@@ -149,6 +152,7 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
+            .cpcache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - uses: actions/cache@v4
         id: npm_cache
@@ -188,6 +192,7 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
+            .cpcache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - name: Run integration tests
         run: |
@@ -224,6 +229,7 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
+            .cpcache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - uses: actions/cache@v4
         id: npm_cache
@@ -329,6 +335,7 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
+            .cpcache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - uses: actions/cache@v4
         id: npm_cache
