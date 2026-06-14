@@ -209,7 +209,7 @@
           (testing "and when deleting a note"
             (storage/execute! storage
                               {::storage/type ::api.notes/delete!
-                               :notes/id      id-1})
+                               :notes/ids     [id-1]})
             (testing "and when querying for a deleted note"
               (testing "does not find the note"
                 (is (nil? (storage/query storage {::storage/type ::api.notes/get-note

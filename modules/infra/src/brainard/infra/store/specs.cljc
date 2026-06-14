@@ -134,6 +134,13 @@
           :method :delete}
          spec))
 
+(defmethod res/->request-spec ::notes#bulk-delete
+  [_ spec]
+  (->req {:route  :routes.api/notes
+          :body   (:payload spec)
+          :method :delete}
+         spec))
+
 (defmethod res/->request-spec ::notes#buzz
   [_ spec]
   (->req {:route  :routes.api/notes?scheduled

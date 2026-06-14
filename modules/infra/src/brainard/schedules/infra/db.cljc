@@ -53,11 +53,11 @@
    :xform (map first)
    :only? true})
 
-(defmethod istorage/->input ::api.sched/get-by-note-id
-  [{:schedules/keys [note-id]}]
+(defmethod istorage/->input ::api.sched/get-by-note-ids
+  [{:schedules/keys [note-ids]}]
   {:query (into select
-                '[?note-id
+                '[[?note-id ...]
                   :where
                   [?e :schedules/note-id ?note-id]])
-   :args  [note-id]
+   :args  [note-ids]
    :xform (map first)})

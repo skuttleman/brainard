@@ -29,12 +29,12 @@
                                            :schedules/id  schedule-id})
   nil)
 
-(defn delete-for-note!
+(defn delete-for-notes!
   "Deletes schedules associated with a note"
-  [schedule-api note-id]
+  [schedule-api note-ids]
   (when-let [schedules (seq (storage/query (:store schedule-api)
-                                           {::storage/type     ::get-by-note-id
-                                            :schedules/note-id note-id}))]
+                                           {::storage/type      ::get-by-note-ids
+                                            :schedules/note-ids note-ids}))]
     (apply storage/execute!
            (:store schedule-api)
            (map (fn [{:schedules/keys [id]}]
@@ -67,5 +67,5 @@
   "Retrieves schedules associated with a note"
   [schedules-api note-id]
   (storage/query (:store schedules-api)
-                 {::storage/type     ::get-by-note-id
-                  :schedules/note-id note-id}))
+                 {::storage/type      ::get-by-note-ids
+                  :schedules/note-ids [note-id]}))

@@ -10,6 +10,7 @@
 (def input-specs
   {:api.notes/select            snotes/query
    :api.notes/create!           snotes/create
+   :api.notes/bulk-delete!      [:map [:notes/ids [:set uuid?]]]
    :api.notes/fetch             [:map [:notes/id uuid?]]
    :api.notes/fetch?history     [:map [:notes/id uuid?]]
    :api.notes/delete!           [:map [:notes/id uuid?]]

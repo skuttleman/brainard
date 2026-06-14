@@ -107,13 +107,13 @@
   (r/with-let [*:expanded (r/atom nil)
                sub:form (some-> *:store (store/form-sub [::deleted-notes] {:notes/ids #{}}))]
     (let [deleted? (or (some-> sub:form deref forms/data :notes/ids)
-                       #{})]
+                       #{})
+          notes (remove (comp deleted? :notes/id) notes)]
       (if-not (seq notes)
         [:span.search-results
          [comp/alert :info "No search results"]]
         [:ul.search-results
-         (for [{:notes/keys [id] :as note} notes
-               :when (not (deleted? id))]
+         (for [{:notes/keys [id] :as note} notes]
            ^{:key id}
            [note-item attrs note *:expanded])]))
     (finally

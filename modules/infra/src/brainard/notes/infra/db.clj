@@ -194,8 +194,10 @@
                old-todos)))
 
 (defmethod istorage/->input ::api.notes/delete!
-  [{note-id :notes/id}]
-  [[:db/retractEntity [:notes/id note-id]]])
+  [{note-ids :notes/ids}]
+  (map (fn [note-id]
+         [:db/retractEntity [:notes/id note-id]])
+       note-ids))
 
 (defmethod istorage/->input ::api.notes/get-contexts
   [_]

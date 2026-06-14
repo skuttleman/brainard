@@ -29,6 +29,6 @@
              :context context}}])
 
 (defmethod istorage/->input ::api.notes/search-delete!
-  [{:notes/keys [id]}]
+  [{:notes/keys [ids]}]
   [{:action :delete
-    :id     (str id)}])
+    :ids    (map str ids)}])

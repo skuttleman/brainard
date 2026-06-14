@@ -11,7 +11,7 @@
       (case (:action input)
         :create (lucene/add! index (:doc input))
         :update (lucene/replace! index (-> input :doc :id) (:doc input))
-        :delete (lucene/remove! index (:id input)))))
+        :delete (lucene/remove! index (:ids input)))))
 
   istorage/IRead
   (read [_ query]
