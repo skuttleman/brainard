@@ -35,6 +35,9 @@
                      :token route}]
          body)])
 
+(defn ^:private navbar-icon [icon]
+  [comp/icon {:style {:padding-top "2px" :margin-bottom "-2px"}} icon])
+
 (defn ^:private navbar [*:store {:keys [token]}]
   (r/with-let [sub:buzz (store/res-sub *:store [::specs/notes#buzz])]
     (let [resource @sub:buzz
@@ -46,15 +49,23 @@
         [:div#header-nav.navbar-menu
          [:ul.navbar-start.oversize.tabs
           [navbar-item :routes.ui/home token
-           "Home"]
+           [:div.layout--room-between
+            [navbar-icon :home-2]
+            [:span "Home"]]]
           [navbar-item :routes.ui/search token
-           "Search"]
+           [:div.layout--room-between
+            [navbar-icon :search-1]
+            [:span "Search"]]]
           [navbar-item :routes.ui/buzz token
-           "Buzz"
+           [:div.layout--room-between
+            [navbar-icon :fireworks]
+            [:span "Buzz"]]
            (when (pos? buzzes)
              [:span.tag.is-info.space--left.is-rounded buzzes])]
           [navbar-item :routes.ui/trash token
-           "Recycling bin"]]]]])))
+           [:div.layout--room-between
+            [navbar-icon :trash-3]
+            [:span "Recycling bin"]]]]]]])))
 
 (defn page [*:store route]
   [:div.container {:class [(str "page__" (name (:token route)))]}
