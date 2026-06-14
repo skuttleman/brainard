@@ -3,15 +3,19 @@
    [brainard :as-alias b]
    [brainard.api.events.interfaces :as ievents]
    [brainard.api.storage.core :as storage]
+   [brainard.api.storage.interfaces :as istorage]
    [brainard.attachments.api.core :as api.attachments]
+   [brainard.infra.db.store :as ds]
    [brainard.infra.system.daemons :as daemons]
    [brainard.test.harness.integration.system :as tsys]
    [cljc.java-time.instant :as inst]
+   [cljc.java-time.temporal.chrono-unit :as cu]
    [cljc.java-time.zone-id :as zi]
    [cljc.java-time.zoned-date-time :as zdt]
    [clojure.java.io :as io]
    [clojure.string :as string]
    [clojure.test :refer [deftest is testing]]
+   [slag.utils.edn :as edn]
    [slag.utils.uuids :as uuids])
   (:import
    (java.util Date)))
@@ -100,3 +104,50 @@
                          :notes/attachments #{}
                          :notes/todos       #{}}]
                        notes))))))))))
+
+(deftest delete-archived-notes!-test
+  (let [store (ds/->DSStore (ds/connect! {:db-name     (str (uuids/random))
+                                          :storage-dir :mem}))
+        schema (edn/read (io/resource "db/schema.edn"))
+        [n1 n2 n3 n4 s1 s2 s3 s4] (repeatedly uuids/random)
+        old-inst (-> (inst/now)
+                     (inst/minus 30 cu/days)
+                     Date/from)]
+    (testing "when there are old archived notes"
+      (istorage/write! store (cons [:db/add "datomic.tx" :db/txInstant old-inst]
+                                   schema))
+      (istorage/write! store [[:db/add "datomic.tx" :db/txInstant old-inst]
+                              {:notes/id        n1
+                               :notes/archived? false}
+                              {:notes/id        n2
+                               :notes/archived? true}])
+      (istorage/write! store [{:notes/id        n3
+                               :notes/archived? false}
+                              {:notes/id        n4
+                               :notes/archived? true}
+                              {:schedules/id      s1
+                               :schedules/note-id n1}
+                              {:schedules/id      s2
+                               :schedules/note-id n2}
+                              {:schedules/id      s3
+                               :schedules/note-id n3}
+                              {:schedules/id      s4
+                               :schedules/note-id n4}])
+      (testing "and when deleting old archived notes"
+        (daemons/delete-archived-notes! store)
+
+        (testing "deletes only old archived notes"
+          (is (= #{n1 n3 n4}
+                 (set (istorage/read store
+                                     {:query '[:find ?id
+                                               :where
+                                               [?e :notes/id ?id]]
+                                      :xform (map first)}))))
+
+          (testing "and their schedules"
+            (is (= #{s1 s3 s4}
+                   (set (istorage/read store
+                                       {:query '[:find ?id
+                                                 :where
+                                                 [?e :schedules/id ?id]]
+                                        :xform (map first)}))))))))))

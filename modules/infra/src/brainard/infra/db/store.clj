@@ -38,7 +38,7 @@
                           :system      "main"})]
     (d/create-database client {:db-name db-name})
     (with-meta [(doto (d/connect client {:db-name db-name})
-                  (d/transact {:tx-data schema}))
+                  (cond-> (seq schema) (d/transact {:tx-data schema})))
                 client]
                {::db-name db-name})))
 

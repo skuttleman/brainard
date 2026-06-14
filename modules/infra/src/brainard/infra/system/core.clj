@@ -117,3 +117,15 @@
   [_ thread]
   (log/info "stopping orphaned artifact cleaner")
   (.interrupt thread))
+
+(defmethod ig/init-key ::b/note-remover
+  [_ {:keys [interval store]}]
+  (log/info "starting archived note remover")
+  (doto (Thread. ^Runnable (thread-loop interval
+                             (daemons/delete-archived-notes! store)))
+    .start))
+
+(defmethod ig/halt-key! ::b/note-remover
+  [_ thread]
+  (log/info "stopping archived note remover")
+  (.interrupt thread))
