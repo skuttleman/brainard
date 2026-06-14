@@ -29,9 +29,11 @@
                                 (mapcat :notes/attachments)
                                 (keep :attachments/id)
                                 distinct)
-                [c1 c2 c3 c4 c5 c6 c7] (->> (storage/query storage {::storage/type ::api.notes/get-note-history
-                                                                    :notes/id      note-id})
-                                            (map :notes/changes))]
+                [c1 c2 c3 c4 c5 c6 c7 c8 c9] (->> (storage/query
+                                                   storage
+                                                   {::storage/type ::api.notes/get-note-history
+                                                    :notes/id      note-id})
+                                                  (map :notes/changes))]
 
             (testing "returns the first change"
               (is (= {:notes/id        {:to note-id}
@@ -154,5 +156,13 @@
                       :attachments/filename     {:from "some-pdf.pdf"}}
                      (->> c6 :notes/attachments :removed first (get (:attachments/changes c6))))))
 
+            (testing "returns the seventh change"
+              (is (= {:notes/archived? {:from false :to true}}
+                     c7)))
+
+            (testing "returns the eighth change"
+              (is (= {:notes/archived? {:from true :to false}}
+                     c8)))
+
             (testing "has no more changes"
-              (is (nil? c7)))))))))
+              (is (nil? c9)))))))))

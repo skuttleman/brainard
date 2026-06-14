@@ -100,7 +100,7 @@
                        :class    (cond-> ["is-small" "is-white"]
                                    extra-class (conj extra-class))
                        :style    {:padding 0 :height "2em"}}
-    [comp/icon (when (= :trash-can icon) {:class ["is-danger"]}) icon]]))
+    [comp/icon (when (= :trash-3 icon) {:class ["is-danger"]}) icon]]))
 
 (defmethod home.act/drag-item :static
   [*:store {:keys [on-drag-begin]} node]
@@ -115,9 +115,9 @@
      [:span.layout--space-after {:on-mouse-down on-drag-begin}
       [:span.node-content {:style {:cursor :grab}} (::ws/content node)]]
      [:span.layout--space-after
-      [icon-button *:store modify-modal :pencil]]
+      [icon-button *:store modify-modal :pencil-1]]
      [:span.layout--space-after
-      [icon-button *:store delete-modal :trash-can]]
+      [icon-button *:store delete-modal :trash-3]]
      [icon-button *:store create-modal :plus]]))
 
 (defmethod home.act/drag-item :default

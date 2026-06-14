@@ -18,6 +18,10 @@
   :obj-store #ig/ref :brainard/obj-storage
   :store     #ig/ref :brainard/storage}
 
+ [:brainard/note-remover :duct/daemon]
+ {:interval #ig/ref :cfg.cleanup/interval
+  :store    #ig/ref :brainard/storage}
+
  ;; apis
  [:duct/const :brainard/apis]
  {:attachments #ig/ref :brainard/attachments-api

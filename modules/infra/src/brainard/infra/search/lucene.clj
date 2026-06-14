@@ -59,9 +59,9 @@
   (with-writer [writer index]
     (.updateDocument writer (Term. "id" note-id) (->document doc))))
 
-(defn remove! [index ^String note-id]
+(defn remove! [index note-ids]
   (with-writer [writer index]
-    (.deleteDocuments writer (into-array Term [(Term. "id" note-id)]))))
+    (.deleteDocuments writer (into-array Term (map #(Term. "id" ^String %) note-ids)))))
 
 (defn ^:private add-terms [qb bqb field terms]
   (doseq [term terms

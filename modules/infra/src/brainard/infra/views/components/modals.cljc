@@ -31,7 +31,7 @@
     [scomp/plain-button
      {:class    ["is-white" "is-light"]
       :on-click stop-and-close!}
-     [scomp/icon :close]]]
+     [scomp/icon :xmark]]]
    [:div {:style {:max-height "80vh"
                   :max-width  "80vw"
                   :overflow-y :scroll

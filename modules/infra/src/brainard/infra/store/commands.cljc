@@ -12,6 +12,12 @@
            (fn []
              (swap! id inc))))
 
+(defmethod defacto/command-handler :core/if
+  [{::defacto/keys [store]} [_ pred on-true on-false value] _]
+  (if (pred value)
+    (when on-true (store/dispatch! store (conj on-true value)))
+    (when on-false (store/dispatch! store (conj on-false value)))))
+
 (defmethod defacto/command-handler ::w/with-qp!
   [{::defacto/keys [store] ::w/keys [nav]} [_ query-params] _]
   (let [{:keys [token route-params]} (store/query store [::w/?:route])]

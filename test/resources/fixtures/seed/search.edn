@@ -38,4 +38,13 @@
   :notes/archived? false
   :notes/todos     #{{:todos/id         #uuid "6d7009cc-0faf-4232-b0d9-30221d38b968"
                       :todos/completed? true
-                      :todos/text       "Finally did it"}}}]
+                      :todos/text       "Finally did it"}}}
+ {:notes/id        #uuid "d8130a3c-aedd-48fc-a817-cc8462984817"
+  :notes/context   "Context B"
+  :notes/body      "Note three B"
+  :notes/pinned?   false
+  :notes/archived? true
+  :notes/tags      #{:tag/alpha :tag/beta}
+  :notes/todos     #{{:todos/id         #uuid "fcb2cfe9-dd46-41a6-af23-5e99bd364029"
+                      :todos/completed? false
+                      :todos/text       "Un-donezo"}}}]

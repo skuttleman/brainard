@@ -28,9 +28,16 @@
 
 (defmethod invoke-api* :api.notes/delete!
   [_ apis {note-id :notes/id}]
-  (api.notes/delete! (:notes apis) note-id)
-  (api.sched/delete-for-note! (:schedules apis) note-id)
-  (api.notes/search-delete! (:notes apis) note-id)
+  (api.notes/delete! (:notes apis) [note-id])
+  (api.sched/delete-for-notes! (:schedules apis) [note-id])
+  (api.notes/search-delete! (:notes apis) [note-id])
+  nil)
+
+(defmethod invoke-api* :api.notes/bulk-delete!
+  [_ apis {note-ids :notes/ids}]
+  (api.notes/delete! (:notes apis) note-ids)
+  (api.sched/delete-for-notes! (:schedules apis) note-ids)
+  (api.notes/search-delete! (:notes apis) note-ids)
   nil)
 
 (defmethod invoke-api* :api.notes/select

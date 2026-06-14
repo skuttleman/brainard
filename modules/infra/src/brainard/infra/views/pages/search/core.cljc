@@ -19,7 +19,7 @@
   (cond-> {:notes/tags     (into #{}
                                  (comp (map keyword) (filter (set tags)))
                                  (colls/wrap-set (:tags query-params)))
-           :notes/archived (boolean archived)}
+           :notes/archived (keyword archived)}
     (contains? contexts context) (assoc :notes/context context)
     todos (assoc :notes/todos (keyword todos))
     body (assoc :notes/body body)))
@@ -75,7 +75,9 @@
                                    (ctrls/with-attrs form+ [:notes/todos]))]]
        [:div {:style {:flex-basis "18%"}}
         [ctrls/toggle (-> {:*:store *:store
-                           :label   "Include Archived?"}
+                           :label   "Include archived?"
+                           :on-val  :both
+                           :off-val nil}
                           (ctrls/with-attrs form+ [:notes/archived]))]]]
       [ctrls/input (-> {:*:store *:store
                         :label   "Body contents"}

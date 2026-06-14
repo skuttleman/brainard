@@ -34,10 +34,10 @@
 
 (defn delete!
   "Deletes a note by id"
-  [notes-api note-id]
+  [notes-api note-ids]
   (storage/execute! (:store notes-api)
                     {::storage/type ::delete!
-                     :notes/id      note-id})
+                     :notes/ids     note-ids})
   nil)
 
 (defn create!
@@ -113,7 +113,7 @@
   (storage/execute! (:search notes-api)
                     (assoc note ::storage/type ::search-update!)))
 
-(defn search-delete! [notes-api note-id]
+(defn search-delete! [notes-api note-ids]
   (storage/execute! (:search notes-api)
                     {::storage/type ::search-delete!
-                     :notes/id      note-id}))
+                     :notes/ids      note-ids}))

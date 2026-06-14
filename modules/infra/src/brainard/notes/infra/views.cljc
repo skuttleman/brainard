@@ -1,9 +1,11 @@
 (ns brainard.notes.infra.views
   "Reagent components that render notes."
   (:require
+   [brainard.infra.store.core :as store]
    [brainard.infra.store.specs :as-alias specs]
    [brainard.infra.stubs.dom :as dom]
    [brainard.infra.views.components.core :as comp]
+   [defacto.forms.core :as forms]
    [defacto.resources.core :as-alias res]
    [whet.utils.reagent :as r]))
 
@@ -26,6 +28,28 @@
                                                                    :route-params {:notes/id note-id}}]]
                                    :err-commands [[:toasts/fail! {:message "failed to restore note"}]]}]]}
    "restore"])
+
+(defn ^:private ->delete-modal [note-id]
+  [:modals/sure?
+   {:description   [:span "This note will be " [:strong "permanently"] " deleted. Are you sure?"]
+    :yes-btn-class ["note__confirm-delete"]
+    :yes-commands  [[::res/resubmit!
+                     [::specs/notes#destroy note-id]
+                     {:ok-commands  [[:toasts/succeed! {:message "note permanently deleted"}]]
+                      :ok-events    [[::forms/modified
+                                      [::deleted-notes]
+                                      [:notes/ids]
+                                      (fn [note-ids & _] (conj note-ids note-id))]]
+                      :err-commands [[:toasts/fail!]]}]]}])
+
+(defn ^:private delete-button [*:store note-id]
+  [comp/plain-button {:*:store  *:store
+                      :class    ["has-text-danger" "is-ghost" "space--left" "note__delete-button"]
+                      :style    {:justify-content :flex-start
+                                 :padding         0}
+                      :on-click dom/stop-propagation!
+                      :commands [[:modals/create! (->delete-modal note-id)]]}
+   [:span.space--left "delete"]])
 
 (defn ^:private tag-list [tags]
   [:div.flex
@@ -54,7 +78,7 @@
                                                                  "#"
                                                                  id)]
                                                    (.writeText js/navigator.clipboard link))))}
-         [comp/icon :link]])
+         [comp/icon :link-2-angular-right]])
       (when (or archived? (not hide-context?))
         [:div.layout--row.layout--room-between
          (when-not hide-context? [:strong.layout--no-shrink context])
@@ -66,21 +90,31 @@
       (when-not expanded?
         (if archived?
           (when *:store
-            [restore-button *:store id])
+            [:<>
+             [restore-button *:store id]
+             [delete-button *:store id]])
           [edit-link id]))]
      [tag-list tags]
      (when expanded?
        (if archived?
          (when *:store
-           [restore-button *:store id])
+           [:<>
+            [restore-button *:store id]
+            [delete-button *:store id]])
          [edit-link id]))]))
 
-(defn note-list [attrs notes]
-  (r/with-let [*:expanded (r/atom nil)]
-    (if-not (seq notes)
-      [:span.search-results
-       [comp/alert :info "No search results"]]
-      [:ul.search-results
-       (for [{:notes/keys [id] :as note} notes]
-         ^{:key id}
-         [note-item attrs note *:expanded])])))
+(defn note-list [{:keys [*:store] :as attrs} notes]
+  (r/with-let [*:expanded (r/atom nil)
+               sub:form (some-> *:store (store/form-sub [::deleted-notes] {:notes/ids #{}}))]
+    (let [deleted? (or (some-> sub:form deref forms/data :notes/ids)
+                       #{})
+          notes (remove (comp deleted? :notes/id) notes)]
+      (if-not (seq notes)
+        [:span.search-results
+         [comp/alert :info "No search results"]]
+        [:ul.search-results
+         (for [{:notes/keys [id] :as note} notes]
+           ^{:key id}
+           [note-item attrs note *:expanded])]))
+    (finally
+      (some-> *:store (store/emit! [::forms/destroyed [::deleted-notes]])))))

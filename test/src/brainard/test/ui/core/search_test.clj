@@ -11,12 +11,14 @@
    [whet.utils.navigation :as nav]))
 
 (defn ^:private note-visible? [driver body]
-  (let [fmt "//ul[contains(@class,'search-results')]//span[contains(@class,'truncate') and text()='%s']"]
+  (let [fmt "//ul[contains(@class,'search-results')]
+             //span[contains(@class,'truncate') and text()='%s']"]
     (eta/exists? driver {:xpath (format fmt body)})))
 
 (defn ^:private select-options! [driver label & items]
   (let [item-fmt "//ul[contains(@class,'dropdown-items')]//span[text()='%s']"
-        active-fmt "//ul[contains(@class,'dropdown-items')]//li[contains(@class,'is-active')]//span[text()='%s']"]
+        active-fmt "//ul[contains(@class,'dropdown-items')]
+                    //li[contains(@class,'is-active')]//span[text()='%s']"]
     (web/click! driver {:css (format ".form-field[data-field-label='%s'] button" label)})
     (eta/wait-visible driver {:css "ul.dropdown-items"})
     (doseq [item-text items]
@@ -43,6 +45,7 @@
             (is (note-visible? driver "Note two A"))
             (is (note-visible? driver "Note one B"))
             (is (not (note-visible? driver "Note two B")))
+            (is (not (note-visible? driver "Note three B")))
             (is (not (note-visible? driver "Note one C"))))
 
           (testing "updates the browser url"
@@ -54,7 +57,9 @@
             (testing "renders the note page"
               (let [note-id (-> fix first :notes/id)]
                 (is (= (str base-url "/notes/" note-id) (eta/get-url driver)))
-                (is (eta/visible? driver {:xpath "//*[contains(@class,'content')]//*[text()='Note one A']"})))))
+                (eta/wait-visible driver {:css ".content"})
+                (is (eta/visible? driver {:xpath "//*[contains(@class,'content')]
+                                                  //*[text()='Note one A']"})))))
 
           (testing "and when navigating back"
             (eta/go driver (str base-url "/search"))
@@ -84,7 +89,8 @@
             (is (note-visible? driver "Note two A"))
             (is (not (note-visible? driver "Note one A")))
             (is (not (note-visible? driver "Note one B")))
-            (is (not (note-visible? driver "Note two B"))))
+            (is (not (note-visible? driver "Note two B")))
+            (is (not (note-visible? driver "Note three B"))))
 
           (testing "updates the browser url"
             (is (querying? {:tags #{"tag/alpha" "tag/beta"}})))
@@ -111,17 +117,37 @@
             (eta/wait-visible driver {:css "span.search-results"})
 
             (testing "does not render any notes"
-              (is (eta/has-text? driver {:css ".search-results .message-body"} "No search results"))
+              (is (eta/has-text? driver
+                                 {:css ".search-results .message-body"}
+                                 "No search results"))
               (is (not (note-visible? driver "Note one A")))
               (is (not (note-visible? driver "Note two A")))
               (is (not (note-visible? driver "Note one B")))
               (is (not (note-visible? driver "Note two B")))
-              (is (not (note-visible? driver "Note one C"))))))))))
+              (is (not (note-visible? driver "Note three B")))
+              (is (not (note-visible? driver "Note one C"))))
+
+            (testing "and when including archived notes"
+              (web/fill-field! driver "Include archived?" true)
+              (web/click! driver {:css "form.search-form button.submit"})
+              (eta/wait-absent driver {:css "span.search-results"})
+              (eta/wait-visible driver {:css "ul.search-results"})
+
+              (testing "renders the archived note"
+                (is (not (note-visible? driver "Note one A")))
+                (is (not (note-visible? driver "Note two A")))
+                (is (not (note-visible? driver "Note one B")))
+                (is (not (note-visible? driver "Note two B")))
+                (is (note-visible? driver "Note three B"))
+                (is (not (note-visible? driver "Note one C")))))))))))
 
 (deftest search-filters-test
   (usys/with-webdriver [driver base-url {fix "search.edn"}]
     (letfn [(querying? [qp]
-              (let [params (-> (eta/get-url driver) (string/split #"\?") second nav/->query-params)]
+              (let [params (-> (eta/get-url driver)
+                               (string/split #"\?")
+                               second
+                               nav/->query-params)]
                 (= qp params)))]
       (testing "when visiting the search page"
         (eta/go driver (str base-url "/search"))
@@ -182,7 +208,33 @@
                 (is (not (note-visible? driver "Note two A")))
                 (is (not (note-visible? driver "Note one B")))
                 (is (not (note-visible? driver "Note two B")))
-                (is (not (note-visible? driver "Note one C")))))))))))
+                (is (not (note-visible? driver "Note three B")))
+                (is (not (note-visible? driver "Note one C"))))
+
+              (testing "and when including archived notes"
+                (web/fill-field! driver "Include archived?" true)
+                (web/click! driver {:css "form.search-form button.submit"})
+                (web/wait-optimistic #(eta/visible? driver {:css ".loader"}))
+                (eta/wait-absent driver {:css ".loader"})
+
+                (testing "renders the archived note"
+                  (is (note-visible? driver "Note one A"))
+                  (is (not (note-visible? driver "Note two A")))
+                  (is (not (note-visible? driver "Note one B")))
+                  (is (not (note-visible? driver "Note two B")))
+                  (is (note-visible? driver "Note three B"))
+                  (is (not (note-visible? driver "Note one C"))))
+
+                (testing "and when restoring the archived note"
+                  (web/click! driver {:css ".search-results .note__restore-button"})
+                  (web/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
+
+                  (testing "renders the note page"
+                    (let [note-id (-> fix peek :notes/id)]
+                      (is (= (str base-url "/notes/" note-id) (eta/get-url driver)))
+                      (eta/wait-visible driver {:css ".content"})
+                      (is (eta/visible? driver {:xpath "//*[contains(@class,'content')]
+                                                        //*[text()='Note three B']"})))))))))))))
 
 (deftest search-fulltext-test
   (usys/with-webdriver [driver base-url {_ "search.edn"}]
@@ -225,7 +277,22 @@
               (is (not (note-visible? driver "Note two A")))
               (is (note-visible? driver "Note one B"))
               (is (not (note-visible? driver "Note two B")))
-              (is (not (note-visible? driver "Note one C"))))))))))
+              (is (not (note-visible? driver "Note three B")))
+              (is (not (note-visible? driver "Note one C"))))
+
+            (testing "and when including archived notes"
+              (web/fill-field! driver "Include archived?" true)
+              (web/click! driver {:css "form.search-form button.submit"})
+              (web/wait-optimistic #(eta/visible? driver {:css ".loader"}))
+              (eta/wait-absent driver {:css ".loader"})
+
+              (testing "renders the correct notes"
+                (is (not (note-visible? driver "Note one A")))
+                (is (not (note-visible? driver "Note two A")))
+                (is (note-visible? driver "Note one B"))
+                (is (not (note-visible? driver "Note two B")))
+                (is (not (note-visible? driver "Note three B")))
+                (is (not (note-visible? driver "Note one C")))))))))))
 
 (deftest buzz-test
   (usys/with-webdriver [driver base-url {buzz "buzz.edn"}]
@@ -244,7 +311,8 @@
 
         (testing "renders the correct notes"
           (is (note-visible? driver "Note 1"))
-          (is (not (note-visible? driver "Note 2"))))
+          (is (not (note-visible? driver "Note 2")))
+          (is (not (note-visible? driver "Note 3"))))
 
         (testing "and when editing a note"
           (eta/go driver (str base-url "/notes/" note-id-2))
@@ -260,4 +328,5 @@
 
               (testing "renders the correct notes"
                 (is (note-visible? driver "Note 1"))
-                (is (note-visible? driver "Note 2"))))))))))
+                (is (note-visible? driver "Note 2"))
+                (is (not (note-visible? driver "Note 3")))))))))))

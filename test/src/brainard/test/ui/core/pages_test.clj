@@ -22,7 +22,7 @@
         (is (true? (eta/wait-visible driver {:css "h1.workspace"}))))
 
       (testing "home nav item is active"
-        (let [el (eta/query driver {:css ".navbar .is-active > .navbar-item"})]
+        (let [el (eta/query driver {:css ".navbar .is-active > .navbar-item .navbar-label"})]
           (is (= "Home" (eta/get-element-inner-html-el driver el))))))
 
     (testing "when visiting the search page"
@@ -31,7 +31,7 @@
         (is (true? (eta/wait-visible driver {:css "form.search-form"}))))
 
       (testing "search nav item is active"
-        (let [el (eta/query driver {:css ".navbar .is-active > .navbar-item"})]
+        (let [el (eta/query driver {:css ".navbar .is-active > .navbar-item .navbar-label"})]
           (is (= "Search" (eta/get-element-inner-html-el driver el))))))
 
     (testing "when visiting the buzz page"
@@ -40,7 +40,7 @@
         (is (true? (eta/wait-visible driver {:css "h1.title"}))))
 
       (testing "buzz nav item is active"
-        (let [el (eta/query driver {:css ".navbar .is-active > .navbar-item"})]
+        (let [el (eta/query driver {:css ".navbar .is-active > .navbar-item .navbar-label"})]
           (is (= "Buzz" (eta/get-element-inner-html-el driver el))))))))
 
 (deftest pinned-test

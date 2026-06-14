@@ -19,19 +19,31 @@ jobs:
       - uses: DeLaGuardo/setup-clojure@13
         with:
           cli: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
       - uses: actions/cache@v4
         id: cache
         with:
           path: |
             ~/.m2
             ~/.gitlibs
+            .cpcache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
+      - uses: actions/cache@v4
+        id: npm_cache
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('package.json', 'package-lock.json') }}
       - name: Install all deps
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true' || steps.npm_cache.outputs.cache-hit != 'true'
         run: |
           for alias in '' :build :dev :lint :shadow :test :tools; do
             clojure -P -M$alias
           done
+          npm ci
 
   build:
     name: Build uberjar
@@ -51,7 +63,15 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
+            .cpcache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
+      - uses: actions/cache@v4
+        id: npm_cache
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('package.json', 'package-lock.json') }}
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
@@ -76,6 +96,7 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
+            .cpcache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - name: Run linter
         run: clojure -M:lint
@@ -98,6 +119,7 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
+            .cpcache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - name: Run unit tests
         run: |
@@ -130,7 +152,15 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
+            .cpcache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
+      - uses: actions/cache@v4
+        id: npm_cache
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('package.json', 'package-lock.json') }}
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
@@ -162,6 +192,7 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
+            .cpcache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
       - name: Run integration tests
         run: |
@@ -198,14 +229,20 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
+            .cpcache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
+      - uses: actions/cache@v4
+        id: npm_cache
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('package.json', 'package-lock.json') }}
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
       - name: Prepare JS for coverage
         run: |
-          npm ci
-          npm install -g sass
           mkdir -p resources/public/css
           make build-sass
           rm -rf resources/public/js target/nyc_output
@@ -298,7 +335,15 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
+            .cpcache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/deps.edn') }}
+      - uses: actions/cache@v4
+        id: npm_cache
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('package.json', 'package-lock.json') }}
       - name: Install lcov
         run: |
           sudo apt-get update
@@ -314,9 +359,6 @@ jobs:
           pattern: nyc_output-*
           path: target/nyc_output
           merge-multiple: true
-      - name: Install JS dependencies
-        run: |
-          if [ -f package-lock.json ]; then npm ci; else npm i; fi
       - name: Generate JS coverage report
         run: |
           node tools/nyc-report.js

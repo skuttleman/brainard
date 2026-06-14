@@ -104,7 +104,7 @@
 
         (testing "and when deleting a note"
           (istorage/write! store [{:action :delete
-                                   :id     (str n1)}])
+                                   :ids    [(str n1)]}])
 
           (testing "and when searching the index"
             (testing "and when there are no matches"

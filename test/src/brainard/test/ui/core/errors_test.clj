@@ -212,7 +212,7 @@
       (web/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
       (testing "and when deleting a workspace node"
-        (web/click! driver {:css ".drag-n-drop .lni-trash-can"})
+        (web/click! driver {:css ".drag-n-drop .lni-trash-3"})
 
         (testing "and when confirming the delete fails"
           (web/with-http-failure driver "workspace test failure"
@@ -231,7 +231,7 @@
       (web/wait-optimistic #(eta/visible? driver {:css ".page__home"}))
 
       (testing "and when editing a workspace node fails"
-        (web/click! driver {:css ".drag-n-drop .lni-pencil"})
+        (web/click! driver {:css ".drag-n-drop .lni-pencil-1"})
         (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
         (web/with-http-failure driver "workspace test failure"
           (web/submit-form! driver

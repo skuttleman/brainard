@@ -55,6 +55,16 @@
                  [:span.space--left.truncate.blue
                   (str to)]])])
 
+(defmethod history-change "Archived"
+  [_ {:keys [to]}]
+  [:div.layout--row
+   [:span "The"]
+   [:strong.space--left.purple "note"]
+   [:span.space--left "was"]
+   (if to
+     [:em.space--left.red "archived"]
+     [:em.space--left.blue "restored"])])
+
 (defmethod history-change "Attachments"
   [label changes]
   [:div
@@ -152,10 +162,13 @@
                                         :prev-todos       prev-todos}]
                  change-list (for [[k label] [[:notes/context "Topic"]
                                               [:notes/pinned? "Pin"]
+                                              (when (pos? idx)
+                                                [:notes/archived? "Archived"])
                                               [:notes/body "Body"]
                                               [:notes/tags "Tags"]
                                               [(constantly (not-empty attachment-changes)) "Attachments"]
                                               [(constantly (not-empty todo-changes)) "Todos"]]
+                                   :when k
                                    :let [change (k changes)]
                                    :when change]
                                [history-change label change])]
@@ -181,8 +194,12 @@
    [:div.layout--row
     (when (:notes/pinned? note)
       [comp/icon {:class ["layout--space-after"]
-                  :style {:align-self :center}} :paperclip])
-    [:h1 [:strong (:notes/context note)]]]
+                  :style {:align-self :center}}
+       :paperclip-1])
+    [:h1
+     [:strong (:notes/context note)]
+     (when (:notes/archived? note)
+       [:em.space--left.red "[archived]"])]]
    [comp/markdown (:notes/body note)]
    [attachment-list note]
    [todo-list note]

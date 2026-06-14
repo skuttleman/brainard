@@ -31,11 +31,13 @@
       (derive :routes.ui/buzz :routes/ui)
       (derive :routes.ui/note :routes/ui)
       (derive :routes.ui/search :routes/ui)
+      (derive :routes.ui/trash :routes/ui)
       (derive :routes.ui/not-found :routes/ui)))
 
 (def route->handler
   {[:get :routes.api/notes]             :api.notes/select
    [:post :routes.api/notes]            :api.notes/create!
+   [:delete :routes.api/notes]          :api.notes/bulk-delete!
    [:get :routes.api/notes?scheduled]   :api.notes/relevant
    [:get :routes.api/note]              :api.notes/fetch
    [:get :routes.api/note?history]      :api.notes/fetch?history

@@ -66,7 +66,7 @@
                     (is (= 4 (count (eta/query-all driver {:css "li.node-item"})))))))
 
               (testing "and when updating the child node"
-                (ws-edit! driver "child node" "lni-pencil")
+                (ws-edit! driver "child node" "lni-pencil-1")
                 (ws-submit! driver "updated child")
                 (eta/wait-absent driver {:css ".modal-container.is-active .modal-item"})
 
@@ -75,7 +75,7 @@
                   (is (node-absent? "child node")))
 
                 (testing "and when deleting the updated child"
-                  (ws-edit! driver "updated child" "lni-trash-can")
+                  (ws-edit! driver "updated child" "lni-trash-3")
                   (eta/wait-visible driver {:css ".modal-container.is-active .modal-item"})
                   (web/click! driver {:css ".modal-container.is-active button.delete-node"})
                   (eta/wait-absent driver {:css ".modal-container.is-active .modal-item"})

@@ -75,7 +75,7 @@
       (api.sched/create! schedules-api {:schedules/note-id note-id-1 :schedules/weekday :friday})
       (api.sched/create! schedules-api {:schedules/note-id note-id-2 :schedules/weekday :tuesday})
       (testing "when deleting schedules for a note"
-        (api.sched/delete-for-note! schedules-api note-id-1)
+        (api.sched/delete-for-notes! schedules-api [note-id-1])
         (testing "removes all schedules for that note"
           (is (empty? (api.sched/get-by-note-id schedules-api note-id-1))))
         (testing "does not remove schedules for other notes"

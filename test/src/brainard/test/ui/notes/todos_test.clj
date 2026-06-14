@@ -50,7 +50,7 @@
           (eta/wait-visible driver {:css ".modal-container.is-active ul.todo-list"})
 
           (testing "and when clicking the edit icon on a todo"
-            (web/click! driver {:css ".modal-container.is-active i.lni-pencil"})
+            (web/click! driver {:css ".modal-container.is-active i.lni-pencil-1"})
             (eta/wait-visible driver {:css ".modal-container.is-active .note-edit__todo"})
 
             (testing "opens the edit todo modal"
@@ -104,7 +104,7 @@
 
           (testing "and when clicking the delete icon on a todo"
             (let [todos-before (count (eta/query-all driver {:css ".modal-container.is-active ul.todo-list li.todo"}))]
-              (web/click! driver {:css ".modal-container.is-active i.lni-trash-can"})
+              (web/click! driver {:css ".modal-container.is-active i.lni-trash-3"})
 
               (testing "and when saving the note"
                 (web/click! driver {:css ".note-edit__modal button.submit"})

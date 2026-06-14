@@ -35,7 +35,9 @@
                                     (assoc spec
                                            :payload note
                                            :ok-commands [[:toasts/succeed! {:message "previous version of note was reinstated"}]
-                                                         [::res/submit! [::note#history note-id]]]
+                                                         [:core/if :notes/archived?
+                                                          [:nav/navigate! {:token :routes.ui/home}]
+                                                          [::res/submit! [::note#history note-id]]]]
                                            :err-commands [[:toasts/fail!]]))
     (res/->request-spec [::specs/notes#find note-id] spec)))
 

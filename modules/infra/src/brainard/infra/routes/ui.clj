@@ -30,7 +30,7 @@
 
 (def ^:private ^:const icon-lib
   [:link {:rel  "stylesheet"
-          :href "https://cdn.lineicons.com/4.0/lineicons.css"
+          :href "https://cdn.lineicons.com/5.1/line/lineicons.css"
           :type "text/css"}])
 
 (def ^:private ^:const css-lib
@@ -73,13 +73,16 @@
                                       {"content-type" "text/html"})))))
 
 (defmethod iroutes/handler [:get :routes.resources/asset]
-  [{:keys [uri] :as req} respond _raise]
+  [{:keys [uri] :as req} respond raise]
   (let [content-type (or (ring.mime/ext-mime-type uri)
                          "text/plain")]
-    (some-> req
-            (ring.res/resource-request "public")
-            (assoc-in [:headers "content-type"] content-type)
-            respond)))
+    (if-let [response (some-> req
+                              (ring.res/resource-request "public")
+                              (assoc-in [:headers "content-type"] content-type))]
+      (respond response)
+      (-> req
+          (dissoc ::w/route)
+          (iroutes/handler respond raise)))))
 
 (defmethod iroutes/handler [:get :routes.resources/attachment]
   [{::b/keys [apis input] ::w/keys [route] :as req} respond raise]

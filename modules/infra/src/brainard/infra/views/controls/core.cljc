@@ -168,9 +168,16 @@
    (with-emit-on-change
     (with-disabled-compat
      (fn [{:keys [on-change value] :as attrs}]
-       [form-field
-        attrs
-        [comp/checkbox (assoc attrs :on-change #(on-change (not value)))]])))))
+       (let [on-val (get attrs :on-val true)
+             off-val (get attrs :off-val false)
+             val-map (assoc {true on-val false off-val}
+                            on-val true
+                            off-val false)]
+         [form-field
+          attrs
+          [comp/checkbox (-> attrs
+                             (update :value val-map)
+                             (assoc :on-change #(on-change (val-map (not (val-map value))))))]]))))))
 
 (def ^{:arglists '([attrs])} icon-toggle
   (with-id

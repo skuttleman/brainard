@@ -11,4 +11,13 @@
   :notes/context   "Some context"
   :notes/body      "Note 2"
   :notes/pinned?   false
-  :notes/archived? false}]
+  :notes/archived? false}
+ {:notes/id        #uuid "ca2c7a02-707d-4de8-8f09-d080e8950bad"
+  :notes/context   "Some context"
+  :notes/body      "Note 3"
+  :notes/pinned?   false
+  :notes/archived? true}
+ {:schedules/id               #uuid "ec699cf9-bef5-4ade-b788-fff261152e64"
+  :schedules/note-id          #uuid "ca2c7a02-707d-4de8-8f09-d080e8950bad"
+  :schedules/after-timestamp  #inst "2000-01-01Z"
+  :schedules/before-timestamp #inst "2500-01-01Z"}]
