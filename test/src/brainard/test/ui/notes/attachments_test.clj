@@ -158,7 +158,7 @@
               (is (eta/has-text? driver {:css ".modal-container.is-active .attachment-list"} "sample.txt")))
 
             (testing "and when editing the attachment name"
-              (web/click! driver {:css "li.attachment i.lni-pencil"})
+              (web/click! driver {:css "li.attachment i.lni-pencil-1"})
               (eta/wait-visible driver {:css ".modal-container.is-active .note-edit__attachment-name"})
               (web/fill-field! driver "Attachment name" "renamed-attachment.txt")
               (web/click! driver {:css ".note-edit__attachment-name button.submit"})
@@ -218,7 +218,7 @@
                 (eta/wait-visible driver {:css ".modal-container.is-active form.form"})
 
                 (testing "and when removing an attachment"
-                  (web/click! driver {:css "li.attachment i.lni-trash-can"})
+                  (web/click! driver {:css "li.attachment i.lni-trash-3"})
                   (testing "removes the attachment from the form"
                     (is (= 1 (count (eta/query-all driver {:css ".modal-container.is-active .attachment-list li"})))))
 

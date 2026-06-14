@@ -9,8 +9,12 @@ resources/public/js/
 resources/public/css/
 resources/public/img/
 target/
-
+.DStore
 *.iml
 *.log
 .env
 .nrepl-port
+
+# offline dev resources
+_bulma.scss
+_lineicons.scss

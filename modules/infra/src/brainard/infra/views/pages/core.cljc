@@ -51,21 +51,21 @@
           [navbar-item :routes.ui/home token
            [:div.layout--room-between
             [navbar-icon :home-2]
-            [:span "Home"]]]
+            [:span.navbar-label "Home"]]]
           [navbar-item :routes.ui/search token
            [:div.layout--room-between
             [navbar-icon :search-1]
-            [:span "Search"]]]
+            [:span.navbar-label "Search"]]]
           [navbar-item :routes.ui/buzz token
            [:div.layout--room-between
             [navbar-icon :fireworks]
-            [:span "Buzz"]]
+            [:span.navbar-label "Buzz"]]
            (when (pos? buzzes)
-             [:span.tag.is-info.space--left.is-rounded buzzes])]
+             [:span.navbar-label.tag.is-info.space--left.is-rounded buzzes])]
           [navbar-item :routes.ui/trash token
            [:div.layout--room-between
             [navbar-icon :trash-3]
-            [:span "Recycling bin"]]]]]]])))
+            [:span.navbar-label "Recycling bin"]]]]]]])))
 
 (defn page [*:store route]
   [:div.container {:class [(str "page__" (name (:token route)))]}
