@@ -60,7 +60,7 @@
         [ctrls/icon-toggle (-> {:*:store  *:store
                                 :class    ["is-small" "note__toggle-pinned"]
                                 :disabled (or disabled? (res/requesting? form+))
-                                :icon     :paperclip
+                                :icon     :paperclip-1
                                 :type     :submit}
                                (ctrls/with-attrs form+ [:notes/pinned?]))]]])
     (finally
@@ -86,7 +86,7 @@
                               :class    ["is-danger" "is-light" "is-small" "schedules__delete"]
                               :commands [[:modals/create! modal]]
                               :disabled disabled?}
-           [comp/icon :trash-can]]
+           [comp/icon :trash-3]]
           [schedule-item sched]])]]
      [:p.schedules__empty [:em "no related schedules"]])])
 
@@ -175,7 +175,7 @@
                  :download     (str "note-" (:notes/id note) ".md")
                  :route-params (select-keys note #{:notes/id})
                  :target       "_blank"}
-      [comp/icon :download]]
+      [comp/icon :download-1]]
      [comp/plain-button {:*:store  *:store
                          :class    ["is-light" "note__history-button"]
                          :commands [[:modals/create! [::note.history/modal

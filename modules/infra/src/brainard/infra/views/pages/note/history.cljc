@@ -181,7 +181,7 @@
    [:div.layout--row
     (when (:notes/pinned? note)
       [comp/icon {:class ["layout--space-after"]
-                  :style {:align-self :center}} :paperclip])
+                  :style {:align-self :center}} :paperclip-1])
     [:h1 [:strong (:notes/context note)]]]
    [comp/markdown (:notes/body note)]
    [attachment-list note]

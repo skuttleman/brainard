@@ -54,7 +54,7 @@
                                                                  "#"
                                                                  id)]
                                                    (.writeText js/navigator.clipboard link))))}
-         [comp/icon :link]])
+         [comp/icon :link-2-angular-right]])
       (when (or archived? (not hide-context?))
         [:div.layout--row.layout--room-between
          (when-not hide-context? [:strong.layout--no-shrink context])

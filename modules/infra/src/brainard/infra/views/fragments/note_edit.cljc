@@ -39,7 +39,7 @@
                              (with-trim-on-blur *:store))]]]
      [ctrls/icon-toggle (-> {:*:store *:store
                              :label   "Pin"
-                             :icon    :paperclip}
+                             :icon    :paperclip-1}
                             (ctrls/with-attrs form+ [:notes/pinned?]))]]))
 
 (defn ^:private body-field [{:keys [*:store form+]}]

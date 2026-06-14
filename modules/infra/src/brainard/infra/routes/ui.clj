@@ -30,7 +30,7 @@
 
 (def ^:private ^:const icon-lib
   [:link {:rel  "stylesheet"
-          :href "https://cdn.lineicons.com/4.0/lineicons.css"
+          :href "https://cdn.lineicons.com/5.1/line/lineicons.css"
           :type "text/css"}])
 
 (def ^:private ^:const css-lib

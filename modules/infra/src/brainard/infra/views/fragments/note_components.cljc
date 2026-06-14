@@ -31,10 +31,10 @@
         (:attachments/name attachment)]
        (when on-remove
          [list-action #(on-remove attachment)
-          [comp/icon {:class ["is-danger"]} :trash-can]])
+          [comp/icon {:class ["is-danger"]} :trash-3]])
        (when on-edit
          [list-action #(on-edit attachment)
-          [comp/icon :pencil]])])]])
+          [comp/icon :pencil-1]])])]])
 
 (defmulti ^{:attrs '([attrs todo])} todo-item
           (fn [{:keys [*:store]} _]
@@ -51,10 +51,10 @@
     (:todos/text todo)]
    (when on-remove
      [list-action #(on-remove todo)
-      [comp/icon {:class ["is-danger"]} :trash-can]])
+      [comp/icon {:class ["is-danger"]} :trash-3]])
    (when on-edit
      [list-action #(on-edit todo)
-      [comp/icon :pencil]])])
+      [comp/icon :pencil-1]])])
 
 (defn todo-list [{:keys [label? on-create value] :as attrs}]
   [:div.layout-col
