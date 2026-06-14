@@ -26,9 +26,7 @@
 
 (defn ^:private delete-button [*:store note-ids]
   [comp/plain-button {:*:store  *:store
-                      :class    ["has-text-danger" "is-ghost" "space--left" "note__delete-button"]
-                      :style    {:justify-content :flex-start
-                                 :padding         0}
+                      :class    ["is-danger" "note__delete-button"]
                       :on-click dom/stop-propagation!
                       :commands [[:modals/create! (->delete-modal note-ids)]]}
    "empty recycle bin"])

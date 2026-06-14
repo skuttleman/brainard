@@ -75,7 +75,7 @@
                                    (ctrls/with-attrs form+ [:notes/todos]))]]
        [:div {:style {:flex-basis "18%"}}
         [ctrls/toggle (-> {:*:store *:store
-                           :label   "Include Archived?"
+                           :label   "Include archived?"
                            :on-val  :both
                            :off-val nil}
                           (ctrls/with-attrs form+ [:notes/archived]))]]]

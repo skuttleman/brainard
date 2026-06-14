@@ -28,7 +28,8 @@
 
 (defn wait-optimistic [pred]
   (or (try (eta/wait-predicate #(try (pred)
-                                     (catch Throwable _)))
+                                     (catch Throwable _))
+                               {:timeout 2})
            (catch Throwable _))
       true))
 
@@ -37,19 +38,27 @@
 
 (defmulti ^{:arglists '([driver q val])} ^:private fill!
           (fn [driver q _]
-            (eta/get-element-tag driver q)))
+            (let [tag (keyword (eta/get-element-tag driver q))]
+              (cond-> tag
+                (= :input tag) (vector (keyword (eta/get-element-attr driver q "type")))))))
 
-(defmethod fill! "input"
+(defmethod fill! [:input :text]
   [driver q val]
   (eta/clear driver q)
   (eta/fill driver q val))
 
-(defmethod fill! "textarea"
+(defmethod fill! [:input :checkbox]
+  [driver q val]
+  (let [checked? (= "true" (eta/get-element-attr driver q "checked"))]
+    (when (not= checked? val)
+      (click! driver q))))
+
+(defmethod fill! :textarea
   [driver q val]
   (eta/clear driver q)
   (eta/fill driver q val))
 
-(defmethod fill! "select"
+(defmethod fill! :select
   [driver q val]
   (click! driver q)
   (let [el (eta/query driver q)
