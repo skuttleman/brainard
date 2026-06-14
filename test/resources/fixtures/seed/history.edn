@@ -7,6 +7,7 @@
      :notes/todos     #{{:todos/id         #uuid "0b1c3571-c413-41c3-ac04-d6713b3cdbc6"
                          :todos/text       "Do a thing"
                          :todos/completed? false}}}]
+
  2 [[:db/retract [:notes/id #uuid "c5bb659a-0bdf-431c-a145-810455441220"] :notes/tags :bar]
     {:notes/id          #uuid "c5bb659a-0bdf-431c-a145-810455441220"
      :notes/body        "Some edited body goes here"
@@ -18,6 +19,7 @@
                            :attachments/content-type "plain/text"
                            :attachments/filename     "sample.txt"
                            :attachments/name         "sample.txt"}}}]
+
  3 [{:notes/id          #uuid "c5bb659a-0bdf-431c-a145-810455441220"
      :notes/attachments #{{:attachments/id           #uuid "addb9e9a-9578-4069-81c1-2472741ead1e"
                            :attachments/content-type "image/jpeg"
@@ -26,11 +28,13 @@
      :notes/todos       #{{:todos/id         #uuid "7ebfc421-7ec4-439b-b035-09fc614b6975"
                            :todos/text       "Do another thing"
                            :todos/completed? false}}}]
+
  4 [{:notes/id      #uuid "c5bb659a-0bdf-431c-a145-810455441220"
      :notes/pinned? false
      :notes/todos   #{{:todos/id         #uuid "0b1c3571-c413-41c3-ac04-d6713b3cdbc6"
                        :todos/text       "Did a thing"
                        :todos/completed? true}}}]
+
  5 [{:notes/id          #uuid "c5bb659a-0bdf-431c-a145-810455441220"
      :notes/attachments #{{:attachments/id   #uuid "addb9e9a-9578-4069-81c1-2472741ead1e"
                            :attachments/name "some other name"}}
@@ -39,6 +43,7 @@
                           {:todos/id         #uuid "b2b0d144-6be1-4e7f-bb53-d849424cd828"
                            :todos/text       "Do some third thing"
                            :todos/completed? true}}}]
+
  6 [[:db/retractEntity [:attachments/id #uuid "2006bd32-941e-49e4-bf3a-adcd9e37d1da"]]
     [:db/retractEntity [:todos/id #uuid "7ebfc421-7ec4-439b-b035-09fc614b6975"]]
     [:db/retract [:notes/id #uuid "c5bb659a-0bdf-431c-a145-810455441220"] :notes/tags :baz/quux]
@@ -47,4 +52,10 @@
      :notes/body    "Some completely different body"
      :notes/tags    #{:other/tag}
      :notes/todos   #{{:todos/id   #uuid "b2b0d144-6be1-4e7f-bb53-d849424cd828"
-                       :todos/text "Do some third thing still"}}}]}
+                       :todos/text "Do some third thing still"}}}]
+
+ 7 [{:notes/id        #uuid "c5bb659a-0bdf-431c-a145-810455441220"
+     :notes/archived? true}]
+
+ 8 [{:notes/id        #uuid "c5bb659a-0bdf-431c-a145-810455441220"
+     :notes/archived? false}]}

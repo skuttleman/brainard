@@ -11,12 +11,10 @@
    [defacto.resources.core :as res]
    [whet.utils.reagent :as r]))
 
-
-
 (defn ^:private ->delete-modal [note-ids]
   [:modals/sure?
    {:description   [:span "All archived notes will be " [:strong "permanently"] " deleted. Are you sure?"]
-    :yes-btn-class ["note__confirm-delete"]
+    :yes-btn-class ["note__confirm-empty"]
     :yes-commands  [[::res/resubmit!
                      trash.act/sync-key
                      {::trash.act/action ::trash.act/bulk-delete
@@ -26,7 +24,7 @@
 
 (defn ^:private delete-button [*:store note-ids]
   [comp/plain-button {:*:store  *:store
-                      :class    ["is-danger" "note__delete-button"]
+                      :class    ["is-danger" "note__empty-button"]
                       :on-click dom/stop-propagation!
                       :commands [[:modals/create! (->delete-modal note-ids)]]}
    "empty recycle bin"])

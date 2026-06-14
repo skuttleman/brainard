@@ -1,0 +1,15 @@
+[{:notes/id        #uuid "b820570a-5b2e-440f-9539-09a5b54b5b8c"
+  :notes/context   "Some context"
+  :notes/body      "Some body 1"
+  :notes/pinned?   false
+  :notes/archived? true}
+ {:notes/id        #uuid "65d88936-b231-434b-b7e6-6fcb6758da0e"
+  :notes/context   "Some context"
+  :notes/body      "Some body 2"
+  :notes/pinned?   false
+  :notes/archived? true}
+ {:notes/id        #uuid "4e652dcd-66e1-4d6f-9b9c-adb06092153a"
+  :notes/context   "Some context"
+  :notes/body      "Some body 3"
+  :notes/pinned?   false
+  :notes/archived? false}]
