@@ -190,8 +190,15 @@
 
 (defn ^:private schedule-root [*:store sub:modals disabled? [note scheds]]
   (when (or disabled? (:notes/id note))
-    (if (and disabled? (seq @sub:modals))
+    (cond
+      (and disabled? (seq @sub:modals))
       [comp/spinner]
+
+      (and (seq scheds) (not (:schedules/id (first scheds))))
+      [comp/alert :warn
+       [:div "Schedules encountered an error. Try reloading."]]
+
+      :else
       [schedule-editor *:store note scheds disabled?])))
 
 (defn ^:private note-err [_]
