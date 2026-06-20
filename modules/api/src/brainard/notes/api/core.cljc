@@ -100,11 +100,6 @@
                                                    string/lower-case
                                                    (string/split #"[^\w]+")))}))
 
-(defn search-suggest [notes-api query]
-  (storage/query (:search notes-api)
-                 {::storage/type ::search-suggest
-                  :notes/query   query}))
-
 (defn search-create! [notes-api note]
   (when note
     (storage/execute! (:search notes-api)

@@ -16,7 +16,6 @@
   istorage/IRead
   (read [_ query]
     (case (:action query)
-      :suggest (lucene/suggest index (:prefix query))
       :search (lucene/search index query))))
 
 (defn ->mem-index []
