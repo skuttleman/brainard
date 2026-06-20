@@ -1,10 +1,9 @@
 (ns brainard.infra.store.core
-  #?(:cljs (:require-macros brainard.infra.store.core))
   (:require
    [defacto.core :as defacto]
    [defacto.forms.core :as-alias forms]
    [defacto.forms.plus :as-alias forms+]
-   [defacto.resources.core :as-alias res]))
+   [defacto.resources.core :as res]))
 
 (defn dispatch!
   "Dispatch a command to the defacto store."
@@ -35,6 +34,15 @@
    (-> store
        (dispatch! [::res/ensure! spec-key opts])
        (subscribe [::res/?:resource spec-key]))))
+
+(defn res-init-sub
+  "Initializes a resource with a value"
+  ([store spec-key init]
+   (when (res/init? (query store [::res/?:resource spec-key]))
+     (-> store
+         (emit! [::submitted spec-key])
+         (emit! [::succeeded spec-key init])))
+   (subscribe store [::res/?:resource spec-key])))
 
 (defn form-sub
   "Ensure a form resource is initialized and return its subscription."

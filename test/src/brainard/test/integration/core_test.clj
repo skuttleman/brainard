@@ -127,7 +127,8 @@
                           :notes/archived?   false
                           :notes/timestamp   (:notes/timestamp note)
                           :notes/attachments #{}
-                          :notes/todos       #{}}
+                          :notes/todos       #{}
+                          :notes/links       #{}}
                          note)))
 
                 (testing "and when searching for pinned notes"

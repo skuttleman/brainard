@@ -29,10 +29,10 @@
     (cond
       (vector? on-change) (store/emit! *:store (conj on-change value))
       (map? on-change) (let [{:keys [command commands event events]} on-change]
-                         (run! (partial store/dispatch! *:store)
-                               (remove nil? (cons command commands)))
-                         (run! (partial store/emit! *:store)
-                               (remove nil? (cons event events))))
+                         (run! #(store/emit! *:store (conj % value))
+                               (remove nil? (cons event events)))
+                         (run! #(store/dispatch! *:store (conj % value))
+                               (remove nil? (cons command commands))))
       (ifn? on-change) (on-change value))))
 
 (defn ^:private with-emit-on-change [component]
@@ -202,7 +202,7 @@
         attrs
         [tags-editor/control attrs]])))))
 
-(def ^{:arglists '([attrs])} type-ahead
+(def ^{:arglists '([attrs])} autocomplete
   (with-id
    (scomp/with-auto-focus
     (with-emit-on-change
@@ -210,7 +210,17 @@
       (fn [attrs]
         [form-field
          attrs
-         [type-ahead/control attrs]]))))))
+         [type-ahead/autocomplete attrs]]))))))
+
+(def ^{:arglists '([attrs])} typeahead
+  (with-id
+   (scomp/with-auto-focus
+    (with-emit-on-change
+     (with-disabled-compat
+      (fn [attrs]
+        [form-field
+         attrs
+         [type-ahead/typeahead attrs]]))))))
 
 (def ^{:arglists '([attrs])} multi-dropdown
   (with-id

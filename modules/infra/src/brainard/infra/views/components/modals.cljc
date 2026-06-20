@@ -32,10 +32,11 @@
      {:class    ["is-white" "is-light"]
       :on-click stop-and-close!}
      [scomp/icon :xmark]]]
-   [:div {:style {:max-height "80vh"
-                  :max-width  "80vw"
-                  :overflow-y :scroll
-                  :width      "100%"}}
+   [:div {:style (merge {:max-height "80vh"
+                         :max-width  "80vw"
+                         :overflow-y :scroll
+                         :width      "100%"}
+                        (:style attrs))}
     [icomp/modal-body *:store attrs]]])
 
 (defn ^:private modal-view [*:store idx {modal-id :id :as modal} top?]

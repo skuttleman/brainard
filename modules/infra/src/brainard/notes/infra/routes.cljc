@@ -13,7 +13,7 @@
 
 (defmethod iroutes/req->input [:get :routes.api/notes]
   [{::w/keys [route]}]
-  (let [{:keys [archived body context pinned tags todos]} (:query-params route)
+  (let [{:keys [archived body context pinned summarize tags todos]} (:query-params route)
         tags (cond
                (coll? tags) (into #{} (map keyword) tags)
                (nil? tags) #{}
@@ -24,4 +24,5 @@
       context (assoc :notes/context context)
       todos (assoc :notes/todos (keyword todos))
       archived (assoc :notes/archived (keyword archived))
-      pinned (assoc :notes/pinned? pinned))))
+      pinned (assoc :notes/pinned? pinned)
+      summarize (assoc :notes/summarize? true))))

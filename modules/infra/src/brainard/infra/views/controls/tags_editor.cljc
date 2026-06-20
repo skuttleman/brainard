@@ -43,11 +43,11 @@
                       :margin-bottom 0}}
         [:div.field.has-addons (when (:invalid? form-data)
                                  {:style {:margin-bottom 0}})
-         [type-ahead/control (-> attrs
-                                 (shared/with-attrs form [:value])
-                                 (assoc :placeholder "Add tag..."
-                                        :on-change on-change
-                                        :on-add add-tag))]
+         [type-ahead/autocomplete (-> attrs
+                                      (shared/with-attrs form [:value])
+                                      (assoc :placeholder "Add tag..."
+                                             :on-change on-change
+                                             :on-add add-tag))]
          [comp/plain-button {:tab-index -1
                              :class     ["is-link"]
                              :on-click  add-tag

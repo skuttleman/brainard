@@ -106,12 +106,14 @@
                   :notes/query   query}))
 
 (defn search-create! [notes-api note]
-  (storage/execute! (:search notes-api)
-                    (assoc note ::storage/type ::search-create!)))
+  (when note
+    (storage/execute! (:search notes-api)
+                      (assoc note ::storage/type ::search-create!))))
 
 (defn search-update! [notes-api note]
-  (storage/execute! (:search notes-api)
-                    (assoc note ::storage/type ::search-update!)))
+  (when note
+    (storage/execute! (:search notes-api)
+                      (assoc note ::storage/type ::search-update!))))
 
 (defn search-delete! [notes-api note-ids]
   (storage/execute! (:search notes-api)

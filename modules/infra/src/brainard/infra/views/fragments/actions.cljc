@@ -2,8 +2,10 @@
   (:require
    [brainard.api.validations :as valid]
    [brainard.attachments.api.specs :as sattachments]
+   [brainard.infra.store.specs :as-alias specs]
    [brainard.notes.api.specs :as snotes]
    [clojure.core.async :as async]
+   [clojure.string :as string]
    [defacto.forms.core :as forms]
    [defacto.forms.plus :as forms+]
    [defacto.resources.core :as res]
@@ -12,6 +14,7 @@
 
 (def attachment-form-key [::forms+/valid [::modal ::attachment-edit]])
 (def todo-form-key [::forms+/valid [::modal ::todo-edit]])
+(def link-search-key [::notes#search ::links])
 
 (def ^:private attachment-validator (valid/->validator sattachments/modify))
 (def ^:private todo-validator (valid/->validator snotes/todo-create))
@@ -35,3 +38,9 @@
   [_ _ {::forms/keys [form]}]
   (async/go
     [::res/ok (forms/data form)]))
+
+(defmethod res/->request-spec ::notes#search
+  [_ text]
+  (let [body (string/trim text)]
+    (when (seq body)
+      (res/->request-spec [::specs/notes#select] {:params {:notes/body body :notes/summarize true}}))))

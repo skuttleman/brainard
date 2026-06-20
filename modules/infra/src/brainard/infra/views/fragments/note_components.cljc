@@ -20,7 +20,7 @@
 (defn attachment-list [{:keys [label? on-edit on-remove value]}]
   [:div.layout--col
    (when label?
-     [:label.label "Attachments:"])
+     [:p.label "Attachments:"])
    [:ul.attachment-list
     (for [{attachment-id :attachments/id :as attachment} (sort-by :attachments/id value)]
       ^{:key attachment-id}
@@ -59,7 +59,7 @@
 (defn todo-list [{:keys [label? on-create value] :as attrs}]
   [:div.layout-col
    (when label?
-     [:label.label "TODOs:"])
+     [:p.label "TODOs" (when-not on-create \:)])
    (when on-create
      [comp/plain-button {:on-click #(on-create)
                          :class    ["note__create-todo-button"]}
@@ -68,3 +68,26 @@
     (for [{todo-id :todos/id :as todo} (sort-by (juxt (complement :todos/completed?) :todos/id) value)]
       ^{:key todo-id}
       [todo-item attrs todo])]])
+
+(defn note-links [{:keys [label? on-create on-edit on-remove value]}]
+  [:div.layout-col
+   (when label?
+     [:p.label "Notes" (when-not on-create \:)])
+   (when on-create
+     [comp/plain-button {:on-click #(on-create)
+                         :class    ["note__create-link-button"]}
+      "Link note..."])
+   (when (seq value)
+     [:ul.note-links
+      (for [{note-id :notes/id :as note} (sort-by (juxt :notes/summary :notes/id) value)]
+        ^{:key note-id}
+        [:li.attachment.layout--room-between
+         [comp/link {:token        :routes.ui/note
+                     :route-params {:notes/id note-id}}
+          (:notes/summary note)]
+         (when on-remove
+           [list-action #(on-remove note)
+            [comp/icon {:class ["is-danger"]} :trash-3]])
+         (when on-edit
+           [list-action #(on-edit note)
+            [comp/icon :pencil-1]])])])])

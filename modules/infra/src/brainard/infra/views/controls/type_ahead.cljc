@@ -4,6 +4,7 @@
    [brainard.infra.stubs.dom :as dom]
    [brainard.infra.views.components.core :as comp]
    [clojure.string :as string]
+   [defacto.resources.core :as res]
    [slag.utils.fns :as fns]
    [whet.utils.reagent :as r]))
 
@@ -23,12 +24,12 @@
               (re-find re (string/lower-case (str item))))
             items)))
 
-(defn ^:private ->type-ahead-key-handler [{:keys [*:state dd-active? matches on-add on-change selected-idx]}]
+(defn ^:private ->type-ahead-key-handler [{:keys [*:state dd-active? dd-disabled? matches on-add on-select selected-idx]}]
   (fn [e]
     (when-let [key (#{:key-codes/enter :key-codes/up :key-codes/down :key-codes/tab}
                     (dom/event->key e))]
       (cond
-        dd-active?
+        (and dd-active? (not dd-disabled?))
         (do
           (dom/prevent-default! e)
           (dom/stop-propagation! e)
@@ -42,56 +43,63 @@
                                                          :selected? true
                                                          :selected-idx nil)
                                                   (when selected-idx
-                                                    (on-change (nth matches selected-idx))))))
+                                                    (on-select (nth matches selected-idx))))))
 
-        (= :key-codes/enter key)
+        (and on-add (= :key-codes/enter key))
         (on-add e)))))
 
-(defn ^:private type-ahead-trigger [{:keys [*:state on-change] :as attrs}]
+(defn ^:private trigger [{:keys [*:state dd-disabled?] :as attrs}]
   [:div.dropdown-trigger
-   [:input.input
-    (-> {:ref           (fn [node]
-                          (some->> node (swap! *:state assoc :ref)))
-         :type          :text
-         :auto-complete :off
-         :on-change     (fn [e]
-                          (swap! *:state assoc :selected? false :selected-idx nil)
-                          (on-change (dom/target-value e)))
-         :on-key-down   (->type-ahead-key-handler attrs)}
-        (merge (select-keys attrs #{:class :disabled :id :ref :value :on-focus :on-blur :auto-focus}))
+   [comp/plain-input
+    (-> attrs
+        (assoc :auto-complete :off
+               :ref (fn [node]
+                      (some->> node (swap! *:state assoc :ref)))
+               :on-key-down (->type-ahead-key-handler attrs))
+        (update :on-change fns/apply-all (fn [_]
+                                           (when-not dd-disabled?
+                                             (swap! *:state assoc
+                                                    :selected? false
+                                                    :selected-idx nil))))
         (update :on-focus fns/apply-all (fn [_]
-                                          (swap! *:state assoc :focussed? true)))
+                                          (when-not dd-disabled?
+                                            (swap! *:state assoc :focussed? true))))
         (update :on-blur fns/apply-all (fn [_]
-                                         (swap! *:state assoc :focussed? false))))]])
+                                         (when-not dd-disabled?
+                                           (swap! *:state assoc :focussed? false)))))]])
 
-(defn ^:private type-ahead-dd [{:keys [*:state dd-active? matches on-change selected-idx]}]
-  [:div.dropdown {:class [(when dd-active? "is-active")]}
-   [:div.dropdown-menu {:class [(when dd-active? "is-active")]}
-    (when (seq matches)
-      [:ul.dropdown-content
-       (for [[idx match] (map-indexed vector matches)]
-         ^{:key match}
-         [:li.dropdown-item.pointer
-          {:class         [(when (= idx selected-idx) "is-active")]
-           :tab-index     -1
-           :on-mouse-down (fn [_]
-                            (swap! *:state assoc :clicking? true))
-           :on-mouse-up   (fn [_]
-                            (swap! *:state assoc :clicking? false))
-           :on-click      (fn [_]
-                            (swap! *:state assoc
-                                   :selected? true
-                                   :selected-idx nil)
-                            (on-change match)
-                            (dom/focus! (:ref @*:state)))}
-          (str match)])])]])
+(defn ^:private drop-down [{:keys [*:state dd-active? dd-disabled? item-fn key-fn matches on-select selected-idx]}]
+  (let [classes [(when dd-active? "is-active")
+                 (when dd-disabled? "is-disabled")]]
+    [:div.dropdown {:class classes}
+     [:div.dropdown-menu {:class classes}
+      (when (seq matches)
+        [:ul.dropdown-content
+         (for [[idx match] (map-indexed vector matches)]
+           ^{:key (key-fn match)}
+           [:li.dropdown-item
+            {:class         [(when (= idx selected-idx) "is-active")
+                             (when-not dd-disabled? "pointer")]
+             :tab-index     -1
+             :on-mouse-down (fn [_]
+                              (when-not dd-disabled?
+                                (swap! *:state assoc :clicking? true)))
+             :on-mouse-up   (fn [_]
+                              (swap! *:state assoc :clicking? false))
+             :on-click      (fn [_]
+                              (when-not dd-disabled?
+                                (swap! *:state assoc
+                                       :selected? true
+                                       :selected-idx nil)
+                                (on-select match)
+                                (dom/focus! (:ref @*:state))))}
+            (item-fn match)])])]]))
 
-(defn ^:private control* [{:keys [value] :as attrs} items]
+(defn ^:private control [{:keys [on-change on-select value] :as attrs} matches]
   (r/with-let [*:state (r/atom {:selected?    false
                                 :focussed?    false
                                 :selected-idx nil})]
     (let [state @*:state
-          matches (filter-matches value items)
           dd-active? (or (:clicking? state)
                          (and (not (:selected? state))
                               (:focussed? state)
@@ -101,11 +109,23 @@
                         (assoc :*:state *:state
                                :matches matches
                                :dd-active? dd-active?
+                               :on-select (or on-select on-change)
                                :selected-idx (when-let [idx (:selected-idx state)]
                                                (min idx (dec (count matches))))))]
       [:div.type-ahead {:style {:height "40px"}}
-       [type-ahead-trigger sub-attrs]
-       [type-ahead-dd sub-attrs]])))
+       [trigger sub-attrs]
+       [drop-down sub-attrs]])))
 
-(defn control [attrs]
-  [comp/with-resource (:sub:items attrs) [control* attrs]])
+(defn ^:private autocomplete* [{:keys [value] :as attrs} items]
+  (let [matches (filter-matches value items)]
+    [control (assoc attrs :key-fn identity :item-fn str) matches]))
+
+(defn autocomplete [{:keys [sub:items] :as attrs}]
+  [comp/with-resource sub:items [autocomplete* attrs]])
+
+(defn typeahead [{:keys [sub:items remove-fn] :as attrs}]
+  (let [res @sub:items
+        matches (cond->> (res/payload res)
+                  remove-fn (remove remove-fn))
+        requesting? (res/requesting? res)]
+    [control (assoc attrs :dd-disabled? requesting?) (when-not requesting? matches)]))

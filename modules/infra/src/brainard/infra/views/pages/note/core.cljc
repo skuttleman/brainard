@@ -15,8 +15,9 @@
 
 (defn ^:private attachment-list [note]
   (when-let [attachments (not-empty (:notes/attachments note))]
-    [note-comp/attachment-list {:label? true
-                                :value  attachments}]))
+    [:div.flex-grow {:style {:flex-basis "33%"}}
+     [note-comp/attachment-list {:label? true
+                                 :value  attachments}]]))
 
 (defmethod note-comp/todo-item true
   [{:keys [*:store disabled note-id]} todo]
@@ -42,14 +43,22 @@
     (finally
       (store/emit! *:store [::forms+/destroyed form-key]))))
 
+(defn ^:private note-links [note]
+  (when-let [links (not-empty (:notes/links note))]
+    [:div.flex-grow {:style {:flex-basis "33%"}}
+     [note-comp/note-links
+      {:label? true
+       :value  links}]]))
+
 (defn ^:private todo-list [*:store note disabled?]
   (when-let [todos (not-empty (:notes/todos note))]
-    [note-comp/todo-list
-     {:*:store  *:store
-      :disabled disabled?
-      :note-id  (:notes/id note)
-      :label?   true
-      :value    todos}]))
+    [:div.flex-grow {:style {:flex-basis "33%"}}
+     [note-comp/todo-list
+      {:*:store  *:store
+       :disabled disabled?
+       :note-id  (:notes/id note)
+       :label?   true
+       :value    todos}]]))
 
 (defn ^:private pin-toggle [*:store note disabled?]
   (r/with-let [pin-note-key (note.act/->pin-key (:notes/id note))
@@ -152,10 +161,9 @@
     [pin-toggle *:store note disabled?]]
    [comp/markdown (:notes/body note)]
    [:div.layout--room-between {:style {:width "100%"}}
-    [:div.flex-grow {:style {:flex-basis "50%"}}
-     [todo-list *:store note disabled?]]
-    [:div.flex-grow {:style {:flex-basis "50%"}}
-     [attachment-list note]]]
+    [note-links note]
+    [todo-list *:store note disabled?]
+    [attachment-list note]]
    [note-comp/tag-list note]
    [:div.layout--space-between
     [:div.button-row

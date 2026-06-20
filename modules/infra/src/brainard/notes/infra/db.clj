@@ -4,15 +4,13 @@
    [brainard.api.storage.interfaces :as istorage]
    [brainard.infra.db.store :as ds]
    [brainard.notes.api.core :as api.notes]
+   [clojure.string :as string]
    [slag.utils.fns :as fns]
    [slag.utils.maps :as maps]))
 
-(def ^:private select
-  '[:find (pull ?e [*]) (min ?at)
-    :in $])
-
 (defn ^:private notes-query [{:notes/keys [archived context ids pinned? tags todos]}]
-  (cond-> select
+  (cond-> '[:find (pull ?e [*]) (min ?at)
+            :in $]
     (seq ids)
     (conj '[?id ...])
 
@@ -168,14 +166,38 @@
                      :notes/pinned?
                      :notes/attachments
                      :notes/todos
-                     :notes/archived?})
+                     :notes/archived?
+                     :notes/links})
       (update :notes/attachments fns/smap select-keys #{:attachments/id
                                                         :attachments/content-type
                                                         :attachments/filename
                                                         :attachments/name})
       (update :notes/todos fns/smap select-keys #{:todos/id
                                                   :todos/text
-                                                  :todos/completed?})))
+                                                  :todos/completed?})
+      (update :notes/links fns/smap select-keys #{:notes/id})))
+
+(defn ^:private summarize [note]
+  (let [body (-> (:notes/body note)
+                 (string/replace #"[^\w]+" " ")
+                 (string/replace #"\s+" " ")
+                 string/trim)
+        summary (cond-> body
+                  (< 50 (count body)) (-> (subs 0 47)
+                                          (str "...")))]
+    (assoc note :notes/summary summary)))
+
+(defn ^:private with-links [db note]
+  (let [links (when-let [xs (seq (:notes/links note))]
+                (ds/query db {:query '[:find (pull ?e [:notes/id
+                                                       :notes/context
+                                                       :notes/body])
+                                       :in $ [?e ...]
+                                       :where
+                                       [?e :notes/archived? false]]
+                              :args  [xs]
+                              :xform (map first)}))]
+    (some-> note (assoc :notes/links (into #{} (map summarize) links)))))
 
 (defmethod istorage/->input ::api.notes/create!
   [note]
@@ -184,10 +206,14 @@
        (assoc :notes/archived? false))])
 
 (defmethod istorage/->input ::api.notes/update!
-  [{note-id :notes/id :notes/keys [old-attachments old-tags old-todos] :as note}]
+  [{note-id :notes/id :notes/keys [old-attachments old-links old-tags old-todos] :as note}]
   (concat [(clean-note note)]
           (map #(vector :db/retractEntity [:attachments/id %])
                old-attachments)
+          (mapcat (fn [link-id]
+                    [[:db/retract [:notes/id note-id] :notes/links [:notes/id link-id]]
+                     [:db/retract [:notes/id link-id] :notes/links [:notes/id note-id]]])
+                  old-links)
           (map #(vector :db/retract [:notes/id note-id] :notes/tags %)
                old-tags)
           (map #(vector :db/retractEntity [:todos/id %])
@@ -216,23 +242,32 @@
   {:query (notes-query params)
    :args  (some-> (:notes/ids params) vector)
    :xform (map (fn [[note timestamp]]
-                 (assoc note :notes/timestamp timestamp)))})
+                 (-> note
+                     (assoc :notes/timestamp timestamp)
+                     (cond-> (:notes/summarize? params) summarize))))})
 
 (defmethod istorage/->input ::api.notes/get-note
   [{:notes/keys [id archived]}]
-  {:query (into select
-                (keep identity)
-                ['?note-id
-                 :where
-                 '[?e :notes/id ?note-id]
-                 (when (not= archived :both)
-                   ['?e :notes/archived? (= archived :only)])
-                 '[?e _ _ ?tx]
-                 '[?tx :db/txInstant ?at]])
+  {:query (-> '[:find (pull ?e [*]) (min ?at) (distinct ?l)
+                :in $ ?note-id
+                :where
+                [?e :notes/id ?note-id]]
+              (cond->
+                (not= archived :both)
+                (conj ['?e :notes/archived? (= archived :only)]))
+              (conj '[?e _ _ ?tx]
+                    '[?tx :db/txInstant ?at]
+                    '(or-join [?e ?l]
+                              [?l :notes/links ?e]
+                              [(ground -1) ?l])))
    :args  [id]
    :only? true
-   :xform (map (fn [[note timestamp]]
-                 (assoc note :notes/timestamp timestamp)))})
+   :xform (map (fn [[note timestamp refs]]
+                 (-> note
+                     (assoc :notes/timestamp timestamp)
+                     (update :notes/links (partial into #{} (map :db/id)))
+                     (update :notes/links into (remove #{-1}) refs))))
+   :post  with-links})
 
 (defmethod istorage/->input ::api.notes/get-note-history
   [{:notes/keys [id]}]
