@@ -117,4 +117,5 @@
            ^{:key id}
            [note-item attrs note *:expanded])]))
     (finally
-      (some-> *:store (store/emit! [::forms/destroyed [::deleted-notes]])))))
+      (some-> *:store (store/emit! [::forms/destroyed [::deleted-notes]]))
+      (some-> *:store (store/cleanup! sub:form)))))

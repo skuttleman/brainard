@@ -243,6 +243,7 @@
    :args  (some-> (:notes/ids params) vector)
    :xform (map (fn [[note timestamp]]
                  (-> note
+                     (dissoc :notes/links)
                      (assoc :notes/timestamp timestamp)
                      (cond-> (:notes/summarize? params) summarize))))})
 

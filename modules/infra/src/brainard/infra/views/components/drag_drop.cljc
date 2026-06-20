@@ -100,16 +100,15 @@
                        :data-target (pr-str target)}])])]))
 
 (defn control [{:keys [*:store id on-drop] :as attrs} nodes]
-  (r/with-let [form-id [::form id]
-               sub:form (store/form-sub *:store form-id nil)
-               *:pos (r/atom {:x 0 :y 0})
-               mouse-move (dom/add-listener! dom/window :mousemove (->mouse-move *:store *:pos sub:form))
-               mouse-up (dom/add-listener! dom/window :mouseup (->mouse-up *:store sub:form on-drop))]
+  (store/with-let [form-id [::form id]
+                   sub:form (store/form-sub *:store form-id nil)
+                   *:pos (r/atom {:x 0 :y 0})
+                   mouse-move (dom/add-listener! dom/window :mousemove (->mouse-move *:store *:pos sub:form))
+                   mouse-up (dom/add-listener! dom/window :mouseup (->mouse-up *:store sub:form on-drop))]
     (let [{::keys [drag-id]} (forms/data @sub:form)]
       [:div.drag-n-drop {:on-mouse-leave (when drag-id
                                            (->mouse-leave *:store form-id))}
        [node-list (assoc attrs :sub:form sub:form :*:pos *:pos :root? true) nodes]])
     (finally
       (dom/remove-listener! mouse-move)
-      (dom/remove-listener! mouse-up)
-      (store/emit! *:store [::forms/destroyed form-id]))))
+      (dom/remove-listener! mouse-up))))

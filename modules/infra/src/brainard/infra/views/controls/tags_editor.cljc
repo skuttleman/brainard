@@ -9,8 +9,7 @@
    [clojure.string :as string]
    [defacto.forms.core :as forms]
    [defacto.forms.plus :as forms+]
-   [slag.utils.keywords :as kw]
-   [whet.utils.reagent :as r]))
+   [slag.utils.keywords :as kw]))
 
 (def ^:private ^:const tag-re #"([a-z][a-z0-9-\.]*/)?[a-z][a-z0-9-]*")
 
@@ -32,8 +31,8 @@
           (store/emit! [::forms/changed form-id [:invalid?] false])))))
 
 (defn control [{:keys [*:store form-id] :as attrs}]
-  (r/with-let [sub:form (store/form-sub *:store form-id nil)
-               on-change (->update-form *:store form-id)]
+  (store/with-let [sub:form (store/form-sub *:store form-id nil)
+                   on-change (->update-form *:store form-id)]
     (let [form (forms+/->form+ @sub:form @(:sub:items attrs))
           form-data (forms/data form)
           add-tag (->add-tag attrs form-id form-data)]
@@ -56,6 +55,4 @@
         (when (:invalid? form-data)
           [:span.form-field.errors
            [:span.error-list [:span.error "invalid tag"]]])]
-       [comp/tag-list attrs]])
-    (finally
-      (store/emit! *:store [::forms/destroyed form-id]))))
+       [comp/tag-list attrs]])))

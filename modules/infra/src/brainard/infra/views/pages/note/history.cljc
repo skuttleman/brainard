@@ -6,8 +6,7 @@
    [brainard.infra.views.components.interfaces :as icomp]
    [brainard.infra.views.fragments.note-components :as note-comp]
    [brainard.infra.views.pages.note.actions :as-alias note.act]
-   [defacto.resources.core :as-alias res]
-   [whet.utils.reagent :as r]))
+   [defacto.resources.core :as-alias res]))
 
 (defn ^:private attachment-list [note]
   (when-let [attachments (not-empty (:notes/attachments note))]
@@ -218,9 +217,7 @@
 
 (defmethod icomp/modal-body ::modal
   [*:store {{note-id :notes/id} :note}]
-  (r/with-let [spec-key [::note.act/note#history note-id]
-               sub:history (store/res-sub *:store spec-key)
-               sub:recon (store/subscribe *:store [:notes.history/?:reconstruction spec-key])]
-    [comp/with-resource sub:history [note-history *:store @sub:recon]]
-    (finally
-      (store/emit! *:store [::res/destroyed spec-key]))))
+  (store/with-let [spec-key [::note.act/note#history note-id]
+                   sub:history (store/res-sub *:store spec-key)
+                   sub:recon (store/subscribe *:store [:notes.history/?:reconstruction spec-key])]
+    [comp/with-resource sub:history [note-history *:store @sub:recon]]))

@@ -52,7 +52,7 @@
         [:div.body-text [toast-body body]]]])))
 
 (defn root [*:store]
-  (r/with-let [sub:toasts (store/subscribe *:store [:toasts/?:toasts])]
+  (store/with-let [sub:toasts (store/subscribe *:store [:toasts/?:toasts])]
     [:div.toast-container
      [:ul.toast-messages
       (for [toast @sub:toasts]

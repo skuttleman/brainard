@@ -21,7 +21,7 @@
 (defn ^:private add-dev-logger! [store]
   (-> store
       (store/subscribe [::spy])
-      (add-watch (gensym)
+      (add-watch (gensym "spy")
                  (fn [_ _ _ db]
                    (when (seq db)
                      (print "NEW DB ")

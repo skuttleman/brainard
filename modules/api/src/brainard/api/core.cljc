@@ -132,6 +132,5 @@
       (when-let [output-spec (valid/output-specs api)]
         (let [validator (valid/->validator output-spec)]
           (when-let [errors (some-> result validator)]
-            (log/error "produced valid output" {:errors errors :api api})
-            (throw (ex-info "failed to produce valid output" {:errors errors :api api}))))))
+            (throw (ex-info "failed to produce valid output" {:api api :errors errors}))))))
     result))

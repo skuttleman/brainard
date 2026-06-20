@@ -1,9 +1,11 @@
 (ns brainard.infra.store.core
+  #?(:cljs (:require-macros brainard.infra.store.core))
   (:require
    [defacto.core :as defacto]
    [defacto.forms.core :as-alias forms]
    [defacto.forms.plus :as-alias forms+]
-   [defacto.resources.core :as res]))
+   [defacto.resources.core :as res]
+   [whet.utils.reagent :as r]))
 
 (defn dispatch!
   "Dispatch a command to the defacto store."
@@ -20,6 +22,11 @@
    query results update."
   [store query]
   (defacto/subscribe store query))
+
+(defn cleanup!
+  "Cleans up a subscription after usage."
+  [store sub]
+  (defacto/cleanup! store sub))
 
 (defn query
   "Query the store's responder for the given query."
@@ -61,3 +68,42 @@
    (-> store
        (dispatch! [::forms/ensure! spec-key init opts])
        (subscribe [::forms+/?:form+ spec-key]))))
+
+(defmacro with-let [bindings & body]
+  (letfn [(this-ns? [sym]
+           #?(:clj
+               (let [ns-prefix (namespace sym)
+                     prefix-sym (some-> ns-prefix symbol)
+                     target-ns 'brainard.infra.store.core]
+                 (if (nil? ns-prefix)
+                   (when-let [referred-var (get (ns-refers *ns*) sym)]
+                     (= (ns-name (:ns (meta referred-var))) target-ns))
+                   (or (when-let [aliased-ns (get (ns-aliases *ns*) prefix-sym)]
+                         (= (ns-name aliased-ns) target-ns))
+                       (when-let [aliased-ns (get-in &env [:ns :requires prefix-sym] prefix-sym)]
+                         (= aliased-ns target-ns))
+                       (= ns-prefix (str target-ns)))))))]
+    (let [cleanup (for [[sub form] (reverse (partition 2 bindings))
+                        :let [cleanups (when (and (list? form) (this-ns? (first form)))
+                                         (let [[f store k] form]
+                                           (case (name f)
+                                             ("res-sub" "res-init-sub") (cond->> `((cleanup! ~store ~sub))
+                                                                          (not (:static (meta k)))
+                                                                          (cons `(emit! ~store [::res/destroyed ~k])))
+                                             "form-sub" (cond->> `((cleanup! ~store ~sub))
+                                                          (not (:static (meta k)))
+                                                          (cons `(emit! ~store [::forms/destroyed ~k])))
+                                             "form+-sub" (cond->> `((cleanup! ~store ~sub))
+                                                           (not (:static (meta k)))
+                                                           (cons `(emit! ~store [::forms+/destroyed ~k])))
+                                             "subscribe" `((cleanup! ~store ~sub))
+                                             nil)))]
+                        cleanup cleanups]
+                    cleanup)
+          [body fin] (let [final (last body)]
+                       (if (and (list? final) (= 'finally (first final)))
+                         [(butlast body) (rest final)]
+                         [body nil]))]
+      `(r/with-let ~bindings
+         ~@body
+         ~(list 'finally `(do ~@(concat fin cleanup)))))))

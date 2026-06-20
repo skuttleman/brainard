@@ -3,6 +3,7 @@
            :unused-private-var      {:level :off}}
  :lint-as {brainard.api.utils.logger/with-duration           clojure.core/let
            brainard.infra.search.lucene/with-writer          clojure.core/with-open
+           brainard.infra.store.core/with-let                clojure.core/let
            brainard.test.harness.integration.system/with-app clojure.core/let
            brainard.test.harness.ui.system/with-webdriver    clojure.core/fn
            defacto.forms.plus/validated                      clojure.core/defmethod

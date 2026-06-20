@@ -10,7 +10,6 @@
    [brainard.infra.views.fragments.note-components :as note-comp]
    [clojure.string :as string]
    [defacto.forms.core :as forms]
-   [defacto.forms.plus :as forms+]
    [defacto.resources.core :as res]
    [slag.utils.fns :as fns]
    [slag.utils.uuids :as uuids]
@@ -248,7 +247,7 @@
          (:notes/attachments form-data)]]])))
 
 (defn ^:private note-form [{:keys [*:store form+] :as attrs}]
-  (r/with-let [sub:uploads (store/subscribe *:store [::res/?:resource [::specs/attachment#upload]])]
+  (store/with-let [sub:uploads (store/subscribe *:store [::res/?:resource [::specs/attachment#upload]])]
     (let [uploading? (res/requesting? @sub:uploads)]
       [ctrls/form (assoc attrs :disabled uploading?)
        [topic+pin-field attrs]
@@ -268,10 +267,10 @@
 
 (defmethod icomp/modal-body ::modal
   [*:store {modal-id :modals/id :modals/keys [close!] :keys [init params resource-key]}]
-  (r/with-let [sub:form+ (store/form+-sub *:store resource-key init)
-               sub:contexts (store/res-sub *:store [::specs/contexts#select])
-               sub:tags (store/res-sub *:store [::specs/tags#select])
-               params (update params :ok-commands conj [:modals/remove! modal-id])]
+  (store/with-let [sub:form+ (store/form+-sub *:store resource-key init)
+                   sub:contexts (store/res-sub *:store ^:static [::specs/contexts#select])
+                   sub:tags (store/res-sub *:store ^:static [::specs/tags#select])
+                   params (update params :ok-commands conj [:modals/remove! modal-id])]
     [:div {:style {:min-width "50vw"}}
      [note-form {:*:store      *:store
                  :form+        @sub:form+
@@ -282,9 +281,7 @@
                  :submit/body  "Save"
                  :buttons      [[comp/plain-button {:class    ["cancel"]
                                                     :on-click close!}
-                                 "Cancel"]]}]]
-    (finally
-      (store/emit! *:store [::forms+/destroyed resource-key]))))
+                                 "Cancel"]]}]]))
 
 (defmethod icomp/modal-header ::attachment-name
   [_ _]
@@ -295,7 +292,7 @@
   (if new? "Create new TODO" "Edit your TODO"))
 
 (defn ^:private form-modal [*:store {modal-id :modals/id :keys [init resource-key] :as attrs}]
-  (r/with-let [sub:form+ (store/form+-sub *:store resource-key init)]
+  (store/with-let [sub:form+ (store/form+-sub *:store resource-key init)]
     (let [{:keys [form-path label ok-events resource-key submit-body]} attrs
           form+ @sub:form+]
       [ctrls/form
@@ -309,9 +306,7 @@
        [ctrls/input (-> {:*:store     *:store
                          :auto-focus? true
                          :label       label}
-                        (ctrls/with-attrs form+ form-path))]])
-    (finally
-      (store/emit! *:store [::forms+/destroyed resource-key]))))
+                        (ctrls/with-attrs form+ form-path))]])))
 
 (defmethod icomp/modal-body ::attachment-name
   [*:store attrs]
@@ -335,13 +330,13 @@
 
 (defmethod icomp/modal-body ::link
   [*:store {modal-id :modals/id :keys [linked-ids select-event]}]
-  (r/with-let [sub:matches (store/res-init-sub *:store frag.act/link-search-key [])
-               sub:form (store/form-sub *:store [::link-form] nil)
-               on-select (fn [note]
-                           (-> *:store
-                               (store/emit! (conj select-event note))
-                               (store/dispatch! [:modals/remove! modal-id])))
-               remove-fn (comp linked-ids :notes/id)]
+  (store/with-let [sub:matches (store/res-init-sub *:store frag.act/link-search-key [])
+                   sub:form (store/form-sub *:store [::link-form] nil)
+                   on-select (fn [note]
+                               (-> *:store
+                                   (store/emit! (conj select-event note))
+                                   (store/dispatch! [:modals/remove! modal-id])))
+                   remove-fn (comp linked-ids :notes/id)]
     (let [form @sub:form]
       [:div {:style {:min-height "100px"}}
        [ctrls/typeahead (-> {:*:store    *:store
@@ -359,8 +354,4 @@
                                                  ::search
                                                  400
                                                  [::res/resubmit! frag.act/link-search-key]]
-                                       :event   event})))]])
-    (finally
-      (-> *:store
-          (store/emit! [::res/destroyed frag.act/link-search-key])
-          (store/emit! [::forms/destroyed [::link-form]])))))
+                                       :event   event})))]])))
