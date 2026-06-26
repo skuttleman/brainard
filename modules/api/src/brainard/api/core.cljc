@@ -24,7 +24,10 @@
   (when-let [pre (api.notes/get-as-of (:notes apis)
                                       (:notes/id note)
                                       (:notes/history-id note))]
-    (invoke-api* :api.notes/update! apis (merge note pre))))
+    (let [updated (-> note
+                      (merge pre)
+                      (dissoc :notes/links :notes/old-links))]
+      (invoke-api* :api.notes/update! apis updated))))
 
 (defmethod invoke-api* :api.notes/delete!
   [_ apis {note-id :notes/id}]

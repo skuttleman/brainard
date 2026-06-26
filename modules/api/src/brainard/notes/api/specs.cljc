@@ -125,8 +125,7 @@
    [:notes/history-id int?]
    [:notes/old-tags {:optional true} [:set keyword?]]
    [:notes/old-attachments {:optional true} [:set uuid?]]
-   [:notes/old-todos {:optional true} [:set uuid?]]
-   [:notes/old-links {:optional true} [:set uuid?]]])
+   [:notes/old-todos {:optional true} [:set uuid?]]])
 
 (def query
   [:and

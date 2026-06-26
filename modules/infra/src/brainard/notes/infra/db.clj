@@ -279,6 +279,7 @@
                [?e ?a ?val ?tx ?op]
                [?tx :db/txInstant ?at]
                [?a :db/ident ?attr]
+               [(not= ?attr :notes/links)]
                [?a :db/cardinality ?c]
                [?c :db/ident ?card]]
    :args     [id]
