@@ -23,11 +23,6 @@
   [store query]
   (defacto/subscribe store query))
 
-(defn cleanup!
-  "Cleans up a subscription after usage."
-  [store sub]
-  (defacto/cleanup! store sub))
-
 (defn query
   "Query the store's responder for the given query."
   [store query]
@@ -83,22 +78,16 @@
                        (when-let [aliased-ns (get-in &env [:ns :requires prefix-sym] prefix-sym)]
                          (= aliased-ns target-ns))
                        (= ns-prefix (str target-ns)))))))]
-    (let [cleanup (for [[sub form] (reverse (partition 2 bindings))
-                        :let [cleanups (when (and (list? form) (this-ns? (first form)))
+    (let [cleanup (for [[_ form] (reverse (partition 2 bindings))
+                        :let [cleanup (when (and (list? form) (this-ns? (first form)))
                                          (let [[f store k] form]
-                                           (case (name f)
-                                             ("res-sub" "res-init-sub") (cond->> `((cleanup! ~store ~sub))
-                                                                          (not (:static (meta k)))
-                                                                          (cons `(emit! ~store [::res/destroyed ~k])))
-                                             "form-sub" (cond->> `((cleanup! ~store ~sub))
-                                                          (not (:static (meta k)))
-                                                          (cons `(emit! ~store [::forms/destroyed ~k])))
-                                             "form+-sub" (cond->> `((cleanup! ~store ~sub))
-                                                           (not (:static (meta k)))
-                                                           (cons `(emit! ~store [::forms+/destroyed ~k])))
-                                             "subscribe" `((cleanup! ~store ~sub))
-                                             nil)))]
-                        cleanup cleanups]
+                                           (when-not (:static (meta k))
+                                             (case (name f)
+                                               ("res-sub" "res-init-sub") `(emit! ~store [::res/destroyed ~k])
+                                               "form-sub" `(emit! ~store [::forms/destroyed ~k])
+                                               "form+-sub" `(emit! ~store [::forms+/destroyed ~k])
+                                               nil))))]
+                        :when cleanup]
                     cleanup)
           [body fin] (let [final (last body)]
                        (if (and (list? final) (= 'finally (first final)))
