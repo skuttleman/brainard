@@ -81,7 +81,7 @@
      [:ul.note-links
       (for [{note-id :notes/id :as note} (sort-by (juxt :notes/summary :notes/id) value)]
         ^{:key note-id}
-        [:li.attachment.layout--room-between
+        [:li.note-link.layout--room-between
          [comp/link {:token        :routes.ui/note
                      :route-params {:notes/id note-id}}
           (:notes/summary note)]
