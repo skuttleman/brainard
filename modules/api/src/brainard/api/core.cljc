@@ -9,13 +9,31 @@
 
 (defmulti ^:private invoke-api* (fn [api _ _] api))
 
+(defn links-exist! [apis {note-id :notes/id :notes/keys [links]}]
+  (when (seq links)
+    (let [note-ids (into #{} (map :notes/id) links)
+          existing-ids (into #{}
+                             (map :notes/id)
+                             (api.notes/get-notes (:notes apis) {:notes/ids note-ids}))]
+      (when-not (= note-ids existing-ids)
+        (throw (ex-info "note cannot be linked to unavailable note"
+                        {::valid/type ::valid/input-validation
+                         :details     {:reason "note cannot be linked to unavailable note"}})))
+
+      (when (some #{note-id} note-ids)
+        (throw (ex-info "note cannot be linked to itself"
+                        {::valid/type ::valid/input-validation
+                         :details     {:reason "note cannot be linked to itself"}}))))))
+
 (defmethod invoke-api* :api.notes/create!
   [_ apis note]
+  (links-exist! apis note)
   (doto (api.notes/create! (:notes apis) note)
     (->> (api.notes/search-create! (:notes apis)))))
 
 (defmethod invoke-api* :api.notes/update!
   [_ apis note]
+  (links-exist! apis note)
   (doto (api.notes/update! (:notes apis) (:notes/id note) note)
     (->> (api.notes/search-update! (:notes apis)))))
 

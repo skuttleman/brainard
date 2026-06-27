@@ -212,6 +212,108 @@
             (is (= #{:UNKNOWN_RESOURCE}
                    (into #{} (map :code) errors)))))))))
 
+(deftest links-test
+  (tsys/with-app [{::b/keys [apis]} nil]
+    (letfn [(http [request]
+              (thttp/request request apis))]
+      (testing "when creating notes"
+        (let [note1-id (-> (http {:method :post
+                                  :uri    "/api/notes"
+                                  :body   {:notes/context   "Context1"
+                                           :notes/pinned?   false
+                                           :notes/archived? false
+                                           :notes/body      "body of note1"}})
+                           :body
+                           :data
+                           :notes/id)
+              note2-id (-> (http {:method :post
+                                  :uri    "/api/notes"
+                                  :body   {:notes/context   "Context2"
+                                           :notes/pinned?   false
+                                           :notes/archived? false
+                                           :notes/body      "body of note2"}})
+                           :body
+                           :data
+                           :notes/id)]
+          (testing "and when linking note2 to note1"
+            (let [response (http {:method :patch
+                                  :uri    (str "/api/notes/" note1-id)
+                                  :body   {:notes/links #{{:notes/id note2-id}}}})]
+              (is (thttp/success? response))
+
+              (testing "links the notes"
+                (let [note (-> (http {:method :get
+                                      :uri    (str "/api/notes/" note1-id)})
+                               :body
+                               :data)]
+                  (is (= #{{:notes/id      note2-id
+                            :notes/context "Context2"
+                            :notes/body    "body of note2"
+                            :notes/summary "body of note2"}}
+                         (:notes/links note))))
+
+                (let [note (-> (http {:method :get
+                                      :uri    (str "/api/notes/" note2-id)})
+                               :body
+                               :data)]
+                  (is (= #{{:notes/id      note1-id
+                            :notes/context "Context1"
+                            :notes/body    "body of note1"
+                            :notes/summary "body of note1"}}
+                         (:notes/links note))))))
+
+            (testing "and when unlinking notes"
+              (is (thttp/success? (http {:method :patch
+                                         :uri    (str "/api/notes/" note2-id)
+                                         :body   {:notes/old-links #{note1-id}}})))
+
+              (testing "unlinks the notes"
+                (let [response (http {:method :get
+                                      :uri    (str "/api/notes/" note1-id)})]
+                  (is (thttp/success? response))
+                  (is (empty? (-> response :body :data :notes/links))))
+
+                (let [response (http {:method :get
+                                      :uri    (str "/api/notes/" note2-id)})]
+                  (is (thttp/success? response))
+                  (is (empty? (-> response :body :data :notes/links)))))
+
+              (testing "and when linking a note to itself"
+                (testing "returns an error"
+                  (is (thttp/client-error? (http {:method :patch
+                                                  :uri    (str "/api/notes/" note1-id)
+                                                  :body   {:notes/links #{{:notes/id note1-id}}}})))))
+
+              (testing "and when linking a note to an archived note"
+                (let [note3-id (-> (http {:method :post
+                                          :uri    "/api/notes"
+                                          :body   {:notes/context "Context3"
+                                                   :notes/body    "body of note3"
+                                                   :notes/pinned? false}})
+                                   :body
+                                   :data
+                                   :notes/id)]
+                  (http {:method :patch
+                         :uri    (str "/api/notes/" note3-id)
+                         :body   {:notes/archived? true}})
+                  (testing "returns an error"
+                    (is (thttp/client-error? (http {:method :patch
+                                                    :uri    (str "/api/notes/" note1-id)
+                                                    :body   {:notes/links #{{:notes/id note3-id}}}}))))))
+
+              (testing "and when linking a note to a bad id"
+                (testing "returns an error"
+                  (is (thttp/client-error? (http {:method :post
+                                                  :uri    "/api/notes"
+                                                  :body   {:notes/context   "Context4"
+                                                           :notes/body      "body of note4"
+                                                           :notes/pinned?   false
+                                                           :notes/archived? false
+                                                           :notes/links     #{{:notes/id (uuids/random)}}}})))
+                  (is (thttp/client-error? (http {:method :patch
+                                                  :uri    (str "/api/notes/" note1-id)
+                                                  :body   {:notes/links #{{:notes/id (uuids/random)}}}}))))))))))))
+
 (deftest attachments-integration-test
   (tsys/with-app [{::b/keys [apis]} nil]
     (letfn [(http [request]
