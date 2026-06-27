@@ -7,18 +7,18 @@
   "Prepares common form attributes used by controls in [[brainard.infra.views.controls.core]]. "
   [attrs form+ path]
   (let [data (forms/data form+)
-        payload (res/payload form+)]
+        errors (res/errors form+)]
     (assoc attrs
            :value (get-in data path)
            :changed? (forms/changed? form+ path)
            :warnings (when (and (res/error? form+)
-                                (not (::forms/errors payload)))
-                       (if (sequential? payload)
-                         (->> payload
+                                (not (::forms/errors errors)))
+                       (if (sequential? errors)
+                         (->> errors
                               (mapcat (comp #(get-in % path) :details))
                               seq)
-                         (get-in payload path)))
+                         (get-in errors path)))
            :errors (when (and (not (res/init? form+))
-                              (::forms/errors payload))
-                     (get-in (::forms/errors payload) path))
+                              (::forms/errors errors))
+                     (get-in (::forms/errors errors) path))
            :on-change [::forms/changed (forms/id form+) path])))

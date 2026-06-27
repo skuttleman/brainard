@@ -285,9 +285,8 @@
 
 (defn plain-form [{:keys [disabled form+ no-buttons? no-errors? inline-buttons? horizontal?] :as attrs} & fields]
   (let [changed? (forms/changed? form+)
-        errors (when (res/error? form+)
-                 (when-let [msgs (->> form+ res/payload (keep :message) seq)]
-                   (mapv (partial str "Server error: ") msgs)))
+        errors (when-let [msgs (->> form+ res/errors (keep :message) seq)]
+                 (mapv (partial str "Server error: ") msgs))
         local-errors (or (::forms/errors errors) errors)
         form-errors (when (vector? local-errors)
                       local-errors)

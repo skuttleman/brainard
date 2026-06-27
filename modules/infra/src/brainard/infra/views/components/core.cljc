@@ -109,7 +109,7 @@
          load-comp (some-> load-comp colls/wrap-vector)
          err-comp (some-> err-comp colls/wrap-vector)
          resources (map deref sub:resources)
-         payloads (map res/payload resources)
+         results (map (some-fn res/errors res/payload) resources)
          success? (every? res/success? resources)
          error? (when-not success?
                   (some res/error? resources))]
@@ -118,16 +118,16 @@
                (not (some res/init? resources)))
        (cond
          success?
-         (conj comp payloads)
+         (conj comp results)
 
          (and err-comp error?)
-         (conj err-comp payloads)
+         (conj err-comp results)
 
-         (and load-comp (some res/requesting? resources) (every? some? payloads))
-         (conj load-comp payloads)
+         (and load-comp (some res/requesting? resources) (every? some? results))
+         (conj load-comp results)
 
          error?
-         (when-not (some ::forms/errors payloads)
+         (when-not (some ::forms/errors results)
            [:div.error [alert :error "An error occurred."]])
 
          :else
