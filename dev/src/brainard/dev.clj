@@ -24,7 +24,9 @@
   [_ cfg]
   (-> (ig/init-key :brainard.web/handler cfg)
       with-dev-middleware
-      (ring.rel/wrap-reload {:dirs ["../defacto/core/src"
+      (ring.rel/wrap-reload {:dirs ["../slag/core-utils"
+                                    "../defacto/core/src"
+                                    "../defacto/res/src"
                                     "../defacto/forms/src"
                                     "../defacto/forms+/src"
                                     "../whet/src"

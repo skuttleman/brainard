@@ -9,13 +9,31 @@
 
 (defmulti ^:private invoke-api* (fn [api _ _] api))
 
+(defn links-exist! [apis {note-id :notes/id :notes/keys [links]}]
+  (when (seq links)
+    (let [note-ids (into #{} (map :notes/id) links)
+          existing-ids (into #{}
+                             (map :notes/id)
+                             (api.notes/get-notes (:notes apis) {:notes/ids note-ids}))]
+      (when-not (= note-ids existing-ids)
+        (throw (ex-info "note cannot be linked to unavailable note"
+                        {::valid/type ::valid/input-validation
+                         :details     {:reason "note cannot be linked to unavailable note"}})))
+
+      (when (some #{note-id} note-ids)
+        (throw (ex-info "note cannot be linked to itself"
+                        {::valid/type ::valid/input-validation
+                         :details     {:reason "note cannot be linked to itself"}}))))))
+
 (defmethod invoke-api* :api.notes/create!
   [_ apis note]
+  (links-exist! apis note)
   (doto (api.notes/create! (:notes apis) note)
     (->> (api.notes/search-create! (:notes apis)))))
 
 (defmethod invoke-api* :api.notes/update!
   [_ apis note]
+  (links-exist! apis note)
   (doto (api.notes/update! (:notes apis) (:notes/id note) note)
     (->> (api.notes/search-update! (:notes apis)))))
 
@@ -24,7 +42,10 @@
   (when-let [pre (api.notes/get-as-of (:notes apis)
                                       (:notes/id note)
                                       (:notes/history-id note))]
-    (invoke-api* :api.notes/update! apis (merge note pre))))
+    (let [updated (-> note
+                      (merge pre)
+                      (dissoc :notes/links :notes/old-links))]
+      (invoke-api* :api.notes/update! apis updated))))
 
 (defmethod invoke-api* :api.notes/delete!
   [_ apis {note-id :notes/id}]
@@ -132,6 +153,5 @@
       (when-let [output-spec (valid/output-specs api)]
         (let [validator (valid/->validator output-spec)]
           (when-let [errors (some-> result validator)]
-            (log/error "produced valid output" {:errors errors :api api})
-            (throw (ex-info "boom" {:errors errors :api api}))))))
+            (throw (ex-info "failed to produce valid output" {:api api :errors errors}))))))
     result))

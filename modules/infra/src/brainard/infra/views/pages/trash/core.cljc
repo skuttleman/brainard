@@ -8,8 +8,7 @@
    [brainard.infra.views.pages.trash.actions :as trash.act]
    [brainard.notes.infra.views :as notes.views]
    [defacto.forms.core :as-alias forms]
-   [defacto.resources.core :as res]
-   [whet.utils.reagent :as r]))
+   [defacto.resources.core :as res]))
 
 (defn ^:private ->delete-modal [note-ids]
   [:modals/sure?
@@ -31,16 +30,14 @@
 
 (defmethod ipages/page :routes.ui/trash
   [*:store _]
-  (r/with-let [sub:res (store/res-sub *:store
-                                      trash.act/sync-key
-                                      {::trash.act/action ::trash.act/fetch
-                                       :params            {:archived :only}})]
+  (store/with-let [sub:res (store/res-sub *:store
+                                          trash.act/sync-key
+                                          {::trash.act/action ::trash.act/fetch
+                                           :params            {:archived :only}})]
     (let [res @sub:res]
       [:div
        [:div.layout--space-between
         [:h2.subtitle "Archived notes"]
         (when (and (res/success? res) (seq (res/payload res)))
           [delete-button *:store (into #{} (map :notes/id) (res/payload res))])]
-       [comp/with-resource sub:res [notes.views/note-list {:*:store *:store}]]])
-    (finally
-      (store/emit! *:store [::res/destroyed trash.act/sync-key]))))
+       [comp/with-resource sub:res [notes.views/note-list {:*:store *:store}]]])))

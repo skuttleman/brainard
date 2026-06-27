@@ -10,21 +10,21 @@
    [brainard.infra.views.pages.note.schedules :as note.sched]
    [defacto.forms.core :as forms]
    [defacto.forms.plus :as forms+]
-   [defacto.resources.core :as res]
-   [whet.utils.reagent :as r]))
+   [defacto.resources.core :as res]))
 
 (defn ^:private attachment-list [note]
   (when-let [attachments (not-empty (:notes/attachments note))]
-    [note-comp/attachment-list {:label? true
-                                :value  attachments}]))
+    [:div.flex-grow {:style {:flex-basis "33%"}}
+     [note-comp/attachment-list {:label? true
+                                 :value  attachments}]]))
 
 (defmethod note-comp/todo-item true
   [{:keys [*:store disabled note-id]} todo]
-  (r/with-let [init-form {:notes/id    note-id
-                          :notes/todos [(select-keys todo #{:todos/id :todos/completed?})]}
-               form-key (note.act/->todo-key note-id (:todos/id todo))
-               check-path [:notes/todos 0 :todos/completed?]
-               sub:form+ (store/form+-sub *:store form-key init-form)]
+  (store/with-let [init-form {:notes/id    note-id
+                              :notes/todos [(select-keys todo #{:todos/id :todos/completed?})]}
+                   form-key (note.act/->todo-key note-id (:todos/id todo))
+                   check-path [:notes/todos 0 :todos/completed?]
+                   sub:form+ (store/form+-sub *:store form-key init-form)]
     (let [form+ @sub:form+
           value (get-in (forms/data form+) check-path)]
       [:li.todo.layout--room-between
@@ -38,22 +38,28 @@
             (ctrls/with-attrs form+ check-path))]
        [:span {:class [(when (:todos/completed? todo)
                          "strikethrough")]}
-        (:todos/text todo)]])
-    (finally
-      (store/emit! *:store [::forms+/destroyed form-key]))))
+        (:todos/text todo)]])))
+
+(defn ^:private note-links [note]
+  (when-let [links (not-empty (:notes/links note))]
+    [:div.flex-grow {:style {:flex-basis "33%"}}
+     [note-comp/note-links
+      {:label? true
+       :value  links}]]))
 
 (defn ^:private todo-list [*:store note disabled?]
   (when-let [todos (not-empty (:notes/todos note))]
-    [note-comp/todo-list
-     {:*:store  *:store
-      :disabled disabled?
-      :note-id  (:notes/id note)
-      :label?   true
-      :value    todos}]))
+    [:div.flex-grow {:style {:flex-basis "33%"}}
+     [note-comp/todo-list
+      {:*:store  *:store
+       :disabled disabled?
+       :note-id  (:notes/id note)
+       :label?   true
+       :value    todos}]]))
 
 (defn ^:private pin-toggle [*:store note disabled?]
-  (r/with-let [pin-note-key (note.act/->pin-key (:notes/id note))
-               sub:form+ (store/form+-sub *:store pin-note-key note)]
+  (store/with-let [pin-note-key (note.act/->pin-key (:notes/id note))
+                   sub:form+ (store/form+-sub *:store pin-note-key note)]
     (let [form+ @sub:form+]
       [:div
        [ctrls/form (note.act/->pin-form-attrs *:store form+ note)
@@ -62,9 +68,7 @@
                                 :disabled (or disabled? (res/requesting? form+))
                                 :icon     :paperclip-1
                                 :type     :submit}
-                               (ctrls/with-attrs form+ [:notes/pinned?]))]]])
-    (finally
-      (store/emit! *:store [::forms+/destroyed pin-note-key]))))
+                               (ctrls/with-attrs form+ [:notes/pinned?]))]]])))
 
 (defn ^:private schedule-item [sched]
   (when-let [parts (note.sched/schedule-parts sched)]
@@ -131,19 +135,17 @@
                          (ctrls/with-attrs form+ [:schedules/before-timestamp]))]]))
 
 (defn ^:private schedule-editor [*:store note scheds disabled?]
-  (r/with-let [schedule-create-key (note.sched/->create-key (:notes/id note))
-               sub:form+ (store/form+-sub *:store
-                                          schedule-create-key
-                                          {:schedules/note-id (:notes/id note)}
-                                          {:remove-nil? true})]
+  (store/with-let [schedule-create-key (note.sched/->create-key (:notes/id note))
+                   sub:form+ (store/form+-sub *:store
+                                              schedule-create-key
+                                              {:schedules/note-id (:notes/id note)}
+                                              {:remove-nil? true})]
     [:div.layout--stack-between
      [:div.flex.row
       [:em "Add a schedule: "]
       [:span.space--left [schedule-item (forms/data @sub:form+)]]]
      [schedule-form {:*:store *:store :disabled? disabled? :sub:form+ sub:form+}]
-     [schedule-list *:store note scheds disabled?]]
-    (finally
-      (store/emit! *:store [::forms+/destroyed schedule-create-key]))))
+     [schedule-list *:store note scheds disabled?]]))
 
 (defn ^:private note-editor [*:store note disabled?]
   [:<>
@@ -152,10 +154,9 @@
     [pin-toggle *:store note disabled?]]
    [comp/markdown (:notes/body note)]
    [:div.layout--room-between {:style {:width "100%"}}
-    [:div.flex-grow {:style {:flex-basis "50%"}}
-     [todo-list *:store note disabled?]]
-    [:div.flex-grow {:style {:flex-basis "50%"}}
-     [attachment-list note]]]
+    [note-links note]
+    [todo-list *:store note disabled?]
+    [attachment-list note]]
    [note-comp/tag-list note]
    [:div.layout--space-between
     [:div.button-row
@@ -209,14 +210,14 @@
     "."]])
 
 (defn ^:private page [*:store note-id]
-  (r/with-let [note-key (note.act/->sync-key note-id)
-               sched-key (note.sched/->sync-key note-id)
-               sub:note (store/res-sub *:store note-key)
-               sub:sched (store/res-sub *:store sched-key)
-               sub:modals (store/subscribe *:store [:modals/?:modals
-                                                    (partial remove (comp #{:modals/sure?}
-                                                                          first
-                                                                          :body))])]
+  (store/with-let [note-key (note.act/->sync-key note-id)
+                   sched-key (note.sched/->sync-key note-id)
+                   sub:note (store/res-sub *:store note-key)
+                   sub:sched (store/res-sub *:store sched-key)
+                   sub:modals (store/subscribe *:store [:modals/?:modals
+                                                        (partial remove (comp #{:modals/sure?}
+                                                                              first
+                                                                              :body))])]
     [:div.layout--stack-between
      [comp/with-resource sub:note
       [note-root {:size :large} *:store sub:modals false]
@@ -225,11 +226,7 @@
      [comp/with-resources [sub:note sub:sched]
       [schedule-root *:store sub:modals false]
       [schedule-root *:store sub:modals false]
-      [schedule-root *:store sub:modals true]]]
-    (finally
-      (-> *:store
-          (store/emit! [::res/destroyed sched-key])
-          (store/emit! [::res/destroyed note-key])))))
+      [schedule-root *:store sub:modals true]]]))
 
 (defmethod ipages/page :routes.ui/note
   [*:store {{note-id :notes/id} :route-params}]

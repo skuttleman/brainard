@@ -81,30 +81,30 @@
       {:notes/old-tags (or removals #{})
        :notes/tags     (or curr #{})})))
 
-(defn ^:private diff-id'ed [old curr map-fn]
+(defn ^:private diff-id'ed [old curr map-fn old-k new-k]
   (when (or old curr)
     (letfn [(id-set [xs]
               (into #{} (map map-fn) xs))]
       (let [removals (set (set/difference (id-set old) (id-set curr)))]
-        [removals (set curr)]))))
+        {old-k removals new-k (set curr)}))))
 
 (defn ^:private diff-attachments [old curr]
-  (when-let [[removals attachments] (diff-id'ed old curr :attachments/id)]
-    {:notes/old-attachments removals
-     :notes/attachments     attachments}))
+  (diff-id'ed old curr :attachments/id :notes/old-attachments :notes/attachments))
+
+(defn ^:private diff-links [old curr]
+  (diff-id'ed old curr :notes/id :notes/old-links :notes/links))
 
 (defn ^:private diff-todos [old curr]
-  (when-let [[removals todos] (diff-id'ed old curr :todos/id)]
-    {:notes/old-todos removals
-     :notes/todos     todos}))
+  (diff-id'ed old curr :todos/id :notes/old-todos :notes/todos))
 
-(defn ^:private modify-note-body [{:keys [payload prev-attachments prev-tags prev-todos]}]
+(defn ^:private modify-note-body [{:keys [payload prev-attachments prev-links prev-tags prev-todos]}]
   (-> payload
       (select-keys #{:notes/context
                      :notes/pinned?
                      :notes/body
                      :notes/archived?})
       (merge (diff-attachments prev-attachments (:notes/attachments payload))
+             (diff-links prev-links (:notes/links payload))
              (diff-tags prev-tags (:notes/tags payload))
              (diff-todos prev-todos (:notes/todos payload)))))
 

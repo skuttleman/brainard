@@ -2,10 +2,10 @@
   (:require
    [brainard.infra.store.core :as store]
    [clojure.string :as string]
-   [whet.utils.navigation :as nav]
    [clojure.core.async :as async]
    [defacto.core :as defacto]
-   [whet.core :as-alias w]))
+   [whet.core :as-alias w]
+   [whet.utils.navigation :as nav]))
 
 (defonce ^:private ->sortable-id
          (let [id (atom 0)]

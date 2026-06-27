@@ -1,0 +1,31 @@
+[{:db/id           "note-1"
+  :notes/id        #uuid "89f8aa1b-1510-4f1d-8180-6a9f58f51621"
+  :notes/context   "Some context"
+  :notes/body      "Note 1"
+  :notes/pinned?   false
+  :notes/archived? false}
+ {:db/id           "note-2"
+  :notes/id        #uuid "8afc5a3a-fcc0-47c5-9821-88121c2fa2f5"
+  :notes/context   "Some context"
+  :notes/body      "Note 2"
+  :notes/pinned?   false
+  :notes/archived? false}
+ {:notes/id        #uuid "09292bf3-a376-4b89-b65a-b9d2b1e46c77"
+  :notes/context   "Some context"
+  :notes/body      "Note 3"
+  :notes/pinned?   false
+  :notes/archived? false
+  :notes/links     #{"note-1" "note-2"}}
+ {:notes/id          #uuid "fcabe0f3-7cfc-42fb-8159-bbe56fd9fbe7"
+  :notes/context     "Some context"
+  :notes/body        "Note 4"
+  :notes/pinned?     false
+  :notes/archived?   false
+  :notes/tags        #{:foo :bar/baz}
+  :notes/todos       #{{:todos/id         #uuid "ee995cab-7942-4452-b0b6-14c90fdfe30d"
+                        :todos/completed? false
+                        :todos/text       "Un-donezo"}}
+  :notes/attachments #{{:attachments/id           #uuid "81a633e0-08d7-4c4c-bd31-a09853654bda"
+                        :attachments/content-type "application/pdf"
+                        :attachments/filename     "some-pdf.pdf"
+                        :attachments/name         "some-pdf.pdf"}}}]

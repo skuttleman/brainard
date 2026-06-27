@@ -32,10 +32,11 @@
      {:class    ["is-white" "is-light"]
       :on-click stop-and-close!}
      [scomp/icon :xmark]]]
-   [:div {:style {:max-height "80vh"
-                  :max-width  "80vw"
-                  :overflow-y :scroll
-                  :width      "100%"}}
+   [:div {:style (merge {:max-height "80vh"
+                         :max-width  "80vw"
+                         :overflow-y :scroll
+                         :width      "100%"}
+                        (:style attrs))}
     [icomp/modal-body *:store attrs]]])
 
 (defn ^:private modal-view [*:store idx {modal-id :id :as modal} top?]
@@ -47,9 +48,12 @@
                                                        (top? idx))
                                               (stop-and-close! %))
                                            true)
-               [modal-type attrs] (:body modal)
-               attrs (assoc attrs :modals/close! close! :modals/type modal-type :modals/id modal-id)]
-    (let [inset (str (* 8 idx) "px")]
+               [modal-type attrs] (:body modal)]
+    (let [inset (str (* 8 idx) "px")
+          attrs (assoc attrs
+                       :modals/close! close!
+                       :modals/type modal-type
+                       :modals/id modal-id)]
       [:li.modal-item
        {:class    [(case (:state modal)
                      :init "adding"
@@ -65,11 +69,11 @@
       (dom/remove-listener! listener))))
 
 (defn root [*:store]
-  (r/with-let [sub:modals (store/subscribe *:store [:modals/?:modals])
-               modal-count (volatile! 0)
-               this (volatile! nil)
-               self-click? (volatile! false)
-               listener (dom/add-listener! dom/window :click (pop-modal! *:store sub:modals) true)]
+  (store/with-let [sub:modals (store/subscribe *:store [:modals/?:modals])
+                   modal-count (volatile! 0)
+                   this (volatile! nil)
+                   self-click? (volatile! false)
+                   listener (dom/add-listener! dom/window :click (pop-modal! *:store sub:modals) true)]
     (when-let [modals (seq @sub:modals)]
       (vreset! modal-count (count modals))
       (let [active? (or (next modals)

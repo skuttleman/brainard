@@ -35,6 +35,10 @@
   :db/cardinality :db.cardinality/many
   :db/isComponent true
   :db/doc         "TODO checklist items associated with the note"}
+ {:db/ident       :notes/links
+  :db/valueType   :db.type/ref
+  :db/cardinality :db.cardinality/many
+  :db/doc         "Links to other notes"}
 
  ;; attachments
  {:db/ident       :attachments/id

@@ -10,7 +10,6 @@
    [brainard.infra.views.fragments.note-components :as note-comp]
    [clojure.string :as string]
    [defacto.forms.core :as forms]
-   [defacto.forms.plus :as forms+]
    [defacto.resources.core :as res]
    [slag.utils.fns :as fns]
    [slag.utils.uuids :as uuids]
@@ -30,13 +29,13 @@
     [:div.layout--space-between
      [:div.flex-grow
       [:div {:style {:margin-bottom "16px"}}
-       [ctrls/type-ahead (-> {:*:store     *:store
-                              :label       "Topic"
-                              :sub:items   sub:contexts
-                              :on-blur     on-context-blur
-                              :auto-focus? (nil? (:notes/context form-data))}
-                             (ctrls/with-attrs form+ [:notes/context])
-                             (with-trim-on-blur *:store))]]]
+       [ctrls/autocomplete (-> {:*:store     *:store
+                                :label       "Topic"
+                                :sub:items   sub:contexts
+                                :on-blur     on-context-blur
+                                :auto-focus? (nil? (:notes/context form-data))}
+                               (ctrls/with-attrs form+ [:notes/context])
+                               (with-trim-on-blur *:store))]]]
      [ctrls/icon-toggle (-> {:*:store *:store
                              :label   "Pin"
                              :icon    :paperclip-1}
@@ -47,7 +46,7 @@
     [:div {:style {:margin-top 0}}
      (if (::preview? form-data)
        [:<>
-        [:label.label "Body"]
+        [:p.label "Body"]
         [:div.expanded
          [comp/markdown (:notes/body form-data)]]]
        [ctrls/textarea (-> {:style       {:font-family :monospace
@@ -83,6 +82,35 @@
                   :height           height
                   :width            (str (* 100 percent) "%")}}]])]))
 
+(defn ^:private ->on-create-link [*:store form-id linked-ids]
+  (fn []
+    (store/dispatch! *:store
+                     [:modals/create!
+                      [::link
+                       {:select-event [::forms/modified
+                                       form-id
+                                       [:notes/links]
+                                       #(conj (vec %1) %2)]
+                        :linked-ids   linked-ids
+                        :style        {:overflow-y :visible}}]])))
+
+(defn ^:private ->on-remove-link [*:store form-id]
+  (fn [{link-id :notes/id}]
+    (store/emit! *:store
+                 [::forms/modified
+                  form-id
+                  [:notes/links]
+                  (partial remove (comp #{link-id} :notes/id))])))
+
+(defn ^:private note-links [*:store form-id note-id links]
+  (r/with-let [on-remove-link (->on-remove-link *:store form-id)]
+    (let [unlinkable (into #{note-id} (map :notes/id) links)]
+      [note-comp/note-links
+       {:label?    true
+        :on-create (->on-create-link *:store form-id unlinkable)
+        :on-remove on-remove-link
+        :value     links}])))
+
 (defn ^:private ->on-upload-att [*:store form-id]
   (fn [files]
     (when (seq files)
@@ -117,6 +145,21 @@
                   form-id
                   [:notes/attachments]
                   (partial into #{} (remove (comp #{attachment-id} :attachments/id)))])))
+
+(defn ^:private attachment-list [*:store form-id uploading? upload-status attachments]
+  (r/with-let [on-upload-att (->on-upload-att *:store form-id)
+               on-edit-att (->on-edit-att *:store form-id)
+               on-remove-att (->on-remove-att *:store form-id)]
+    [:<>
+     [ctrls/file {:on-upload on-upload-att
+                  :disabled  uploading?
+                  :label     "Attachments"
+                  :multi?    true}]
+     [progress-bar upload-status]
+     [note-comp/attachment-list
+      {:on-edit   on-edit-att
+       :on-remove on-remove-att
+       :value     attachments}]]))
 
 (defn ^:private ->on-create-todo [*:store form-id]
   (fn []
@@ -164,45 +207,47 @@
                   [:notes/todos]
                   (partial remove (comp #{todo-id} :todos/id))])))
 
-(defn ^:private tags+todos+attachments-field [{:keys [*:store form+ sub:tags uploading?]}]
-  (r/with-let [form-id (forms/id form+)
-               on-upload-att (->on-upload-att *:store form-id)
-               on-edit-att (->on-edit-att *:store form-id)
-               on-remove-att (->on-remove-att *:store form-id)
-               on-create-todo (->on-create-todo *:store form-id)
+(defn ^:private todo-list [*:store form-id todos]
+  (r/with-let [on-create-todo (->on-create-todo *:store form-id)
                on-check-todo (->on-check-todo *:store form-id)
                on-edit-todo (->on-edit-todo *:store form-id)
                on-remove-todo (->on-remove-todo *:store form-id)]
+    [note-comp/todo-list
+     {:label?    true
+      :on-create on-create-todo
+      :on-check  on-check-todo
+      :on-edit   on-edit-todo
+      :on-remove on-remove-todo
+      :value     todos}]))
+
+(defn ^:private addendums [{:keys [*:store form+ sub:tags uploading?]}]
+  (r/with-let [form-id (forms/id form+)]
     (let [form-data (forms/data form+)]
       [:div.layout--room-between
-       [:div {:style {:flex-basis "33%"}}
+       [:div {:style {:flex-basis "25%"}}
         [ctrls/tags-editor (-> {:*:store   *:store
                                 :form-id   [::tags form-id]
                                 :label     "Tags"
                                 :sub:items sub:tags}
                                (ctrls/with-attrs form+ [:notes/tags]))]]
-       [:div.layout--stack-between {:style {:flex-basis "33%"}}
-        [:div.layout-col
-         [:label.label "TODOs"]
-         [note-comp/todo-list
-          {:on-create on-create-todo
-           :on-check  on-check-todo
-           :on-edit   on-edit-todo
-           :on-remove on-remove-todo
-           :value     (:notes/todos form-data)}]]]
-       [:div.layout-col {:style {:flex-basis "33%"}}
-        [ctrls/file {:on-upload on-upload-att
-                     :disabled  uploading?
-                     :label     "Attachments"
-                     :multi?    true}]
-        [progress-bar (:upload-status form-data)]
-        [note-comp/attachment-list
-         {:on-edit   on-edit-att
-          :on-remove on-remove-att
-          :value     (:notes/attachments form-data)}]]])))
+       [:div {:style {:flex-basis "25%"}}
+        [note-links
+         *:store
+         form-id
+         (:notes/id form-data)
+         (:notes/links form-data)]]
+       [:div {:style {:flex-basis "25%"}}
+        [todo-list *:store form-id (:notes/todos form-data)]]
+       [:div.layout-col {:style {:flex-basis "25%"}}
+        [attachment-list
+         *:store
+         form-id
+         uploading?
+         (:upload-status form-data)
+         (:notes/attachments form-data)]]])))
 
 (defn ^:private note-form [{:keys [*:store form+] :as attrs}]
-  (r/with-let [sub:uploads (store/subscribe *:store [::res/?:resource [::specs/attachment#upload]])]
+  (store/with-let [sub:uploads (store/subscribe *:store [::res/?:resource [::specs/attachment#upload]])]
     (let [uploading? (res/requesting? @sub:uploads)]
       [ctrls/form (assoc attrs :disabled uploading?)
        [topic+pin-field attrs]
@@ -212,7 +257,7 @@
                           :inline? true
                           :*:store *:store}
                          (ctrls/with-attrs form+ [::preview?]))]
-       [tags+todos+attachments-field (assoc attrs :uploading? uploading?)]])
+       [addendums (assoc attrs :uploading? uploading?)]])
     (finally
       (store/emit! *:store [::res/destroyed [::specs/attachment#upload]]))))
 
@@ -222,10 +267,10 @@
 
 (defmethod icomp/modal-body ::modal
   [*:store {modal-id :modals/id :modals/keys [close!] :keys [init params resource-key]}]
-  (r/with-let [sub:form+ (store/form+-sub *:store resource-key init)
-               sub:contexts (store/res-sub *:store [::specs/contexts#select])
-               sub:tags (store/res-sub *:store [::specs/tags#select])
-               params (update params :ok-commands conj [:modals/remove! modal-id])]
+  (store/with-let [sub:form+ (store/form+-sub *:store resource-key init)
+                   sub:contexts (store/res-sub *:store ^:static [::specs/contexts#select])
+                   sub:tags (store/res-sub *:store ^:static [::specs/tags#select])
+                   params (update params :ok-commands conj [:modals/remove! modal-id])]
     [:div {:style {:min-width "50vw"}}
      [note-form {:*:store      *:store
                  :form+        @sub:form+
@@ -236,9 +281,7 @@
                  :submit/body  "Save"
                  :buttons      [[comp/plain-button {:class    ["cancel"]
                                                     :on-click close!}
-                                 "Cancel"]]}]]
-    (finally
-      (store/emit! *:store [::forms+/destroyed resource-key]))))
+                                 "Cancel"]]}]]))
 
 (defmethod icomp/modal-header ::attachment-name
   [_ _]
@@ -249,7 +292,7 @@
   (if new? "Create new TODO" "Edit your TODO"))
 
 (defn ^:private form-modal [*:store {modal-id :modals/id :keys [init resource-key] :as attrs}]
-  (r/with-let [sub:form+ (store/form+-sub *:store resource-key init)]
+  (store/with-let [sub:form+ (store/form+-sub *:store resource-key init)]
     (let [{:keys [form-path label ok-events resource-key submit-body]} attrs
           form+ @sub:form+]
       [ctrls/form
@@ -263,9 +306,7 @@
        [ctrls/input (-> {:*:store     *:store
                          :auto-focus? true
                          :label       label}
-                        (ctrls/with-attrs form+ form-path))]])
-    (finally
-      (store/emit! *:store [::forms+/destroyed resource-key]))))
+                        (ctrls/with-attrs form+ form-path))]])))
 
 (defmethod icomp/modal-body ::attachment-name
   [*:store attrs]
@@ -282,3 +323,35 @@
                              :label "TODO"
                              :resource-key frag.act/todo-form-key
                              :submit-body (if new? "Create" "Update"))])
+
+(defmethod icomp/modal-header ::link
+  [_ _]
+  "Link another note to this one")
+
+(defmethod icomp/modal-body ::link
+  [*:store {modal-id :modals/id :keys [linked-ids select-event]}]
+  (store/with-let [sub:matches (store/res-init-sub *:store frag.act/link-search-key [])
+                   sub:form (store/form-sub *:store [::link-form] nil)
+                   on-select (fn [note]
+                               (-> *:store
+                                   (store/emit! (conj select-event note))
+                                   (store/dispatch! [:modals/remove! modal-id])))
+                   remove-fn (comp linked-ids :notes/id)]
+    (let [form @sub:form]
+      [:div {:style {:min-height "100px"}}
+       [ctrls/typeahead (-> {:*:store    *:store
+                             :auto-focus true
+                             :label      "Search for a note"
+                             :item-fn    :notes/summary
+                             :key-fn     :notes/id
+                             :on-select  on-select
+                             :remove-fn  remove-fn
+                             :sub:items  sub:matches}
+                            (ctrls/with-attrs form [::link-search])
+                            (update :on-change
+                                    (fn [event]
+                                      {:command [::res/debounce!
+                                                 ::search
+                                                 400
+                                                 [::res/resubmit! frag.act/link-search-key]]
+                                       :event   event})))]])))

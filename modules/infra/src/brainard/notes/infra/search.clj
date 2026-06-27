@@ -8,12 +8,6 @@
    :body    body
    :context context})
 
-(defmethod istorage/->input ::api.notes/search-suggest
-  [{:notes/keys [query]}]
-  {:action :suggest
-   :field  :context
-   :prefix query})
-
 (defmethod istorage/->input ::api.notes/search-create!
   [{:notes/keys [id body context]}]
   [{:action :create

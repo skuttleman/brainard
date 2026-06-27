@@ -20,6 +20,13 @@
    [:todos/text {:optional true} scommon/non-empty-trimmed-string]
    [:todos/completed? {:optional true} boolean?]])
 
+(def ^:private summary
+  [:map
+   [:notes/id uuid?]
+   [:notes/context scommon/non-empty-trimmed-string]
+   [:notes/body scommon/non-empty-trimmed-string]
+   [:notes/summary scommon/non-empty-trimmed-string]])
+
 (def create
   [:map
    [:notes/context scommon/non-empty-trimmed-string]
@@ -27,14 +34,16 @@
    [:notes/pinned? boolean?]
    [:notes/tags {:optional true} [:set keyword?]]
    [:notes/attachments {:optional true} [:seqable sattachments/full]]
-   [:notes/todos {:optional true} [:seqable todo-create]]])
+   [:notes/todos {:optional true} [:seqable todo-create]]
+   [:notes/links {:optional true} [:seqable [:map [:notes/id uuid?]]]]])
 
 (def full
   (mu/merge create
             [:map
              [:notes/id uuid?]
              [:notes/timestamp inst?]
-             [:notes/todos {:optional true} [:seqable todo-full]]]))
+             [:notes/todos {:optional true} [:seqable todo-full]]
+             [:notes/links {:optional true} [:seqable summary]]]))
 
 (def history
   [:map
@@ -76,7 +85,25 @@
                                               [:attachments/content-type {:optional true}
                                                [:map
                                                 [:from {:optional true} scommon/non-empty-string]
-                                                [:to {:optional true} scommon/non-empty-string]]]]]]]]])
+                                                [:to {:optional true} scommon/non-empty-string]]]]]]
+     [:notes/todos {:optional true} [:map
+                                     [:added {:optional true} [:set int?]]
+                                     [:removed {:optional true} [:set int?]]]]
+     [:todos/changes {:optional true} [:map-of
+                                       int?
+                                       [:map
+                                        [:todos/id {:optional true}
+                                         [:map
+                                          [:from {:optional true} uuid?]
+                                          [:to {:optional true} uuid?]]]
+                                        [:todos/text {:optional true}
+                                         [:map
+                                          [:from {:optional true} scommon/non-empty-string]
+                                          [:to {:optional true} scommon/non-empty-string]]]
+                                        [:todos/completed? {:optional true}
+                                         [:map
+                                          [:from {:optional true} boolean?]
+                                          [:to {:optional true} boolean?]]]]]]]]])
 
 (def modify
   [:map
@@ -89,7 +116,9 @@
    [:notes/old-attachments {:optional true} [:set uuid?]]
    [:notes/todos {:optional true} [:seqable todo-update]]
    [:notes/old-todos {:optional true} [:set uuid?]]
-   [:notes/archived? {:optional true} boolean?]])
+   [:notes/archived? {:optional true} boolean?]
+   [:notes/links {:optional true} [:seqable [:map [:notes/id uuid?]]]]
+   [:notes/old-links {:optional true} [:set uuid?]]])
 
 (def reinstate
   [:map

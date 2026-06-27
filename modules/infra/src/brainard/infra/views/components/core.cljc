@@ -42,9 +42,9 @@
 (defn plain-input [attrs]
   [:input.input
    (-> attrs
-       (select-keys #{:auto-focus :class :disabled :id :on-blur :style
-                      :on-change :on-click :on-focus :ref :type :value
-                      :placeholder})
+       (select-keys #{:auto-complete :auto-focus :class :disabled :id
+                      :on-blur :on-change :on-click :on-focus :on-key-down
+                      :placeholder :ref :style :type :value})
        (update :on-change comp dom/target-value)
        (maps/assoc-defaults :type :text))])
 

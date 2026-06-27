@@ -18,12 +18,12 @@
                (apply d/q query (cond-> db
                                   as-of (d/as-of as-of)
                                   history? d/history))
+               (sequence (or xform identity))
                (walk/postwalk (fn [x]
                                 (cond-> x
                                   (map? x) (cond->
                                              ref? (set/rename-keys {:db/id :brainard/ref})
-                                             (not ref?) (dissoc :db/id)))))
-               (sequence (or xform identity)))
+                                             (not ref?) (dissoc :db/id))))))
     only? first
     post (->> (post db))))
 

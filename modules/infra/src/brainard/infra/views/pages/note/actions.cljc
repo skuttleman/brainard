@@ -88,6 +88,7 @@
     :header       "Edit note"
     :params       {::action          ::edit
                    :prev-attachments (:notes/attachments note)
+                   :prev-links       (:notes/links note)
                    :prev-tags        (:notes/tags note)
                    :prev-todos       (:notes/todos note)}
     :resource-key (->edit-key note-id)}])

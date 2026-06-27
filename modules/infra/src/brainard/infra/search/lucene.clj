@@ -6,20 +6,14 @@
    (org.apache.lucene.document Document Field$Store StringField TextField)
    (org.apache.lucene.index DirectoryReader IndexWriter IndexWriterConfig Term)
    (org.apache.lucene.search BooleanClause$Occur BooleanQuery$Builder IndexSearcher TopDocs)
-   (org.apache.lucene.search.suggest.document
-    Completion104PostingsFormat PrefixCompletionQuery SuggestField SuggestIndexSearcher)
+
    (org.apache.lucene.store ByteBuffersDirectory Directory FSDirectory)
    (org.apache.lucene.util QueryBuilder)))
 
-(def ^:private ^:const ^String suggest-field "suggest_context")
-
 (defn ^:private ->codec []
-  (let [fmt (Completion104PostingsFormat.)]
-    (proxy [Lucene104Codec] []
-      (getPostingsFormatForField [field]
-        (if (= field suggest-field)
-          fmt
-          (proxy-super getPostingsFormatForField field))))))
+  (proxy [Lucene104Codec] []
+    (getPostingsFormatForField [field]
+      (proxy-super getPostingsFormatForField field))))
 
 (defn ^:private ->writer-config [analyzer]
   (doto (IndexWriterConfig. analyzer)
@@ -32,8 +26,7 @@
   (doto (Document.)
     (.add (StringField. "id" (str id) Field$Store/YES))
     (.add (TextField. "context" (str context) Field$Store/NO))
-    (.add (TextField. "body" (str body) Field$Store/NO))
-    (cond-> (seq context) (.add (SuggestField. suggest-field context (int 1))))))
+    (.add (TextField. "body" (str body) Field$Store/NO))))
 
 (defn ^:private hits->results [^IndexSearcher searcher ^TopDocs hits]
   (let [stored-fields (.storedFields searcher)]
@@ -77,12 +70,6 @@
       (add-terms qb bqb "body" body)
       (add-terms qb bqb "context" context)
       (hits->results searcher (.search searcher (.build bqb) 10)))))
-
-(defn suggest [{:keys [^Directory directory analyzer]} ^String prefix]
-  (with-open [reader (DirectoryReader/open directory)]
-    (let [searcher (SuggestIndexSearcher. reader)
-          query (PrefixCompletionQuery. analyzer (Term. suggest-field prefix))]
-      (hits->results searcher (.suggest searcher query 10 false)))))
 
 (defn create-index
   ([]

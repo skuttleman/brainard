@@ -12,8 +12,6 @@
    [clojure.set :as set]
    [clojure.walk :as walk]
    [defacto.forms.core :as forms]
-   [defacto.forms.plus :as forms+]
-   [defacto.resources.core :as res]
    [whet.utils.reagent :as r]
    [workspace-nodes :as-alias ws]))
 
@@ -39,11 +37,11 @@
                               (ctrls/with-attrs form [::tag-filters]))]))
 
 (defn ^:private pinned [*:store route-info [tags pinned-notes]]
-  (r/with-let [sub:form (-> *:store
-                            (store/form-sub [::expanded-group]
+  (store/with-let [sub:form (store/form-sub *:store
+                                            [::expanded-group]
                                             {::expanded    (-> route-info :query-params :expanded)
                                              ::tag-filters #{}})
-                            (doto (add-watch ::change (home.act/expanded-change *:store route-info))))]
+                   _ (add-watch sub:form ::change (home.act/expanded-change *:store route-info))]
     (let [form @sub:form
           {::keys [expanded tag-filters]} (forms/data form)
           form-id (forms/id form)
@@ -81,8 +79,7 @@
               note-group]]])
          [:em "No pinned notes"])])
     (finally
-      (remove-watch sub:form ::change)
-      (store/emit! *:store [::forms/destroyed [::expanded-group]]))))
+      (remove-watch sub:form ::change))))
 
 (defn ^:private ->tree [ws-nodes]
   (walk/postwalk (fn [x]
@@ -130,15 +127,13 @@
 
 (defmethod icomp/modal-body ::home.act/edit!
   [*:store {:keys [init-data params resource-key]}]
-  (r/with-let [sub:form+ (store/form+-sub *:store resource-key init-data)]
+  (store/with-let [sub:form+ (store/form+-sub *:store resource-key init-data)]
     (let [form+ @sub:form+]
       [ctrls/form (home.act/->node-form-attrs *:store form+ resource-key params)
        [ctrls/input (-> {:*:store     *:store
                          :auto-focus? true
                          :label       "Content"}
-                        (ctrls/with-attrs form+ [::ws/content]))]])
-    (finally
-      (store/emit! *:store [::forms+/destroyed resource-key]))))
+                        (ctrls/with-attrs form+ [::ws/content]))]])))
 
 (defn ^:private workspace [*:store ws-nodes]
   (r/with-let [dnd-attrs (home.act/->dnd-form-attrs *:store)]
@@ -149,13 +144,9 @@
 
 (defmethod ipages/page :routes.ui/home
   [*:store route-info]
-  (r/with-let [sub:tags (store/res-sub *:store [::specs/tags#select])
-               sub:pinned (store/res-sub *:store [::home.act/notes#pinned])
-               sub:tree (store/res-sub *:store [::home.act/workspace#sync])]
+  (store/with-let [sub:tags (store/res-sub *:store ^:static [::specs/tags#select])
+                   sub:pinned (store/res-sub *:store [::home.act/notes#pinned])
+                   sub:tree (store/res-sub *:store [::home.act/workspace#sync])]
     [:div.layout--stack-between
      [comp/with-resource sub:tree [workspace *:store]]
-     [comp/with-resources [sub:tags sub:pinned] [pinned *:store route-info]]]
-    (finally
-      (-> *:store
-          (store/emit! [::res/destroyed [::home.act/workspace#sync]])
-          (store/emit! [::res/destroyed [::home.act/notes#pinned]])))))
+     [comp/with-resources [sub:tags sub:pinned] [pinned *:store route-info]]]))

@@ -41,29 +41,6 @@
                                           :body#   #{"fluffy"}
                                           :context #{"fluffy"}}))))))
 
-        (testing "and when getting suggestions from the index"
-          (testing "and when there are matches"
-            (let [results1 (istorage/read store
-                                          {:action :suggest
-                                           :field  :context
-                                           :prefix "some context"})
-                  results2 (istorage/read store
-                                          {:action :suggest
-                                           :field  :context
-                                           :prefix "some context a"})]
-              (testing "returns the results"
-                (is (= #{n1 n2}
-                       (into #{} (map :notes/id) results1)))
-                (is (= #{n2}
-                       (into #{} (map :notes/id) results2)))))
-
-            (testing "and when there are no matches"
-              (testing "returns no results"
-                (is (empty? (istorage/read store
-                                           {:action :suggest
-                                            :field  :context
-                                            :prefix "the body"})))))))
-
         (testing "and when updating a note"
           (istorage/write! store [{:action :update
                                    :doc    {:id      (str n1)
@@ -77,30 +54,7 @@
                                             :body   #{"new"}})]
                 (testing "returns the results"
                   (is (= #{n1}
-                         (into #{} (map :notes/id) results)))))))
-
-          (testing "and when getting suggestions from the index"
-            (testing "and when there are matches"
-              (let [results1 (istorage/read store
-                                            {:action :suggest
-                                             :field  :context
-                                             :prefix "some"})
-                    results2 (istorage/read store
-                                            {:action :suggest
-                                             :field  :context
-                                             :prefix "some new"})]
-                (testing "returns the results"
-                  (is (= #{n1 n2}
-                         (into #{} (map :notes/id) results1)))
-                  (is (= #{n1}
-                         (into #{} (map :notes/id) results2))))))
-
-            (testing "and when there are no matches"
-              (testing "returns no results"
-                (is (empty? (istorage/read store
-                                           {:action :suggest
-                                            :field  :context
-                                            :prefix "the body"})))))))
+                         (into #{} (map :notes/id) results))))))))
 
         (testing "and when deleting a note"
           (istorage/write! store [{:action :delete
@@ -111,19 +65,4 @@
               (testing "returns no results"
                 (is (empty? (istorage/read store
                                            {:action :search
-                                            :body   #{"new"}}))))))
-
-          (testing "and when getting suggestions from the index"
-            (testing "and when there are matches"
-              (let [results1 (istorage/read store
-                                            {:action :suggest
-                                             :field  :context
-                                             :prefix "some"})
-                    results2 (istorage/read store
-                                            {:action :suggest
-                                             :field  :context
-                                             :prefix "some new"})]
-                (testing "returns the results"
-                  (is (= #{n2}
-                         (into #{} (map :notes/id) results1)))
-                  (is (empty? results2)))))))))))
+                                            :body   #{"new"}})))))))))))

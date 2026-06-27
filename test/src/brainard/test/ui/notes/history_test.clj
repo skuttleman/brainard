@@ -108,11 +108,14 @@
                 (is (eta/has-text? driver {:css ".history__view .content p"} "Some body")))
 
               (testing "displays the 1st version attachments"
-                (is (false? (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='Attachments:']"})))
+                (is (false? (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]
+                                                         //*[contains(@class,'label') and
+                                                             contains(text(),'Attachments')]"})))
                 (is (= #{} (collect-attachments driver ".history__view"))))
 
               (testing "displays the 1st version todos"
-                (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='TODOs:']"}))
+                (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]
+                                                 //*[contains(@class,'label') and contains(text(),'TODOs')]"}))
                 (is (= {"Do a thing" false} (collect-todos driver {:css-prefix ".history__view"}))))
 
               (testing "displays the 1st version tags"
@@ -129,11 +132,14 @@
                 (is (eta/has-text? driver {:css ".history__view h1"} "Some context"))
                 (is (eta/has-text? driver {:css ".history__view .content p"} "Some edited body goes here")))
               (testing "displays the 4th version attachments"
-                (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='Attachments:']"}))
+                (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]
+                                                 //*[contains(@class,'label') and
+                                                     contains(text(),'Attachments')]"}))
                 (is (= #{"some-pdf.pdf" "sample.txt" "image.jpg"} (collect-attachments driver ".history__view"))))
 
               (testing "displays the 4th version todos"
-                (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='TODOs:']"}))
+                (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]
+                                                 //*[contains(@class,'label') and contains(text(),'TODOs')]"}))
                 (is (= {"Did a thing"      true
                         "Do another thing" false}
                        (collect-todos driver {:css-prefix ".history__view"}))))
@@ -153,11 +159,14 @@
                 (is (eta/has-text? driver {:css ".history__view .content p"} "Some completely different body")))
 
               (testing "displays the 6th version attachments"
-                (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='Attachments:']"}))
+                (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]
+                                                 //*[contains(@class,'label') and
+                                                     contains(text(),'Attachments')]"}))
                 (is (= #{"sample.txt" "some other name"} (collect-attachments driver ".history__view"))))
 
               (testing "displays the 6th version todos"
-                (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='TODOs:']"}))
+                (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]
+                                                 //*[contains(@class,'label') and contains(text(),'TODOs')]"}))
                 (is (= {"Did a thing"               true
                         "Do some third thing still" true}
                        (collect-todos driver {:css-prefix ".history__view"}))))
@@ -195,11 +204,13 @@
               (is (eta/has-text? driver {:css ".history__view .content p"} "Some edited body goes here")))
 
             (testing "displays the 3rd version attachments"
-              (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='Attachments:']"}))
+              (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]
+                                               //*[contains(@class,'label') and text()='Attachments:']"}))
               (is (= #{"image.jpg" "sample.txt" "some-pdf.pdf"} (collect-attachments driver ".history__view"))))
 
             (testing "displays the 3rd version todos"
-              (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='TODOs:']"}))
+              (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]
+                                               //*[contains(@class,'label') and contains(text(),'TODOs')]"}))
               (is (= {"Do a thing"       false
                       "Do another thing" false}
                      (collect-todos driver {:css-prefix ".history__view"}))))
@@ -211,11 +222,10 @@
               (web/click! driver {:css ".history__view button.note__history-reinstate"})
               (eta/wait-absent driver {:css ".modal-container.is-active .modal-item.history__view"})
               (web/click! driver {:css ".history__modal .lni-xmark"})
-              (eta/wait-absent driver {:css ".modal-container.is-active"})
-              (eta/wait-visible driver {:xpath "//h1[.='Some context']"})
 
               (testing "displays a toast message"
                 (eta/wait-visible driver {:css ".toast-message.is-success"})
+                (eta/wait-absent driver {:css ".modal-container.is-active"})
                 (is (eta/has-text? driver
                                    {:css ".toast-message.is-success .body-text"}
                                    "previous version of note was reinstated"))
@@ -227,11 +237,11 @@
                 (is (eta/has-text? driver {:css ".content p"} "Some edited body goes here")))
 
               (testing "reinstates the 3rd version attachments"
-                (is (eta/exists? driver {:xpath "//label[text()='Attachments:']"}))
+                (is (eta/exists? driver {:xpath "//*[contains(@class,'label') and contains(text(),'Attachments')]"}))
                 (is (= #{"image.jpg" "sample.txt" "some-pdf.pdf"} (collect-attachments driver ""))))
 
               (testing "reinstates the 3rd version todos"
-                (is (eta/exists? driver {:xpath "//label[text()='TODOs:']"}))
+                (is (eta/exists? driver {:xpath "//*[contains(@class,'label') and contains(text(),'TODOs')]"}))
                 (is (= {"Do a thing"       false
                         "Do another thing" false}
                        (collect-todos driver {:disabled? false}))))
@@ -252,11 +262,13 @@
                     (is (eta/has-text? driver {:css ".history__view .content p"} "Some edited body goes here")))
 
                   (testing "displays the 9th version attachments"
-                    (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='Attachments:']"}))
+                    (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]
+                                                     //*[contains(@class,'label') and contains(text(),'Attachments')]"}))
                     (is (= #{"image.jpg" "sample.txt" "some-pdf.pdf"} (collect-attachments driver ".history__view"))))
 
                   (testing "displays the 9th version todos"
-                    (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='TODOs:']"}))
+                    (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]
+                                                     //*[contains(@class,'label') and contains(text(),'TODOs')]"}))
                     (is (= {"Do a thing"       false
                             "Do another thing" false}
                            (collect-todos driver {:css-prefix ".history__view"}))))
@@ -284,11 +296,11 @@
                       (is (eta/has-text? driver {:css ".content p"} "Some completely different body")))
 
                     (testing "reinstates the 6th version attachments"
-                      (is (eta/exists? driver {:xpath "//label[text()='Attachments:']"}))
+                      (is (eta/exists? driver {:xpath "//*[contains(@class,'label') and contains(text(),'Attachments')]"}))
                       (is (= #{"sample.txt" "some other name"} (collect-attachments driver ""))))
 
                     (testing "reinstates the 6th version todos"
-                      (is (eta/exists? driver {:xpath "//label[text()='TODOs:']"}))
+                      (is (eta/exists? driver {:xpath "//*[contains(@class,'label') and contains(text(),'TODOs')]"}))
                       (is (= {"Did a thing"               true
                               "Do some third thing still" true}
                              (collect-todos driver {:disabled? false}))))
@@ -317,11 +329,13 @@
               (is (eta/has-text? driver {:css ".history__view .content p"} "Some completely different body")))
 
             (testing "displays the 7th version attachments"
-              (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='Attachments:']"}))
+              (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]
+                                               //*[contains(@class,'label') and contains(text(),'Attachments')]"}))
               (is (= #{"sample.txt" "some other name"} (collect-attachments driver ".history__view"))))
 
             (testing "displays the 7th version todos"
-              (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]//label[text()='TODOs:']"}))
+              (is (eta/exists? driver {:xpath "//*[contains(@class,'history__view')]
+                                               //*[contains(@class,'label') and contains(text(),'TODOs')]"}))
               (is (= {"Did a thing"               true
                       "Do some third thing still" true}
                      (collect-todos driver {:css-prefix ".history__view"}))))

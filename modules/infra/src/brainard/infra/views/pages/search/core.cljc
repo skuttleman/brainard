@@ -84,14 +84,13 @@
                        (ctrls/with-attrs form+ [:notes/body]))]]]))
 
 (defn ^:private root [*:store {:keys [anchor query-params]} [contexts tags]]
-  (r/with-let [form-key [::forms+/valid [::search.act/search] query-params]
-               sub:form+ (let [loaded? (boolean (store/query *:store [::forms/?:form form-key]))
-                               sub (store/form+-sub *:store
-                                                    form-key
-                                                    (->empty-form query-params contexts tags))]
-                           (when (and (not loaded?) (seq (dissoc query-params :archived)))
-                             (store/dispatch! *:store [::forms+/submit! form-key]))
-                           sub)]
+  (store/with-let [form-key [::forms+/valid [::search.act/search] query-params]
+                   loaded? (boolean (store/query *:store [::forms/?:form form-key]))
+                   sub:form+ (store/form+-sub *:store
+                                              form-key
+                                              (->empty-form query-params contexts tags))
+                   _ (when (and (not loaded?) (seq (dissoc query-params :archived)))
+                       (store/dispatch! *:store [::forms+/submit! form-key]))]
     [:div.layout--stack-between
      [search-form {:*:store *:store :form+ @sub:form+} contexts tags]
      [comp/with-resource sub:form+ [notes.views/note-list {:*:store    *:store
@@ -99,14 +98,13 @@
                                                            :anchor?    true
                                                            :hide-init? true}]]]
     (finally
-      (-> *:store
-          (store/emit! [::forms+/destroyed form-key])
-          (store/emit! [::res/destroyed (second form-key)])))))
+      ;; ??? (do other form+'s actually need this?
+      (store/emit! *:store [::res/destroyed (second form-key)]))))
 
 (defmethod ipages/page :routes.ui/search
   [*:store {:keys [query-params] :as route-info}]
-  (r/with-let [sub:contexts (store/res-sub *:store [::specs/contexts#select])
-               sub:tags (store/res-sub *:store [::specs/tags#select])]
+  (store/with-let [sub:contexts (store/res-sub *:store ^:static [::specs/contexts#select])
+                   sub:tags (store/res-sub *:store ^:static [::specs/tags#select])]
     [comp/with-resources [sub:contexts sub:tags]
      ^{:key (pr-str query-params)}
      [root *:store route-info]]))

@@ -5,12 +5,11 @@
    [brainard.infra.views.components.core :as comp]
    [brainard.infra.views.pages.interfaces :as ipages]
    [brainard.notes.infra.views :as notes.views]
-   [defacto.resources.core :as res]
-   [whet.utils.reagent :as r]))
+   [defacto.resources.core :as res]))
 
 (defmethod ipages/page :routes.ui/buzz
   [*:store _]
-  (r/with-let [sub:notes (store/res-sub *:store [::specs/notes#buzz] {::res/ttl 5000})]
+  (store/with-let [sub:notes (store/res-sub *:store ^:static [::specs/notes#buzz] {::res/ttl 5000})]
     (let [resource @sub:notes]
       [:div
        [:h2.subtitle "What's relevant now?"]

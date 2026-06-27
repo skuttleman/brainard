@@ -7,7 +7,6 @@
    [brainard.infra.views.pages.interfaces :as ipages]
    [defacto.resources.core :as res]
    [whet.core :as w]
-   [whet.utils.reagent :as r]
    brainard.infra.views.pages.buzz.core
    brainard.infra.views.pages.home.core
    brainard.infra.views.pages.note.core
@@ -39,7 +38,7 @@
   [comp/icon {:style {:padding-top "2px" :margin-bottom "-2px"}} icon])
 
 (defn ^:private navbar [*:store {:keys [token]}]
-  (r/with-let [sub:buzz (store/res-sub *:store [::specs/notes#buzz])]
+  (store/with-let [sub:buzz (store/res-sub *:store ^:static [::specs/notes#buzz])]
     (let [resource @sub:buzz
           buzzes (count (when (res/success? resource)
                           (res/payload resource)))]
@@ -76,5 +75,5 @@
    [comp/modals *:store]])
 
 (defn root [*:store]
-  (r/with-let [router (store/subscribe *:store [::w/?:route])]
+  (store/with-let [router (store/subscribe *:store [::w/?:route])]
     [page *:store @router]))
