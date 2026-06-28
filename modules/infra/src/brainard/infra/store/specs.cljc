@@ -21,7 +21,8 @@
                               :route {:token        route
                                       :route-params (dissoc route-params :query-params)
                                       :query-params query-params}))]
-    (-> {:params req-params
+    (-> {:async? (:async? params)
+         :params req-params
          :->ok   :data
          :->err  :errors}
         (with-msgs :pre-events params spec)
@@ -183,7 +184,8 @@
 
 (defmethod res/->request-spec ::workspace#create
   [_ {:keys [payload] :as spec}]
-  (->req {:route  :routes.api/workspace-nodes
+  (->req {:async? true
+          :route  :routes.api/workspace-nodes
           :method :post
           :body   (valid/select-spec-keys payload sws/create)}
          spec))

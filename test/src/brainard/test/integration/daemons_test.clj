@@ -90,11 +90,10 @@
 
             (testing "broadcasts the relevant note"
               (let [notes (->> @msgs
-                               (mapcat (comp :data second second))
+                               (mapcat (comp :data second))
                                (map #(dissoc % :notes/timestamp)))]
                 (is (= 1 (count @msgs)))
-                (is (= :message (ffirst @msgs)))
-                (is (= :notes/relevant (-> @msgs first second first)))
+                (is (= :notes/relevant (-> @msgs ffirst)))
                 (is (= [{:notes/id          n1
                          :notes/context     "Context"
                          :notes/body        "body of note"

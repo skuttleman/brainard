@@ -1,5 +1,6 @@
 (ns brainard.api.core
   (:require
+   [brainard.api.events.core :as events]
    [brainard.api.validations :as valid]
    [brainard.api.utils.logger :as log]
    [brainard.attachments.api.core :as api.attachments]
@@ -118,9 +119,11 @@
   (api.ws/get-tree (:workspace apis)))
 
 (defmethod invoke-api* :api.workspace-nodes/create!
-  [_ apis node]
+  [_ apis {:keys [request-id] :as node}]
   (api.ws/create! (:workspace apis) node)
-  (invoke-api* :api.workspace-nodes/select-tree apis nil))
+  (let [result (invoke-api* :api.workspace-nodes/select-tree apis nil)]
+    (events/broadcast! (:events apis) :workspace/tree {:request-id request-id :data result})
+    ::no-content))
 
 (defmethod invoke-api* :api.workspace-nodes/delete!
   [_ apis node]
@@ -133,7 +136,7 @@
   (invoke-api* :api.workspace-nodes/select-tree apis nil))
 
 (defmethod invoke-api* :api.attachments/upload!
-  [_ apis attachments]
+  [_ apis {:keys [attachments]}]
   (api.attachments/upload! (:attachments apis) attachments))
 
 (def ^:private missing-spec
@@ -147,11 +150,10 @@
   (if-let [input-spec (valid/input-specs api)]
     (valid/validate! input-spec input ::valid/input-validation)
     (missing-spec api))
-  (let [result (invoke-api* api apis input)]
-    (if-not result
-      (log/warn "no result produced" {:input input :api api})
+  (when-let [result (invoke-api* api apis input)]
+    (when (not= result ::no-content)
       (when-let [output-spec (valid/output-specs api)]
         (let [validator (valid/->validator output-spec)]
-          (when-let [errors (some-> result validator)]
+          (when-let [errors (validator result)]
             (throw (ex-info "failed to produce valid output" {:api api :errors errors}))))))
     result))

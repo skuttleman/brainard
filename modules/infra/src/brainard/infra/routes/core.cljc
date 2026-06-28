@@ -9,6 +9,7 @@
    [brainard.infra.routes.interfaces :as iroutes]
    [brainard.infra.routes.middleware :as mw]
    [brainard.infra.routes.response :as routes.res]
+   [slag.utils.uuids :as uuids]
    [whet.core :as w]))
 
 (def ^:private ^:const not-found-resource
@@ -16,7 +17,8 @@
 
 (defmethod iroutes/req->input :default
   [{::w/keys [route] :as req}]
-  (merge (:body req)
+  (merge {:request-id (uuids/->uuid (get-in req [:headers "x-request-id"]))}
+         (:body req)
          (:route-params route)
          (:query-params route)))
 
@@ -28,7 +30,9 @@
   [{:keys [request-method] ::b/keys [apis input] :as req} respond _raise]
   (let [response (when-let [handle (iroutes/route->handler (iroutes/router req))]
                    (if-let [result (api/invoke-api handle apis input)]
-                     (routes.res/->response (if (= request-method :post) 201 200) {:data result})
+                     (if (= result ::api/no-content)
+                       (routes.res/->response 204)
+                       (routes.res/->response (if (= request-method :post) 201 200) {:data result}))
                      (when (= request-method :delete) (routes.res/->response 204))))]
     (respond (or response not-found-resource))))
 

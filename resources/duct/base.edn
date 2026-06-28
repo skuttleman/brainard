@@ -25,6 +25,7 @@
  ;; apis
  [:duct/const :brainard/apis]
  {:attachments #ig/ref :brainard/attachments-api
+  :events      #ig/ref :brainard/events
   :notes       #ig/ref :brainard/notes-api
   :schedules   #ig/ref :brainard/schedules-api
   :workspace   #ig/ref :brainard/workspace-api}

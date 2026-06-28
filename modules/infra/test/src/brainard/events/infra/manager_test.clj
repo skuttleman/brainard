@@ -17,8 +17,8 @@
         (testing "and when broadcasting a message"
           (ievents/broadcast! manager :type {:msg 1})
           (testing "sends the message to all channels"
-            (is (= [:type {:msg 1}] (tua/<!! ch-1)))
-            (is (= [:type {:msg 1}] (tua/<!! ch-2)))))
+            (is (= [:message [:type {:msg 1}]] (tua/<!! ch-1)))
+            (is (= [:message [:type {:msg 1}]] (tua/<!! ch-2)))))
 
         (testing "and when disconnecting the channels"
           (ievents/disconnect! manager :ch-1)
@@ -42,4 +42,4 @@
 
             (testing "sends messages to open channels"
               (is (nil? (tua/<!! ch-3)))
-              (is (= [:type {:msg 3}] (tua/<!! ch-4))))))))))
+              (is (= [:message [:type {:msg 3}]] (tua/<!! ch-4))))))))))

@@ -21,4 +21,4 @@
   ievents/ISend
   (broadcast! [_ type data]
     (doseq [{:keys [ch]} (vals @subs)]
-      (async/put! ch [type data]))))
+      (async/put! ch [:message [type data]]))))

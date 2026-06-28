@@ -45,7 +45,7 @@
   [apis events timestamp]
   (try-log "Failed to broadcast buzz events"
     (let [notes (api/invoke-api :api.notes/relevant apis {:timestamp timestamp})]
-      (events/broadcast! events :message [:notes/relevant {:data notes}]))))
+      (events/broadcast! events :notes/relevant {:data notes}))))
 
 (defn delete-archived-notes!
   [store]
