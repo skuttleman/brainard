@@ -1,10 +1,12 @@
 (ns brainard.test.harness.ui.system
   (:require
+   [brainard :as-alias b]
    [brainard.env :as env]
    [brainard.infra.db.store :as ds]
    [brainard.infra.search.lucene :as lucene]
    [brainard.test.harness.integration.system :as tsys]
    [brainard.test.harness.ui.web :as web]
+   [clojure.core.async :as async]
    [clojure.java.io :as io]
    [clojure.string :as string]
    [clojure.test :as t]
@@ -79,18 +81,21 @@
   (let [port-sym (gensym "port")
         db-sym (gensym "db")
         idx-sym (gensym "idx")
-        sys-bindings (into {port-sym :cfg.test/server-port
-                            db-sym   :brainard/IDBConn
-                            idx-sym  :brainard/IIndex}
+        event-sym (gensym "event-ch")
+        sys-bindings (into {port-sym  :cfg.test/server-port
+                            db-sym    ::b/IDBConn
+                            idx-sym   ::b/IIndex
+                            event-sym ::b/event-ch}
                            (filter (fn [[k]] (and (keyword? k) (= "keys" (name k)))))
                            seeds&opts)]
     `(let [opts# ~(select-keys seeds&opts #{:init-keys :env})]
        (env/with-env (:env opts#)
          (tsys/with-app [~sys-bindings
                          {:config    "duct/ui-test.edn"
-                          :init-keys (:init-keys opts# [:brainard/webserver])
+                          :init-keys (:init-keys opts# [::b/webserver])
                           :timeout   30000}]
            (let [screenshot?# (env/get "SCREENSHOT" (symbol "Bool"))
+                 disable-sse?# (env/get "DISABLE_SSE" (symbol "Bool") true)
                  orig-report# t/report
                  ~driver-binding (try (->driver)
                                       (catch Throwable _#
@@ -110,6 +115,11 @@
                                     (safe-screenshot! ~driver-binding))
                                   (orig-report# event#))]
                (try
+                 (when disable-sse?#
+                   (async/go-loop []
+                     (when-let [val# (async/<! ~event-sym)]
+                       (web/event ~driver-binding val#)
+                       (recur))))
                  ~@body
                  (catch Throwable e#
                    (when screenshot?#

@@ -4,6 +4,7 @@
    [brainard.schedules.api.core :as api.sched]
    [brainard.test.harness.integration.http :as thttp]
    [brainard.test.harness.integration.system :as tsys]
+   [clojure.core.async :as async]
    [clojure.java.io :as io]
    [clojure.test :refer [deftest is testing]]
    [slag.utils.uuids :as uuids]
@@ -448,7 +449,7 @@
             (is (empty? (api.sched/get-by-note-id (:schedules apis) note-id)))))))))
 
 (deftest workspace-integration-test
-  (tsys/with-app [{::b/keys [apis]} nil]
+  (tsys/with-app [{::b/keys [apis event-ch]} nil]
     (letfn [(http [request] (thttp/request request apis))]
       (testing "when fetching an empty workspace"
         (let [response (http {:method :get :uri "/api/workspace-nodes"})]
@@ -460,7 +461,7 @@
         (let [response (http {:method :post
                               :uri    "/api/workspace-nodes"
                               :body   {::ws/content "root node"}})
-              nodes (-> response :body :data)]
+              nodes (-> event-ch async/<!! second :data)]
           (testing "returns the workspace"
             (is (thttp/success? response))
             (is (= ["root node"] (map ::ws/content nodes))))

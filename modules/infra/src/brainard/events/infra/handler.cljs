@@ -15,7 +15,7 @@
   (-> (make-hierarchy)
       (derive :workspace/tree ::async)))
 
-(defmulti ^:private event-handler
+(defmulti ^{:arglists '([store event])} event-handler
           (fn [_ [type]]
             type)
           :hierarchy

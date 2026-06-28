@@ -1,10 +1,12 @@
 (ns brainard.test.harness.integration.system
   (:require
+   [brainard.api.events.interfaces :as ievents]
    [brainard.api.storage.interfaces :as istorage]
    [brainard.dev.s3 :as s3]
    [brainard.infra.db.store :as ds]
    [brainard.infra.search.store :as search]
    [brainard.main :as main]
+   [clojure.core.async :as async]
    [clojure.java.io :as io]
    [clojure.test :refer [testing]]
    [datomic.client.api :as d]
@@ -63,16 +65,21 @@
                              token)]
     `(let [opts# ~opts
            timeout# (:timeout opts# 2000)
-           ~sys (main/start! (:config opts# "duct/test.edn")
-                             [:duct.profile/base :duct.profile/test]
-                             (:init-keys opts# [:brainard/apis]))
+           event-ch# (async/chan 10 (map second))
+           ~sys (-> (main/start! (:config opts# "duct/test.edn")
+                                 [:duct.profile/base :duct.profile/test]
+                                 (:init-keys opts# [:brainard/apis]))
+                    (assoc :brainard/event-ch event-ch#))
            ~sys-binding ~sys
            ~@component-bindings]
        (try
+         (when-let [[_# events#] (ig/find-derived-1 ~sys :brainard/events)]
+           (ievents/connect! events# ::events {:ch event-ch#}))
          (testing ~test
            (let [f# (future ~@body)]
              (when (= ::timeout (deref f# timeout# ::timeout))
                (future-cancel f#)
                (throw (ex-info "test timed out" {:timeout timeout#})))))
          (finally
+           (async/close! event-ch#)
            (ig/halt! ~sys))))))
