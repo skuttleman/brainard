@@ -1,13 +1,26 @@
 (ns brainard.events.infra.manager
   (:require
-   [clojure.core.async :as async]
-   [brainard.api.events.interfaces :as ievents]))
+   [brainard.api.events.interfaces :as ievents]
+   [cljc.java-time.instant :as inst]
+   [clojure.core.async :as async]))
 
-(deftype EventsManager [subs]
+(defn ^:private filter-items [v ttl]
+  (filterv (fn [m]
+             (not (inst/is-before (:inst m) (inst/minus-millis (inst/now) ttl))))
+           v))
+
+(defn ^:private add! [v-atm ttl item]
+  (swap! v-atm (comp #(conj % {:inst (inst/now) :data item}) filter-items) ttl))
+
+(defn ^:private items [v-atm ttl]
+  (map :data (swap! v-atm filter-items ttl)))
+
+(deftype EventsManager [subs v-atm ttl]
   ievents/IConnect
   (connect! [_ ch-id conn]
     (dosync
-     (alter subs assoc ch-id conn)))
+     (alter subs assoc ch-id conn))
+    (run! (partial async/put! (:ch conn)) (items v-atm ttl)))
   (close! [this]
     (run! (partial ievents/disconnect! this) (keys @subs)))
   (disconnect! [_ ch-id]
@@ -20,5 +33,12 @@
 
   ievents/ISend
   (broadcast! [_ type data]
-    (doseq [{:keys [ch]} (vals @subs)]
-      (async/put! ch [:message [type data]]))))
+    (let [item [:message [type data]]]
+      (add! v-atm ttl item)
+      (doseq [{:keys [ch]} (vals @subs)]
+        (async/put! ch item)))))
+
+(defn create
+  "Creates an EventsManager"
+  [ttl]
+  (->EventsManager (ref {}) (atom []) ttl))

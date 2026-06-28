@@ -73,8 +73,8 @@
   (search/->disk-index db-name))
 
 (defmethod ig/init-key :brainard/events
-  [_ _]
-  (manager/->EventsManager (ref {})))
+  [_ {:keys [ttl]}]
+  (manager/create ttl))
 
 (defmethod ig/halt-key! :brainard/events
   [_ manager]
