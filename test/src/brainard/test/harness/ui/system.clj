@@ -1,5 +1,6 @@
 (ns brainard.test.harness.ui.system
   (:require
+   [brainard.env :as env]
    [brainard.infra.db.store :as ds]
    [brainard.infra.search.lucene :as lucene]
    [brainard.test.harness.integration.system :as tsys]
@@ -7,7 +8,6 @@
    [clojure.java.io :as io]
    [clojure.string :as string]
    [clojure.test :as t]
-   [duct.core.env :as duct.env]
    [etaoin.api :as eta]
    [etaoin.impl.util :as ueta]
    [integrant.core :as ig]))
@@ -55,7 +55,7 @@
       (.printStackTrace e))))
 
 (defn collect-js-coverage! [driver]
-  (when (= "true" (duct.env/*env* "JS_COVERAGE"))
+  (when (env/get "JS_COVERAGE" 'Bool)
     (try
       (let [coverage-json (eta/js-execute driver "return JSON.stringify(window.__coverage__ || null)")
             nyc-output-dir (io/file "target/nyc_output")]
@@ -66,11 +66,10 @@
       (catch Throwable _))))
 
 (defn ->driver []
-  (let [headless? (= "true" (duct.env/*env* "HEADLESS"))]
+  (let [headless? (env/get "HEADLESS" 'Bool)]
     (eta/chrome {:headless     headless?
                  :capabilities {:pageLoadStrategy "eager"}
-                 :path-driver  (or (duct.env/*env* "CHROMEDRIVER_PATH")
-                                   "chromedriver")
+                 :path-driver  (env/get "CHROMEDRIVER_PATH" "chromedriver")
                  :args         (into ["--window-size=1200,900"]
                                      (when headless?
                                        ["--no-sandbox"
@@ -85,36 +84,37 @@
                             idx-sym  :brainard/IIndex}
                            (filter (fn [[k]] (and (keyword? k) (= "keys" (name k)))))
                            seeds&opts)]
-    `(let [opts# ~(select-keys seeds&opts #{:init-keys})]
-       (tsys/with-app [~sys-bindings
-                       {:config    "duct/ui-test.edn"
-                        :init-keys (:init-keys opts# [:brainard/webserver])
-                        :timeout   30000}]
-         (let [screenshot?# (= "true" (duct.env/*env* "SCREENSHOT"))
-               orig-report# t/report
-               ~driver-binding (try (->driver)
-                                    (catch Throwable _#
-                                      (->driver)))
-               ~base-url-binding (str "http://localhost:" ~port-sym)
-               ~@(for [[sym seed] seeds&opts
-                       :when (symbol? sym)
-                       token [sym (cond->> `(->> ~seed
-                                                 (str "seed/")
-                                                 web/edn-fixture
-                                                 (transact-multi! ~db-sym ~idx-sym))
-                                    (:defer (meta sym)) (list `fn [])) ]]
-                   token)]
-           (binding [t/report (fn [event#]
-                                (when (and (#{:fail :error} (:type event#))
-                                           screenshot?#)
-                                  (safe-screenshot! ~driver-binding))
-                                (orig-report# event#))]
-             (try
-               ~@body
-               (catch Throwable e#
-                 (when screenshot?#
-                   (safe-screenshot! ~driver-binding))
-                 (throw e#))
-               (finally
-                 (collect-js-coverage! ~driver-binding)
-                 (eta/quit ~driver-binding)))))))))
+    `(let [opts# ~(select-keys seeds&opts #{:init-keys :env})]
+       (env/with-env (:env opts#)
+         (tsys/with-app [~sys-bindings
+                         {:config    "duct/ui-test.edn"
+                          :init-keys (:init-keys opts# [:brainard/webserver])
+                          :timeout   30000}]
+           (let [screenshot?# (env/get "SCREENSHOT" (symbol "Bool"))
+                 orig-report# t/report
+                 ~driver-binding (try (->driver)
+                                      (catch Throwable _#
+                                        (->driver)))
+                 ~base-url-binding (str "http://localhost:" ~port-sym)
+                 ~@(for [[sym seed] seeds&opts
+                         :when (symbol? sym)
+                         token [sym (cond->> `(->> ~seed
+                                                   (str "seed/")
+                                                   web/edn-fixture
+                                                   (transact-multi! ~db-sym ~idx-sym))
+                                      (:defer (meta sym)) (list `fn []))]]
+                     token)]
+             (binding [t/report (fn [event#]
+                                  (when (and (#{:fail :error} (:type event#))
+                                             screenshot?#)
+                                    (safe-screenshot! ~driver-binding))
+                                  (orig-report# event#))]
+               (try
+                 ~@body
+                 (catch Throwable e#
+                   (when screenshot?#
+                     (safe-screenshot! ~driver-binding))
+                   (throw e#))
+                 (finally
+                   (collect-js-coverage! ~driver-binding)
+                   (eta/quit ~driver-binding))))))))))
