@@ -13,7 +13,12 @@
 
 (def ^:private event-hierarchy
   (-> (make-hierarchy)
-      (derive :workspace/tree ::async)))
+      (derive :workspace/tree ::async)
+      (derive :note/created ::async)
+      (derive :note/updated ::async)
+      (derive :note/deleted ::async)
+      (derive :notes/deleted ::async)
+      (derive :note/schedules ::async)))
 
 (defmulti ^{:arglists '([store event])} event-handler
           (fn [_ [type]]
@@ -38,3 +43,7 @@
 (defmethod event-handler ::async
   [store [_ {:keys [request-id] :as result}]]
   (store/dispatch! store [::res.async/receive! request-id result]))
+
+(defmethod event-handler :api/error
+  [store [_ {:keys [request-id] :as result}]]
+  (store/dispatch! store [::res.async/error! request-id result]))

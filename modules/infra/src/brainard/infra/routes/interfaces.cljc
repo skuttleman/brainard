@@ -4,11 +4,13 @@
 
 (def ^:private routing-hierarchy
   (-> (make-hierarchy)
-      (derive :get :any)
-      (derive :post :any)
-      (derive :put :any)
-      (derive :patch :any)
-      (derive :delete :any)
+      (derive :read :any)
+      (derive :write :any)
+      (derive :get :read)
+      (derive :post :write)
+      (derive :put :write)
+      (derive :patch :write)
+      (derive :delete :write)
 
       (derive :routes.api/notes :routes/api)
       (derive :routes.api/notes?scheduled :routes/api)

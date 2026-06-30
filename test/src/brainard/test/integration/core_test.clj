@@ -11,7 +11,7 @@
    [workspace-nodes :as-alias ws]))
 
 (deftest notes-integration-test
-  (tsys/with-app [{::b/keys [apis]} nil]
+  (tsys/with-app [{::b/keys [apis event-ch]} nil]
     (letfn [(http [request]
               (thttp/request request apis))]
       (testing "when creating a note"
@@ -22,7 +22,7 @@
                                        :notes/pinned?   false
                                        :notes/archived? false
                                        :notes/body      "body of note1"}})
-              {note1-id :notes/id :as note1} (-> response :body :data)]
+              {note1-id :notes/id :as note1} (-> event-ch async/<!! second :data)]
           (testing "returns the created note"
             (is (thttp/success? response))
             (is (= {:notes/context "Context1"
@@ -42,9 +42,10 @@
                                     #{:notes/context :notes/tags :notes/body}))))))
 
           (testing "and when creating more notes"
-            (run! #(http {:method :post
-                          :uri    "/api/notes"
-                          :body   %})
+            (run! #(do (http {:method :post
+                              :uri    "/api/notes"
+                              :body   %})
+                       (async/<!! event-ch))
                   [{:notes/context   "Context1"
                     :notes/tags      #{:one}
                     :notes/pinned?   false
@@ -117,7 +118,7 @@
                                              :notes/old-tags  #{:one}
                                              :notes/pinned?   true
                                              :notes/archived? false}})
-                    note (-> response :body :data)]
+                    note (-> event-ch async/<!! second :data)]
                 (testing "returns the updated note"
                   (is (thttp/success? response))
                   (is (= {:notes/id          note1-id
@@ -153,9 +154,9 @@
                 (let [response (http {:method :patch
                                       :uri    (str "/api/notes/" note1-id)
                                       :body   {:notes/tags #{"seven"}}})
-                      errors (-> response :body :errors)]
+                      errors (-> event-ch async/<!! second :errors)]
                   (testing "throws an error"
-                    (is (thttp/client-error? response))
+                    (is (thttp/success? response))
                     (is (= [{:details {:notes/tags #{["should be a keyword"]}}}]
                            (map #(select-keys % #{:details}) errors))))))
 
@@ -163,9 +164,9 @@
                 (let [response (http {:method :patch
                                       :uri    (str "/api/notes/" (uuids/random))
                                       :body   {:notes/tags #{:tag}}})
-                      errors (-> response :body :errors)]
+                      errors (-> event-ch async/<!! second :errors)]
                   (testing "throws an error"
-                    (is (thttp/client-error? response))
+                    (is (thttp/success? response))
                     (is (= [{:message "Not found" :code :UNKNOWN_RESOURCE}]
                            errors)))))
 
@@ -183,6 +184,7 @@
               (testing "and when deleting the note by id"
                 (let [response (http {:method :delete
                                       :uri    (str "/api/notes/" note1-id)})]
+                  (async/<!! event-ch)
                   (testing "deletes the note"
                     (is (thttp/success? response))))
 
@@ -196,9 +198,9 @@
         (let [response (http {:method :post
                               :uri    "/api/notes"
                               :body   {:notes/tags #{:one}}})
-              errors (-> response :body :errors)]
+              errors (-> event-ch async/<!! second :errors)]
           (testing "throws an error"
-            (is (thttp/client-error? response))
+            (is (thttp/success? response))
             (is (= [{:details {:notes/context ["missing required key"]
                                :notes/body    ["missing required key"]
                                :notes/pinned? ["missing required key"]}}]
@@ -214,33 +216,30 @@
                    (into #{} (map :code) errors)))))))))
 
 (deftest links-test
-  (tsys/with-app [{::b/keys [apis]} nil]
+  (tsys/with-app [{::b/keys [apis event-ch]} nil]
     (letfn [(http [request]
               (thttp/request request apis))]
       (testing "when creating notes"
-        (let [note1-id (-> (http {:method :post
+        (let [note1-id (do (http {:method :post
                                   :uri    "/api/notes"
                                   :body   {:notes/context   "Context1"
                                            :notes/pinned?   false
                                            :notes/archived? false
                                            :notes/body      "body of note1"}})
-                           :body
-                           :data
-                           :notes/id)
-              note2-id (-> (http {:method :post
+                           (-> event-ch async/<!! second :data :notes/id))
+              note2-id (do (http {:method :post
                                   :uri    "/api/notes"
                                   :body   {:notes/context   "Context2"
                                            :notes/pinned?   false
                                            :notes/archived? false
                                            :notes/body      "body of note2"}})
-                           :body
-                           :data
-                           :notes/id)]
+                           (-> event-ch async/<!! second :data :notes/id))]
           (testing "and when linking note2 to note1"
             (let [response (http {:method :patch
                                   :uri    (str "/api/notes/" note1-id)
                                   :body   {:notes/links #{{:notes/id note2-id}}}})]
               (is (thttp/success? response))
+              (async/<!! event-ch)
 
               (testing "links the notes"
                 (let [note (-> (http {:method :get
@@ -267,6 +266,7 @@
               (is (thttp/success? (http {:method :patch
                                          :uri    (str "/api/notes/" note2-id)
                                          :body   {:notes/old-links #{note1-id}}})))
+              (async/<!! event-ch)
 
               (testing "unlinks the notes"
                 (let [response (http {:method :get
@@ -281,42 +281,46 @@
 
               (testing "and when linking a note to itself"
                 (testing "returns an error"
-                  (is (thttp/client-error? (http {:method :patch
-                                                  :uri    (str "/api/notes/" note1-id)
-                                                  :body   {:notes/links #{{:notes/id note1-id}}}})))))
+                  (http {:method :patch
+                         :uri    (str "/api/notes/" note1-id)
+                         :body   {:notes/links #{{:notes/id note1-id}}}})
+                  (is (some? (-> event-ch async/<!! second :errors)))))
 
               (testing "and when linking a note to an archived note"
-                (let [note3-id (-> (http {:method :post
+                (let [note3-id (do (http {:method :post
                                           :uri    "/api/notes"
                                           :body   {:notes/context "Context3"
                                                    :notes/body    "body of note3"
                                                    :notes/pinned? false}})
-                                   :body
-                                   :data
-                                   :notes/id)]
+                                   (-> event-ch async/<!! second :data :notes/id))]
                   (http {:method :patch
                          :uri    (str "/api/notes/" note3-id)
                          :body   {:notes/archived? true}})
+                  (async/<!! event-ch)
                   (testing "returns an error"
-                    (is (thttp/client-error? (http {:method :patch
-                                                    :uri    (str "/api/notes/" note1-id)
-                                                    :body   {:notes/links #{{:notes/id note3-id}}}}))))))
+                    (http {:method :patch
+                           :uri    (str "/api/notes/" note1-id)
+                           :body   {:notes/links #{{:notes/id note3-id}}}})
+                    (is (some? (-> event-ch async/<!! second :errors))))))
 
               (testing "and when linking a note to a bad id"
                 (testing "returns an error"
-                  (is (thttp/client-error? (http {:method :post
-                                                  :uri    "/api/notes"
-                                                  :body   {:notes/context   "Context4"
-                                                           :notes/body      "body of note4"
-                                                           :notes/pinned?   false
-                                                           :notes/archived? false
-                                                           :notes/links     #{{:notes/id (uuids/random)}}}})))
-                  (is (thttp/client-error? (http {:method :patch
-                                                  :uri    (str "/api/notes/" note1-id)
-                                                  :body   {:notes/links #{{:notes/id (uuids/random)}}}}))))))))))))
+                  (http {:method :post
+                         :uri    "/api/notes"
+                         :body   {:notes/context   "Context4"
+                                  :notes/body      "body of note4"
+                                  :notes/pinned?   false
+                                  :notes/archived? false
+                                  :notes/links     #{{:notes/id (uuids/random)}}}})
+                  (is (some? (-> event-ch async/<!! second :errors)))
+
+                  (http {:method :patch
+                         :uri    (str "/api/notes/" note1-id)
+                         :body   {:notes/links #{{:notes/id (uuids/random)}}}})
+                  (is (some? (-> event-ch async/<!! second :errors))))))))))))
 
 (deftest attachments-integration-test
-  (tsys/with-app [{::b/keys [apis]} nil]
+  (tsys/with-app [{::b/keys [apis event-ch]} nil]
     (letfn [(http [request]
               (thttp/request request apis))]
       (testing "when uploading an attachment"
@@ -340,17 +344,15 @@
                        (:body download))))))
 
           (testing "and when creating a note"
-            (let [{note-id :notes/id :as note} (-> {:method :post
-                                                    :uri    "/api/notes"
-                                                    :body   {:notes/context     "Context1"
-                                                             :notes/tags        #{:one :three}
-                                                             :notes/pinned?     false
-                                                             :notes/archived?   false
-                                                             :notes/body        "body of note"
-                                                             :notes/attachments [attachment]}}
-                                                   http
-                                                   :body
-                                                   :data)]
+            (let [{note-id :notes/id :as note} (do (http {:method :post
+                                                          :uri    "/api/notes"
+                                                          :body   {:notes/context     "Context1"
+                                                                   :notes/tags        #{:one :three}
+                                                                   :notes/pinned?     false
+                                                                   :notes/archived?   false
+                                                                   :notes/body        "body of note"
+                                                                   :notes/attachments [attachment]}})
+                                                   (-> event-ch async/<!! second :data))]
               (testing "saves the attachment"
                 (is (= attachment (-> note :notes/attachments first))))
 
@@ -364,12 +366,11 @@
                     (is (= attachment (-> note :notes/attachments first))))))
 
               (testing "and when removing the attachment"
-                (-> {:method :patch
-                     :uri    (str "/api/notes/" note-id)
-                     :body   {:notes/old-attachments #{(:attachments/id attachment)}}}
-                    http
-                    :body
-                    :data)
+                (http {:method :patch
+                       :uri    (str "/api/notes/" note-id)
+                       :body   {:notes/old-attachments #{(:attachments/id attachment)}}})
+                (async/<!! event-ch)
+
                 (testing "does not delete the uploaded file"
                   (let [download (http {:method :get
                                         :uri    (str "/attachments/" (:attachments/id attachment))})]
@@ -378,24 +379,22 @@
                            (:body download)))))))))))))
 
 (deftest schedules-integration-test
-  (tsys/with-app [{::b/keys [apis]} nil]
+  (tsys/with-app [{::b/keys [apis event-ch]} nil]
     (letfn [(http [request] (thttp/request request apis))]
-      (let [note-id (-> (http {:method :post
+      (let [note-id (do (http {:method :post
                                :uri    "/api/notes"
                                :body   {:notes/context   "ctx"
                                         :notes/body      "body"
                                         :notes/pinned?   false
                                         :notes/archived? false
                                         :notes/tags      #{}}})
-                        :body
-                        :data
-                        :notes/id)]
+                        (-> event-ch async/<!! second :data :notes/id))]
         (testing "when creating a schedule"
           (let [response (http {:method :post
                                 :uri    "/api/schedules"
                                 :body   {:schedules/note-id note-id
                                          :schedules/weekday :monday}})
-                schedules (-> response :body :data)]
+                schedules (-> event-ch async/<!! second :data)]
             (testing "returns the created schedule"
               (is (thttp/success? response))
               (is (= [{:schedules/note-id note-id
@@ -408,7 +407,7 @@
                                            :uri    (str "/api/schedules/" (:schedules/id (first schedules)))})]
                 (testing "succeeds"
                   (is (thttp/success? delete-response))
-                  (is (= {:data []} (:body delete-response))))
+                  (is (= [] (-> event-ch async/<!! second :data))))
                 (testing "and the note no longer has the schedule"
                   (is (empty? (-> (http {:method :get
                                          :uri    (str "/api/notes/" note-id)})
@@ -420,9 +419,9 @@
           (let [response (http {:method :post
                                 :uri    "/api/schedules"
                                 :body   {:schedules/note-id note-id}})
-                errors (-> response :body :errors)]
+                errors (-> event-ch async/<!! second :errors)]
             (testing "returns a validation error"
-              (is (thttp/client-error? response))
+              (is (thttp/success? response))
               (is (seq errors)))))))))
 
 (deftest note-delete-cascades-test
@@ -470,7 +469,7 @@
             (let [update-response (http {:method :patch
                                          :uri    (str "/api/workspace-nodes/" (::ws/id (first nodes)))
                                          :body   {::ws/content "updated content"}})
-                  nodes (-> update-response :body :data)]
+                  nodes (-> event-ch async/<!! second :data)]
               (testing "returns the updated workspace"
                 (is (thttp/success? update-response))
                 (is (= ["updated content"] (map ::ws/content nodes))))))
@@ -478,7 +477,7 @@
           (testing "and when deleting the node"
             (let [delete-response (http {:method :delete
                                          :uri    (str "/api/workspace-nodes/" (::ws/id (first nodes)))})
-                  nodes (-> delete-response :body :data)]
+                  nodes (-> event-ch async/<!! second :data)]
               (testing "succeeds"
                 (is (thttp/success? delete-response)))
               (testing "returns the empty workspace"
@@ -488,7 +487,7 @@
           (let [response (http {:method :post
                                 :uri    "/api/workspace-nodes"
                                 :body   {}})
-                errors (-> response :body :errors)]
+                errors (-> event-ch async/<!! second :errors)]
             (testing "returns a validation error"
-              (is (thttp/client-error? response))
+              (is (thttp/success? response))
               (is (seq errors)))))))))
