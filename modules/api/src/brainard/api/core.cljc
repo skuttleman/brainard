@@ -28,38 +28,41 @@
 (defmethod invoke-api* :api.notes/create!
   [_ apis note]
   (links-exist! apis note)
-  (doto (api.notes/create! (:notes apis) note)
-    (->> (api.notes/search-create! (:notes apis)))))
+  [:note/created (doto (api.notes/create! (:notes apis) note)
+                   (->> (api.notes/search-create! (:notes apis))))])
 
 (defmethod invoke-api* :api.notes/update!
   [_ apis note]
   (links-exist! apis note)
-  (doto (api.notes/update! (:notes apis) (:notes/id note) note)
-    (->> (api.notes/search-update! (:notes apis)))))
+  (if-let [updated (api.notes/update! (:notes apis) (:notes/id note) note)]
+    (do (api.notes/search-update! (:notes apis) updated)
+        [:note/updated])
+    (throw (ex-info "Not found" {:code :UNKNOWN_RESOURCE}))))
 
 (defmethod invoke-api* :api.notes/reinstate!
   [_ apis note]
-  (when-let [pre (api.notes/get-as-of (:notes apis)
+  (if-let [pre (api.notes/get-as-of (:notes apis)
                                       (:notes/id note)
                                       (:notes/history-id note))]
     (let [updated (-> note
                       (merge pre)
                       (dissoc :notes/links :notes/old-links))]
-      (invoke-api* :api.notes/update! apis updated))))
+      (invoke-api* :api.notes/update! apis updated))
+    (throw (ex-info "Not found" {:code :UNKNOWN_RESOURCE}))))
 
 (defmethod invoke-api* :api.notes/delete!
   [_ apis {note-id :notes/id}]
   (api.notes/delete! (:notes apis) [note-id])
   (api.sched/delete-for-notes! (:schedules apis) [note-id])
   (api.notes/search-delete! (:notes apis) [note-id])
-  nil)
+  [:note/deleted])
 
 (defmethod invoke-api* :api.notes/bulk-delete!
   [_ apis {note-ids :notes/ids}]
   (api.notes/delete! (:notes apis) note-ids)
   (api.sched/delete-for-notes! (:schedules apis) note-ids)
   (api.notes/search-delete! (:notes apis) note-ids)
-  nil)
+  [:notes/deleted])
 
 (defmethod invoke-api* :api.notes/select
   [_ apis {:notes/keys [body] :as params}]
@@ -74,8 +77,8 @@
       ())))
 
 (defmethod invoke-api* :api.notes/fetch
-  [_ apis {note-id :notes/id}]
-  (api.notes/get-note (:notes apis) note-id))
+  [_ apis params]
+  (api.notes/get-note (:notes apis) params))
 
 (defmethod invoke-api* :api.notes/fetch?history
   [_ apis {note-id :notes/id}]
@@ -94,16 +97,15 @@
   (api.sched/get-by-note-id (:schedules apis) note-id))
 
 (defmethod invoke-api* :api.schedules/create!
-  [_ apis {:schedules/keys [note-id] :as schedule}]
-  (api.sched/create! (:schedules apis) schedule)
-  (api.sched/get-by-note-id (:schedules apis) note-id))
+  [_ apis schedule]
+  [:schedules/created (api.sched/create! (:schedules apis) schedule)])
 
 (defmethod invoke-api* :api.schedules/delete!
   [_ apis {schedule-id :schedules/id}]
-  (if-let [{:schedules/keys [note-id]} (api.sched/get-by-id (:schedules apis) schedule-id)]
-    (do (api.sched/delete! (:schedules apis) schedule-id)
-        (api.sched/get-by-note-id (:schedules apis) note-id))
-    ()))
+  (when-let [{:schedules/keys [note-id]} (api.sched/get-by-id (:schedules apis) schedule-id)]
+    (api.sched/delete! (:schedules apis) schedule-id)
+    (api.sched/get-by-note-id (:schedules apis) note-id))
+  [:schedules/deleted])
 
 (defmethod invoke-api* :api.notes/relevant
   [_ apis {:keys [timestamp]}]
@@ -120,20 +122,20 @@
 (defmethod invoke-api* :api.workspace-nodes/create!
   [_ apis node]
   (api.ws/create! (:workspace apis) node)
-  (invoke-api* :api.workspace-nodes/select-tree apis nil))
+  [:workspace/created])
 
 (defmethod invoke-api* :api.workspace-nodes/delete!
   [_ apis node]
   (api.ws/delete! (:workspace apis) (:workspace-nodes/id node))
-  (invoke-api* :api.workspace-nodes/select-tree apis nil))
+  [:workspace/deleted])
 
 (defmethod invoke-api* :api.workspace-nodes/update!
   [_ apis node]
   (api.ws/update! (:workspace apis) (:workspace-nodes/id node) node)
-  (invoke-api* :api.workspace-nodes/select-tree apis nil))
+  [:workspace/updated])
 
 (defmethod invoke-api* :api.attachments/upload!
-  [_ apis attachments]
+  [_ apis {:keys [attachments]}]
   (api.attachments/upload! (:attachments apis) attachments))
 
 (def ^:private missing-spec
@@ -147,11 +149,11 @@
   (if-let [input-spec (valid/input-specs api)]
     (valid/validate! input-spec input ::valid/input-validation)
     (missing-spec api))
-  (let [result (invoke-api* api apis input)]
-    (if-not result
-      (log/warn "no result produced" {:input input :api api})
-      (when-let [output-spec (valid/output-specs api)]
-        (let [validator (valid/->validator output-spec)]
-          (when-let [errors (some-> result validator)]
-            (throw (ex-info "failed to produce valid output" {:api api :errors errors}))))))
+  (when-let [result (invoke-api* api apis input)]
+    (when-let [output-spec (valid/output-specs api)]
+      (let [validator (valid/->validator output-spec)]
+        (when-let [errors (validator (cond-> result
+                                       (and (vector? result) (keyword? (first result)))
+                                       second))]
+          (throw (ex-info "failed to produce valid output" {:api api :errors errors})))))
     result))

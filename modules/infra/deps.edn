@@ -11,7 +11,7 @@
            javax.servlet/javax.servlet-api            {:mvn/version "4.0.1"}
            org.apache.lucene/lucene-core              {:mvn/version "10.4.0"}
            skuttleman/whet                            {:git/url "https://github.com/skuttleman/whet"
-                                                       :git/sha "ef3d978e85004d0be2cf2f9763bc5a0773b87e07"}}
+                                                       :git/sha "a3f1ba2cb5215439add0d3fef14661a276f69ddf"}}
  :aliases {:test     {:extra-paths ["test/resources" "test/src"]
                       :extra-deps  {skuttleman/slag-test {:git/url   "https://github.com/skuttleman/slag"
                                                           :git/sha   "eea13e61c75f2de0be9bce66c2fd3614732eef4e"

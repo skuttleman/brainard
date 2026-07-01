@@ -21,7 +21,8 @@
                               :route {:token        route
                                       :route-params (dissoc route-params :query-params)
                                       :query-params query-params}))]
-    (-> {:params req-params
+    (-> {:async? (:async? params)
+         :params req-params
          :->ok   :data
          :->err  :errors}
         (with-msgs :pre-events params spec)
@@ -62,15 +63,17 @@
          spec))
 
 (defmethod res/->request-spec ::notes#find
-  [[_ resource-id] spec]
+  [[_ resource-id] {:keys [params] :as spec}]
   (->req {:route  :routes.api/note
           :method :get
-          :params {:notes/id resource-id}}
+          :params {:notes/id     resource-id
+                   :query-params params}}
          spec))
 
 (defmethod res/->request-spec ::notes#create
   [_ {:keys [payload] :as spec}]
-  (->req {:route  :routes.api/notes
+  (->req {:async? true
+          :route  :routes.api/notes
           :method :post
           :body   payload}
          spec))
@@ -110,7 +113,8 @@
 
 (defmethod res/->request-spec ::notes#modify
   [[_ resource-id] spec]
-  (->req {:route  :routes.api/note
+  (->req {:async? true
+          :route  :routes.api/note
           :params {:notes/id resource-id}
           :method :patch
           :body   (modify-note-body spec)}
@@ -118,7 +122,8 @@
 
 (defmethod res/->request-spec ::notes#reinstate
   [[_ resource-id] spec]
-  (->req {:route  :routes.api/note!reinstate
+  (->req {:async? true
+          :route  :routes.api/note!reinstate
           :params {:notes/id resource-id}
           :method :post
           :body   (-> spec
@@ -129,14 +134,16 @@
 
 (defmethod res/->request-spec ::notes#destroy
   [[_ note-id] spec]
-  (->req {:route  :routes.api/note
+  (->req {:async? true
+          :route  :routes.api/note
           :params {:notes/id note-id}
           :method :delete}
          spec))
 
 (defmethod res/->request-spec ::notes#bulk-delete
   [_ spec]
-  (->req {:route  :routes.api/notes
+  (->req {:async? true
+          :route  :routes.api/notes
           :body   (:payload spec)
           :method :delete}
          spec))
@@ -163,14 +170,16 @@
 
 (defmethod res/->request-spec ::schedules#create
   [_ {:keys [payload] :as spec}]
-  (->req {:route  :routes.api/schedules
+  (->req {:async? true
+          :route  :routes.api/schedules
           :method :post
           :body   payload}
          spec))
 
 (defmethod res/->request-spec ::schedules#destroy
   [[_ resource-id] spec]
-  (->req {:route  :routes.api/schedule
+  (->req {:async? true
+          :route  :routes.api/schedule
           :method :delete
           :params {:schedules/id resource-id}}
          spec))
@@ -183,14 +192,16 @@
 
 (defmethod res/->request-spec ::workspace#create
   [_ {:keys [payload] :as spec}]
-  (->req {:route  :routes.api/workspace-nodes
+  (->req {:async? true
+          :route  :routes.api/workspace-nodes
           :method :post
           :body   (valid/select-spec-keys payload sws/create)}
          spec))
 
 (defmethod res/->request-spec ::workspace#modify
   [_ {:keys [payload] :as spec}]
-  (->req {:route  :routes.api/workspace-node
+  (->req {:async? true
+          :route  :routes.api/workspace-node
           :method :patch
           :params {:workspace-nodes/id (::ws/id spec)}
           :body   (valid/select-spec-keys payload sws/modify)}
@@ -198,7 +209,8 @@
 
 (defmethod res/->request-spec ::workspace#destroy
   [_ spec]
-  (->req {:route  :routes.api/workspace-node
+  (->req {:async? true
+          :route  :routes.api/workspace-node
           :method :delete
           :params {:workspace-nodes/id (::ws/id spec)}}
          spec))

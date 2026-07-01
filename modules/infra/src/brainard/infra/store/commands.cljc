@@ -62,6 +62,7 @@
 (defmethod defacto/command-handler :toasts/fail!
   [{::defacto/keys [store]} [_ err] _]
   (store/dispatch! store [:toasts/create! :error (or (:message err)
+                                                     (::defacto/reason err)
                                                      (when (and (seqable? err) (seq err))
                                                        (some->> (map :message err)
                                                                 (string/join "\n")

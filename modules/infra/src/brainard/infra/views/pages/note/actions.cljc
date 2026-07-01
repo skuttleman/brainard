@@ -20,24 +20,29 @@
   (case (::action spec)
     ::pin (let [spec (assoc spec :payload (select-keys data #{:notes/pinned?}))]
             (specs/with-cbs (res/->request-spec [::specs/notes#modify note-id] spec)
+                            :ok-commands [[::res/resubmit! [::notes#sync note-id]]]
                             :err-commands [[:toasts/fail!]]))
     ::todo (let [spec (assoc spec :payload (-> data
                                                (select-keys #{:notes/todos})
                                                (valid/select-spec-keys snotes/full)))]
              (specs/with-cbs (res/->request-spec [::specs/notes#modify note-id] spec)
+                             :ok-commands [[::res/resubmit! [::notes#sync note-id]]]
                              :err-commands [[:toasts/fail!]]))
     ::edit (let [spec (assoc spec :payload (valid/select-spec-keys data snotes/modify))]
              (specs/with-cbs (res/->request-spec [::specs/notes#modify note-id] spec)
-                             :ok-events [[:api.notes/saved]]))
+                             :ok-commands [[::res/resubmit! [::notes#sync note-id]
+                                            {:ok-events [[:api.notes/saved]]}]]))
     ::archive (let [spec (assoc spec :payload {:notes/archived? true})]
                 (res/->request-spec [::specs/notes#modify note-id] spec))
     ::reinstate (res/->request-spec [::specs/notes#reinstate note-id]
                                     (assoc spec
                                            :payload note
                                            :ok-commands [[:toasts/succeed! {:message "previous version of note was reinstated"}]
-                                                         [:core/if :notes/archived?
-                                                          [:nav/navigate! {:token :routes.ui/home}]
-                                                          [::res/submit! [::note#history note-id]]]]
+                                                         [::res/resubmit! [::notes#sync note-id]
+                                                          {:params      {:archived :both}
+                                                           :ok-commands [[:core/if :notes/archived?
+                                                                          [:nav/navigate! {:token :routes.ui/home}]
+                                                                          [::res/submit! [::note#history note-id]]]]}]]
                                            :err-commands [[:toasts/fail!]]))
     (res/->request-spec [::specs/notes#find note-id] spec)))
 

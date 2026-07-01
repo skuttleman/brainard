@@ -9,8 +9,7 @@
 
 (deftest handle-events-test
   (testing "when responding to an events request"
-    (let [subs (ref {})
-          manager (manager/->EventsManager subs)
+    (let [manager (manager/create 100)
           {ch :body :as result} (routes/handle-events {::b/events manager}
                                                       (fn [ch]
                                                         [:ch-id ch])
@@ -23,12 +22,10 @@
 
       (testing "opens the connection"
         (let [msg (tua/<!! ch)]
-          (is (= "event: connected\n\n" msg)))
-        (is (contains? @subs :ch-id)))
+          (is (= "event: connected\n\n" msg))))
 
       (testing "and when closing the manager"
         (ievents/close! manager)
 
         (testing "closes the channel"
-          (is (empty? @subs))
           (is (nil? (tua/<!! ch))))))))

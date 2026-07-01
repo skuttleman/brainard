@@ -11,7 +11,8 @@
   {:api.notes/select            snotes/query
    :api.notes/create!           snotes/create
    :api.notes/bulk-delete!      [:map [:notes/ids [:set uuid?]]]
-   :api.notes/fetch             [:map [:notes/id uuid?]]
+   :api.notes/fetch             [:map [:notes/id uuid?]
+                                 [:notes/archived {:optional true} snotes/archived]]
    :api.notes/fetch?history     [:map [:notes/id uuid?]]
    :api.notes/delete!           [:map [:notes/id uuid?]]
    :api.notes/update!           snotes/modify
@@ -32,19 +33,13 @@
    :api.notes/fetch                 snotes/full
    :api.notes/fetch?history         [:sequential snotes/history]
    :api.notes/create!               snotes/full
-   :api.notes/update!               snotes/full
-   :api.notes/reinstate!            snotes/full
    :api.tags/select                 [:set keyword?]
    :api.contexts/select             [:set string?]
 
    :api.schedules/select            [:sequential ssched/full]
-   :api.schedules/create!           [:sequential ssched/full]
-   :api.schedules/delete!           [:sequential ssched/full]
+   :api.schedules/create!           ssched/full
 
-   :api.workspace-nodes/select-tree [:sequential sws/full]
-   :api.workspace-nodes/create!     [:sequential sws/full]
-   :api.workspace-nodes/delete!     [:sequential sws/full]
-   :api.workspace-nodes/update!     [:sequential sws/full]})
+   :api.workspace-nodes/select-tree [:sequential sws/full]})
 
 (defn ^:private throw! [type params]
   (throw (ex-info "failed spec validation" (assoc params ::type type))))

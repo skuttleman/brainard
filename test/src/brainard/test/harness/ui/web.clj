@@ -86,6 +86,10 @@
                               (name event))))]
     (eta/js-execute driver code)))
 
+(defn event [driver data]
+  (eta/js-execute driver (format "window.brainard.test.on_event_BANG_('%s')"
+                                 (pr-str data))))
+
 (defmacro with-http-failure [driver msg & body]
   `(try
      (eta/js-execute ~driver (format "window.brainard.test.set_fail_BANG_(%d, '%s')"

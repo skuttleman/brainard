@@ -26,3 +26,10 @@
       archived (assoc :notes/archived (keyword archived))
       pinned (assoc :notes/pinned? pinned)
       summarize (assoc :notes/summarize? true))))
+
+(defmethod iroutes/req->input [:get :routes.api/note]
+  [{::w/keys [route]}]
+  (let [{:keys [archived]} (:query-params route)
+        note-id (-> route :route-params :notes/id)]
+    (cond-> {:notes/id note-id}
+      archived (assoc :notes/archived (keyword archived)))))

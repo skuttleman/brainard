@@ -88,8 +88,8 @@
 
             (testing "marks the todo as complete"
               (web/wait-optimistic #(and (eta/visible? driver {:css "li.todo input.checkbox"})
-                                         (= "true" (eta/get-element-attr driver {:css "li.todo input.checkbox"} "checked"))))
-              (is (= "true" (eta/get-element-attr driver {:css "li.todo .checkbox"} "checked"))))))))))
+                                         (= "true" (eta/get-element-attr driver {:css "li.todo input.checkbox"} "value"))))
+              (is (= "true" (eta/get-element-attr driver {:css "li.todo .checkbox"} "value"))))))))))
 
 (deftest delete-todo-test
   (usys/with-webdriver [driver base-url {fix "base.edn"}]
