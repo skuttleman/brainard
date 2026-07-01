@@ -61,7 +61,9 @@
                         (assoc spec
                                ::ws/id (or (::ws/id data) (::ws/id spec))
                                :payload (or data payload)
-                               :ok-commands [[:modals/remove-all!]]
+                               :ok-commands (cond-> [[:modals/remove-all!]]
+                                              (not= ::specs/workspace#select spec-key)
+                                              (conj [::res/resubmit! [::workspace#sync]]))
                                :err-commands [[:toasts/fail!]]))))
 
 (defn expanded-change

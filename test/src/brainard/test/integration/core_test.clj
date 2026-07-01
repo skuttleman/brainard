@@ -117,38 +117,44 @@
                                              :notes/tags      #{:two}
                                              :notes/old-tags  #{:one}
                                              :notes/pinned?   true
-                                             :notes/archived? false}})
-                    note (-> event-ch async/<!! second :data)]
-                (testing "returns the updated note"
-                  (is (thttp/success? response))
-                  (is (= {:notes/id          note1-id
-                          :notes/context     "Context1"
-                          :notes/body        "body of note1"
-                          :notes/tags        #{:three :two}
-                          :notes/pinned?     true
-                          :notes/archived?   false
-                          :notes/timestamp   (:notes/timestamp note)
-                          :notes/attachments #{}
-                          :notes/todos       #{}
-                          :notes/links       #{}}
-                         note)))
+                                             :notes/archived? false}})]
+                (async/<!! event-ch)
+                (is (thttp/success? response))
 
-                (testing "and when searching for pinned notes"
-                  (let [response (http {:method :get
-                                        :uri    "/api/notes?pinned"})
-                        notes (-> response :body :data)]
-                    (testing "returns pinned notes"
-                      (is (thttp/success? response))
-                      (is (= [{:notes/id          note1-id
-                               :notes/context     "Context1"
-                               :notes/body        "body of note1"
-                               :notes/tags        #{:three :two}
-                               :notes/pinned?     true
-                               :notes/archived?   false
-                               :notes/timestamp   (:notes/timestamp note)
-                               :notes/attachments #{}
-                               :notes/todos       #{}}]
-                             notes))))))
+                (testing "and when fetching the note"
+                  (let [note (-> (http {:method :get
+                                        :uri    (str "/api/notes/" note1-id)})
+                                 :body
+                                 :data)]
+                    (testing "returns the updated note"
+                      (is (= {:notes/id          note1-id
+                              :notes/context     "Context1"
+                              :notes/body        "body of note1"
+                              :notes/tags        #{:three :two}
+                              :notes/pinned?     true
+                              :notes/archived?   false
+                              :notes/timestamp   (:notes/timestamp note)
+                              :notes/attachments #{}
+                              :notes/todos       #{}
+                              :notes/links       #{}}
+                             note)))
+
+                    (testing "and when searching for pinned notes"
+                      (let [response (http {:method :get
+                                            :uri    "/api/notes?pinned"})
+                            notes (-> response :body :data)]
+                        (testing "returns pinned notes"
+                          (is (thttp/success? response))
+                          (is (= [{:notes/id          note1-id
+                                   :notes/context     "Context1"
+                                   :notes/body        "body of note1"
+                                   :notes/tags        #{:three :two}
+                                   :notes/pinned?     true
+                                   :notes/archived?   false
+                                   :notes/timestamp   (:notes/timestamp note)
+                                   :notes/attachments #{}
+                                   :notes/todos       #{}}]
+                                 notes))))))))
 
               (testing "and when attempting an invalid update"
                 (let [response (http {:method :patch
@@ -393,35 +399,45 @@
           (let [response (http {:method :post
                                 :uri    "/api/schedules"
                                 :body   {:schedules/note-id note-id
-                                         :schedules/weekday :monday}})
-                schedules (-> event-ch async/<!! second :data)]
-            (testing "returns the created schedule"
-              (is (thttp/success? response))
-              (is (= [{:schedules/note-id note-id
-                       :schedules/weekday :monday}]
-                     (->> schedules
-                          (map #(select-keys % #{:schedules/note-id :schedules/weekday}))))))
+                                         :schedules/weekday :monday}})]
+            (is (thttp/success? response))
+            (async/<!! event-ch)
 
-            (testing "and when deleting the schedule"
-              (let [delete-response (http {:method :delete
-                                           :uri    (str "/api/schedules/" (:schedules/id (first schedules)))})]
-                (testing "succeeds"
-                  (is (thttp/success? delete-response))
-                  (is (= [] (-> event-ch async/<!! second :data))))
-                (testing "and the note no longer has the schedule"
-                  (is (empty? (-> (http {:method :get
-                                         :uri    (str "/api/notes/" note-id)})
+            (testing "and when fetching the note's schedules"
+              (let [schedules (-> (http {:method :get
+                                         :uri    (str "/api/notes/" note-id "/schedules")})
                                   :body
-                                  :data
-                                  :notes/schedules))))))))
+                                  :data)]
+                (testing "returns the created schedule"
+                  (is (thttp/success? response))
+                  (is (= [{:schedules/note-id note-id
+                           :schedules/weekday :monday}]
+                         (->> schedules
+                              (map #(select-keys % #{:schedules/note-id :schedules/weekday}))))))
+
+                (testing "and when deleting the schedule"
+                  (let [delete-response (http {:method :delete
+                                               :uri    (str "/api/schedules/" (:schedules/id (first schedules)))})]
+                    (testing "succeeds"
+                      (is (thttp/success? delete-response))
+                      (async/<!! event-ch)
+
+                      (testing "and when fetching the note's schedules"
+
+                        (testing "returns no schedules"
+                          (is (empty? (-> (http {:method :get
+                                                 :uri    (str "/api/notes/" note-id "/schedules")})
+                                          :body
+                                          :data))))))))))))
 
         (testing "when creating an invalid schedule"
           (let [response (http {:method :post
                                 :uri    "/api/schedules"
                                 :body   {:schedules/note-id note-id}})
-                errors (-> event-ch async/<!! second :errors)]
+                [event errors] (-> event-ch async/<!! (update 1 :errors))]
             (testing "returns a validation error"
               (is (thttp/success? response))
+              (is (= :api/error event))
               (is (seq errors)))))))))
 
 (deftest note-delete-cascades-test
@@ -457,31 +473,40 @@
             (is (empty? (-> response :body :data))))))
 
       (testing "when creating a workspace node"
-        (let [response (http {:method :post
-                              :uri    "/api/workspace-nodes"
-                              :body   {::ws/content "root node"}})
-              nodes (-> event-ch async/<!! second :data)]
-          (testing "returns the workspace"
-            (is (thttp/success? response))
-            (is (= ["root node"] (map ::ws/content nodes))))
+        (http {:method :post
+               :uri    "/api/workspace-nodes"
+               :body   {::ws/content "root node"}})
+        (async/<!! event-ch)
 
-          (testing "and when updating the node"
-            (let [update-response (http {:method :patch
-                                         :uri    (str "/api/workspace-nodes/" (::ws/id (first nodes)))
-                                         :body   {::ws/content "updated content"}})
-                  nodes (-> event-ch async/<!! second :data)]
-              (testing "returns the updated workspace"
-                (is (thttp/success? update-response))
-                (is (= ["updated content"] (map ::ws/content nodes))))))
+        (testing "and when fetching the workspace"
+          (let [response (http {:method :get
+                                :uri    "/api/workspace-nodes"})
+                nodes (-> response :body :data)]
+            (testing "returns the workspace"
+              (is (thttp/success? response))
+              (is (= ["root node"] (map ::ws/content nodes))))
 
-          (testing "and when deleting the node"
-            (let [delete-response (http {:method :delete
-                                         :uri    (str "/api/workspace-nodes/" (::ws/id (first nodes)))})
-                  nodes (-> event-ch async/<!! second :data)]
-              (testing "succeeds"
-                (is (thttp/success? delete-response)))
-              (testing "returns the empty workspace"
-                (is (empty? nodes))))))
+            (testing "and when updating the node"
+              (http {:method :patch
+                     :uri    (str "/api/workspace-nodes/" (::ws/id (first nodes)))
+                     :body   {::ws/content "updated content"}})
+              (async/<!! event-ch)
+
+              (testing "and when fetching the workspace")
+              (let [response (http {:method :get
+                                    :uri    "/api/workspace-nodes"})
+                    nodes (-> response :body :data)]
+                (testing "returns the updated workspace"
+                  (is (= ["updated content"] (map ::ws/content nodes))))))
+
+            (testing "and when deleting the node"
+              (let [delete-response (http {:method :delete
+                                           :uri    (str "/api/workspace-nodes/" (::ws/id (first nodes)))})
+                    nodes (-> event-ch async/<!! second :data)]
+                (testing "succeeds"
+                  (is (thttp/success? delete-response)))
+                (testing "returns the empty workspace"
+                  (is (empty? nodes)))))))
 
         (testing "when creating an invalid workspace node"
           (let [response (http {:method :post

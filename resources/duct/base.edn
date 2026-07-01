@@ -91,4 +91,4 @@
  #duct/env ["BUZZ_INTERVAL" Int :or 60000]
 
  [:duct/const :cfg.events/ttl]
- #duct/env ["EVENTS_TTL" Int :or 5000]}
+ #duct/env ["EVENTS_TTL" Int :or 10000]}

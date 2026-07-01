@@ -49,4 +49,5 @@
   (set! whttp/*req-middleware* []))
 
 (defn ^:export on-event! [event]
+  (log/info "emitting event" event)
   (handler/event-handler *store* (edn/read-string event)))

@@ -36,18 +36,19 @@
   (links-exist! apis note)
   (if-let [updated (api.notes/update! (:notes apis) (:notes/id note) note)]
     (do (api.notes/search-update! (:notes apis) updated)
-        [:note/updated updated])
+        [:note/updated])
     (throw (ex-info "Not found" {:code :UNKNOWN_RESOURCE}))))
 
 (defmethod invoke-api* :api.notes/reinstate!
   [_ apis note]
-  (when-let [pre (api.notes/get-as-of (:notes apis)
+  (if-let [pre (api.notes/get-as-of (:notes apis)
                                       (:notes/id note)
                                       (:notes/history-id note))]
     (let [updated (-> note
                       (merge pre)
                       (dissoc :notes/links :notes/old-links))]
-      (invoke-api* :api.notes/update! apis updated))))
+      (invoke-api* :api.notes/update! apis updated))
+    (throw (ex-info "Not found" {:code :UNKNOWN_RESOURCE}))))
 
 (defmethod invoke-api* :api.notes/delete!
   [_ apis {note-id :notes/id}]
@@ -76,8 +77,8 @@
       ())))
 
 (defmethod invoke-api* :api.notes/fetch
-  [_ apis {note-id :notes/id}]
-  (api.notes/get-note (:notes apis) note-id))
+  [_ apis params]
+  (api.notes/get-note (:notes apis) params))
 
 (defmethod invoke-api* :api.notes/fetch?history
   [_ apis {note-id :notes/id}]
@@ -96,16 +97,15 @@
   (api.sched/get-by-note-id (:schedules apis) note-id))
 
 (defmethod invoke-api* :api.schedules/create!
-  [_ apis {:schedules/keys [note-id] :as schedule}]
-  (api.sched/create! (:schedules apis) schedule)
-  [:note/schedules (api.sched/get-by-note-id (:schedules apis) note-id)])
+  [_ apis schedule]
+  [:schedules/created (api.sched/create! (:schedules apis) schedule)])
 
 (defmethod invoke-api* :api.schedules/delete!
   [_ apis {schedule-id :schedules/id}]
-  [:note/schedules (if-let [{:schedules/keys [note-id]} (api.sched/get-by-id (:schedules apis) schedule-id)]
-                     (do (api.sched/delete! (:schedules apis) schedule-id)
-                         (api.sched/get-by-note-id (:schedules apis) note-id))
-                     ())])
+  (when-let [{:schedules/keys [note-id]} (api.sched/get-by-id (:schedules apis) schedule-id)]
+    (api.sched/delete! (:schedules apis) schedule-id)
+    (api.sched/get-by-note-id (:schedules apis) note-id))
+  [:schedules/deleted])
 
 (defmethod invoke-api* :api.notes/relevant
   [_ apis {:keys [timestamp]}]
@@ -122,17 +122,17 @@
 (defmethod invoke-api* :api.workspace-nodes/create!
   [_ apis node]
   (api.ws/create! (:workspace apis) node)
-  [:workspace/tree (invoke-api* :api.workspace-nodes/select-tree apis nil)])
+  [:workspace/created])
 
 (defmethod invoke-api* :api.workspace-nodes/delete!
   [_ apis node]
   (api.ws/delete! (:workspace apis) (:workspace-nodes/id node))
-  [:workspace/tree (invoke-api* :api.workspace-nodes/select-tree apis nil)])
+  [:workspace/deleted])
 
 (defmethod invoke-api* :api.workspace-nodes/update!
   [_ apis node]
   (api.ws/update! (:workspace apis) (:workspace-nodes/id node) node)
-  [:workspace/tree (invoke-api* :api.workspace-nodes/select-tree apis nil)])
+  [:workspace/updated])
 
 (defmethod invoke-api* :api.attachments/upload!
   [_ apis {:keys [attachments]}]

@@ -12,19 +12,22 @@
 (defn ->sync-key [note-id] [::schedules#sync note-id])
 (defn ->create-key [note-id] [::forms+/valid (->sync-key note-id) [::forms/edit-schedule]])
 
-(defn ^:private ->schedule-spec [spec-key spec success-msg]
+(defn ^:private ->schedule-spec [sync-key spec-key spec success-msg]
   (specs/with-cbs (res/->request-spec spec-key spec)
-                  :ok-commands [[:toasts/succeed! {:message success-msg}]]
+                  :ok-commands [[:toasts/succeed! {:message success-msg}]
+                                [::res/resubmit! sync-key]]
                   :err-commands [[:toasts/fail!]]))
 
 (forms+/validated ::schedules#sync (valid/->validator ssched/create)
-  [[_ note-id] {::forms/keys [data] :as spec}]
+  [[_ note-id :as res-key] {::forms/keys [data] :as spec}]
   (case (::action spec)
-    ::delete (->schedule-spec [::specs/schedules#destroy (:schedules/id spec)]
+    ::delete (->schedule-spec res-key
+                              [::specs/schedules#destroy (:schedules/id spec)]
                               spec
                               "schedule deleted")
     ::create (let [spec (assoc spec :payload (valid/select-spec-keys data ssched/create))]
-               (->schedule-spec [::specs/schedules#create (:schedules/id spec)]
+               (->schedule-spec res-key
+                                [::specs/schedules#create (:schedules/id spec)]
                                 spec
                                 "schedule created"))
     (res/->request-spec [::specs/schedules#select note-id] spec)))

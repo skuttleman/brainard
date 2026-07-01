@@ -98,7 +98,7 @@
 
 (defmethod iroutes/handler [:get :routes.resources/export]
   [{::b/keys [apis input] ::w/keys [route] :as req} respond raise]
-  (if-let [note (api.notes/get-note (:notes apis) (:notes/id input))]
+  (if-let [note (api.notes/get-note (:notes apis) input)]
     (let [{:keys [scheme server-name server-port]} req
           host (format "%s://%s:%s" (name scheme) server-name server-port)
           md (export/->markdown host note)]

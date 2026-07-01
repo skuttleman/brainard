@@ -13,12 +13,15 @@
 
 (def ^:private event-hierarchy
   (-> (make-hierarchy)
-      (derive :workspace/tree ::async)
       (derive :note/created ::async)
       (derive :note/updated ::async)
       (derive :note/deleted ::async)
       (derive :notes/deleted ::async)
-      (derive :note/schedules ::async)))
+      (derive :schedules/created ::async)
+      (derive :schedules/deleted ::async)
+      (derive :workspace/created ::async)
+      (derive :workspace/deleted ::async)
+      (derive :workspace/updated ::async)))
 
 (defmulti ^{:arglists '([store event])} event-handler
           (fn [_ [type]]

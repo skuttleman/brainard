@@ -63,10 +63,11 @@
          spec))
 
 (defmethod res/->request-spec ::notes#find
-  [[_ resource-id] spec]
+  [[_ resource-id] {:keys [params] :as spec}]
   (->req {:route  :routes.api/note
           :method :get
-          :params {:notes/id resource-id}}
+          :params {:notes/id     resource-id
+                   :query-params params}}
          spec))
 
 (defmethod res/->request-spec ::notes#create

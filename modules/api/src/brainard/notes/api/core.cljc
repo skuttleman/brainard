@@ -73,9 +73,8 @@
 
 (defn get-note
   "Find note by primary key."
-  [notes-api note-id]
-  (coll-set (storage/query (:store notes-api) {::storage/type ::get-note
-                                               :notes/id      note-id})))
+  [notes-api params]
+  (coll-set (storage/query (:store notes-api) (assoc params ::storage/type ::get-note))))
 
 (defn get-note-history
   "Retrieve the historical versions of a note."

@@ -27,6 +27,8 @@
    [:notes/body scommon/non-empty-trimmed-string]
    [:notes/summary scommon/non-empty-trimmed-string]])
 
+(def archived [:enum {} nil :only :both])
+
 (def create
   [:map
    [:notes/context scommon/non-empty-trimmed-string]
@@ -136,7 +138,7 @@
     [:notes/pinned? {:optional true} true?]
     [:notes/tags {:optional true} [:set keyword?]]
     [:notes/todos {:optional true} [:enum {} nil :complete :incomplete]]
-    [:notes/archived {:optional true} [:enum {} nil :only :both]]]
+    [:notes/archived {:optional true} archived]]
    [:fn {:error/message "must select at least one: ids, tag, topic, body contents, pinned, or archived=only"}
     (some-fn (comp seq :notes/ids)
              (comp some? :notes/body)
