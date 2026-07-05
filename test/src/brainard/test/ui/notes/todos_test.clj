@@ -76,18 +76,20 @@
         (web/wait-optimistic #(eta/visible? driver {:css ".page__note"}))
 
         (testing "and when deselecting the todo"
+          (eta/wait-enabled driver {:css "li.todo input.checkbox"})
           (web/click! driver {:css "li.todo input.checkbox"})
 
           (testing "marks the todo as incomplete"
-            (web/wait-optimistic #(and (eta/visible? driver {:css "li.todo input.checkbox"})
+            (web/wait-optimistic #(and (eta/exists? driver {:css "li.todo input.checkbox"})
                                        (= "false" (eta/get-element-attr driver {:css "li.todo input.checkbox"} "value"))))
             (is (= "false" (eta/get-element-attr driver {:css "li.todo input.checkbox"} "value"))))
 
           (testing "and when selecting the todo"
+            (eta/wait-enabled driver {:css "li.todo input.checkbox"})
             (web/click! driver {:css "li.todo input.checkbox"})
 
             (testing "marks the todo as complete"
-              (web/wait-optimistic #(and (eta/visible? driver {:css "li.todo input.checkbox"})
+              (web/wait-optimistic #(and (eta/exists? driver {:css "li.todo input.checkbox"})
                                          (= "true" (eta/get-element-attr driver {:css "li.todo input.checkbox"} "value"))))
               (is (= "true" (eta/get-element-attr driver {:css "li.todo .checkbox"} "value"))))))))))
 
