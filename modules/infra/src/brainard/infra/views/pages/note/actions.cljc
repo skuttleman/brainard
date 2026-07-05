@@ -103,7 +103,7 @@
     :resource-key (->edit-key note-id)}])
 
 (defmethod ipages/kb-shortcut! [#{:meta} :key-codes/enter]
-  [_ store]
-  (when-let [note-id (:notes/id (store/query store [:local-storage/?:value :notes/active]))]
-    (when (empty? (store/query store [:modals/?:modals]))
-      (store/dispatch! store [:nav/navigate! {:token :routes.ui/note :route-params {:notes/id note-id}}]))))
+  [_ *:store]
+  (when-let [note-id (:notes/id (store/query *:store [:local-storage/?:value :notes/active]))]
+    (when (empty? (store/query *:store [:modals/?:modals]))
+      (store/dispatch! *:store [:nav/navigate! {:token :routes.ui/note :route-params {:notes/id note-id}}]))))

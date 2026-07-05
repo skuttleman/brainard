@@ -370,12 +370,12 @@
       (store/query store [::forms/?:form resource-key]))))
 
 (defmethod ipages/kb-shortcut! [#{:alt :shift} "t"]
-  [_ store]
-  (when-let [form (with-edit-form store)]
-    ((->on-create-todo store (forms/id form)))))
+  [_ *:store]
+  (when-let [form (with-edit-form *:store)]
+    ((->on-create-todo *:store (forms/id form)))))
 
 (defmethod ipages/kb-shortcut! [#{:alt :shift} "l"]
-  [_ store]
-  (when-let [form (with-edit-form store)]
+  [_ *:store]
+  (when-let [form (with-edit-form *:store)]
     (let [form-data (forms/data form)]
-      ((->on-create-link store (forms/id form) (into #{(:notes/id form-data)} (:notes/links form-data)))))))
+      ((->on-create-link *:store (forms/id form) (into #{(:notes/id form-data)} (:notes/links form-data)))))))

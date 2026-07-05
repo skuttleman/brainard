@@ -16,10 +16,9 @@
    "ArrowRight" :key-codes/right
    "ArrowDown"  :key-codes/down
 
-   "å"          "a"
-   "∂"          "d"
-   "˜"          "n"
+   "Î"          "d"
    "Ò"          "l"
+   "˜"          "n"
    "ˇ"          "t"})
 
 (defn event->modifiers

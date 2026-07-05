@@ -10,7 +10,8 @@
    [brainard.infra.views.pages.note.schedules :as note.sched]
    [defacto.forms.core :as forms]
    [defacto.forms.plus :as forms+]
-   [defacto.resources.core :as res]))
+   [defacto.resources.core :as res]
+   [whet.core :as-alias w]))
 
 (defn ^:private attachment-list [note]
   (when-let [attachments (not-empty (:notes/attachments note))]
@@ -233,3 +234,9 @@
   [*:store {{note-id :notes/id} :route-params}]
   ^{:key note-id}
   [page *:store note-id])
+
+(defmethod ipages/kb-shortcut! [#{:alt :shift} "d"]
+  [_ *:store]
+  (when (empty? (store/query *:store [:modals/?:modals]))
+    (let [{:keys [route-params]} (store/query *:store [::w/?:route])]
+      (store/dispatch! *:store [:modals/create! (note.act/->archive-modal route-params)]))))

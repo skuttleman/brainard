@@ -139,6 +139,6 @@
 
 
 (defmethod ipages/kb-shortcut! [#{:alt :shift} "n"]
-  [_ store]
-  (when (empty? (store/query store [:modals/?:modals]))
-    (store/dispatch! store [:modals/create! (->note-create-modal nil #{})])))
+  [_ *:store]
+  (when (empty? (store/query *:store [:modals/?:modals]))
+    (store/dispatch! *:store [:modals/create! (->note-create-modal nil #{})])))
