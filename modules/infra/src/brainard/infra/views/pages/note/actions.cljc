@@ -1,8 +1,10 @@
 (ns brainard.infra.views.pages.note.actions
   (:require
    [brainard.api.validations :as valid]
+   [brainard.infra.store.core :as store]
    [brainard.infra.store.specs :as specs]
    [brainard.infra.views.fragments.note-edit :as-alias note-edit]
+   [brainard.infra.views.pages.interfaces :as ipages]
    [brainard.notes.api.specs :as snotes]
    [defacto.forms.core :as forms]
    [defacto.forms.plus :as forms+]
@@ -40,9 +42,10 @@
                                            :ok-commands [[:toasts/succeed! {:message "previous version of note was reinstated"}]
                                                          [::res/resubmit! [::notes#sync note-id]
                                                           {:params      {:archived :both}
-                                                           :ok-commands [[:core/if :notes/archived?
-                                                                          [:nav/navigate! {:token :routes.ui/home}]
-                                                                          [::res/submit! [::note#history note-id]]]]}]]
+                                                           :ok-commands [:core/if :notes/archived?
+                                                                         [[:nav/navigate! {:token :routes.ui/home}]
+                                                                          [:local-storage/remove! :notes/active]]
+                                                                         [[::res/submit! [::note#history note-id]]]]}]]
                                            :err-commands [[:toasts/fail!]]))
     (res/->request-spec [::specs/notes#find note-id] spec)))
 
@@ -82,7 +85,8 @@
                      (->sync-key note-id)
                      {::action      ::archive
                       :ok-commands  [[:toasts/succeed! {:message "note archived"}]
-                                     [:nav/navigate! {:token :routes.ui/home}]]
+                                     [:nav/navigate! {:token :routes.ui/home}]
+                                     [:local-storage/remove! :notes/active]]
                       :err-commands [[:toasts/fail!]]}]]}])
 
 (defn ->edit-modal
@@ -97,3 +101,9 @@
                    :prev-tags        (:notes/tags note)
                    :prev-todos       (:notes/todos note)}
     :resource-key (->edit-key note-id)}])
+
+(defmethod ipages/kb-shortcut! [#{:meta} :key-codes/enter]
+  [_ store]
+  (when-let [note-id (:notes/id (store/query store [:local-storage/?:value :notes/active]))]
+    (when (empty? (store/query store [:modals/?:modals]))
+      (store/dispatch! store [:nav/navigate! {:token :routes.ui/note :route-params {:notes/id note-id}}]))))

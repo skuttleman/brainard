@@ -1,29 +1,43 @@
 (ns brainard.infra.stubs.dom
   "Some cljc-compatible wrappers for DOM inter-op."
   (:require
-   [whet.utils.dom :as wdom]
-   [clojure.set :as set]))
+   [whet.utils.dom :as wdom]))
 
 (def ^:const window wdom/window)
 (defonce ^:private listeners (atom {}))
 
-(def ^:private key->code
-  {:key-codes/tab   9
-   :key-codes/esc   27
-   :key-codes/enter 13
-   :key-codes/up    38
-   :key-codes/left  37
-   :key-codes/right 39
-   :key-codes/down  40})
+(def ^:private decode-key
+  {"Tab"        :key-codes/tab
+   "Enter"      :key-codes/enter
+   "Escape"     :key-codes/esc
+   " "          :key-codes/space
+   "ArrowLeft"  :key-codes/left
+   "ArrowUp"    :key-codes/up
+   "ArrowRight" :key-codes/right
+   "ArrowDown"  :key-codes/down
 
-(def ^:private code->key (set/map-invert key->code))
+   "å"          "a"
+   "∂"          "d"
+   "˜"          "n"
+   "Ò"          "l"
+   "ˇ"          "t"})
+
+(defn event->modifiers
+  "Return a set of all key modifiers in the event"
+  [e]
+  (cond-> #{}
+    #?@(:cljs
+        [(.-altKey e) (conj :alt)
+         (.-ctrlKey e) (conj :ctrl)
+         (.-metaKey e) (conj :meta)
+         (.-shiftKey e) (conj :shift)])))
 
 (defn event->key
   "Return a keyword representing the event's keyCode."
   [e]
   #?(:cljs
-     (when-let [key-code (some-> e .-keyCode)]
-       (code->key key-code key-code))))
+     (let [key (some-> e .-key)]
+       (decode-key key key))))
 
 (def ^{:arglists '([e])} prevent-default! wdom/prevent-default!)
 (def ^{:arglists '([e])} stop-propagation! wdom/stop-propagation!)

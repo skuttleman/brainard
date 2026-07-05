@@ -217,7 +217,8 @@
                    sub:modals (store/subscribe *:store [:modals/?:modals
                                                         (partial remove (comp #{:modals/sure?}
                                                                               first
-                                                                              :body))])]
+                                                                              :body))])
+                   _ (store/dispatch! *:store [:local-storage/store! :notes/active {:notes/id note-id}])]
     [:div.layout--stack-between
      [comp/with-resource sub:note
       [note-root {:size :large} *:store sub:modals false]

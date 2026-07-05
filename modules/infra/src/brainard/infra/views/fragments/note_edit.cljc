@@ -8,6 +8,7 @@
    [brainard.infra.views.controls.core :as ctrls]
    [brainard.infra.views.fragments.actions :as frag.act]
    [brainard.infra.views.fragments.note-components :as note-comp]
+   [brainard.infra.views.pages.interfaces :as ipages]
    [clojure.string :as string]
    [defacto.forms.core :as forms]
    [defacto.resources.core :as res]
@@ -270,7 +271,9 @@
   (store/with-let [sub:form+ (store/form+-sub *:store resource-key init)
                    sub:contexts (store/res-sub *:store ^:static [::specs/contexts#select])
                    sub:tags (store/res-sub *:store ^:static [::specs/tags#select])
-                   params (update params :ok-commands conj [:modals/remove! modal-id])]
+                   params (update params :ok-commands conj
+                                  [:modals/remove! modal-id]
+                                  [:local-storage/store! :notes/active])]
     [:div {:style {:min-width "50vw"}}
      [note-form {:*:store      *:store
                  :form+        @sub:form+
@@ -355,3 +358,24 @@
                                                  400
                                                  [::res/resubmit! frag.act/link-search-key]]
                                        :event   event})))]])))
+
+(defn ^:private with-edit-form [store]
+  (let [modals (store/query store [:modals/?:modals])]
+    (when-let [[_ {:keys [resource-key]}] (when (= 1 (count modals))
+                                            (->> modals
+                                                 (filter (comp #{:displayed} :state))
+                                                 (map :body)
+                                                 (filter (comp #{::modal} first))
+                                                 first))]
+      (store/query store [::forms/?:form resource-key]))))
+
+(defmethod ipages/kb-shortcut! [#{:alt :shift} "t"]
+  [_ store]
+  (when-let [form (with-edit-form store)]
+    ((->on-create-todo store (forms/id form)))))
+
+(defmethod ipages/kb-shortcut! [#{:alt :shift} "l"]
+  [_ store]
+  (when-let [form (with-edit-form store)]
+    (let [form-data (forms/data form)]
+      ((->on-create-link store (forms/id form) (into #{(:notes/id form-data)} (:notes/links form-data)))))))

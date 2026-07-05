@@ -7,6 +7,7 @@
    [brainard.infra.utils.routing :as rte]
    [brainard.infra.views.pages.core :as pages]
    [brainard.events.infra.handler :as handler]
+   [brainard.infra.views.pages.interfaces :as ipages]
    [defacto.resources.core :as-alias res]
    [whet.core :as w]
    [whet.utils.navigation :as nav]
@@ -36,10 +37,27 @@
                          (store/emit! store [:modals/all-destroyed]))))
   store)
 
+(defn ^:private with-kb! [store]
+  (letfn [(e->dispatch [e]
+            [(dom/event->modifiers e) (dom/event->key e)])]
+    (doto dom/window
+      (dom/add-listener! :keydown
+                         (fn [e]
+                           (when (contains? (methods ipages/kb-shortcut!) (e->dispatch e))
+                             (dom/prevent-default! e))))
+      (dom/add-listener! :keyup
+                         (fn [e]
+                           (when-let [[dispatch] (find (methods ipages/kb-shortcut!) (e->dispatch e))]
+                             (ipages/kb-shortcut! dispatch store)))))
+    store))
+
 (defn store->comp
   "Takes initialized defacto store and returns the component tree"
   [store]
-  (with-nav! store)
+  (-> store
+      (store/dispatch! [:local-storage/init!])
+      with-nav!
+      with-kb!)
   [pages/root store])
 
 (defn start!

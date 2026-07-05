@@ -7,6 +7,7 @@
    [brainard.infra.views.components.core :as comp]
    [brainard.infra.views.components.toasts :as toasts]
    [brainard.infra.views.fragments.note-edit :as note-edit]
+   [brainard.infra.views.pages.interfaces :as ipages]
    [brainard.notes.api.specs :as snotes]
    [brainard.workspace.api.specs :as sws]
    [defacto.forms.core :as forms]
@@ -108,7 +109,7 @@
                      {::ws/id  (::ws/id node)
                       ::action ::destroy}]]}])
 
-(defn ->note-edit-modal
+(defn ->note-create-modal
   "Return modal descriptor for creating a new note prefilled with context and tags."
   [context tags]
   [::note-edit/modal
@@ -135,3 +136,9 @@
    :comp    [drag-item *:store]
    :id      ::workspace
    :on-drop (->on-drop *:store)})
+
+
+(defmethod ipages/kb-shortcut! [#{:alt :shift} "n"]
+  [_ store]
+  (when (empty? (store/query store [:modals/?:modals]))
+    (store/dispatch! store [:modals/create! (->note-create-modal nil #{})])))
