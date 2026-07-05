@@ -42,10 +42,10 @@
                                            :ok-commands [[:toasts/succeed! {:message "previous version of note was reinstated"}]
                                                          [::res/resubmit! [::notes#sync note-id]
                                                           {:params      {:archived :both}
-                                                           :ok-commands [:core/if :notes/archived?
-                                                                         [[:nav/navigate! {:token :routes.ui/home}]
-                                                                          [:local-storage/remove! :notes/active]]
-                                                                         [[::res/submit! [::note#history note-id]]]]}]]
+                                                           :ok-commands [[:core/if :notes/archived?
+                                                                          [[:nav/navigate! {:token :routes.ui/home}]
+                                                                           [:local-storage/remove! :notes/active]]
+                                                                          [[::res/submit! [::note#history note-id]]]]]}]]
                                            :err-commands [[:toasts/fail!]]))
     (res/->request-spec [::specs/notes#find note-id] spec)))
 
