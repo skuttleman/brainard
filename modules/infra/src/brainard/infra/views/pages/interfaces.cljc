@@ -5,7 +5,7 @@
           (fn [_ {:keys [token]}]
             token))
 
-(defmulti ^{:arglists '([[modifier-set key-code] *:store])} kb-shortcut!
+(defmulti ^{:arglists '([*:store [modifier-set key-code]])} kb-shortcut!
           "Handles a global keyboard shortcut"
-          (fn [[modifier-set key-code] _]
+          (fn [_ [modifier-set key-code]]
             [modifier-set key-code]))

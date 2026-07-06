@@ -48,7 +48,7 @@
       (dom/add-listener! :keyup
                          (fn [e]
                            (when-let [[dispatch] (find (methods ipages/kb-shortcut!) (e->dispatch e))]
-                             (ipages/kb-shortcut! dispatch store)))))
+                             (ipages/kb-shortcut! store dispatch)))))
     store))
 
 (defn store->comp

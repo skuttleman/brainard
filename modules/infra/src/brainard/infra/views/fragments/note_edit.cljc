@@ -2,6 +2,7 @@
   (:require
    [brainard.infra.store.core :as store]
    [brainard.infra.store.specs :as-alias specs]
+   [brainard.infra.store.utils :as ustore]
    [brainard.infra.stubs.dom :as dom]
    [brainard.infra.views.components.core :as comp]
    [brainard.infra.views.components.interfaces :as icomp]
@@ -360,22 +361,19 @@
                                        :event   event})))]])))
 
 (defn ^:private with-edit-form [store]
-  (let [modals (store/query store [:modals/?:modals])]
-    (when-let [[_ {:keys [resource-key]}] (when (= 1 (count modals))
-                                            (->> modals
-                                                 (filter (comp #{:displayed} :state))
-                                                 (map :body)
-                                                 (filter (comp #{::modal} first))
-                                                 first))]
+  (let [modals (store/query store [:modals/?:modals (comp (ustore/modals-of-state :displayed)
+                                                          (ustore/modals-of-type ::modal))])]
+    (when-let [{:keys [resource-key]} (ustore/only-modal-attrs modals)]
       (store/query store [::forms/?:form resource-key]))))
 
 (defmethod ipages/kb-shortcut! [#{:alt :shift} "t"]
-  [_ *:store]
+  [*:store _]
   (when-let [form (with-edit-form *:store)]
     ((->on-create-todo *:store (forms/id form)))))
 
 (defmethod ipages/kb-shortcut! [#{:alt :shift} "l"]
-  [_ *:store]
+  [*:store _]
   (when-let [form (with-edit-form *:store)]
     (let [form-data (forms/data form)]
-      ((->on-create-link *:store (forms/id form) (into #{(:notes/id form-data)} (:notes/links form-data)))))))
+      ((->on-create-link *:store (forms/id form) (into #{(:notes/id form-data)}
+                                                       (:notes/links form-data)))))))

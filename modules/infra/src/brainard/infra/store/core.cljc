@@ -80,13 +80,13 @@
                        (= ns-prefix (str target-ns)))))))]
     (let [cleanup (for [[_ form] (reverse (partition 2 bindings))
                         :let [cleanup (when (and (list? form) (this-ns? (first form)))
-                                         (let [[f store k] form]
-                                           (when-not (:static (meta k))
-                                             (case (name f)
-                                               ("res-sub" "res-init-sub") `(emit! ~store [::res/destroyed ~k])
-                                               "form-sub" `(emit! ~store [::forms/destroyed ~k])
-                                               "form+-sub" `(emit! ~store [::forms+/destroyed ~k])
-                                               nil))))]
+                                        (let [[f store k] form]
+                                          (when-not (:static (meta k))
+                                            (case (name f)
+                                              ("res-sub" "res-init-sub") `(emit! ~store [::res/destroyed ~k])
+                                              "form-sub" `(emit! ~store [::forms/destroyed ~k])
+                                              "form+-sub" `(emit! ~store [::forms+/destroyed ~k])
+                                              nil))))]
                         :when cleanup]
                     cleanup)
           [body fin] (let [final (last body)]

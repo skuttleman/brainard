@@ -4,6 +4,7 @@
    [brainard.infra.store.core :as store]
    [brainard.infra.store.commands :as-alias commands]
    [brainard.infra.store.specs :as specs]
+   [brainard.infra.store.utils :as ustore]
    [brainard.infra.views.components.core :as comp]
    [brainard.infra.views.components.toasts :as toasts]
    [brainard.infra.views.fragments.note-edit :as note-edit]
@@ -137,8 +138,7 @@
    :id      ::workspace
    :on-drop (->on-drop *:store)})
 
-
 (defmethod ipages/kb-shortcut! [#{:alt :shift} "n"]
-  [_ *:store]
-  (when (empty? (store/query *:store [:modals/?:modals]))
+  [*:store _]
+  (when (empty? (store/query *:store [:modals/?:modals (ustore/modals-sans-state :hidden)]))
     (store/dispatch! *:store [:modals/create! (->note-create-modal nil #{})])))

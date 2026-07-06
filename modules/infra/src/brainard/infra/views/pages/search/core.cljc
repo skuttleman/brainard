@@ -13,7 +13,8 @@
    [defacto.resources.core :as-alias res]
    [slag.utils.colls :as colls]
    [whet.core :as-alias w]
-   [whet.utils.reagent :as r]))
+   [whet.utils.reagent :as r]
+   brainard.infra.views.pages.search.fulltext))
 
 (defn ^:private ->empty-form [{:keys [archived body context todos] :as query-params} contexts tags]
   (cond-> {:notes/tags     (into #{}

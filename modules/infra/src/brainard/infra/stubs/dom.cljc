@@ -11,6 +11,7 @@
    "Enter"      :key-codes/enter
    "Escape"     :key-codes/esc
    " "          :key-codes/space
+   " "          :key-codes/space
    "ArrowLeft"  :key-codes/left
    "ArrowUp"    :key-codes/up
    "ArrowRight" :key-codes/right

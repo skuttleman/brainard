@@ -3,6 +3,7 @@
    [brainard.api.validations :as valid]
    [brainard.infra.store.core :as store]
    [brainard.infra.store.specs :as specs]
+   [brainard.infra.store.utils :as ustore]
    [brainard.infra.views.fragments.note-edit :as-alias note-edit]
    [brainard.infra.views.pages.interfaces :as ipages]
    [brainard.notes.api.specs :as snotes]
@@ -103,7 +104,7 @@
     :resource-key (->edit-key note-id)}])
 
 (defmethod ipages/kb-shortcut! [#{:meta} :key-codes/enter]
-  [_ *:store]
+  [*:store _]
   (when-let [note-id (:notes/id (store/query *:store [:local-storage/?:value :notes/active]))]
-    (when (empty? (store/query *:store [:modals/?:modals]))
+    (when (empty? (store/query *:store [:modals/?:modals (ustore/modals-sans-state :hidden)]))
       (store/dispatch! *:store [:nav/navigate! {:token :routes.ui/note :route-params {:notes/id note-id}}]))))
