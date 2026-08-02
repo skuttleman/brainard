@@ -167,7 +167,7 @@ jobs:
       - uses: browser-actions/setup-chrome@v2
         id: setup-chrome
         with:
-          chrome-version: 148
+          chrome-version: 150
           install-chromedriver: true
       - name: Run clojurescript unit tests
         run: |
