@@ -1,9 +1,11 @@
 (ns brainard.infra.stubs.dom
   "Some cljc-compatible wrappers for DOM inter-op."
   (:require
+   #?(:cljs [clojure.string :as string])
    [whet.utils.dom :as wdom]))
 
 (def ^:const window wdom/window)
+(def ^:const doc #?(:cljs js/document :default nil))
 (defonce ^:private listeners (atom {}))
 
 (def ^:private decode-key
@@ -17,6 +19,7 @@
    "ArrowRight" :key-codes/right
    "ArrowDown"  :key-codes/down
 
+   "Å"          "a"
    "Î"          "d"
    "Ò"          "l"
    "˜"          "n"
@@ -37,15 +40,23 @@
   [e]
   #?(:cljs
      (let [key (some-> e .-key)]
-       (decode-key key key))))
+       (string/lower-case (decode-key key key)))))
 
 (def ^{:arglists '([e])} prevent-default! wdom/prevent-default!)
 (def ^{:arglists '([e])} stop-propagation! wdom/stop-propagation!)
 (def ^{:arglists '([e])} target-value wdom/target-value)
 (def ^{:arglists '([e])} target-attr wdom/target-attr)
-(def ^{:arglists '([e])} blur! wdom/blur!)
-(def ^{:arglists '([e])} click! wdom/click!)
-(def ^{:arglists '([e])} focus! wdom/focus!)
+(def ^{:arglists '([node])} blur! wdom/blur!)
+(def ^{:arglists '([node])} click! wdom/click!)
+(def ^{:arglists '([node])} focus! wdom/focus!)
+
+(defn query-selector
+  "Queries a DOM node for an ancestor by CSS selector"
+  ([selector]
+   (query-selector doc selector))
+  ([node selector]
+   #?(:cljs
+      (some-> node (.querySelector selector)))))
 
 (defn add-listener!
   "Adds an event listener to a node and stores it. Returns a key which can be used

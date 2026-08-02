@@ -377,3 +377,8 @@
     (let [form-data (forms/data form)]
       ((->on-create-link *:store (forms/id form) (into #{(:notes/id form-data)}
                                                        (:notes/links form-data)))))))
+
+(defmethod ipages/kb-shortcut! [#{:alt :shift} "a"]
+  [*:store _]
+  (when (with-edit-form *:store)
+    (dom/click! (dom/query-selector "input[type=file]"))))
