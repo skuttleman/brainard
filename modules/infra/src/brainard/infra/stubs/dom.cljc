@@ -40,7 +40,7 @@
   [e]
   #?(:cljs
      (let [key (some-> e .-key)]
-       (string/lower-case (decode-key key key)))))
+       (decode-key key (string/lower-case key)))))
 
 (def ^{:arglists '([e])} prevent-default! wdom/prevent-default!)
 (def ^{:arglists '([e])} stop-propagation! wdom/stop-propagation!)
