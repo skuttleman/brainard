@@ -97,10 +97,7 @@
      [comp/with-resource sub:form+ [notes.views/note-list {:*:store    *:store
                                                            :anchor     anchor
                                                            :anchor?    true
-                                                           :hide-init? true}]]]
-    (finally
-      ;; ??? (do other form+'s actually need this?
-      (store/emit! *:store [::res/destroyed (second form-key)]))))
+                                                           :hide-init? true}]]]))
 
 (defmethod ipages/page :routes.ui/search
   [*:store {:keys [query-params] :as route-info}]
