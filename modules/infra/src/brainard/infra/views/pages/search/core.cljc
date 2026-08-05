@@ -13,7 +13,8 @@
    [defacto.resources.core :as-alias res]
    [slag.utils.colls :as colls]
    [whet.core :as-alias w]
-   [whet.utils.reagent :as r]))
+   [whet.utils.reagent :as r]
+   brainard.infra.views.pages.search.fulltext))
 
 (defn ^:private ->empty-form [{:keys [archived body context todos] :as query-params} contexts tags]
   (cond-> {:notes/tags     (into #{}
@@ -96,10 +97,7 @@
      [comp/with-resource sub:form+ [notes.views/note-list {:*:store    *:store
                                                            :anchor     anchor
                                                            :anchor?    true
-                                                           :hide-init? true}]]]
-    (finally
-      ;; ??? (do other form+'s actually need this?
-      (store/emit! *:store [::res/destroyed (second form-key)]))))
+                                                           :hide-init? true}]]]))
 
 (defmethod ipages/page :routes.ui/search
   [*:store {:keys [query-params] :as route-info}]

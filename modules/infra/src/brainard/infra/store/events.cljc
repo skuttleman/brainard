@@ -5,6 +5,23 @@
    [defacto.core :as defacto]
    [defacto.resources.core :as res]))
 
+
+(defmethod defacto/event-reducer :local-storage/initialized
+  [db [_ store]]
+  (assoc db :local-storage/store store))
+
+(defmethod defacto/event-reducer :local-storage/stored
+  [db [_ key value]]
+  (assoc-in db [:local-storage/store key] value))
+
+(defmethod defacto/event-reducer :local-storage/removed
+  [db [_ key]]
+  (update db :local-storage/store dissoc key))
+
+(defmethod defacto/event-reducer :local-storage/cleared
+  [db _]
+  (dissoc db :local-storage/store))
+
 (defmethod defacto/event-reducer :modals/created
   [db [_ modal-id modal]]
   (assoc-in db [:modals/modals modal-id] modal))

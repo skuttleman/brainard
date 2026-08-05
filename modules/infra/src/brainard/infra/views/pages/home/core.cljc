@@ -48,7 +48,7 @@
           filtered-notes (filter (fn [{:notes/keys [tags]}]
                                    (set/subset? tag-filters tags))
                                  pinned-notes)
-          edit-modal (home.act/->note-edit-modal expanded tag-filters)]
+          modal (home.act/->note-create-modal expanded tag-filters)]
       [:section.pinned-notes__section.box
        [:h1.pinned-notes {:style {:font-size "1.5rem"}} [:strong "Pinned notes"]]
        [:div.layout--row
@@ -56,7 +56,7 @@
          [comp/plain-button
           {:*:store  *:store
            :class    ["is-info" "note__create-button"]
-           :commands [[:modals/create! edit-modal]]}
+           :commands [[:modals/create! modal]]}
           "Create note"]]
         [tag-filter {:*:store *:store
                      :form    form}

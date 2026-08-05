@@ -2,12 +2,14 @@
   (:require
    [brainard.infra.store.core :as store]
    [brainard.infra.store.specs :as-alias specs]
+   [brainard.infra.store.utils :as ustore]
    [brainard.infra.stubs.dom :as dom]
    [brainard.infra.views.components.core :as comp]
    [brainard.infra.views.components.interfaces :as icomp]
    [brainard.infra.views.controls.core :as ctrls]
    [brainard.infra.views.fragments.actions :as frag.act]
    [brainard.infra.views.fragments.note-components :as note-comp]
+   [brainard.infra.views.pages.interfaces :as ipages]
    [clojure.string :as string]
    [defacto.forms.core :as forms]
    [defacto.resources.core :as res]
@@ -270,7 +272,9 @@
   (store/with-let [sub:form+ (store/form+-sub *:store resource-key init)
                    sub:contexts (store/res-sub *:store ^:static [::specs/contexts#select])
                    sub:tags (store/res-sub *:store ^:static [::specs/tags#select])
-                   params (update params :ok-commands conj [:modals/remove! modal-id])]
+                   params (update params :ok-commands conj
+                                  [:modals/remove! modal-id]
+                                  [:local-storage/store! :notes/active])]
     [:div {:style {:min-width "50vw"}}
      [note-form {:*:store      *:store
                  :form+        @sub:form+
@@ -355,3 +359,28 @@
                                                  400
                                                  [::res/resubmit! frag.act/link-search-key]]
                                        :event   event})))]])))
+
+(defn ^:private with-edit-form [store]
+  (let [modals (store/query store [:modals/?:modals])]
+    (when (= 1 (count modals))
+      (let [trim-fn (comp (ustore/modals-of-state :displayed)
+                          (ustore/modals-of-type ::modal))]
+        (when-let [{:keys [resource-key]} (ustore/only-modal-attrs (trim-fn modals))]
+          (store/query store [::forms/?:form resource-key]))))))
+
+(defmethod ipages/kb-shortcut! [#{:alt :shift} "t"]
+  [*:store _]
+  (when-let [form (with-edit-form *:store)]
+    ((->on-create-todo *:store (forms/id form)))))
+
+(defmethod ipages/kb-shortcut! [#{:alt :shift} "l"]
+  [*:store _]
+  (when-let [form (with-edit-form *:store)]
+    (let [form-data (forms/data form)]
+      ((->on-create-link *:store (forms/id form) (into #{(:notes/id form-data)}
+                                                       (:notes/links form-data)))))))
+
+(defmethod ipages/kb-shortcut! [#{:alt :shift} "a"]
+  [*:store _]
+  (when (with-edit-form *:store)
+    (dom/click! (dom/query-selector "input[type=file]"))))

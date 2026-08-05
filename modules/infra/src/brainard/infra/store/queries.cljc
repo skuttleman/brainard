@@ -4,6 +4,10 @@
    [defacto.resources.core :as res]
    [slag.utils.maps :as maps]))
 
+(defmethod defacto/query-responder :local-storage/?:value
+  [db [_ key default]]
+  (get-in db [:local-storage/store key] default))
+
 (defmethod defacto/query-responder :modals/?:modals
   [db [_ modifier]]
   (->> (:modals/modals db)

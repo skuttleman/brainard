@@ -1,6 +1,7 @@
 (ns brainard.infra.views.pages.note.core
   (:require
    [brainard.infra.store.core :as store]
+   [brainard.infra.store.utils :as ustore]
    [brainard.infra.views.components.core :as comp]
    [brainard.infra.views.controls.core :as ctrls]
    [brainard.infra.views.fragments.note-components :as note-comp]
@@ -10,7 +11,8 @@
    [brainard.infra.views.pages.note.schedules :as note.sched]
    [defacto.forms.core :as forms]
    [defacto.forms.plus :as forms+]
-   [defacto.resources.core :as res]))
+   [defacto.resources.core :as res]
+   [whet.core :as-alias w]))
 
 (defn ^:private attachment-list [note]
   (when-let [attachments (not-empty (:notes/attachments note))]
@@ -215,9 +217,8 @@
                    sub:note (store/res-sub *:store note-key)
                    sub:sched (store/res-sub *:store sched-key)
                    sub:modals (store/subscribe *:store [:modals/?:modals
-                                                        (partial remove (comp #{:modals/sure?}
-                                                                              first
-                                                                              :body))])]
+                                                        (ustore/modals-sans-type :modals/sure?)])
+                   _ (store/dispatch! *:store [:local-storage/store! :notes/active {:notes/id note-id}])]
     [:div.layout--stack-between
      [comp/with-resource sub:note
       [note-root {:size :large} *:store sub:modals false]
@@ -232,3 +233,9 @@
   [*:store {{note-id :notes/id} :route-params}]
   ^{:key note-id}
   [page *:store note-id])
+
+(defmethod ipages/kb-shortcut! [#{:alt :shift} "d"]
+  [*:store _]
+  (when (empty? (store/query *:store [:modals/?:modals (ustore/modals-sans-state :hidden)]))
+    (let [{:keys [route-params]} (store/query *:store [::w/?:route])]
+      (store/dispatch! *:store [:modals/create! (note.act/->archive-modal route-params)]))))

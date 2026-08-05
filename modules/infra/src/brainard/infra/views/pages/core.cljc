@@ -77,3 +77,19 @@
 (defn root [*:store]
   (store/with-let [router (store/subscribe *:store [::w/?:route])]
     [page *:store @router]))
+
+(defn ^:private switch-tabs [*:store ->location]
+  (let [{:keys [token]} (store/query *:store [::w/?:route])]
+    (store/dispatch! *:store [:nav/navigate! {:token (->location token :routes.ui/home)}])))
+
+(defmethod ipages/kb-shortcut! [#{:alt} :key-codes/tab]
+  [*:store _]
+  (switch-tabs *:store {:routes.ui/home   :routes.ui/search
+                        :routes.ui/search :routes.ui/buzz
+                        :routes.ui/buzz   :routes.ui/trash}))
+
+(defmethod ipages/kb-shortcut! [#{:alt :shift} :key-codes/tab]
+  [*:store _]
+  (switch-tabs *:store {:routes.ui/home  :routes.ui/trash
+                        :routes.ui/trash :routes.ui/buzz
+                        :routes.ui/buzz  :routes.ui/search}))
