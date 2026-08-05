@@ -361,10 +361,12 @@
                                        :event   event})))]])))
 
 (defn ^:private with-edit-form [store]
-  (let [modals (store/query store [:modals/?:modals (comp (ustore/modals-of-state :displayed)
-                                                          (ustore/modals-of-type ::modal))])]
-    (when-let [{:keys [resource-key]} (ustore/only-modal-attrs modals)]
-      (store/query store [::forms/?:form resource-key]))))
+  (let [modals (store/query store [:modals/?:modals])]
+    (when (= 1 (count modals))
+      (let [trim-fn (comp (ustore/modals-of-state :displayed)
+                          (ustore/modals-of-type ::modal))]
+        (when-let [{:keys [resource-key]} (ustore/only-modal-attrs (trim-fn modals))]
+          (store/query store [::forms/?:form resource-key]))))))
 
 (defmethod ipages/kb-shortcut! [#{:alt :shift} "t"]
   [*:store _]

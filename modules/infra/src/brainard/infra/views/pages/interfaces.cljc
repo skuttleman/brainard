@@ -9,3 +9,7 @@
           "Handles a global keyboard shortcut"
           (fn [_ [modifier-set key-code]]
             [modifier-set key-code]))
+
+(defmethod kb-shortcut! :default
+  [_ _]
+  nil)
