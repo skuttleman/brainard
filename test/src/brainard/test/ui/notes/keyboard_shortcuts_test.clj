@@ -36,11 +36,14 @@
           (eta/wait-absent driver {:css ".note-edit__link"}))
 
         (testing "and when adding an attachment"
+          (eta/js-execute driver "window.__fileDialogOpen = false;
+                                  var el = document.querySelector('input[type=file]');
+                                  el.click = function() { window.__fileDialogOpen = true; };")
           (eta/fill-active driver (ek/chord ek/alt-left ek/shift-left "a"))
-          (web/wait-optimistic #(false? (eta/js-execute driver "return document.hasFocus()")))
+          (web/wait-optimistic #(true? (eta/js-execute driver "return window.__fileDialogOpen")))
 
-          (testing "loses focus"
-            (is (false? (eta/js-execute driver "return document.hasFocus()")))))))))
+          (testing "opens the file dialog"
+            (is (true? (eta/js-execute driver "return window.__fileDialogOpen")))))))))
 
 (deftest archive-note-modal-test
   (usys/with-webdriver [driver base-url {fix "search.edn"}]
