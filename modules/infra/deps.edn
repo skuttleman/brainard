@@ -1,15 +1,15 @@
 {:paths   ["resources" "src"]
- :deps    {aleph/aleph                                {:mvn/version "0.9.9"}
+ :deps    {aleph/aleph                                {:mvn/version "0.9.10"}
            brainard/api                               {:local/root "../api"}
-           com.cognitect.aws/api                      {:mvn/version "0.8.824"}
-           com.cognitect.aws/endpoints                {:mvn/version "871.2.44.8"}
-           com.cognitect.aws/s3                       {:mvn/version "871.2.43.0"}
-           com.datomic/local                          {:mvn/version "1.0.291"}
+           com.cognitect.aws/api                      {:mvn/version "0.8.838"}
+           com.cognitect.aws/endpoints                {:mvn/version "871.2.47.0"}
+           com.cognitect.aws/s3                       {:mvn/version "871.2.46.17"}
+           com.datomic/local                          {:mvn/version "1.0.301"}
            commons-fileupload/commons-fileupload      {:mvn/version "1.6.0"}
            duct/core                                  {:mvn/version "0.8.1"}
            io.github.nextjournal/markdown             {:mvn/version "0.7.225"}
            javax.servlet/javax.servlet-api            {:mvn/version "4.0.1"}
-           org.apache.lucene/lucene-core              {:mvn/version "10.4.0"}
+           org.apache.lucene/lucene-core              {:mvn/version "10.5.0"}
            skuttleman/whet                            {:git/url "https://github.com/skuttleman/whet"
                                                        :git/sha "a3f1ba2cb5215439add0d3fef14661a276f69ddf"}}
  :aliases {:test     {:extra-paths ["test/resources" "test/src"]

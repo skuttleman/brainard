@@ -6,7 +6,7 @@
            org.clojure/clojurescript {:mvn/version "1.12.145"}}
  :aliases {:dev      {:extra-paths ["dev/resources" "dev/src"]
                       :extra-deps  {nrepl/nrepl     {:mvn/version "1.7.0"}
-                                    ring/ring-devel {:mvn/version "1.15.4"}}}
+                                    ring/ring-devel {:mvn/version "1.15.5"}}}
            :test     {:extra-paths ["dev/src"
                                     "test/resources"
                                     "test/src"
@@ -22,9 +22,9 @@
                                                                    :deps/root "test-utils"}}}
            :build    {:extra-paths ["tools/src"]
                       :deps        {org.clojure/clojure           {:mvn/version "1.12.5"}
-                                    io.github.clojure/tools.build {:mvn/version "0.10.13"}}
+                                    io.github.clojure/tools.build {:mvn/version "0.10.14"}}
                       :ns-default  brainard.tools.build}
-           :lint     {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2026.05.25"}}
+           :lint     {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2026.07.24"}}
                       :main-opts  ["-m"
                                    "clj-kondo.main"
                                    "--lint"
@@ -36,7 +36,7 @@
                                    "modules/infra/test/src"]}
            :tools    {:extra-paths ["tools/src"]}
            :shadow   {:extra-deps {thheller/shadow-cljs {:mvn/version "3.4.11"}}}
-           :intellij {:extra-deps  {io.github.clojure/tools.build {:mvn/version "0.10.13"}}
+           :intellij {:extra-deps  {io.github.clojure/tools.build {:mvn/version "0.10.14"}}
                       :extra-paths ["modules/api/resources"
                                     "modules/api/src"
                                     "modules/infra/resources"
